@@ -3,331 +3,266 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>cytric Mobile — Amadeus Cytric Travel &amp; Expense</title>
+<meta name="theme-color" content="#0a3d91">
+<title>cytric — Travel &amp; Expense</title>
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-  :root { --blue: #0b5ed7; --blue-dark: #0846a8; --ink: #1d2433; --muted: #6b7385; --line: #e3e6ec; --bg: #f2f3f5; --red: #d0021b; --red-bg: #fdecee; --green: #1a7f37; }
-  * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink);
-    background: linear-gradient(160deg, #0a63e0 0%, #0846a8 100%); display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .stage { display: flex; gap: 40px; align-items: center; }
-  .pitch { color: #fff; max-width: 320px; }
-  .pitch h1 { font-size: 30px; margin: 0 0 12px; }
-  .pitch p { opacity: .9; line-height: 1.5; }
-  .phone { width: 390px; height: 800px; background: #fff; border-radius: 46px; border: 12px solid #e9ebef; box-shadow: 0 30px 70px rgba(0,0,0,.35); overflow: hidden; display: flex; flex-direction: column; position: relative; }
-  .status { height: 40px; display: flex; justify-content: space-between; align-items: center; padding: 0 26px; font-size: 14px; font-weight: 600; }
-  .navbar { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--line); background: #fff; }
-  .navbar h2 { font-size: 17px; margin: 0; font-weight: 600; }
-  .navbar button, .link { background: none; border: 0; color: var(--blue); font-size: 15px; cursor: pointer; padding: 6px 0; }
-  .screen { flex: 1; overflow-y: auto; background: var(--bg); }
-  .screen[hidden] { display: none; }
-  .section { padding: 14px 16px 6px; font-size: 15px; font-weight: 600; }
-  .label { padding: 12px 16px 6px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-  .card { background: #fff; margin: 0 10px 12px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
-  .card-body { padding: 14px 16px; }
-  .trip-img { height: 92px; border-radius: 4px 4px 0 0; position: relative; }
-  .trip-img.nice { background: linear-gradient(180deg, #7fc4f5, #f6d39b); }
-  .trip-img.madrid { background: linear-gradient(180deg, #c98b55, #6d4a2f); }
-  .trip-img .badge { position: absolute; right: 14px; bottom: -18px; width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .trip-date { font-size: 16px; font-weight: 600; }
-  .trip-state { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
-  .task-head { display: flex; gap: 12px; }
-  .task-icon { font-size: 22px; }
-  .task-title { font-weight: 600; font-size: 15px; }
-  .task-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .chip { font-size: 11px; background: #eef3fd; color: var(--blue-dark); padding: 3px 7px; border-radius: 10px; }
-  .chip.warn { background: #fff4e0; color: #8a5a00; }
-  .total { text-align: right; margin-top: 6px; }
-  .total small { display: block; color: var(--muted); font-size: 11px; }
-  .total strong { font-size: 17px; font-weight: 500; }
-  .actions { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding: 10px 16px; }
-  .actions button { background: none; border: 0; font-size: 14px; cursor: pointer; padding: 4px 2px; }
-  .reject { color: var(--red); }
-  .approve { color: var(--blue); font-weight: 600; }
-  .actions button:disabled { opacity: .45; cursor: default; }
-  .details-link { font-size: 13px; color: var(--blue); background: none; border: 0; padding: 8px 0 0; cursor: pointer; }
-  .state-pill { font-size: 12px; font-weight: 600; padding: 10px 16px; border-top: 1px solid var(--line); }
-  .state-pill.ok { color: var(--green); }
-  .error-banner { background: var(--red-bg); color: var(--red); border-left: 4px solid var(--red); margin: 0 10px 12px; padding: 10px 12px; font-size: 13px; line-height: 1.4; border-radius: 3px; }
-  .error-banner strong { display: block; }
-  .seg { display: flex; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 14px; }
-  .seg small { display: block; color: var(--muted); font-size: 12px; }
-  .tabbar { height: 62px; border-top: 1px solid var(--line); display: flex; background: #fff; }
-  .tabbar button { flex: 1; background: none; border: 0; font-size: 11px; color: var(--muted); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-  .tabbar button span { font-size: 19px; }
-  .tabbar button.active { color: var(--blue); }
-  .tabbar .count { position: relative; }
-  .tabbar .count::after { content: attr(data-count); position: absolute; top: -4px; right: -12px; background: var(--red); color: #fff; font-size: 10px; border-radius: 8px; padding: 0 5px; }
-  .signin { padding: 40px 28px; background: #fff; height: 100%; }
-  .logo { font-size: 38px; font-weight: 700; color: var(--blue); letter-spacing: -1px; }
-  .logo small { display: block; font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
-  .field { margin-top: 18px; }
-  .field label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-  .field input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 4px; font-size: 15px; }
-  .primary { width: 100%; margin-top: 26px; background: var(--blue); color: #fff; border: 0; border-radius: 4px; padding: 14px; font-size: 16px; cursor: pointer; }
-  .sheet { position: absolute; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: flex-end; }
-  .sheet[hidden], .modal[hidden], .toast[hidden], .navbar[hidden], .tabbar[hidden] { display: none; }
-  .sheet-inner { background: #fff; width: 100%; border-radius: 12px 12px 0 0; padding: 8px 0 24px; }
-  .sheet-row { padding: 14px 20px; color: var(--blue); border-bottom: 1px solid var(--line); cursor: pointer; }
-  .modal { position: absolute; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 26px; }
-  .modal-inner { background: #fff; border-radius: 12px; padding: 20px; width: 100%; border-top: 6px solid var(--red); }
-  .modal-inner h3 { margin: 0 0 8px; color: var(--red); font-size: 18px; }
-  .modal-inner p { font-size: 14px; line-height: 1.45; margin: 6px 0; }
-  .modal-inner code { font-size: 12px; background: var(--red-bg); color: var(--red); padding: 2px 4px; border-radius: 3px; word-break: break-word; }
-  .modal-ref { font-size: 12px; color: var(--muted); }
-  .toast { position: absolute; left: 20px; right: 20px; bottom: 80px; background: #1d2433; color: #fff; padding: 12px 14px; border-radius: 8px; font-size: 14px; text-align: center; }
-  @media (max-width: 820px) { .pitch { display: none; } body { padding: 0; } .phone { width: 100%; height: 100vh; border: 0; border-radius: 0; } }
+:root{--brand:#0a3d91;--brand-deep:#072b68;--brand-soft:#e9effb;--accent:#1f5eff;--accent-hover:#174ddb;--ink:#0f1a2e;--soft:#5f6b7f;--faint:#9aa4b5;--line:#e3e8f0;--page:#f5f7fb;--white:#fff;--success:#0f7a4f;--success-soft:#e4f5ec;--warn:#9a6700;--warn-soft:#fff5d6;--red:#c62828;--red-soft:#fdecec;--sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--radius:16px;--shadow:0 1px 2px rgba(15,26,46,.04),0 8px 24px rgba(15,26,46,.06)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+html{background:var(--page);min-height:100%}
+body{font-family:var(--sans);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;background:var(--page)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}input{font:inherit}svg{display:block}
+.muted{color:var(--soft);font-size:13px}.mono{font-family:var(--mono);font-size:13px}
+.app{min-height:100vh;display:flex}
+.side{display:none}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.screen{flex:1;width:100%;max-width:720px;margin:0 auto}.screen.screen--full{max-width:none;padding:0}.screen.with-tabs{padding-bottom:88px}
+.section{padding:0 20px 24px}.section--flush{padding-top:0}
+.wordmark{display:inline-flex;align-items:baseline;gap:8px;color:var(--brand)}.wordmark b{font-size:22px;font-weight:800;letter-spacing:-.03em}.wordmark span{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}.wordmark.light,.wordmark.light span{color:var(--white)}.wordmark.light span{opacity:.72}.wordmark.big b{font-size:36px}
+.topbar{display:flex;align-items:center;gap:12px;padding:18px 20px 8px;min-height:64px}.topbar h1{font-size:28px;font-weight:700;letter-spacing:-.02em;flex:1}.topbar .sub{color:var(--soft);font-size:14px;margin-top:2px}
+.topbar--center h1{font-size:17px;text-align:center}.topbar--center{padding:14px 12px 8px;border-bottom:1px solid var(--line);background:var(--white);position:sticky;top:0;z-index:5}
+.iconbtn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;color:var(--ink);flex:none}.iconbtn:hover{background:var(--brand-soft)}.iconbtn svg{width:22px;height:22px}.spacer{width:40px;flex:none}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--accent));color:var(--white);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;letter-spacing:.02em}
+.greeting{padding:12px 20px 4px}.greeting h1{font-size:28px;font-weight:700;letter-spacing:-.02em}.greeting p{color:var(--soft);font-size:14px;margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 20px 8px}.stat{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 16px}.stat b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em}.stat span{display:block;font-size:12px;color:var(--soft);margin-top:2px}
+.section-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:20px 0 10px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px}.card.clickable{width:100%;display:block;transition:box-shadow .15s,border-color .15s,transform .15s}.card.clickable:hover{border-color:#cfd8e6;box-shadow:var(--shadow);transform:translateY(-1px)}
+.ticket__top{display:flex;align-items:center;justify-content:space-between;gap:12px}.ticket__route{display:flex;align-items:center;gap:12px}.ticket__code{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1}.ticket__line{display:flex;align-items:center;gap:4px;color:var(--faint)}.ticket__line i{display:block;width:34px;height:1px;background:currentColor}.ticket__line svg{width:16px;height:16px;color:var(--accent)}
+.ticket__title{font-weight:600;margin-top:10px}.ticket__meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;color:var(--soft);font-size:13px}.ticket__meta b{color:var(--ink);font-weight:500}
+.ticket__foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px;color:var(--soft)}.ticket__foot .cta{color:var(--accent);font-weight:600;display:inline-flex;align-items:center;gap:4px}.ticket__foot .cta svg{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill--ok{background:var(--success-soft);color:var(--success)}.pill--warn{background:var(--warn-soft);color:var(--warn)}.pill--neutral{background:var(--brand-soft);color:var(--brand)}.pill--danger{background:var(--red-soft);color:var(--red)}
+.hero-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin:12px 20px 0}.hero-card .ticket__code{font-size:34px}.hero-card .ticket__line i{width:48px}.hero-card .cities{display:flex;justify-content:space-between;color:var(--soft);font-size:13px;margin-top:6px}.hero-card .ticket__meta{margin-top:14px}
+.actions{display:flex;gap:10px;margin:14px 20px 0}
+.btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 16px;border-radius:12px;font-weight:600;font-size:15px;text-align:center;transition:background .15s,box-shadow .15s}.btn:active{transform:translateY(1px)}.btn svg{width:18px;height:18px}
+.btn--primary{background:var(--accent);color:var(--white)}.btn--primary:hover{background:var(--accent-hover)}.btn--primary:disabled{opacity:.55;cursor:progress}.btn--secondary{background:var(--white);color:var(--ink);border:1px solid var(--line)}.btn--secondary:hover{border-color:#cfd8e6;background:#fafbfd}.btn--secondary:disabled{opacity:.55}.btn--ghost{background:transparent;color:var(--soft)}.btn--ghost:hover{background:var(--brand-soft);color:var(--ink)}.btn--block{width:100%}
+.timeline{position:relative}.segment{display:grid;grid-template-columns:40px 1fr auto;gap:14px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}.segment:first-child{border-top:0;padding-top:0}.segment:last-child{padding-bottom:0}
+.segment__icon{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:inline-flex;align-items:center;justify-content:center}.segment__icon svg{width:20px;height:20px}.segment__title{font-weight:600}.segment__sub{color:var(--soft);font-size:13px;margin-top:2px}.segment__amount{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}.kv:first-child{border-top:0;padding-top:0}.kv:last-child{padding-bottom:0}.kv span{color:var(--soft)}.kv b{font-weight:600;text-align:right}
+.error-card{background:var(--white);border:1px solid #f3c9c9;border-left:4px solid var(--red);border-radius:var(--radius);padding:18px 20px;margin:14px 20px 0}.error-card__head{display:flex;gap:12px;align-items:flex-start}.error-card__icon{width:32px;height:32px;border-radius:50%;background:var(--red-soft);color:var(--red);display:inline-flex;align-items:center;justify-content:center;flex:none}.error-card__icon svg{width:18px;height:18px}.error-card h3{font-size:16px;font-weight:700}.error-card p{color:var(--soft);font-size:14px;margin-top:2px}
+.error-card__code{font-family:var(--mono);font-size:12px;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:14px;color:var(--ink);word-break:break-all}.error-card__actions{display:flex;gap:10px;margin-top:14px}.error-card__actions .btn{flex:none;padding:10px 18px;font-size:14px}
+.list-row{display:grid;grid-template-columns:40px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.list-row:first-child{border-top:0;padding-top:0}.list-row:last-child{padding-bottom:0}.list-row__icon{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:inline-flex;align-items:center;justify-content:center}.list-row__icon svg{width:20px;height:20px}.list-row__title{font-weight:600}.list-row__sub{color:var(--soft);font-size:13px;margin-top:1px}.list-row__right{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.row-actions{display:flex;gap:10px;margin-top:14px}.row-actions .btn{padding:10px 16px;font-size:14px}
+.summary{background:linear-gradient(135deg,var(--brand-deep),var(--brand) 60%,#1a56c4);color:var(--white);border:0}.summary .label{font-size:13px;opacity:.78}.summary .amount{font-size:32px;font-weight:700;letter-spacing:-.02em;margin-top:4px}.summary .note{font-size:13px;opacity:.78;margin-top:4px}
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:8px 8px 12px;z-index:6}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--soft);padding:4px 0;border-radius:10px}.tabbar button[aria-current=page]{color:var(--accent)}.tabbar svg{width:24px;height:24px}
+.signin{min-height:100vh;display:flex;align-items:stretch;width:100%;max-width:none}.signin__brand{flex:1;background:linear-gradient(160deg,var(--brand-deep) 0%,var(--brand) 55%,#1a56c4 100%);color:var(--white);padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.signin__brand::after{content:'';position:absolute;right:-120px;bottom:-160px;width:420px;height:420px;border-radius:50%;border:60px solid rgba(255,255,255,.06)}
+.signin__brand h2{font-size:34px;font-weight:700;letter-spacing:-.02em;margin-top:36px;line-height:1.15;max-width:420px}.signin__brand p{color:rgba(255,255,255,.78);margin-top:12px;max-width:420px;font-size:15px}.signin__foot{color:rgba(255,255,255,.6);font-size:12px}
+.signin__panel{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}.signin__card{width:100%;max-width:400px}.signin__card h3{font-size:22px;font-weight:700;letter-spacing:-.02em}.signin__card .lead{color:var(--soft);font-size:14px;margin-top:4px}.signin__card .btn{margin-top:16px}
+.signin__sso{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;margin-top:20px;background:var(--white)}.signin__sso b{font-size:14px;display:block}.signin__sso span{font-size:12px;color:var(--soft)}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--white);padding:10px 16px;border-radius:999px;font-size:13px;z-index:30;box-shadow:var(--shadow)}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 0 12px}.switch{width:44px;height:26px;border-radius:13px;background:#cbd2df;position:relative;transition:background .15s;flex:none}.switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--white);transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}.switch[aria-checked=true]{background:var(--accent)}.switch[aria-checked=true]::after{left:21px}
+.profile-head{display:flex;gap:16px;align-items:center}.profile-head .avatar{width:56px;height:56px;font-size:18px}.profile-head b{font-size:18px;font-weight:700;display:block}
+@media (min-width:960px){
+  .side{display:flex;flex-direction:column;width:248px;flex:none;background:var(--white);border-right:1px solid var(--line);padding:24px 16px;position:sticky;top:0;height:100vh}
+  .side .wordmark{padding:0 12px 24px}.side nav{display:flex;flex-direction:column;gap:2px}.side nav button{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;font-weight:500;color:var(--soft);width:100%}.side nav button:hover{background:var(--page);color:var(--ink)}.side nav button[aria-current=page]{background:var(--brand-soft);color:var(--brand);font-weight:600}.side nav svg{width:20px;height:20px}
+  .side__user{margin-top:auto;display:flex;align-items:center;gap:12px;padding:12px;border-top:1px solid var(--line)}.side__user b{display:block;font-size:14px}.side__user span{font-size:12px;color:var(--soft)}
+  .tabbar{display:none}.screen.with-tabs{padding-bottom:40px}.screen{padding:12px 0}.mobile-only{display:none}
+  .topbar--center{position:static;background:transparent;border:0}.topbar--center h1{text-align:left;font-size:22px}
+  .signin{min-height:100vh}
+}
+@media (max-width:959px){.signin{flex-direction:column}.signin__brand{padding:40px 24px 32px;min-height:46vh}.signin__brand h2{font-size:28px}.signin__panel{padding:28px 20px 40px;align-items:flex-start}.stats{grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px 4px}.stat{padding:12px}.stat b{font-size:18px}.section,.greeting,.topbar{padding-left:16px;padding-right:16px}.hero-card,.actions,.error-card{margin-left:16px;margin-right:16px}}
 </style>
 </head>
 <body>
-<div class="stage">
-  <div class="pitch">
-    <h1>Amadeus cytric Mobile</h1>
-    <p>Corporate travel &amp; expense: trips, booking on the go, and approving trip requests and expense statements from Tasks.</p>
-    <p style="font-size:13px;opacity:.75">Demo replica &middot; v22.9.8 &middot; iOS, Android &amp; web share the same travel policy rules.</p>
-  </div>
-  <div class="phone" id="phone">
-    <div class="status"><span>9:41</span><span>&#9679;&#9679;&#9679; &#9646;</span></div>
-
-    <section class="screen" id="screen-signin">
-      <form class="signin" id="signin-form">
-        <div class="logo">cytric<small>Travel &amp; Expense by Amadeus</small></div>
-        <div class="field"><label for="company">Company</label><input id="company" value="i:FAO Demo Europe"></div>
-        <div class="field"><label for="user">User</label><input id="user" value="sophie.laurent@ifao-demo.eu"></div>
-        <div class="field"><label for="pass">Password</label><input id="pass" type="password" value="cytric-demo"></div>
-        <button class="primary" type="submit" id="signin-btn">Sign in</button>
-        <p style="font-size:12px;color:var(--muted);margin-top:18px">Single sign-on enabled for your company.</p>
-      </form>
-    </section>
-
-    <div class="navbar" id="navbar" hidden>
-      <button type="button" aria-label="Profile">&#9786;</button>
-      <h2 id="nav-title">My Trips</h2>
-      <button type="button" id="nav-action">Book</button>
-    </div>
-
-    <section class="screen" id="screen-trips" hidden>
-      <div class="section">Trip to Nice</div>
-      <div class="card"><div class="trip-img nice"><div class="badge">&#128188;</div></div>
-        <div class="card-body"><div class="trip-date">15 Dec - 17 Dec 2026</div><div class="trip-state" id="trip-state-TR-48213">Pending approval</div></div></div>
-      <div class="section">Trip to Madrid</div>
-      <div class="card"><div class="trip-img madrid"><div class="badge">&#128188;</div></div>
-        <div class="card-body"><div class="trip-date">9 Dec - 10 Dec 2026</div><div class="trip-state" id="trip-state-TR-48207">Pending approval</div></div></div>
-    </section>
-
-    <section class="screen" id="screen-tasks" hidden>
-      <div id="task-list"></div>
-    </section>
-
-    <section class="screen" id="screen-detail" hidden>
-      <div id="detail"></div>
-    </section>
-
-    <section class="screen" id="screen-expense" hidden>
-      <div class="label">Queued for sending</div>
-      <div class="card"><div class="seg" style="border:0"><div>Conference ticket<small>25 Nov 2026</small></div><strong>49.50 EUR</strong></div></div>
-      <div class="label">Sent</div>
-      <div class="card"><div class="seg" style="border:0"><div>Taxi Heathrow<small>16 Nov 2026</small></div><strong>62.80 GBP</strong></div></div>
-    </section>
-
-    <div class="tabbar" id="tabbar" hidden>
-      <button type="button" data-tab="trips" class="active"><span>&#9992;</span>My Trips</button>
-      <button type="button" data-tab="tasks" id="tab-tasks"><span class="count" id="tasks-count" data-count="2">&#9745;</span>Tasks</button>
-      <button type="button" data-tab="expense"><span>&#129534;</span>Expense</button>
-      <button type="button" data-tab="more"><span>&#8943;</span>More</button>
-    </div>
-
-    <div class="sheet" id="book-sheet" hidden><div class="sheet-inner">
-      <div class="section">Book</div>
-      <div class="sheet-row">&#9992; Flight</div><div class="sheet-row">&#128646; Flight/Train</div><div class="sheet-row">&#127976; Hotel</div><div class="sheet-row">&#128663; Hire car</div><div class="sheet-row" id="book-close" style="color:var(--muted)">Close</div>
-    </div></div>
-
-    <div class="modal" id="error-modal" hidden role="alertdialog" aria-labelledby="error-modal-title"><div class="modal-inner">
-      <h3 id="error-modal-title">Approval failed</h3>
-      <p id="error-modal-text"></p>
-      <p><code id="error-modal-code"></code></p>
-      <p class="modal-ref" id="error-modal-ref"></p>
-      <button class="primary" type="button" id="error-modal-ok" style="margin-top:12px">OK</button>
-    </div></div>
-
-    <div class="toast" id="toast" hidden></div>
-  </div>
-</div>
-
+<div class="app" id="phone"><aside class="side" id="sidebar" hidden aria-label="Main"></aside><div class="main"><main id="screen" class="screen"></main><nav id="tabbar" class="tabbar" hidden aria-label="Main"></nav></div></div>
+<div id="toast" class="toast" hidden role="status"></div>
 <script>
-var APP_NAME = 'cytric Mobile';
-var APP_VERSION = '22.9.8';
+/* cytric web replica for the Amadeus booking-retrieval demo. Synthetic data only. */
+var APP_NAME = 'cytric';
+var APP_VERSION = '26.11.2';
 var REPORT_PATH = '/api/amadeus/cytric/error';
+var CLIENT_ERROR_CODE = 'CYT-TRP-4031';
 var REPORTS_ON = new URLSearchParams(location.search).get('reports') !== 'off';
-var APPROVER = 'Sophie Laurent';
 
-var TRIP_REQUESTS = [
-  {
-    id: 'TR-48213', title: '15/12/2026 - NCE, Nice Côte d\'Azur', traveler: 'Claire Martin', deadline: 'Deadline: 5 Dec 2026, 13:36',
-    purpose: 'Client workshop — Nice', policy: 'EU-SHORT-HAUL', currency: 'EUR', total: 1184.60,
-    segments: [
-      { type: 'flight', label: 'BA 342 LHR → NCE', when: '15 Dec 2026, 07:15', cabin: 'premium_economy', amount: 486.20 },
-      { type: 'flight', label: 'BA 345 NCE → LHR', when: '17 Dec 2026, 18:40', cabin: 'premium_economy', amount: 452.40 },
-      { type: 'hotel', label: 'Hôtel Le Negresco · 2 nights', when: '15–17 Dec 2026', amount: 246.00 }
-    ]
-  },
-  {
-    id: 'TR-48207', title: '09/12/2026 - MAD, Madrid Barajas', traveler: 'Robert Smart', deadline: 'Deadline: 6 Dec 2026, 08:36',
-    purpose: 'Quarterly supplier review', policy: 'EU-SHORT-HAUL', currency: 'EUR', total: 312.40,
-    segments: [
-      { type: 'flight', label: 'IB 3163 LHR → MAD', when: '9 Dec 2026, 09:05', cabin: 'economy', amount: 154.20 },
-      { type: 'flight', label: 'IB 3166 MAD → LHR', when: '10 Dec 2026, 19:30', cabin: 'economy', amount: 158.20 }
-    ]
-  }
+var TRAVELER = { firstName: 'Claire', lastName: 'Martin', email: 'claire.martin@novatech-group.example', company: 'NovaTech Group', costCenter: 'CC-4410 · Product Engineering', approver: 'Thomas Keller' };
+
+var TRIPS = [
+  { id: 'TR-48213', title: 'Customer workshop · Nice', purpose: 'Q4 roadmap workshop with Sophia Antipolis engineering', status: 'Approved', policy: 'EU-SHORT-HAUL', recordLocator: '6KQ2RT', airline: 'British Airways', dates: '17–19 Nov 2026', route: 'LHR → NCE', totalEur: 1184.4, upcoming: true, daysAway: 13,
+    items: [{ type: 'flight', label: 'BA 348 · LHR 07:35 → NCE 10:40 · Premium Economy', amountEur: 412.2 }, { type: 'hotel', label: 'Hôtel Aston La Scala · 2 nights', amountEur: 358.0 }, { type: 'flight', label: 'BA 349 · NCE 18:20 → LHR 19:30 · Premium Economy', amountEur: 414.2 }] },
+  { id: 'TR-48377', title: 'Partner review · Madrid', purpose: 'Quarterly review with Iberia distribution partner', status: 'Pending approval', policy: 'EU-SHORT-HAUL', recordLocator: 'K3M7PV', airline: 'Air France', dates: '2–3 Dec 2026', route: 'CDG → MAD', totalEur: 526.9, upcoming: true, daysAway: 28,
+    items: [{ type: 'flight', label: 'AF 1300 · CDG 09:10 → MAD 11:15 · Economy', amountEur: 168.5 }, { type: 'hotel', label: 'NH Collection Colón · 1 night', amountEur: 189.9 }, { type: 'flight', label: 'AF 1401 · MAD 19:45 → CDG 21:50 · Economy', amountEur: 168.5 }] },
+  { id: 'TR-48102', title: 'Team offsite · Munich', purpose: 'Engineering leadership offsite', status: 'Completed', policy: 'EU-SHORT-HAUL', recordLocator: 'P8WD2L', airline: 'Lufthansa', dates: '21–22 Oct 2026', route: 'MUC → LHR', totalEur: 389.0, upcoming: false,
+    items: [{ type: 'flight', label: 'LH 2231 · MUC 17:05 → LHR 18:00 · Economy', amountEur: 142.0 }, { type: 'hotel', label: 'Motel One Munich-City · 1 night', amountEur: 247.0 }] }
 ];
 
-/* Travel policy rules — mirrors CytricCore/TravelPolicy.swift and apps/6571dc84 core/TravelPolicy.kt */
-var CABIN_LABELS = { economy: 'Economy', premium_economy: 'Premium Economy', business: 'Business', first: 'First' };
+var APPROVALS = [
+  { id: 'TR-48390', traveler: 'Jonas Weber', route: 'FRA → LIS', dates: '24–26 Nov', purpose: 'Customer onboarding · Lisbon', amountEur: 742.3, policy: 'In policy' },
+  { id: 'TR-48402', traveler: 'Priya Natarajan', route: 'LHR → BOS', dates: '1–5 Dec', purpose: 'Boston engineering summit', amountEur: 2318.0, policy: 'Justification attached' }
+];
+var EXPENSES = [
+  { id: 'EXP-2211', title: 'Team offsite · Munich', status: 'Reimbursed', amountEur: 389.0, items: 4, icon: 'receipt' },
+  { id: 'EXP-2238', title: 'Client dinner · London', status: 'Submitted', amountEur: 148.6, items: 1, icon: 'food' },
+  { id: 'EXP-2240', title: 'Customer workshop · Nice', status: 'Draft', amountEur: 0, items: 0, icon: 'plane' }
+];
 
-var TRAVEL_POLICY = {
-  policyId: 'EU-SHORT-HAUL',
-  cabinRules: {
-    economy: { ruleId: 'TP-CAB-Y', maxFareEur: 600, requiresJustification: false },
-    business: { ruleId: 'TP-CAB-J', maxFareEur: 1800, requiresJustification: true },
-    first: { ruleId: 'TP-CAB-F', maxFareEur: 4000, requiresJustification: true }
+/* Airline booking retrieval API (hosted replica of POST /api/amadeus/bookings/retrieve).
+   Since the booking retrieval hardening release (security control SEC-2041) a record locator
+   alone no longer retrieves a PNR: the API answers 403 TRAVELER_VERIFICATION_REQUIRED with a
+   single-use verification token until the identical request carries travelerLastName +
+   verificationToken. This client still sends the locator alone and treats the answer as a failure. */
+var AIRLINE_API = {
+  release: '26.11', control: 'SEC-2041 booking retrieval hardening',
+  retrieve: function (request) {
+    var requestId = uuid();
+    if (!/^[A-Z0-9]{6}$/.test(request.recordLocator || '')) {
+      return { status: 400, body: { success: false, code: 'INVALID_RETRIEVAL_REQUEST', error: 'A record locator is six letters or digits.', requestId: requestId } };
+    }
+    if (request.travelerLastName === undefined && request.verificationToken === undefined) {
+      return { status: 403, body: { success: false, code: 'TRAVELER_VERIFICATION_REQUIRED', errorClass: 'TravelerVerificationRequired', requestId: requestId,
+        error: 'Verify the traveler before retrieving booking ' + request.recordLocator + ': provide the surname on the ticket with the verification token.',
+        verification: { recordLocator: request.recordLocator, requiredField: 'travelerLastName', prompt: 'Enter the surname exactly as it appears on the ticket', token: uuid().replace(/-/g, '').slice(0, 12) + '.' + uuid().replace(/-/g, ''), expiresInSeconds: 600, control: AIRLINE_API.control } } };
+    }
+    return { status: 403, body: { success: false, code: 'TRAVELER_VERIFICATION_REQUIRED', errorClass: 'TravelerVerificationRequired', requestId: requestId, error: 'The verification token is missing, expired or already used.' } };
   }
 };
+/* end airline retrieval api */
 
-function ApprovalError(request, cabin) {
-  this.code = 'CYT-APR-4221';
-  this.errorType = 'ApprovalError.cabinRuleNotFound(cabin: "' + cabin + '", policy: "' + request.policy + '")';
-  this.message = 'No travel policy rule for cabin ' + cabin + ' (trip request ' + request.id + ', policy ' + request.policy + ')';
+function retrieveBooking(trip) {
+  var response = AIRLINE_API.retrieve({ recordLocator: trip.recordLocator, channel: 'cytric-web' });
+  if (response.status === 200 && response.body.success) return response.body.booking;
+  throw new BookingFailure(response.body);
 }
 
-function approveTripRequest(request) {
-  var ruleIds = [];
-  var outOfPolicy = [];
-  request.segments.forEach(function (segment) {
-    if (segment.type !== 'flight') return;
-    var rule = TRAVEL_POLICY.cabinRules[segment.cabin];
-    if (!rule) throw new ApprovalError(request, segment.cabin);
-    ruleIds.push(rule.ruleId);
-    if (segment.amount > rule.maxFareEur) outOfPolicy.push(segment.label);
-  });
-  return { requestId: request.id, status: 'Approved', ruleIds: ruleIds, outOfPolicy: outOfPolicy };
+function BookingFailure(body) {
+  this.backendCode = body.code || 'BOOKING_RETRIEVAL_FAILED';
+  this.backendRequestId = body.requestId || '';
+  this.message = body.error || 'The booking service is unavailable.';
+  this.errorType = 'BookingRetrievalRejected';
 }
-/* end travel policy rules */
+BookingFailure.prototype.reference = function () { return this.backendRequestId ? CLIENT_ERROR_CODE + ' · Ref: ' + this.backendRequestId : CLIENT_ERROR_CODE; };
 
-var state = { tab: 'trips', detail: null, approved: {}, rejected: {}, failures: {} };
-var reported = {};
-
+var state = { tab: 'trips', trip: null, failure: null, loading: false, decisions: {}, reported: {} };
 function $(id) { return document.getElementById(id); }
-function money(value, currency) { return value.toFixed(2) + ' ' + currency; }
-function cabinsOf(request) {
-  var seen = {};
-  return request.segments.filter(function (s) { return s.type === 'flight' && !seen[s.cabin] && (seen[s.cabin] = true); })
-    .map(function (s) { return CABIN_LABELS[s.cabin] || s.cabin; });
-}
-function pendingCount() { return TRIP_REQUESTS.filter(function (r) { return !state.approved[r.id] && !state.rejected[r.id]; }).length; }
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function eur(v) { return '€' + Number(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function uuid() { return (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) { var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); })); }
+function toast(text) { var t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(toast.timer); toast.timer = setTimeout(function () { t.hidden = true; }, 1800); }
+function pill(status) { var tone = status === 'Approved' ? 'ok' : status === 'Pending approval' ? 'warn' : status === 'Rejected' ? 'danger' : 'neutral'; return '<span class="pill pill--' + tone + '">' + esc(status) + '</span>'; }
+function route(trip) { var p = trip.route.split(' → '); return '<div class="ticket__route"><span class="ticket__code">' + esc(p[0]) + '</span><span class="ticket__line"><i></i>' + ICONS.plane + '<i></i></span><span class="ticket__code">' + esc(p[1]) + '</span></div>'; }
+var CITIES = { LHR: 'London Heathrow', NCE: 'Nice Côte d\'Azur', CDG: 'Paris Charles de Gaulle', MAD: 'Madrid Barajas', MUC: 'Munich', FRA: 'Frankfurt', LIS: 'Lisbon', BOS: 'Boston' };
+function city(code) { return CITIES[code] || code; }
+function initials() { return TRAVELER.firstName[0] + TRAVELER.lastName[0]; }
 
-function show(tab) {
-  state.tab = tab;
-  ['signin', 'trips', 'tasks', 'detail', 'expense'].forEach(function (name) { $('screen-' + name).hidden = name !== tab; });
-  var signedIn = tab !== 'signin';
-  $('navbar').hidden = !signedIn;
-  $('tabbar').hidden = !signedIn;
-  var titles = { trips: 'My Trips', tasks: 'Tasks', detail: 'Trip request', expense: 'Expense' };
-  $('nav-title').textContent = titles[tab] || '';
-  $('nav-action').textContent = tab === 'trips' ? 'Book' : (tab === 'detail' ? 'Done' : '');
-  Array.prototype.forEach.call(document.querySelectorAll('.tabbar button'), function (b) {
-    b.classList.toggle('active', b.getAttribute('data-tab') === (tab === 'detail' ? 'tasks' : tab));
-  });
-  if (tab === 'tasks') renderTasks();
-  if (tab === 'detail') renderDetail();
-}
+var ICONS = {
+  trips: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12h18"/></svg>',
+  tasks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><rect x="4" y="4" width="16" height="16" rx="3"/></svg>',
+  expenses: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/><path d="M7 12h.01M17 12h.01"/></svg>',
+  profile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>',
+  plane: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5 4 11l1.5-1.5L12 11l5.5-5.5a1.8 1.8 0 0 1 2.5 2.5L14.5 13.5l1.5 6.5-1.5 1.5-3-5.5-3 3V21l-1.5-1.5L7.5 17 5 16.5 6.5 15Z"/></svg>',
+  hotel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12M3 20h18M7 20v-4h10v4M7 10h3v3H7zM14 10h3v3h-3z"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/></svg>',
+  ticket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z"/><path d="M14 6v12" stroke-dasharray="2 3"/></svg>',
+  receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>',
+  food: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 0-3 3-3 6v3h3v9"/></svg>'
+};
+var TABS = [['trips', 'My trips'], ['tasks', 'Approvals'], ['expenses', 'Expenses'], ['profile', 'Profile']];
 
-function errorBanner(request) {
-  var failure = state.failures[request.id];
-  if (!failure) return '';
-  return '<div class="error-banner" role="alert" data-testid="approval-error"><strong>Approval failed · ' + failure.code + '</strong>' +
-    failure.message + '. The trip request is still pending.</div>';
-}
-
-function taskCard(request, withDetails) {
-  var approved = state.approved[request.id];
-  var chips = cabinsOf(request).map(function (c) { return '<span class="chip' + (c === 'Premium Economy' ? ' warn' : '') + '">' + c + '</span>'; }).join('');
-  return '<div class="card" data-request="' + request.id + '"><div class="card-body"><div class="task-head"><div class="task-icon">&#128188;</div><div style="flex:1">' +
-    '<div class="task-title">' + request.title + '</div><div class="task-sub">' + request.traveler + ' · ' + request.purpose + '</div>' +
-    '<div class="chips">' + chips + '<span class="chip">' + request.policy + '</span></div>' +
-    (withDetails ? '<button class="details-link" type="button" data-open="' + request.id + '">View trip details ›</button>' : '') +
-    '</div></div><div class="total"><small>Total</small><strong>' + money(request.total, request.currency) + '</strong></div></div>' +
-    (approved
-      ? '<div class="state-pill ok" data-testid="approved-' + request.id + '">&#10003; Approved · ' + approved.ruleIds.join(', ') + '</div>'
-      : state.rejected[request.id]
-      ? '<div class="state-pill" data-testid="rejected-' + request.id + '">&#10005; Rejected · ' + state.rejected[request.id] + '</div>'
-      : '<div class="actions"><button class="reject" type="button" data-reject="' + request.id + '">&#10005; Reject</button>' +
-        '<button class="approve" type="button" data-approve="' + request.id + '">&#10003; Approve</button></div>') +
-    '</div>' + errorBanner(request);
+function renderSignIn() {
+  return '<div class="signin"><div class="signin__brand"><div><div class="wordmark light big"><b>cytric</b><span>by Amadeus</span></div><h2>Business travel, end to end.</h2><p>Trips, approvals, expenses and boarding passes in one place — for travelers, managers and finance.</p></div><p class="signin__foot">cytric Travel &amp; Expense · ' + APP_VERSION + '</p></div>' +
+    '<div class="signin__panel"><form class="signin__card" id="signin-form"><h3>Welcome back</h3><p class="lead">Sign in with your company account to continue.</p><div class="signin__sso"><span class="avatar">NT</span><div><b>' + esc(TRAVELER.company) + '</b><span>' + esc(TRAVELER.email) + ' · SSO</span></div></div>' +
+    '<button type="submit" class="btn btn--primary btn--block" data-testid="signin">Continue with SSO</button><p class="muted" style="margin-top:14px;text-align:center;font-size:12px">Single sign-on is managed by your company.</p></form></div></div>';
 }
 
-function renderTasks() {
-  $('task-list').innerHTML = TRIP_REQUESTS.map(function (request) {
-    return '<div class="section" style="font-weight:500">' + request.deadline + '</div>' + taskCard(request, true);
-  }).join('');
+function tripCard(trip) {
+  var p = trip.route.split(' → ');
+  return '<button type="button" class="card clickable" data-open="' + trip.id + '" data-testid="trip-' + trip.id + '"><div class="ticket__top">' + route(trip) + pill(trip.status) + '</div>' +
+    '<div class="ticket__title">' + esc(trip.title) + '</div><div class="ticket__meta"><span><b>' + esc(trip.dates) + '</b></span><span>' + esc(city(p[0])) + ' → ' + esc(city(p[1])) + '</span></div>' +
+    '<div class="ticket__foot"><span>' + esc(trip.airline) + ' · ' + eur(trip.totalEur) + '</span>' + (trip.upcoming && trip.status === 'Approved' ? '<span class="cta">Boarding pass available' + ICONS.chevron + '</span>' : trip.upcoming ? '<span class="cta" style="color:var(--soft)">In ' + trip.daysAway + ' days' + ICONS.chevron + '</span>' : '<span class="cta" style="color:var(--soft)">View trip' + ICONS.chevron + '</span>') + '</div></button>';
 }
 
-function renderDetail() {
-  var request = TRIP_REQUESTS.filter(function (r) { return r.id === state.detail; })[0];
-  if (!request) return;
-  $('detail').innerHTML = '<div class="label">Trip request ' + request.id + '</div>' + taskCard(request, false) +
-    '<div class="label">Itinerary</div><div class="card">' + request.segments.map(function (s) {
-      return '<div class="seg"><div>' + (s.type === 'flight' ? '&#9992; ' : '&#127976; ') + s.label + '<small>' + s.when +
-        (s.cabin ? ' · ' + CABIN_LABELS[s.cabin] : '') + '</small></div><strong>' + money(s.amount, request.currency) + '</strong></div>';
-    }).join('') + '</div>';
+function renderTrips() {
+  var upcoming = TRIPS.filter(function (t) { return t.upcoming; }), past = TRIPS.filter(function (t) { return !t.upcoming; });
+  var planned = upcoming.reduce(function (s, t) { return s + t.totalEur; }, 0);
+  return '<header class="topbar"><div class="wordmark mobile-only"><b>cytric</b><span>by Amadeus</span></div><span style="flex:1"></span><button type="button" class="avatar" data-tab="profile" aria-label="Profile">' + initials() + '</button></header>' +
+    '<div class="greeting"><h1>Good morning, ' + esc(TRAVELER.firstName) + '</h1><p>' + esc(TRAVELER.company) + ' · ' + esc(TRAVELER.costCenter) + '</p></div>' +
+    '<div class="stats"><div class="stat"><b>' + upcoming.length + '</b><span>Upcoming trips</span></div><div class="stat"><b>' + TRIPS.filter(function (t) { return t.status === 'Pending approval'; }).length + '</b><span>Awaiting approval</span></div><div class="stat"><b>' + eur(planned) + '</b><span>Planned spend</span></div></div>' +
+    '<div class="section"><h2 class="section-title">Upcoming</h2>' + upcoming.map(tripCard).join('') + '<h2 class="section-title">Past</h2>' + past.map(tripCard).join('') + '</div>';
 }
 
-function rerender() { if (state.tab === 'tasks') renderTasks(); if (state.tab === 'detail') renderDetail(); $('tasks-count').setAttribute('data-count', String(pendingCount())); }
-
-function onReject(id) {
-  state.rejected[id] = 'Not business critical';
-  delete state.failures[id];
-  $('trip-state-' + id).textContent = 'Rejected';
-  toast('Trip request ' + id + ' rejected');
-  rerender();
+function renderDetail(trip) {
+  var p = trip.route.split(' → ');
+  var rep = state.failure && state.reported['trip/open_boarding_pass/' + state.failure.backendCode + '/' + trip.id];
+  var error = state.failure ? '<section class="error-card" id="booking-error" data-testid="booking-error" role="alert"><div class="error-card__head"><span class="error-card__icon">' + ICONS.alert + '</span><div><h3>We couldn\'t open your booking</h3><p>Please try again later or contact your travel manager.</p></div></div>' +
+    '<div class="error-card__code" id="booking-error-code">' + esc(state.failure.reference()) + '</div><div id="booking-error-ref" class="muted" style="margin-top:6px;font-size:12px">' + (rep && rep.reference ? 'Incident ref ' + esc(rep.reference) : '') + '</div>' +
+    '<div class="error-card__actions"><button type="button" class="btn btn--primary" data-boarding="' + trip.id + '">Retry</button><button type="button" class="btn btn--ghost" data-dismiss="1">Dismiss</button></div></section>' : '';
+  var disabled = state.loading || !trip.upcoming || trip.status !== 'Approved' ? ' disabled' : '';
+  return '<header class="topbar topbar--center"><button type="button" class="iconbtn" data-back="1" aria-label="Back">' + ICONS.back + '</button><h1>' + esc(trip.id) + '</h1><span class="spacer"></span></header>' +
+    '<div class="hero-card">' + route(trip) + '<div class="cities"><span>' + esc(city(p[0])) + '</span><span>' + esc(city(p[1])) + '</span></div><div class="ticket__meta"><span><b>' + esc(trip.title) + '</b></span><span>' + esc(trip.dates) + '</span>' + pill(trip.status) + '</div></div>' +
+    '<div class="actions"><button type="button" class="btn btn--primary" id="trip-boarding-pass" data-boarding="' + trip.id + '"' + disabled + '>' + ICONS.ticket + (state.loading ? 'Opening booking…' : 'Boarding pass') + '</button><button type="button" class="btn btn--secondary" data-boarding="' + trip.id + '"' + disabled + '>Manage flight</button></div>' + error +
+    '<div class="section"><h2 class="section-title">Itinerary</h2><div class="card timeline">' + trip.items.map(function (i) { var parts = i.label.split(' · '); return '<div class="segment"><span class="segment__icon">' + (i.type === 'hotel' ? ICONS.hotel : ICONS.plane) + '</span><div><div class="segment__title">' + esc(parts[0]) + '</div><div class="segment__sub">' + esc(parts.slice(1).join(' · ')) + '</div></div><span class="segment__amount">' + eur(i.amountEur) + '</span></div>'; }).join('') + '</div>' +
+    '<h2 class="section-title">Booking</h2><div class="card"><div class="kv"><span>Airline</span><b>' + esc(trip.airline) + '</b></div><div class="kv"><span>Record locator</span><b class="mono">' + esc(trip.recordLocator) + '</b></div><div class="kv"><span>Travel policy</span><b>' + esc(trip.policy) + '</b></div><div class="kv"><span>Purpose</span><b>' + esc(trip.purpose) + '</b></div><div class="kv"><span>Total</span><b>' + eur(trip.totalEur) + '</b></div></div></div>';
 }
 
-function onApprove(id) {
-  var request = TRIP_REQUESTS.filter(function (r) { return r.id === id; })[0];
-  try {
-    var result = approveTripRequest(request);
-    state.approved[id] = result;
-    delete state.failures[id];
-    $('trip-state-' + id).textContent = 'Approved';
-    toast('Trip request ' + id + ' approved');
-  } catch (error) {
-    if (!(error instanceof ApprovalError)) throw error;
-    state.failures[id] = error;
-    $('error-modal-text').textContent = 'We couldn\'t approve ' + request.traveler + '\'s trip request ' + request.id + '. Please try again later or contact your travel manager.';
-    $('error-modal-code').textContent = error.code + ' · ' + error.message;
-    $('error-modal-ref').textContent = '';
-    $('error-modal').hidden = false;
-    reportFailure(error, request);
-  }
-  rerender();
+function pageHeader(title, sub) { return '<header class="topbar"><div><h1>' + title + '</h1>' + (sub ? '<div class="sub">' + sub + '</div>' : '') + '</div></header>'; }
+
+function renderApprovals() {
+  var pending = APPROVALS.filter(function (a) { return !state.decisions[a.id]; }), decided = APPROVALS.filter(function (a) { return state.decisions[a.id]; });
+  return pageHeader('Approvals', pending.length + ' waiting for you') + '<div class="section"><h2 class="section-title">Waiting for you</h2>' +
+    (pending.length ? '' : '<div class="card muted">All caught up. Nothing waiting for your approval.</div>') +
+    pending.map(function (a) { return '<div class="card" data-testid="approval-' + a.id + '"><div class="ticket__top"><div><div class="ticket__title" style="margin-top:0">' + esc(a.traveler) + '</div><div class="muted">' + esc(a.route) + ' · ' + esc(a.dates) + ' · ' + esc(a.purpose) + '</div></div><b style="font-variant-numeric:tabular-nums">' + eur(a.amountEur) + '</b></div><div style="margin-top:12px">' + pill(a.policy === 'In policy' ? 'Approved' : 'Pending approval').replace(/>[^<]+</, '>' + esc(a.policy) + '<') + '</div><div class="row-actions"><button type="button" class="btn btn--primary" data-approve="' + a.id + '">Approve</button><button type="button" class="btn btn--secondary" data-reject="' + a.id + '">Reject</button></div></div>'; }).join('') +
+    (decided.length ? '<h2 class="section-title">Decided today</h2>' + decided.map(function (a) { return '<div class="card"><div class="ticket__top"><div class="ticket__title" style="margin-top:0">' + esc(a.traveler) + ' · ' + esc(a.route) + '</div>' + pill(state.decisions[a.id]) + '</div></div>'; }).join('') : '') + '</div>';
 }
 
-function toast(text) {
-  $('toast').textContent = text;
-  $('toast').hidden = false;
-  setTimeout(function () { $('toast').hidden = true; }, 2200);
+function renderExpenses() {
+  var icon = { receipt: ICONS.receipt, food: ICONS.food, plane: ICONS.plane };
+  return pageHeader('Expenses', 'Reports, receipts and reimbursements') + '<div class="section"><div class="card summary"><div class="label">Awaiting reimbursement</div><div class="amount">' + eur(148.6) + '</div><div class="note">Next payroll run · 28 Nov</div></div>' +
+    '<h2 class="section-title">Expense reports</h2><div class="card">' + EXPENSES.map(function (e) { return '<div class="list-row"><span class="list-row__icon">' + (icon[e.icon] || ICONS.receipt) + '</span><div class="list-row__body"><div class="list-row__title">' + esc(e.title) + '</div><div class="list-row__sub">' + e.id + ' · ' + e.items + ' item' + (e.items === 1 ? '' : 's') + ' · ' + e.status + '</div></div><div class="list-row__right">' + (e.amountEur ? eur(e.amountEur) : '—') + '</div></div>'; }).join('') + '</div><button type="button" class="btn btn--secondary btn--block" data-toast="Add expense: receipt capture is not part of this demo">Add expense</button></div>';
 }
 
-function showReference(reference) { $('error-modal-ref').textContent = 'Incident ref ' + reference; }
+function renderProfile() {
+  return pageHeader('Profile') + '<div class="section"><div class="card profile-head"><span class="avatar">' + initials() + '</span><div><b>' + esc(TRAVELER.firstName + ' ' + TRAVELER.lastName) + '</b><div class="muted">' + esc(TRAVELER.email) + '</div></div></div>' +
+    '<h2 class="section-title">Travel profile</h2><div class="card"><div class="kv"><span>Company</span><b>' + esc(TRAVELER.company) + '</b></div><div class="kv"><span>Cost centre</span><b>' + esc(TRAVELER.costCenter) + '</b></div><div class="kv"><span>Approver</span><b>' + esc(TRAVELER.approver) + '</b></div><div class="kv"><span>Travel policy</span><b>EU-SHORT-HAUL</b></div></div>' +
+    '<h2 class="section-title">Diagnostics</h2><div class="card"><div class="toggle"><div><div class="list-row__title">Send failure reports</div><div class="muted">Platform failures are reported to the operations bridge. Off with <span class="mono">?reports=off</span>.</div></div><button type="button" role="switch" aria-checked="' + REPORTS_ON + '" class="switch" data-reports="1" aria-label="Send failure reports"></button></div><div class="kv"><span>Version</span><b>cytric web ' + APP_VERSION + '</b></div><div class="kv"><span>Airline API</span><b>release ' + AIRLINE_API.release + '</b></div></div>' +
+    '<button type="button" class="btn btn--secondary btn--block" data-signout="1">Sign out</button></div>';
+}
 
-function reportFailure(error, request) {
-  if (!REPORTS_ON) return;
-  var signature = 'TripRequestApproval/approveTripRequest/' + error.code;
-  if (reported[signature]) {
-    if (reported[signature].reference) showReference(reported[signature].reference);
-    return;
-  }
-  reported[signature] = { reference: null };
-  var cabin = request.segments.filter(function (s) { return s.type === 'flight' && !TRAVEL_POLICY.cabinRules[s.cabin]; })[0];
+function renderSidebar() {
+  return '<div class="wordmark"><b>cytric</b><span>by Amadeus</span></div><nav>' + TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (state.tab === t[0] && !state.trip ? ' aria-current="page"' : '') + '>' + ICONS[t[0]] + t[1] + '</button>'; }).join('') + '</nav>' +
+    '<div class="side__user"><span class="avatar">' + initials() + '</span><div><b>' + esc(TRAVELER.firstName + ' ' + TRAVELER.lastName) + '</b><span>' + esc(TRAVELER.company) + '</span></div></div>';
+}
+
+function render() {
+  var screen = $('screen'), tabbar = $('tabbar'), side = $('sidebar');
+  side.hidden = !state.signedIn; if (state.signedIn) side.innerHTML = renderSidebar();
+  if (!state.signedIn) { screen.className = 'screen screen--full'; screen.innerHTML = renderSignIn(); tabbar.hidden = true; return; }
+  if (state.trip) { screen.className = 'screen'; screen.innerHTML = renderDetail(state.trip); tabbar.hidden = true; return; }
+  screen.className = 'screen with-tabs';
+  screen.innerHTML = state.tab === 'tasks' ? renderApprovals() : state.tab === 'expenses' ? renderExpenses() : state.tab === 'profile' ? renderProfile() : renderTrips();
+  tabbar.hidden = false;
+  var pending = APPROVALS.filter(function (a) { return !state.decisions[a.id]; }).length;
+  tabbar.innerHTML = TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (state.tab === t[0] ? ' aria-current="page"' : '') + '>' + ICONS[t[0]] + t[1] + (t[0] === 'tasks' && pending ? ' (' + pending + ')' : '') + '</button>'; }).join('');
+  window.scrollTo(0, 0);
+}
+
+function openBoardingPass(trip) {
+  state.loading = true; state.failure = null; render();
+  setTimeout(function () {
+    state.loading = false;
+    try {
+      retrieveBooking(trip);
+      toast('Boarding pass ready');
+    } catch (error) {
+      if (!(error instanceof BookingFailure)) throw error;
+      state.failure = error;
+      reportFailure(error, trip);
+    }
+    render();
+    var card = $('booking-error'); if (card) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 450);
+}
+
+function reportFailure(failure, trip) {
+  if (!REPORTS_ON || failure.backendCode !== 'TRAVELER_VERIFICATION_REQUIRED' || !failure.backendRequestId) return;
+  // One incident per planted failure per session: Retry gets a new backend request ID but is the same defect.
+  var signature = 'trip/open_boarding_pass/' + failure.backendCode + '/' + trip.id;
+  if (state.reported[signature]) { state.reported[failure.backendRequestId] = state.reported[signature]; return; }
+  state.reported[signature] = { reference: null };
+  state.reported[failure.backendRequestId] = state.reported[signature];
   fetch(REPORT_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -336,19 +271,18 @@ function reportFailure(error, request) {
       service: 'customer-amadeus-cytric',
       platform: 'web',
       appName: APP_NAME,
-      screen: 'TripRequestApproval',
-      action: 'approveTripRequest',
-      errorType: error.errorType,
-      errorMessage: error.message,
-      errorCode: error.code,
-      stackTrace: (new Error(error.message)).stack || '',
-      requestId: request.id,
-      tripTitle: request.title,
-      traveler: request.traveler,
-      cabin: cabin ? cabin.cabin : 'unknown',
-      policy: request.policy,
-      approver: APPROVER,
-      total: money(request.total, request.currency),
+      screen: 'trip',
+      action: 'open_boarding_pass',
+      reference: uuid(),
+      backendCode: failure.backendCode,
+      backendRequestId: failure.backendRequestId,
+      recordLocator: trip.recordLocator,
+      tripId: trip.id,
+      airline: trip.airline,
+      errorType: failure.errorType,
+      errorMessage: CLIENT_ERROR_CODE + ': airline booking retrieval rejected (' + failure.backendCode + ')',
+      errorCode: CLIENT_ERROR_CODE,
+      stackTrace: (new Error(failure.message)).stack || '',
       device: 'web',
       osVersion: navigator.userAgent.slice(0, 64),
       appVersion: APP_VERSION,
@@ -361,35 +295,28 @@ function reportFailure(error, request) {
     if (response.status !== 202) throw new Error('report rejected');
     return response.json();
   }).then(function (ack) {
-    reported[signature].reference = ack.reference;
-    if (!$('error-modal').hidden) showReference(ack.reference);
+    state.reported[signature].reference = ack.reference;
+    var ref = $('booking-error-ref'); if (ref && ack.reference) ref.textContent = 'Incident ref ' + ack.reference;
   }).catch(function () {
-    delete reported[signature];
+    delete state.reported[signature]; delete state.reported[failure.backendRequestId];
   });
 }
 
-$('signin-form').addEventListener('submit', function (event) { event.preventDefault(); show('trips'); });
-$('tabbar').addEventListener('click', function (event) {
-  var button = event.target.closest('button');
-  if (!button) return;
-  var tab = button.getAttribute('data-tab');
-  if (tab === 'more') return toast('More: check-in, map, currency converter');
-  show(tab);
+document.addEventListener('submit', function (event) { if (event.target.id === 'signin-form') { event.preventDefault(); state.signedIn = true; state.tab = 'trips'; render(); } });
+document.addEventListener('click', function (event) {
+  var b = event.target.closest('button'); if (!b) return;
+  var d = b.dataset;
+  if (d.tab) { state.tab = d.tab; state.trip = null; state.failure = null; render(); }
+  else if (d.open) { state.trip = TRIPS.filter(function (t) { return t.id === d.open; })[0]; state.failure = null; render(); }
+  else if (d.back) { state.trip = null; state.failure = null; render(); }
+  else if (d.boarding) { openBoardingPass(TRIPS.filter(function (t) { return t.id === d.boarding; })[0]); }
+  else if (d.dismiss) { state.failure = null; render(); }
+  else if (d.approve || d.reject) { var id = d.approve || d.reject; state.decisions[id] = d.approve ? 'Approved' : 'Rejected'; toast(id + ' ' + state.decisions[id].toLowerCase()); render(); }
+  else if (d.reports) { REPORTS_ON = !REPORTS_ON; render(); }
+  else if (d.signout) { state.signedIn = false; state.trip = null; state.failure = null; render(); }
+  else if (d.toast) { toast(d.toast); }
 });
-$('phone').addEventListener('click', function (event) {
-  var target = event.target.closest('button');
-  if (!target) return;
-  if (target.getAttribute('data-approve')) onApprove(target.getAttribute('data-approve'));
-  if (target.getAttribute('data-reject')) onReject(target.getAttribute('data-reject'));
-  if (target.getAttribute('data-open')) { state.detail = target.getAttribute('data-open'); show('detail'); }
-});
-$('nav-action').addEventListener('click', function () {
-  if (state.tab === 'trips') $('book-sheet').hidden = false;
-  if (state.tab === 'detail') show('tasks');
-});
-$('book-close').addEventListener('click', function () { $('book-sheet').hidden = true; });
-$('error-modal-ok').addEventListener('click', function () { $('error-modal').hidden = true; });
-show('signin');
+render();
 </script>
 </body>
 </html>
