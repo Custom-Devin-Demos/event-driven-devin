@@ -52,6 +52,7 @@ describe('7cef5900 patient booking', () => {
     expect(res.body.practitioners).toHaveLength(PRACTITIONERS.length);
     res.body.practitioners.forEach((p) => expect(p.days).toHaveLength(5));
     expect(searchPractitioners()[0].days.some((d) => d.times.length > 0)).toBe(true);
+    expect(searchPractitioners({ from: new Date(2026, 10, 4, 0, 30) })[0].days[0].date).toBe('2026-11-04');
   });
 
   test('rejects an invalid booking with 400 and no alert', async () => {
@@ -71,6 +72,7 @@ describe('7cef5900 patient booking', () => {
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.customer).toBe('7cef5900');
+    expect(alert.skipVulnerablePr).toBe(true);
     expect(alert.errorType).toBe('ActiveRecord::QueryCanceled');
     expect(alert.promptAppendix).toContain('COG-GTM/doctolib-grand-public');
     expect(alert.promptAppendix).toContain('20261012141500_consolidate_appointment_indexes');

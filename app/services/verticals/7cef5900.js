@@ -61,7 +61,8 @@ function buildSlots(practitioner, from = new Date()) {
     day.setDate(base.getDate() + dayIndex);
     const offset = (practitioner.id.charCodeAt(4) + dayIndex) % SLOT_TIMES.length;
     const times = Array.from({ length: count }, (_, i) => SLOT_TIMES[(offset + i * 2) % SLOT_TIMES.length]).sort();
-    return { date: day.toISOString().slice(0, 10), times };
+    const date = [day.getFullYear(), day.getMonth() + 1, day.getDate()].map((n) => String(n).padStart(2, '0')).join('-');
+    return { date, times };
   });
 }
 
@@ -158,6 +159,7 @@ function reportBookingOutage({ requestId, durationMs, plan, practitioner, data }
     verticalLabel: 'Prise de rendez-vous patient',
     promptAppendix: buildDirective({ practitioner, plan, requestId }),
     customer: '7cef5900',
+    skipVulnerablePr: true,
     slackMemberId: data.devinEmail ? '' : SLACK_MEMBER_ID,
     slackMemberIdFallback: SLACK_MEMBER_ID,
     tags: [
