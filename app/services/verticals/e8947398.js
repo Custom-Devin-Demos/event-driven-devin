@@ -83,6 +83,7 @@ const PATIENTS = {
       { icd10: 'E11.3293', text: 'Type 2 diabetes w/ mild NPDR without macular edema, bilateral' },
       { icd10: 'H25.13', text: 'Age-related nuclear cataract, bilateral' },
     ],
+    measures: ['MIPS #12 \u2014 POAG optic nerve evaluation', 'MIPS #117 \u2014 Diabetes: eye exam', 'MIPS #130 \u2014 Current medications documented', 'MIPS #191 \u2014 Cataracts: 20/40 VA within 90 days'],
     plan: 'Continue latanoprost OU. Add OCTA to rule out NV given new hemes. RTC 3 months with HVF 24-2.',
     charges: [
       { cpt: '92014', modifier: '25', dx: 'H40.1132' },
@@ -113,6 +114,7 @@ const PATIENTS = {
       { icd10: 'H35.3221', text: 'Exudative AMD, left eye, with active CNV' },
       { icd10: 'Z96.1', text: 'Pseudophakia, bilateral' },
     ],
+    measures: ['MIPS #14 \u2014 AMD: dilated macular examination', 'MIPS #130 \u2014 Current medications documented'],
     plan: 'Intravitreal aflibercept 2 mg OS today. Extend to q10wk if dry at next visit.',
     charges: [
       { cpt: '92134', modifier: '', dx: 'H35.3221' },
@@ -138,6 +140,7 @@ const PATIENTS = {
       { label: 'Optic Nerve', od: 'C/D 0.55', os: 'C/D 0.50' },
     ],
     problems: [{ icd10: 'H40.013', text: 'Open angle with borderline findings, low risk, bilateral' }],
+    measures: ['MIPS #130 \u2014 Current medications documented', 'MIPS #226 \u2014 Tobacco use screening'],
     plan: 'Baseline HVF 24-2 and RNFL OCT. Observe, RTC 6 months.',
     charges: [
       { cpt: '92004', modifier: '', dx: 'H40.013' },
@@ -193,7 +196,7 @@ function getChart(patientId) {
   return {
     ...summarize(p),
     chiefComplaint: p.chiefComplaint, hpi: p.hpi, va: p.va, iop: p.iop, exam: p.exam,
-    problems: p.problems, plan: p.plan, iopHistory: p.iopHistory,
+    problems: p.problems, measures: p.measures, plan: p.plan, iopHistory: p.iopHistory,
     charges: p.charges.map((c) => ({ ...c, units: c.units || 1, description: CPT_CODES[c.cpt] })),
   };
 }
@@ -235,6 +238,7 @@ async function signEncounter(data) {
     const totals = lines.reduce((acc, l) => ({
       allowed: acc.allowed + l.allowed, patient: acc.patient + l.patientResponsibility,
     }), { allowed: 0, patient: 0 });
+    const patientShare = Math.min(totals.patient + patient.copay, totals.allowed);
 
     incrementMetric('encounter.sign.success', { route: ROUTE, payer: patient.payer });
     recordTiming('encounter.sign.latency', Date.now() - startTime, { route: ROUTE });
@@ -247,8 +251,8 @@ async function signEncounter(data) {
       dateOfService: DATE_OF_SERVICE,
       payer: schedule.name,
       lines,
-      expectedReimbursement: round2(totals.allowed - totals.patient),
-      patientResponsibility: round2(totals.patient + patient.copay),
+      expectedReimbursement: round2(totals.allowed - patientShare),
+      patientResponsibility: round2(patientShare),
       claimStatus: 'Queued for scrubber',
       signedBy: patient.provider,
       signedAt: new Date().toISOString(),

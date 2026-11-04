@@ -180,12 +180,7 @@
         </div>
         <div class="side">
           <div class="card"><h5>Chart Completion</h5><div class="pad"><div style="display:flex;justify-content:space-between"><span>Documentation score</span><b>100%</b></div><div class="meter"><b style="width:100%"></b></div><span style="color:var(--muted)">All required elements documented for E/M level.</span></div></div>
-          <div class="card"><h5>Documentation Alerts</h5><div class="pad"><ul class="alerts">
-            <li><i>&#10003;</i><span>MIPS #12 &mdash; POAG optic nerve evaluation</span></li>
-            <li><i>&#10003;</i><span>MIPS #117 &mdash; Diabetes: eye exam</span></li>
-            <li><i>&#10003;</i><span>MIPS #130 &mdash; Current medications documented</span></li>
-            <li><i>&#10003;</i><span>MIPS #191 &mdash; Cataracts: 20/40 VA within 90 days</span></li>
-          </ul></div></div>
+          <div class="card"><h5>Documentation Alerts</h5><div class="pad"><ul class="alerts" id="measures"></ul></div></div>
           <div class="sign">
             <label><input type="checkbox" id="attest" checked> I attest that I personally performed the services documented in this encounter and that the charges reflect the care provided.</label>
             <button type="button" class="btn-blue" id="signBtn">Sign &amp; Send to Billing</button>
@@ -289,6 +284,7 @@
             return '<div class="val" style="justify-content:flex-end">' + pills(e.od) + '</div><div class="lbl">' + esc(e.label) + '</div><div class="val">' + pills(e.os) + '</div>';
           }).join('');
           $('probBody').innerHTML = c.problems.map(function (p) { return '<tr><td class="code">' + esc(p.icd10) + '</td><td>' + esc(p.text) + '</td></tr>'; }).join('');
+          $('measures').innerHTML = c.measures.map(function (m) { return '<li><i>&#10003;</i><span>' + esc(m) + '</span></li>'; }).join('');
           $('plan').textContent = c.plan;
           $('chgBody').innerHTML = c.charges.map(function (x) { return '<tr><td class="code">' + esc(x.cpt) + '</td><td>' + esc(x.modifier || '\u2014') + '</td><td>' + x.units + '</td><td>' + esc(x.description) + '</td><td class="code">' + esc(x.dx) + '</td></tr>'; }).join('');
           $('result').innerHTML = ''; $('attest').checked = true;

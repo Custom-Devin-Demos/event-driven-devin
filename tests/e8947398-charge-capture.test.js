@@ -25,6 +25,7 @@ describe('Nextech IntelleChartPRO charge capture (e8947398)', () => {
   test('Aetna PPO new patient adds copay to patient responsibility', async () => {
     const result = await signEncounter({ patientId: 'NX-104655' });
     expect(result.patientResponsibility).toBeCloseTo(71.54, 2);
+    expect(result.expectedReimbursement + result.patientResponsibility).toBeCloseTo(315.40, 2);
   });
 
   test('schedule and chart expose glaucoma IOP history', () => {
