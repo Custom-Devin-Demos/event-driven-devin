@@ -21,6 +21,7 @@ const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
 const { createReservation } = require('../services/oncall-verticals/evreservation');
 const { checkCoverage } = require('../services/oncall-verticals/coveragecheck');
+const { getAvailability: getPatientAvailability, bookAppointment } = require('../services/oncall-verticals/patientscheduling');
 const { createDeployment } = require('../services/oncall-verticals/privatecloud');
 const { filterPortfolio } = require('../services/oncall-verticals/portfoliofilter');
 const { answerResearchQuery } = require('../services/oncall-verticals/research');
@@ -889,6 +890,48 @@ router.post('/api/oncall/coveragecheck/coverage', async (req, res) => {
       error: 'Something went wrong. Please try again.',
       errorClass: error.name,
       code: error.code || 'COVERAGE_CHECK_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/patientscheduling/availability — open times for a
+ * provider at a location
+ */
+router.post('/api/oncall/patientscheduling/availability', (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(getPatientAvailability({ providerId: body.providerId, locationId: body.locationId }));
+  } catch (error) {
+    res.status(error.code === 'INVALID_BOOKING' ? 400 : 500).json({
+      success: false,
+      error: error.code === 'INVALID_BOOKING' ? error.message : 'We couldn\'t load open times. Please try again.',
+      errorClass: error.name,
+      code: error.code || 'AVAILABILITY_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/patientscheduling/appointments — book an open time
+ */
+router.post('/api/oncall/patientscheduling/appointments', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await bookAppointment({
+      providerId: body.providerId,
+      locationId: body.locationId,
+      visitType: body.visitType,
+      slotId: body.slotId,
+    }));
+  } catch (error) {
+    res.status(error.code === 'INVALID_BOOKING' ? 400 : 500).json({
+      success: false,
+      error: error.code === 'INVALID_BOOKING' ? error.message : 'This time can\'t be booked right now.',
+      errorClass: error.name,
+      code: error.code || 'BOOKING_FAILED',
       requestId: req.requestId,
     });
   }

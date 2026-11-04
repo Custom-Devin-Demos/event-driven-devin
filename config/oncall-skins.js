@@ -8144,6 +8144,27 @@ const ONCALL_SKINS = {
     page: { file: '6938003e.html', title: 'Cloud-based platform for biotech R&D | Benchling' },
     disclaimer: 'NOT ACTUALLY A BENCHLING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Benchling product.',
   },
+  '56ddb972': {
+    slug: '56ddb972',
+    company: 'Nextech',
+    brandMark: 'N',
+    vertical: 'patientscheduling',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '56ddb972.html', title: 'Book an appointment | Nextech' },
+    theme: {
+      '--accent': '#BDE038',
+      '--ink': '#2C2C2C',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#2E4357',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Nextech Client Support',
+    alertCard: {
+      title: '5xx rate \u2014 Online booking: Book appointment',
+    },
+    disclaimer: 'NOT ACTUALLY A NEXTECH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nextech product.',
+  },
   '2bca8af5': {
     slug: '2bca8af5',
     company: 'Conservice',
