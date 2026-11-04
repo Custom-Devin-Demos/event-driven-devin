@@ -8110,6 +8110,33 @@ const ONCALL_SKINS = {
     page: { file: '6938003e.html', title: 'Cloud-based platform for biotech R&D | Benchling' },
     disclaimer: 'NOT ACTUALLY A BENCHLING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Benchling product.',
   },
+  '2bca8af5': {
+    slug: '2bca8af5',
+    company: 'Conservice',
+    brandMark: 'C',
+    vertical: 'banking',
+    oncallOnly: true,
+    failAfterHang: true,
+    alertDestination: 'slack',
+    page: { file: '2bca8af5.html', title: 'Make a Payment | Conservice Resident Portal' },
+    theme: {
+      '--accent': '#77BC1F',
+      '--ink': '#263746',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#263746',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Conservice Resident Support',
+    alertCard: {
+      title: '5xx rate \u2014 Resident portal: Submit Payment',
+      release: 'resident-payments@2026.11.1',
+      team: 'resident-payments-oncall',
+      metricValue: '504 on ~100% of utility bill payments',
+      symptom: 'Utility bill payments in the resident portal hang ~9s after the resident selects Submit Payment, then fail with a gateway timeout. The payment method is not charged.',
+      impact: 'Residents cannot pay their utility statements online; every payment waits about 9 seconds and then fails, and residents contact Resident Support instead.',
+    },
+    disclaimer: 'NOT ACTUALLY A CONSERVICE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Conservice product.',
+  },
 };
 
 function getOncallSkin(slug) {
