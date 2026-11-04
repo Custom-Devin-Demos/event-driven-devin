@@ -41,6 +41,8 @@ describe('Bumble people deck (0f066b5c)', () => {
     expect(state.people[0].id).toBe('mem_maya_k');
     expect(state.people.every((p) => !('likedYou' in p))).toBe(true);
     expect(state.likedYouCount).toBe(3);
+    expect(state.likedYouIds).toHaveLength(3);
+    expect(state.likedYouIds).not.toContain(state.people.find((p) => p.name === 'Aisha').id);
   });
 
   test('liking an ID-verified profile throws the planted TypeError and alerts', async () => {

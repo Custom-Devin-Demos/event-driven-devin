@@ -14,7 +14,7 @@ Two stories run on the same page:
 | 1 | Open `/bumble` | People deck loads Maya, 29 — *ID verified* badge, Opening Move |
 | 2 | **Like** (yellow check) | `POST /api/0f066b5c/swipes` returns 500, the "Something went wrong" sheet opens, the ops rail logs the 500 |
 | 3 | — | `createSessionAndAlert` posts the alert to `#automated-alerts` and starts a Devin session in the presenter's org |
-| 4 | **Keep swiping** → Pass → Like on Priya | Photo-verified profiles still match ("It's a match!" + Opening Move) |
+| 4 | **Keep swiping** (skips Maya) → Like on Priya | Photo-verified profiles still match ("It's a match!" + Opening Move) |
 
 Root cause (keep it — it is the demo): `VERIFICATION_TRUST` in
 `app/services/verticals/0f066b5c.js` only knows `photo` and `selfie_video`.

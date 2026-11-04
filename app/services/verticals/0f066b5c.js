@@ -139,6 +139,7 @@ function getAppState() {
     viewer: VIEWER,
     people: PEOPLE.map((p) => Object.fromEntries(Object.entries(p).filter(([key]) => key !== 'likedYou'))),
     likedYouCount: PEOPLE.filter((p) => p.likedYou).length,
+    likedYouIds: PEOPLE.filter((p) => p.likedYou).map((p) => p.id),
     matches: MATCHES,
   };
 }

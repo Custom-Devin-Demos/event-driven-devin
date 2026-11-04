@@ -49,7 +49,7 @@
     .card { border-radius: 20px; overflow: hidden; background: #fff; box-shadow: 0 2px 14px rgba(0,0,0,0.08); transition: transform .35s ease, opacity .35s ease; }
     .card.out-left { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
     .card.out-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
-    .hero { position: relative; height: 470px; background: #ddd center/cover no-repeat; }
+    .hero { position: relative; height: 392px; background: #ddd center/cover no-repeat; }
     .hero::after { content: ''; position: absolute; inset: 55% 0 0 0; background: linear-gradient(transparent, rgba(0,0,0,0.65)); }
     .hero .meta { position: absolute; left: 18px; right: 18px; bottom: 16px; color: #fff; z-index: 2; }
     .hero .name { font-size: 30px; font-weight: 800; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
@@ -453,7 +453,7 @@
         $('error-sheet').classList.add('open');
       }
       $('err-retry').onclick = function () { $('error-sheet').classList.remove('open'); swipe(state.lastSwipe || 'like'); };
-      $('err-close').onclick = function () { $('error-sheet').classList.remove('open'); };
+      $('err-close').onclick = function () { $('error-sheet').classList.remove('open'); advance('pass'); };
 
       function openMatch(p, match) {
         $('match-copy').textContent = 'You and ' + p.name + ' liked each other. You have 24 hours to reply to ' + p.name + '\'s Opening Move.';
@@ -513,7 +513,8 @@
         $('liked-sub').textContent = data.likedYouCount + ' people already liked you. When someone swipes right on you, you\'ll be able to find them right here.';
         var cards = data.people.map(function (p) { return '<div class="disc-card" style="background-image:url(\'' + esc(p.photo) + '\')"><div>' + esc(p.name) + ', ' + esc(p.age) + '<small>' + esc(p.interests[0]) + ' · ' + esc(p.distance) + '</small></div></div>'; }).join('');
         $('disc-grid').innerHTML = cards;
-        $('liked-grid').innerHTML = cards;
+        var likedIds = data.likedYouIds || [];
+        $('liked-grid').innerHTML = data.people.filter(function (p) { return likedIds.indexOf(p.id) !== -1; }).map(function (p) { return '<div class="disc-card" style="background-image:url(\'' + esc(p.photo) + '\')"><div>' + esc(p.name) + ', ' + esc(p.age) + '<small>' + esc(p.interests[0]) + ' · ' + esc(p.distance) + '</small></div></div>'; }).join('');
         renderCard(); renderChats(); kpis();
         log('ok', 'READY', 'People deck loaded · ' + data.people.length + ' profiles near ' + data.viewer.city);
       }).catch(function () { toast('Could not load Bumble. Pull to refresh.'); });
