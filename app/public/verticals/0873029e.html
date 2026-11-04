@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pricing runs | Equities Risk &amp; Pricing | Barclays Investment Bank</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #006DE3;
+      --ink: #212529;
+      --surface: #FFFFFF;
+      --chrome-bg: #1A2142;
+      --chrome-text: #FFFFFF;
+      --cyan: #00AEEF;
+      --page: #F4F5F7;
+      --line: color-mix(in srgb, var(--ink) 14%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 70%, var(--surface));
+      --up: #00703C;
+      --down: #C8102E;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 'Hanken Grotesk', Verdana, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1240px; margin: auto; padding: 0 24px; }
+    .num { font-variant-numeric: tabular-nums; }
+
+    .site-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .header-row { display: flex; align-items: center; gap: 16px; min-height: 68px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; color: var(--cyan); }
+    .brand svg { display: block; flex: none; }
+    .brand-name { font-size: 22px; font-weight: 700; letter-spacing: .08em; line-height: 1; }
+    .brand-sub { padding-left: 12px; border-left: 1px solid var(--line); color: var(--ink); font-size: 16px; font-weight: 500; white-space: nowrap; }
+    .app-name { color: var(--muted); font-size: 15px; font-weight: 500; white-space: nowrap; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 15px; }
+    .env { padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, var(--cyan) 14%, var(--surface)); color: var(--chrome-bg); font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .user { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--chrome-bg); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border: 1px solid var(--accent); border-radius: 24px; background: var(--surface); color: var(--accent); font-weight: 500; text-decoration: none; }
+
+    .app-nav { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .app-nav .wrap { display: flex; gap: 28px; overflow-x: auto; }
+    .app-nav a { min-height: 48px; display: inline-flex; align-items: center; color: var(--ink); font-weight: 500; text-decoration: none; white-space: nowrap; }
+    .app-nav a.current { color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+
+    .band { background: var(--chrome-bg); color: var(--chrome-text); }
+    .band .wrap { padding-top: 30px; padding-bottom: 88px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .eyebrow { margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); }
+    .band h1 { margin: 0; font-size: clamp(30px, 4vw, 40px); font-weight: 700; line-height: 1.15; }
+    .band p { margin: 10px 0 0; max-width: 640px; font-size: 17px; color: color-mix(in srgb, var(--chrome-text) 82%, var(--chrome-bg)); }
+    .asof { display: grid; gap: 2px; text-align: right; font-size: 14px; color: color-mix(in srgb, var(--chrome-text) 78%, var(--chrome-bg)); }
+    .asof b { color: var(--chrome-text); font-weight: 500; }
+
+    main .wrap { margin-top: -60px; padding-bottom: 56px; }
+    .card { background: var(--surface); border-radius: 8px; box-shadow: 0 2px 10px rgba(26, 33, 66, .08); }
+    .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .tile { padding: 18px 20px; border-top: 3px solid var(--cyan); }
+    .tile .label { color: var(--muted); font-size: 14px; }
+    .tile .value { margin-top: 2px; font-size: 26px; font-weight: 700; line-height: 1.25; }
+    .tile .meta { margin-top: 2px; font-size: 13px; color: var(--muted); }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .9fr); gap: 24px; align-items: start; }
+    .panel { padding: 28px; }
+    .panel h2 { margin: 0 0 4px; font-size: 26px; font-weight: 500; line-height: 1.2; }
+    .panel .sub { margin: 0 0 22px; color: var(--muted); }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; margin-bottom: 6px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 50px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--ink) 45%, var(--surface)); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field input:disabled, .field select:disabled { background: var(--page); color: var(--muted); }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .suffix { position: relative; }
+    .suffix span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 500; }
+    .suffix input { padding-right: 40px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; }
+    .review { margin: 6px 0 22px; padding: 16px 18px; border-radius: 6px; background: var(--page); display: grid; gap: 8px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+    .actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+    .submit-btn { min-height: 50px; padding: 12px 24px; border: 1px solid var(--accent); border-radius: 24px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 500; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 84%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .ghost-btn { min-height: 50px; padding: 12px 22px; border: 1px solid var(--accent); border-radius: 24px; background: var(--surface); color: var(--accent); font-size: 16px; font-weight: 500; }
+    .ghost-btn:disabled { cursor: not-allowed; opacity: .5; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .status { margin: 10px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 6px; border-left: 4px solid; }
+    .result-box.success { display: block; background: color-mix(in srgb, var(--up) 8%, var(--surface)); border-color: var(--up); }
+    .result-box.notice { display: block; background: color-mix(in srgb, var(--down) 7%, var(--surface)); border-color: var(--down); }
+
+    aside { display: grid; gap: 24px; }
+    aside h3 { margin: 0 0 12px; font-size: 19px; font-weight: 500; }
+    .mkt ul { list-style: none; margin: 0; padding: 0; }
+    .mkt li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .mkt li:first-child { border-top: 0; padding-top: 0; }
+    .mkt .chg.up { color: var(--up); } .mkt .chg.down { color: var(--down); }
+    .mkt small { display: block; margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .help { background: var(--chrome-bg); color: var(--chrome-text); }
+    .help p { margin: 0 0 14px; color: color-mix(in srgb, var(--chrome-text) 82%, var(--chrome-bg)); }
+    .help a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 24px; background: var(--accent); color: #fff; font-weight: 500; text-decoration: none; }
+
+    .runs { margin-top: 24px; overflow: hidden; }
+    .runs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 20px 24px 12px; }
+    .runs-head h2 { margin: 0; font-size: 22px; font-weight: 500; }
+    .runs-head span { color: var(--muted); font-size: 14px; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th { text-align: left; padding: 10px 24px; background: var(--page); color: var(--muted); font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+    td { padding: 12px 24px; border-top: 1px solid var(--line); white-space: nowrap; }
+    .tag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 99px; font-size: 13px; font-weight: 500; }
+    .tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .tag.ok { background: color-mix(in srgb, var(--up) 10%, var(--surface)); color: var(--up); }
+    .tag.wait { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); color: var(--accent); }
+
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); }
+    .site-footer .wrap { padding-top: 28px; padding-bottom: 36px; }
+    .footer-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .footer-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--cyan); font-weight: 700; letter-spacing: .08em; }
+    .footer-brand span { padding-left: 10px; border-left: 1px solid color-mix(in srgb, var(--chrome-text) 40%, var(--chrome-bg)); color: var(--chrome-text); font-weight: 500; letter-spacing: 0; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0 24px; }
+    .footer-links a { min-height: 44px; display: inline-flex; align-items: center; color: var(--chrome-text); text-decoration: none; font-size: 14px; }
+    .footer-legal { margin: 14px 0 0; max-width: 900px; color: color-mix(in srgb, var(--chrome-text) 70%, var(--chrome-bg)); font-size: 13px; }
+
+    @media (max-width: 1040px) {
+      .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout { grid-template-columns: 1fr; }
+      .app-name { display: none; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 16px; }
+      .brand-sub, .env, .user-name, .hide-sm { display: none; }
+      .band .wrap { padding-top: 22px; padding-bottom: 80px; }
+      .asof { text-align: left; }
+      .tiles { gap: 12px; }
+      .tile { padding: 14px 16px; }
+      .tile .value { font-size: 22px; }
+      .panel { padding: 22px 18px; }
+      .panel h2 { font-size: 23px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions { grid-template-columns: 1fr; }
+      th, td { padding-left: 16px; padding-right: 16px; }
+      .runs-head { padding: 18px 16px 10px; }
+      .site-footer .wrap { padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#pricing" aria-label="Barclays Investment Bank — Equities Risk &amp; Pricing">
+        <svg width="32" height="32" viewBox="0 0 34 34" role="img" aria-hidden="true" focusable="false">
+          <rect x="1" y="1" width="32" height="32" rx="8" fill="#00AEEF"></rect>
+          <path d="M11 8h8.2c3.6 0 5.8 1.8 5.8 4.6 0 1.8-1 3.1-2.6 3.7 2.1.5 3.4 2 3.4 4.1 0 3.2-2.4 5.6-6.4 5.6H11zm4 7.3h3.6c1.6 0 2.5-.8 2.5-2s-.9-2-2.5-2H15zm0 7.4h4.1c1.8 0 2.8-.9 2.8-2.3s-1-2.3-2.8-2.3H15z" fill="#FFFFFF"></path>
+        </svg>
+        <span class="brand-name">BARCLAYS</span>
+        <span class="brand-sub">Investment Bank</span>
+      </a>
+      <span class="app-name">Equities Risk &amp; Pricing</span>
+      <div class="header-right">
+        <span class="env">London · Production</span>
+        <span class="user"><span class="avatar" aria-hidden="true">HW</span><span class="user-name">H. Whitmore</span></span>
+        <a class="pill" href="https://www.ib.barclays/">Sign out</a>
+      </div>
+    </div>
+  </header>
+  <nav class="app-nav" aria-label="Equities Risk &amp; Pricing">
+    <div class="wrap">
+      <a href="#books">Books</a>
+      <a href="#pricing" class="current" aria-current="page">Pricing runs</a>
+      <a href="#pricing">Scenarios</a>
+      <a href="#market">Market data</a>
+      <a href="#runs">Reports</a>
+    </div>
+  </nav>
+  <section class="band" aria-label="Page heading">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Global Markets · Equities</p>
+        <h1>Pricing runs</h1>
+        <p>Reprice an equity derivatives book against the current market data snapshot and publish risk to the desk.</p>
+      </div>
+      <div class="asof">
+        <span>Market data snapshot <b class="num" id="snapTime">—</b></span>
+        <span>Valuation date <b class="num" id="valDate">—</b></span>
+      </div>
+    </div>
+  </section>
+  <main id="pricing">
+    <div class="wrap">
+      <section class="tiles" id="books" aria-label="Book summary, last published run">
+        <div class="card tile"><div class="label">Net delta</div><div class="value num">£48.2m</div><div class="meta">EQD London · last published run</div></div>
+        <div class="card tile"><div class="label">Vega (per vol point)</div><div class="value num">−£1.36m</div><div class="meta">EQD London · last published run</div></div>
+        <div class="card tile"><div class="label">Gamma (1% spot)</div><div class="value num">£3.9m</div><div class="meta">EQD London · last published run</div></div>
+        <div class="card tile"><div class="label">1-day VaR (99%)</div><div class="value num">£7.4m</div><div class="meta">Limit £12.0m</div></div>
+      </section>
+      <div class="layout">
+        <section class="card panel" aria-labelledby="form-title">
+          <h2 id="form-title">Run risk pricing</h2>
+          <p class="sub">Choose a book, set the spot ladder and publish the results.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">Book</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="EQD London · Index Volatility" selected>EQD London · Index Volatility (EQD-LDN-IVOL)</option>
+                <option value="ACCT-1002" data-name="Delta One EMEA">Delta One EMEA (D1-EMEA)</option>
+                <option value="ACCT-1003" data-name="Single Stock Vol · New York">Single Stock Vol · New York (SSV-NY)</option>
+                <option value="ACCT-1004" data-name="Structured Equity Notes">Structured Equity Notes (SEN-LDN)</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Spot ladder</label>
+                <div class="suffix"><input type="number" id="amount" class="num" min="1" max="50" step="1" value="10" inputmode="numeric" required aria-describedby="ladderHelp"><span aria-hidden="true">± %</span></div>
+                <small id="ladderHelp">Whole number from 1 to 50.</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">Revaluation</label>
+                <select id="accountTier">
+                  <option value="standard" selected>Full revaluation</option>
+                  <option value="premium">Changed positions only</option>
+                </select>
+                <small>Full revaluation reprices every position.</small>
+              </div>
+            </div>
+            <div class="field">
+              <label for="toAccount">Publish to</label>
+              <select id="toAccount">
+                <option value="ACCT-EXT-201" data-name="Desk risk view · EQD London" selected>Desk risk view · EQD London</option>
+                <option value="ACCT-EXT-202" data-name="Market risk end-of-day snapshot">Market risk end-of-day snapshot</option>
+                <option value="ACCT-EXT-203" data-name="P&amp;L explain">P&amp;L explain</option>
+              </select>
+            </div>
+            <dl class="review" aria-label="Run summary">
+              <div><dt>Book</dt><dd id="reviewBook">—</dd></div>
+              <div><dt>Spot ladder</dt><dd id="reviewLadder" class="num">—</dd></div>
+              <div><dt>Revaluation</dt><dd id="reviewMode">—</dd></div>
+              <div><dt>Publish to</dt><dd id="reviewDest">—</dd></div>
+            </dl>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Run pricing</button>
+              <button type="reset" id="resetBtn" class="ghost-btn">Clear</button>
+            </div>
+            <div class="stopwatch" id="runTimer" role="timer" aria-live="off"><span class="sw-label">Elapsed</span><span class="sw-value" id="runTimerValue">0.0s</span></div>
+            <p class="status" id="runStatus">Sample book. Nothing is booked or hedged from this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="card panel mkt" id="market">
+            <h3>Market data snapshot</h3>
+            <ul>
+              <li><span>FTSE 100</span><span class="num">8,412.6</span><span class="chg up num">+0.42%</span></li>
+              <li><span>EURO STOXX 50</span><span class="num">5,038.1</span><span class="chg down num">−0.18%</span></li>
+              <li><span>S&amp;P 500</span><span class="num">5,912.3</span><span class="chg up num">+0.27%</span></li>
+              <li><span>VSTOXX</span><span class="num">17.85</span><span class="chg down num">−0.62</span></li>
+              <li><span>GBP SONIA</span><span class="num">4.21%</span><span class="chg num">0.00</span></li>
+            </ul>
+            <small>Sample levels for this environment.</small>
+          </div>
+          <div class="card panel help">
+            <h3>Need help with a run?</h3>
+            <p>Contact Equities Risk Technology support for access, books or market data questions.</p>
+            <a href="https://www.ib.barclays/">Contact support</a>
+          </div>
+        </aside>
+      </div>
+      <section class="card runs" id="runs" aria-labelledby="runs-title">
+        <div class="runs-head"><h2 id="runs-title">Recent runs</h2><span>Today</span></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Time</th><th>Book</th><th>Ladder</th><th>Revaluation</th><th>Published to</th><th>Status</th></tr></thead>
+            <tbody id="runsBody">
+              <tr><td class="num">07:30</td><td>EQD London · Index Volatility</td><td class="num">±10%</td><td>Full revaluation</td><td>Desk risk view · EQD London</td><td><span class="tag ok">Published</span></td></tr>
+              <tr><td class="num">07:12</td><td>Delta One EMEA</td><td class="num">±5%</td><td>Full revaluation</td><td>Desk risk view · EQD London</td><td><span class="tag ok">Published</span></td></tr>
+              <tr><td class="num">06:55</td><td>Structured Equity Notes</td><td class="num">±20%</td><td>Changed positions only</td><td>P&amp;L explain</td><td><span class="tag ok">Published</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <span class="footer-brand">BARCLAYS <span>Investment Bank</span></span>
+        <div class="footer-links">
+          <a href="https://www.ib.barclays/">Help</a>
+          <a href="https://www.ib.barclays/">Accessibility</a>
+          <a href="https://www.ib.barclays/">Privacy notice</a>
+          <a href="https://www.ib.barclays/">Disclosures</a>
+        </div>
+      </div>
+      <p class="footer-legal">Example internal pricing workbench. Books, positions, risk figures and market levels shown here are sample data.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('runStatus');
+    const book = document.getElementById('fromAccount');
+    const dest = document.getElementById('toAccount');
+    const ladder = document.getElementById('amount');
+    const mode = document.getElementById('accountTier');
+    const runsBody = document.getElementById('runsBody');
+    const timer = document.getElementById('runTimer');
+    const timerValue = document.getElementById('runTimerValue');
+    const runFields = [book, dest, ladder, mode];
+    const IDLE_STATUS = 'Sample book. Nothing is booked or hedged from this page.';
+    const IDLE_LABEL = 'Run pricing';
+    const timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const dateFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    let timerHandle = null;
+    let pending = false;
+    const now = new Date();
+    document.getElementById('snapTime').textContent = timeFmt.format(now);
+    document.getElementById('valDate').textContent = dateFmt.format(now);
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function parsedLadder() {
+      const raw = ladder.value.trim();
+      if (!/^\d{1,2}$/.test(raw)) return NaN;
+      const n = parseInt(raw, 10);
+      return n >= 1 && n <= 50 ? n : NaN;
+    }
+    function renderReview() {
+      const n = parsedLadder();
+      document.getElementById('reviewBook').textContent = selected(book).dataset.name;
+      document.getElementById('reviewLadder').textContent = Number.isFinite(n) ? `±${n}%` : '—';
+      document.getElementById('reviewMode').textContent = selected(mode).textContent;
+      document.getElementById('reviewDest').textContent = selected(dest).dataset.name;
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function addRun(time, run) {
+      const tr = document.createElement('tr');
+      [time, run.book, `±${run.ladder}%`, run.mode, run.dest].forEach((text, i) => {
+        const td = document.createElement('td');
+        if (i === 0 || i === 2) td.className = 'num';
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      const td = document.createElement('td');
+      td.innerHTML = '<span class="tag ok">Published</span>';
+      tr.appendChild(td);
+      runsBody.insertBefore(tr, runsBody.firstChild);
+    }
+    [book, dest, mode].forEach((el) => el.addEventListener('change', renderReview));
+    ladder.addEventListener('input', renderReview);
+    form.addEventListener('reset', (event) => {
+      if (pending) { event.preventDefault(); return; }
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const n = parsedLadder();
+      if (!Number.isFinite(n)) {
+        result.className = 'result-box notice';
+        result.textContent = 'Enter a spot ladder between 1 and 50 percent, as a whole number.';
+        status.textContent = IDLE_STATUS;
+        ladder.focus();
+        return;
+      }
+      const run = { book: selected(book).dataset.name, dest: selected(dest).dataset.name, mode: selected(mode).textContent, ladder: n };
+      pending = true;
+      button.disabled = true;
+      resetBtn.disabled = true;
+      runFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Pricing…';
+      status.textContent = `Repricing ${run.book}…`;
+      result.className = 'result-box';
+      result.textContent = '';
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: book.value,
+            toAccount: dest.value,
+            amount: parseFloat(ladder.value),
+            accountTier: mode.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Run not completed.');
+        if (!data || !data.receipt) throw new Error('Run outcome unknown.');
+        const doneAt = timeFmt.format(new Date(data.receipt.timestamp));
+        result.className = 'result-box success';
+        result.textContent = `Run complete. ${run.book} priced across a ±${run.ladder}% spot ladder and published to ${run.dest} at ${doneAt}. Run reference ${data.receipt.receiptId}.`;
+        status.textContent = 'Run complete.';
+        addRun(doneAt, run);
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = "This run didn't complete and nothing was published. Please try again in a few minutes.";
+          status.textContent = 'Run not completed.';
+        } else {
+          result.textContent = "We couldn't confirm this run. Check Recent runs before running the book again.";
+          status.textContent = 'Run not confirmed.';
+        }
+      } finally {
+        runFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        resetBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
