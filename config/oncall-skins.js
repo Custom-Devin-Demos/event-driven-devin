@@ -8231,6 +8231,33 @@ const ONCALL_SKINS = {
     page: { file: 'ab699480.html', title: 'Cash Loans for Drivers | inDrive' },
     disclaimer: 'NOT ACTUALLY AN INDRIVE SITE — internal demo only, not affiliated with, endorsed by, or a real inDrive product.',
   },
+  '077597bd': {
+    slug: '077597bd',
+    company: 'Mapfre',
+    brandMark: 'm',
+    vertical: 'insurance',
+    oncallOnly: true,
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    page: { file: '077597bd.html', title: 'Report a claim | Mapfre' },
+    theme: {
+      '--accent': '#DF0027',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#DF0027',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 Report a claim: Submit claim',
+      release: 'claims-web@2026.11.1',
+      team: 'claims-digital-oncall',
+      symptom: 'Claim submissions hang ~8s after the policyholder selects Submit claim and then fail with 504 Gateway Timeout. No claim reference is issued.',
+      impact: 'Policyholders cannot report motor or home claims online; every submission waits about 8 seconds and then fails, and customers call the claims line instead.',
+    },
+    supportCenter: 'Mapfre Customer Service',
+    disclaimer: 'NOT ACTUALLY A MAPFRE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Mapfre product.',
+  },
 };
 
 function getOncallSkin(slug) {
