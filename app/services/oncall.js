@@ -404,6 +404,27 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  homeimprovement: {
+    vertical: 'homeimprovement',
+    page: '856a4087.html',
+    apiPath: '/api/856a4087/checkout',
+    oncallApiPath: '/api/oncall/homeimprovement/checkout',
+    owner: 'Dana Whitfield (interconnected-retail-oncall)',
+    brand: 'Home Improvement Storefront (Cart)',
+    service: 'cart-checkout-api',
+    endpoint: 'POST /api/oncall/homeimprovement/checkout',
+    monitor: 'p95 latency — POST /api/oncall/homeimprovement/checkout',
+    metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/homeimprovement/checkout}',
+    metricValue: '8.0s (504s on in-store pickup orders)',
+    threshold: '> 2s',
+    baseline: '~400ms (7-day p95)',
+    release: 'cart-web@26.11.0',
+    symptom: 'In-store pickup checkouts hang ~8s and then fail with 504 Gateway Timeout. Delivery checkouts are normal. Onset coincides with the cart-web 26.11.0 pickup reservation release.',
+    impact: 'Customers choosing in-store pickup cannot complete checkout; every pickup order sits on a spinner and then errors.',
+    triggerWhen: { fulfillment: 'pickup' },
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   cardpayment: {
     vertical: 'cardpayment',
     page: '8f167941.html',

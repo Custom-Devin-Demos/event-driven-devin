@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cart - The Home Depot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hd-orange: #f96302;
+    --hd-orange-hover: #e35a00;
+    --ink: #202020;
+    --body: #333333;
+    --muted: #666666;
+    --line: #e5e5e5;
+    --panel: #f3f3f3;
+    --catbar: #f6f3ef;
+    --red: #b72020;
+    --green: #00873c;
+    --font: "Helvetica Neue", Helvetica, Arimo, Arial, sans-serif;
+    --font-cn: "Helvetica Neue Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font); font-size: 14px; line-height: 21px; color: var(--body); background: #fff; }
+  a { color: var(--ink); }
+  button { font-family: inherit; }
+  svg { display: block; }
+
+  .promo-bar { height: 32px; background: var(--hd-orange); color: #fff; font-size: 14px; line-height: 14px; display: flex; align-items: center; justify-content: center; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 0 16px; }
+
+  .util { display: flex; justify-content: flex-end; align-items: center; gap: 24px; height: 41px; padding-top: 8px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border: 1px solid #bfbfbf; border-radius: 9999px; background: rgba(255,255,255,.6); color: var(--ink); font-size: 14px; line-height: 14px; text-decoration: none; }
+  .util-link { display: inline-flex; align-items: center; gap: 8px; color: var(--body); font-size: 14px; text-decoration: none; }
+
+  .header { display: flex; align-items: center; height: 86px; gap: 24px; }
+  .logo { width: 64px; height: 64px; flex: 0 0 64px; }
+  .store { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 20px; color: var(--ink); white-space: nowrap; }
+  .store b { color: var(--red); line-height: 24px; }
+  .zip { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 20px; color: var(--ink); margin-left: 16px; }
+  .search { flex: 1; display: flex; height: 44px; max-width: 607px; margin-left: 4px; }
+  .search input { flex: 1; height: 42px; margin: 1px 0; border: 0; background: #f3f3f3; padding: 0 12px; font-size: 16px; line-height: 20px; color: var(--ink); font-family: inherit; outline: none; }
+  .search input::placeholder { color: var(--ink); opacity: 1; }
+  .search button { width: 44px; height: 44px; border: 0; border-radius: 2px; background: var(--hd-orange); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .nav { display: flex; margin-left: auto; gap: 4px; }
+  .nav a { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 80px; font-size: 16px; line-height: 20px; color: var(--ink); text-decoration: none; position: relative; }
+  .cart-count { position: absolute; top: -6px; left: 50%; margin-left: 4px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--hd-orange); color: #fff; font-size: 11px; line-height: 18px; font-weight: 700; text-align: center; padding: 0 4px; }
+
+  .catbar { background: var(--catbar); border-top: 1px solid #ececec; border-bottom: 1px solid #e9e2d5; }
+  .catbar .wrap { display: flex; align-items: center; height: 44px; gap: 0; overflow: hidden; white-space: nowrap; }
+  .catbar a { font-size: 16px; line-height: 20px; color: var(--ink); text-decoration: none; padding: 0 22px; }
+  .catbar a:first-child { font-weight: 700; padding-left: 0; padding-right: 16px; border-right: 1px solid #d5d0c8; display: flex; align-items: center; gap: 6px; }
+
+  main { padding: 24px 0 64px; }
+  .page-title { display: flex; align-items: baseline; gap: 12px; margin: 0 0 16px; }
+  .page-title h1 { font-family: var(--font-cn); font-weight: 700; font-size: 36px; line-height: 44px; letter-spacing: .5px; color: var(--ink); margin: 0; }
+  .page-title span { font-size: 16px; color: var(--ink); }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 376px; gap: 32px; align-items: start; }
+
+  .fulfill-all { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 2px; margin-bottom: 16px; }
+  .fulfill-all .lbl { font-weight: 700; color: var(--ink); font-size: 16px; }
+  .seg { display: inline-flex; border: 1px solid #999; border-radius: 2px; overflow: hidden; }
+  .seg button { border: 0; background: #fff; padding: 0 16px; height: 36px; font-size: 14px; color: var(--ink); cursor: pointer; }
+  .seg button + button { border-left: 1px solid #999; }
+  .seg button.active { background: var(--ink); color: #fff; font-weight: 700; }
+
+  .group { border: 1px solid var(--line); border-radius: 2px; margin-bottom: 16px; }
+  .group-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .group-head h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; color: var(--ink); }
+  .group-head .sub { font-size: 14px; color: var(--body); }
+  .group-head .sub b { color: var(--green); }
+
+  .line { display: grid; grid-template-columns: 120px minmax(0, 1fr) 220px; gap: 20px; padding: 20px 16px; border-bottom: 1px solid var(--line); }
+  .line:last-child { border-bottom: 0; }
+  .line img { width: 120px; height: 120px; object-fit: contain; }
+  .brand { font-weight: 700; color: var(--ink); font-size: 14px; }
+  .pname { color: var(--ink); font-size: 14px; line-height: 20px; margin: 2px 0 6px; }
+  .model { color: var(--muted); font-size: 12px; line-height: 18px; }
+  .tiles { display: flex; gap: 8px; margin-top: 12px; }
+  .tile { width: 140px; border: 1px solid #ccc; border-radius: 2px; padding: 8px 10px; font-size: 12px; line-height: 16px; color: var(--body); background: #fff; text-align: left; }
+  .tile strong { display: block; font-size: 14px; color: var(--ink); margin-bottom: 2px; }
+  .tile .ok { color: var(--green); font-weight: 700; }
+  .tile.active { border: 2px solid var(--hd-orange); padding: 7px 9px; }
+  .line-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .price { font-size: 20px; line-height: 24px; font-weight: 700; color: var(--ink); }
+  .each { font-size: 12px; color: var(--muted); }
+  .qty { display: inline-flex; border: 1px solid #999; border-radius: 2px; height: 36px; }
+  .qty button { width: 36px; border: 0; background: #fff; font-size: 18px; color: var(--ink); cursor: pointer; }
+  .qty input { width: 44px; border: 0; border-left: 1px solid #999; border-right: 1px solid #999; text-align: center; font-size: 14px; font-family: inherit; color: var(--ink); }
+  .line-actions { display: flex; gap: 16px; font-size: 12px; font-weight: 700; }
+
+  .summary { border: 1px solid var(--line); border-radius: 2px; padding: 20px; position: sticky; top: 16px; }
+  .summary h2 { margin: 0 0 16px; font-size: 20px; line-height: 24px; font-weight: 700; color: var(--ink); }
+  .row { display: flex; justify-content: space-between; font-size: 14px; line-height: 20px; margin-bottom: 10px; color: var(--ink); }
+  .row .free { color: var(--green); font-weight: 700; }
+  .row.total { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; font-size: 18px; font-weight: 700; }
+  .btn-checkout { width: 100%; height: 44px; border: 0; border-radius: 2px; background: var(--hd-orange); color: #fff; font-size: 16px; line-height: 24px; font-weight: 700; padding: 0 16px; margin-top: 16px; cursor: pointer; }
+  .btn-checkout:hover { background: var(--hd-orange-hover); }
+  .btn-checkout[disabled] { opacity: .7; cursor: default; }
+  .btn-paypal { width: 100%; height: 44px; border: 0; border-radius: 2px; background: #ffc439; margin-top: 10px; font-size: 16px; font-weight: 700; color: #003087; font-style: italic; cursor: pointer; }
+  .or { text-align: center; font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .card-offer { background: var(--panel); padding: 14px 16px; margin-top: 16px; font-size: 14px; line-height: 20px; color: var(--ink); }
+  .card-offer a { font-weight: 700; font-size: 12px; }
+
+  .alert { display: none; border-left: 4px solid var(--red); background: #fdf1f1; padding: 12px 14px; margin-top: 16px; font-size: 14px; line-height: 20px; color: var(--ink); }
+  .alert.show { display: block; }
+  .alert strong { display: block; color: var(--red); margin-bottom: 2px; }
+  .alert .ref { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .alert.ok { border-left-color: var(--green); background: #eef8f1; }
+  .alert.ok strong { color: var(--green); }
+
+  .site-footer { border-top: 1px solid var(--line); padding: 32px 0 24px; background: #fff; }
+  .foot-cols { display: grid; grid-template-columns: repeat(3, 1fr) 341px; gap: 24px; }
+  .foot-cols h3 { margin: 0 0 12px; font-size: 16px; font-weight: 700; color: var(--ink); }
+  .foot-cols a { display: block; font-size: 14px; line-height: 29px; color: var(--ink); }
+  .email-box { font-size: 16px; line-height: 24px; color: var(--ink); }
+  .email-row { display: flex; margin-top: 8px; }
+  .email-row input { flex: 1; height: 44px; border: 1px solid #999; border-right: 0; padding: 0 12px; font-size: 16px; font-family: inherit; }
+  .email-row button { width: 57px; height: 44px; border: 0; background: var(--hd-orange); color: #fff; font-weight: 700; font-size: 16px; }
+  .legal { text-align: center; font-size: 12px; line-height: 15px; color: var(--body); margin-top: 32px; }
+  .legal-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 12px; margin-top: 12px; font-size: 12px; }
+
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+    .summary { position: static; }
+    .nav a span.lbl, .zip, .util { display: none; }
+    .nav a { min-width: 48px; }
+    .foot-cols { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .header { flex-wrap: wrap; height: auto; padding: 12px 0; gap: 12px; }
+    .logo { width: 44px; height: 44px; flex-basis: 44px; }
+    .search { order: 2; flex: 1 1 200px; margin: 0; min-width: 0; }
+    .nav { order: 3; margin-left: 0; }
+    .nav a:not(.cart-link) { display: none; }
+    .store { order: 4; flex: 1 0 60%; }
+    .zip { display: flex; order: 5; margin-left: auto; }
+    .catbar a:first-child { display: none; }
+    .catbar a:nth-child(2) { padding-left: 0; }
+    .line { grid-template-columns: 80px minmax(0, 1fr); }
+    .line img { width: 80px; height: 80px; }
+    .line-right { grid-column: 2; align-items: flex-start; }
+    .tiles { flex-wrap: wrap; }
+    .fulfill-all { flex-wrap: wrap; }
+    .foot-cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="promo-bar">#1 Home Improvement Retailer</div>
+
+<div class="wrap">
+  <div class="util">
+    <a class="pill" href="#"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z" fill="none" stroke="#f96302" stroke-width="2.4"/></svg>Ask Magic Apron</a>
+    <a class="util-link" href="#"><svg width="16" height="12" viewBox="0 0 16 12"><rect x="1" y="1" width="14" height="10" rx="1" fill="none" stroke="#333" stroke-width="1.5"/><path d="M1 4h14" stroke="#333" stroke-width="1.5"/></svg>Home Depot Credit Cards</a>
+  </div>
+  <header class="header">
+    <a href="#" aria-label="The Home Depot home">
+      <svg class="logo" viewBox="0 0 64 64" role="img" aria-label="The Home Depot">
+        <rect width="64" height="64" fill="#f96302"/>
+        <g transform="rotate(-45 32 32)" fill="#fff" font-family="Roboto Condensed, Arial Narrow, sans-serif" font-weight="700" text-anchor="middle">
+          <text x="32" y="22" font-size="8">THE</text>
+          <text x="32" y="37" font-size="15" letter-spacing=".5">HOME</text>
+          <text x="32" y="50" font-size="13" letter-spacing=".5">DEPOT</text>
+        </g>
+      </svg>
+    </a>
+    <div class="store"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6v10H3z" fill="none" stroke="#202020" stroke-width="2"/><rect x="9" y="13" width="6" height="7" fill="none" stroke="#202020" stroke-width="2"/></svg>Manhattan 23rd St <b>6AM</b></div>
+    <div class="zip"><svg width="20" height="16" viewBox="0 0 24 18"><path d="M1 2h13v11H1zM14 6h5l4 4v3h-9z" fill="none" stroke="#202020" stroke-width="2"/><circle cx="6" cy="15" r="2" fill="#fff" stroke="#202020" stroke-width="2"/><circle cx="18" cy="15" r="2" fill="#fff" stroke="#202020" stroke-width="2"/></svg>10010</div>
+    <form class="search" onsubmit="return false">
+      <input type="text" placeholder="What can we help you find today?" aria-label="Search">
+      <button type="submit" aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M15.5 15.5L22 22" stroke="#fff" stroke-width="2.4"/></svg></button>
+    </form>
+    <nav class="nav">
+      <a href="#"><svg width="28" height="28" viewBox="0 0 28 28"><path d="M5 4h14l4 4v16H5z M19 4v4h4" fill="none" stroke="#202020" stroke-width="2"/><path d="M9 12l4 4 6-6" fill="none" stroke="#202020" stroke-width="2"/></svg><span class="lbl">Shop All</span></a>
+      <a href="#"><svg width="28" height="28" viewBox="0 0 28 28"><g fill="none" stroke="#202020" stroke-width="2"><circle cx="8" cy="8" r="4"/><circle cx="20" cy="8" r="4"/><circle cx="8" cy="20" r="4"/><circle cx="20" cy="20" r="4"/></g></svg><span class="lbl">Services</span></a>
+      <a href="#"><svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 5h18v6H4z M13 11v13 M22 8h3" fill="none" stroke="#202020" stroke-width="2"/></svg><span class="lbl">DIY</span></a>
+      <a href="#"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="9" r="5" fill="none" stroke="#202020" stroke-width="2"/><path d="M5 25c0-5 4-8 9-8s9 3 9 8" fill="none" stroke="#202020" stroke-width="2"/></svg><span class="lbl">Log In</span></a>
+      <a href="#" class="cart-link"><svg width="28" height="28" viewBox="0 0 28 28"><path d="M3 4h4l3 15h13" fill="none" stroke="#202020" stroke-width="2"/><circle cx="11" cy="23" r="2" fill="#202020"/><circle cx="21" cy="23" r="2" fill="#202020"/></svg><span class="cart-count" id="cart-count">4</span><span class="lbl">Cart</span></a>
+    </nav>
+  </header>
+</div>
+
+<div class="catbar"><div class="wrap">
+  <a href="#">Departments <svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" fill="none" stroke="#202020" stroke-width="1.8"/></svg></a>
+  <a href="#">Deals</a><a href="#">Appliances</a><a href="#">Building Materials</a><a href="#">Flooring</a><a href="#">Hardware</a><a href="#">Lumber &amp; Composites</a><a href="#">Outdoors</a><a href="#">Paint</a><a href="#">Plumbing</a><a href="#">Tools</a>
+</div></div>
+
+<main class="wrap">
+  <div class="page-title"><h1>Cart</h1><span id="item-count">(4 items)</span></div>
+  <div class="layout">
+    <section>
+      <div class="fulfill-all">
+        <span class="lbl">Change all items to:</span>
+        <div class="seg" role="group" aria-label="Fulfillment for all items">
+          <button type="button" class="active" data-fulfill="pickup">Pickup</button>
+          <button type="button" data-fulfill="delivery">Delivery</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head" id="group-head">
+          <svg width="22" height="22" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6v10H3z" fill="none" stroke="#202020" stroke-width="2"/></svg>
+          <h2 id="group-title">Pickup at Manhattan 23rd St</h2>
+          <span class="sub" id="group-sub"><b>Free</b> &middot; Ready today</span>
+        </div>
+        <div id="lines"></div>
+      </div>
+    </section>
+
+    <aside class="summary">
+      <h2>Order Summary</h2>
+      <div class="row"><span>Subtotal (<span id="sum-count">4</span> items)</span><span id="sum-subtotal">$0.00</span></div>
+      <div class="row"><span id="sum-ful-label">Pickup</span><span id="sum-ful" class="free">FREE</span></div>
+      <div class="row"><span>Estimated Sales Tax</span><span id="sum-tax">$0.00</span></div>
+      <div class="row total"><span>Total</span><span id="sum-total">$0.00</span></div>
+      <button type="button" class="btn-checkout" id="checkout-btn" data-cta>Checkout</button>
+      <div class="or">or</div>
+      <button type="button" class="btn-paypal">PayPal</button>
+      <div class="alert" id="checkout-error" role="alert">
+        <strong>We're sorry, something went wrong.</strong>
+        <span id="checkout-error-msg"></span>
+        <div class="ref" id="checkout-error-ref"></div>
+      </div>
+      <div class="alert ok" id="checkout-ok" role="status">
+        <strong>Thank you for your order!</strong>
+        <span id="checkout-ok-msg"></span>
+      </div>
+      <div class="card-offer">Save up to $100 on your qualifying purchase. Apply for a Home Depot Consumer Card. <a href="#">Apply Now</a></div>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer"><div class="wrap">
+  <div class="foot-cols">
+    <div><h3>How Can We Help?</h3><a href="#">Customer Service Center</a><a href="#">Check Order Status</a><a href="#">Pickup, Shipping &amp; Delivery</a><a href="#">Pay Your Credit Card</a><a href="#">Return Policy</a></div>
+    <div><h3>Resources</h3><a href="#">Specials &amp; Offers</a><a href="#">Military Discount Benefit</a><a href="#">DIY Projects &amp; Ideas</a><a href="#">Truck &amp; Tool Rental</a><a href="#">Gift Cards</a></div>
+    <div><h3>About Us</h3><a href="#">Careers</a><a href="#">Corporate Information</a><a href="#">Digital Newsroom</a><a href="#">Investor Relations</a><a href="#">Eco Actions</a></div>
+    <div class="email-box">Get $5 off when you sign up for emails with savings and tips.
+      <div class="email-row"><input type="email" placeholder="Enter Email Address" aria-label="Email"><button type="button">GO</button></div>
+    </div>
+  </div>
+  <div class="legal">&copy; 2000-2026 Home Depot Product Authority, LLC. All Rights Reserved. Use of this site is subject to certain Terms Of Use.<br>Local store prices may vary from those displayed. Products shown as available are normally stocked but inventory levels cannot be guaranteed.</div>
+  <div class="legal-links"><a href="#">Store Locator</a><a href="#">Privacy &amp; Security Statement</a><a href="#">Terms</a><a href="#">My Preference Center</a><a href="#">Site Map</a><a href="#">Store Directory</a></div>
+</div></footer>
+
+<script>
+  var CART = [
+    { sku: '1001726437', brand: 'Milwaukee', name: 'SHOCKWAVE Impact Duty Alloy Steel Drill and Driver Bit Set (100-Piece)', model: 'Model# 48-32-5162', price: 49.97, qty: 1, limit: 10,
+      img: 'https://images.thdstatic.com/productImages/77cce3fc-1b83-4729-a972-5d00884d5c0b/svn/milwaukee-drill-bit-combination-sets-48-32-5162-64_600.jpg' },
+    { sku: '1001562840', brand: 'DEWALT', name: '20V MAX Lithium-Ion 2.0Ah Battery Pack (2-Pack)', model: 'Model# DCB203-2', price: 99.00, qty: 1, limit: 5,
+      img: 'https://images.thdstatic.com/productImages/202ec2f7-90d6-4117-b54e-c452617fcca9/svn/dewalt-power-tool-batteries-dcb203-2-64_600.jpg' },
+    { sku: '1005409281', brand: 'Husky', name: '17 Gal. Professional Duty Waterproof Storage Container with Hinged Lid in Black', model: 'Model# 271590', price: 24.98, qty: 2, limit: 10,
+      img: 'https://images.thdstatic.com/productImages/e216d6ef-aae1-45f0-af58-c3e386d2fa7b/svn/husky-storage-bins-271590-64_600.jpg' },
+  ];
+  var TAX_RATE = 0.08875;
+  var state = { fulfillment: 'pickup' };
+
+  function money(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function renderLines() {
+    var html = CART.map(function (item, i) {
+      var pickup = state.fulfillment === 'pickup';
+      return '<div class="line">'
+        + '<img src="' + item.img + '" alt="">'
+        + '<div><div class="brand">' + item.brand + '</div><div class="pname">' + item.name + '</div><div class="model">' + item.model + ' &middot; Internet# ' + item.sku + '</div>'
+        + '<div class="tiles">'
+        + '<div class="tile' + (pickup ? ' active' : '') + '"><strong>Pickup</strong><span class="ok">Today</span><br>at Manhattan 23rd St</div>'
+        + '<div class="tile' + (pickup ? '' : ' active') + '"><strong>Delivery</strong><span class="ok">Tomorrow</span><br>to 10010</div>'
+        + '</div></div>'
+        + '<div class="line-right"><div class="price">' + money(item.price * item.qty) + '</div>'
+        + (item.qty > 1 ? '<div class="each">' + money(item.price) + ' / each</div>' : '')
+        + '<div class="qty"><button type="button" data-step="-1" data-i="' + i + '" aria-label="Decrease">&minus;</button><input value="' + item.qty + '" readonly aria-label="Quantity"><button type="button" data-step="1" data-i="' + i + '" aria-label="Increase">+</button></div>'
+        + '<div class="line-actions"><a href="#">Save for Later</a><a href="#">Remove</a></div></div>'
+        + '</div>';
+    }).join('');
+    document.getElementById('lines').innerHTML = html;
+  }
+
+  function renderSummary() {
+    var count = CART.reduce(function (s, i) { return s + i.qty; }, 0);
+    var subtotal = CART.reduce(function (s, i) { return s + i.price * i.qty; }, 0);
+    var pickup = state.fulfillment === 'pickup';
+    var tax = Math.round(subtotal * TAX_RATE * 100) / 100;
+    document.getElementById('cart-count').textContent = count;
+    document.getElementById('item-count').textContent = '(' + count + ' items)';
+    document.getElementById('sum-count').textContent = count;
+    document.getElementById('sum-subtotal').textContent = money(subtotal);
+    document.getElementById('sum-ful-label').textContent = pickup ? 'Pickup' : 'Delivery';
+    document.getElementById('sum-tax').textContent = money(tax);
+    document.getElementById('sum-total').textContent = money(subtotal + tax);
+    document.getElementById('group-title').textContent = pickup ? 'Pickup at Manhattan 23rd St' : 'Delivery to 10010';
+    document.getElementById('group-sub').innerHTML = pickup ? '<b>Free</b> &middot; Ready today' : '<b>Free</b> &middot; Arrives tomorrow';
+    document.querySelectorAll('.seg button').forEach(function (b) { b.classList.toggle('active', b.dataset.fulfill === state.fulfillment); });
+  }
+
+  function render() { renderLines(); renderSummary(); }
+
+  document.addEventListener('click', function (e) {
+    var f = e.target.closest('[data-fulfill]');
+    if (f) { state.fulfillment = f.dataset.fulfill; render(); return; }
+    var step = e.target.closest('[data-step]');
+    if (step) {
+      var item = CART[+step.dataset.i];
+      item.qty = Math.min(item.limit, Math.max(1, item.qty + (+step.dataset.step)));
+      render();
+    }
+  });
+
+  var errorBox = document.getElementById('checkout-error');
+  var okBox = document.getElementById('checkout-ok');
+
+  function checkout(button) {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.textContent = 'Placing Order\u2026';
+    errorBox.classList.remove('show');
+    okBox.classList.remove('show');
+    fetch('/api/856a4087/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: CART.map(function (i) { return { sku: i.sku, qty: i.qty }; }),
+        fulfillment: state.fulfillment,
+        storeNumber: '6177',
+        zipCode: '10010',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (r) {
+        if (!r.ok || !r.body.success) {
+          document.getElementById('checkout-error-msg').textContent = r.body.error || 'Please try again.';
+          document.getElementById('checkout-error-ref').textContent = 'Reference ID: ' + (r.body.requestId || 'unavailable');
+          errorBox.classList.add('show');
+        } else {
+          var o = r.body;
+          document.getElementById('checkout-ok-msg').textContent = 'Order #' + o.orderId + ' \u2014 ' + money(o.total) + '. '
+            + (o.fulfillment === 'pickup' ? 'We\u2019ll email you when it\u2019s ready for pickup at ' + o.store.name + '.' : 'Arriving tomorrow to 10010.');
+          okBox.classList.add('show');
+        }
+      })
+      .catch(function () {
+        document.getElementById('checkout-error-msg').textContent = 'Please check your connection and try again.';
+        errorBox.classList.add('show');
+      })
+      .finally(function () {
+        button.disabled = false;
+        button.textContent = 'Checkout';
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (b) {
+    b.addEventListener('click', function (e) { e.preventDefault(); checkout(b); });
+  });
+
+  render();
+</script>
+</body>
+</html>

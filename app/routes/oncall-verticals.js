@@ -28,6 +28,7 @@ const { answerResearchQuery } = require('../services/oncall-verticals/research')
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
+const { checkoutOrder: checkoutHomeImprovementOrder } = require('../services/oncall-verticals/homeimprovement');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
 const { submitCardPayment } = require('../services/oncall-verticals/cardpayment');
 const { createSessionAndAlert } = require('../services/devin-session');
@@ -620,6 +621,34 @@ router.post('/api/oncall/storepickup/checkout', async (req, res) => {
       success: false,
       error: isTimeout
         ? 'Your order timed out while reserving items at your store. Please try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/homeimprovement/checkout — place a home-improvement cart checkout
+ */
+router.post('/api/oncall/homeimprovement/checkout', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await checkoutHomeImprovementOrder({
+      items: body.items,
+      fulfillment: body.fulfillment || 'delivery',
+      storeNumber: body.storeNumber || '6177',
+      zipCode: body.zipCode,
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'PICKUP_RESERVATION_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_CART' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'We were unable to reserve your items at your store. Please try again in a few minutes.'
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'CHECKOUT_FAILED',
