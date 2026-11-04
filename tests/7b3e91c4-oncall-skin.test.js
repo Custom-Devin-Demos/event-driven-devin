@@ -45,7 +45,7 @@ const TITLE = 'Release Gate | Bench Results | BorgWarner';
 describe('7b3e91c4 BorgWarner Release Gate on-call skin', () => {
   test('is a native, unlisted releasegate skin without report or incident surfaces', () => {
     const skin = getOncallSkin('7b3e91c4');
-    expect(skin).toMatchObject({ vertical: 'releasegate', oncallOnly: true, page: { file: '7b3e91c4.html', title: TITLE } });
+    expect(skin).toMatchObject({ vertical: 'releasegate', oncallOnly: true, alertDestination: 'teams', teamsAlerts: true, page: { file: '7b3e91c4.html', title: TITLE } });
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
     expect(skin.disclaimer).toMatch(/^NOT ACTUALLY A BORGWARNER SITE/);

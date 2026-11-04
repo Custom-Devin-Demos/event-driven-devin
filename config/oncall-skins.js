@@ -5029,7 +5029,8 @@ const ONCALL_SKINS = {
     brandMark: 'B',
     vertical: 'releasegate',
     oncallOnly: true,
-    alertDestination: 'slack',
+    alertDestination: 'teams',
+    teamsAlerts: true,
     paths: ['/borgwarner', '/bw-release-gate'],
     devinSession: {
       auto: true,
