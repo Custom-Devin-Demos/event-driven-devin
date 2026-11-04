@@ -245,6 +245,11 @@
       var btn = document.getElementById('submitBtn');
       var state = { days: [], dayIndex: 0, slot: null };
       var loadSeq = 0;
+      var PROVIDER_VISITS = {
+        'PRV-1042': ['facial-consult', 'breast-consult', 'body-consult', 'injectables-consult'],
+        'PRV-1077': ['facial-consult', 'breast-consult', 'body-consult'],
+        'PRV-2015': ['facial-consult', 'injectables-consult'],
+      };
 
       function el(id) { return document.getElementById(id); }
       function selectedText(id) { var s = el(id); return s.options[s.selectedIndex].text; }
@@ -257,6 +262,13 @@
         var d = document.createElement('div'); d.textContent = detail;
         result.appendChild(t); result.appendChild(d);
       }
+      function syncVisitOptions() {
+        var offered = PROVIDER_VISITS[el('providerId').value] || [];
+        var visit = el('visitType');
+        Array.prototype.forEach.call(visit.options, function (o) { o.disabled = offered.indexOf(o.value) === -1; });
+        if (visit.options[visit.selectedIndex].disabled) visit.value = offered[0];
+      }
+      function small(text) { var n = document.createElement('small'); n.textContent = text; return n; }
       function dayLabel(d) { return d.weekday + ', ' + MONTHS[d.month - 1] + ' ' + d.day; }
       function press(container, btnEl) {
         Array.prototype.forEach.call(container.children, function (b) { b.setAttribute('aria-pressed', b === btnEl ? 'true' : 'false'); });
@@ -287,7 +299,8 @@
           b.type = 'button'; b.className = 'day';
           b.setAttribute('aria-label', dayLabel(d));
           b.setAttribute('aria-pressed', i === state.dayIndex ? 'true' : 'false');
-          b.innerHTML = '<small>' + d.weekday + '</small><strong>' + d.day + '</strong><small>' + MONTHS[d.month - 1] + '</small>';
+          var dayNum = document.createElement('strong'); dayNum.textContent = d.day;
+          b.appendChild(small(d.weekday)); b.appendChild(dayNum); b.appendChild(small(MONTHS[d.month - 1]));
           b.addEventListener('click', function () {
             state.dayIndex = i; state.slot = null; press(daysEl, b); renderSlots(); showResult('', '', ''); renderSummary();
           });
@@ -317,9 +330,9 @@
       }
 
       el('visitType').addEventListener('change', function () { showResult('', '', ''); renderSummary(); });
-      el('providerId').addEventListener('change', function () { showResult('', '', ''); loadAvailability(true); });
+      el('providerId').addEventListener('change', function () { showResult('', '', ''); syncVisitOptions(); loadAvailability(true); });
       el('locationId').addEventListener('change', function () { showResult('', '', ''); loadAvailability(true); });
-      form.addEventListener('reset', function () { setTimeout(function () { showResult('', '', ''); loadAvailability(true); }, 0); });
+      form.addEventListener('reset', function () { setTimeout(function () { showResult('', '', ''); syncVisitOptions(); loadAvailability(true); }, 0); });
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -355,6 +368,7 @@
         } finally { btn.disabled = false; btn.textContent = 'Book appointment'; }
       });
 
+      syncVisitOptions();
       renderSummary();
       document.addEventListener('DOMContentLoaded', function () { loadAvailability(true); });
     })();
