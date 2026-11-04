@@ -184,7 +184,7 @@ const ONCALL_SKINS = {
       impact: 'Clinicians cannot pull the review-period report for patients checking in, so visits start without the last 14 days of glucose data.',
     },
     supportCenter: 'MiniMed CareLink Support',
-    disclaimer: 'NOT ACTUALLY A MINIMED SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real MiniMed or Medtronic product. All patient and device data is fictional.',
+    disclaimer: 'NOT ACTUALLY A MINIMED SITE — internal demo only, not affiliated with, endorsed by, or a real MiniMed or Medtronic product. All patient and device data is fictional.',
   },
   'cb84fd21': {
     slug: 'cb84fd21',
@@ -2499,7 +2499,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#cf2230',
       '--chrome-text': '#FFFFFF',
     },
-    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE — internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
   'cc824d2a': {
     slug: 'cc824d2a',
@@ -3226,7 +3226,7 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Doppel Support',
     supportCenterSub: 'Customer Support & Incident Intake',
-    disclaimer: 'NOT ACTUALLY A DOPPEL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Doppel product.',
+    disclaimer: 'NOT ACTUALLY A DOPPEL SITE — internal demo only, not affiliated with, endorsed by, or a real Doppel product.',
   },
   '14fa091e': {
     slug: '14fa091e',
@@ -3250,7 +3250,7 @@ const ONCALL_SKINS = {
       impact: 'Every client admin adding colleagues to an engagement site waits longer with each submission; busy-season onboarding is hit hardest.',
     },
     supportCenter: 'Grant Thornton Support',
-    disclaimer: 'NOT ACTUALLY A GRANT THORNTON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Grant Thornton product.',
+    disclaimer: 'NOT ACTUALLY A GRANT THORNTON SITE — internal demo only, not affiliated with, endorsed by, or a real Grant Thornton product.',
   },
   'd95cd337': {
     slug: 'd95cd337',
@@ -3299,7 +3299,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Tubi Support',
-    disclaimer: 'NOT ACTUALLY A TUBI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tubi product.',
+    disclaimer: 'NOT ACTUALLY A TUBI SITE — internal demo only, not affiliated with, endorsed by, or a real Tubi product.',
   },
   'b33a7a98': {
     slug: 'b33a7a98',
@@ -3324,7 +3324,7 @@ const ONCALL_SKINS = {
       impact: 'Dealers cannot order oil and coolant analysis kits on Cummins Marketplace; every Add to Cart errors.',
     },
     supportCenter: 'Cummins Marketplace Support',
-    disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
+    disclaimer: 'NOT ACTUALLY A CUMMINS SITE — internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
   '35a59686': {
     slug: '35a59686',
@@ -3349,7 +3349,7 @@ const ONCALL_SKINS = {
       impact: 'Technicians cannot build pick lists for affected genuine parts on parts.cummins.com.',
     },
     supportCenter: 'Genuine Cummins Parts Support',
-    disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
+    disclaimer: 'NOT ACTUALLY A CUMMINS SITE — internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
   'e8615789': {
     slug: 'e8615789',
@@ -3374,7 +3374,7 @@ const ONCALL_SKINS = {
       impact: 'Technicians cannot open service manuals or wiring diagrams for affected engines.',
     },
     supportCenter: 'QuickServe Online Support',
-    disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
+    disclaimer: 'NOT ACTUALLY A CUMMINS SITE — internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
   '7772b48a': {
     slug: '7772b48a',
@@ -3397,7 +3397,7 @@ const ONCALL_SKINS = {
       impact: 'Customers cannot add genuine parts to their cart; every add sits on a spinner and then errors, so no parts orders can start.',
     },
     supportCenter: 'Shop Cummins Customer Support',
-    disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
+    disclaimer: 'NOT ACTUALLY A CUMMINS SITE — internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
   '870835fe': {
     slug: '870835fe',
@@ -3421,7 +3421,7 @@ const ONCALL_SKINS = {
       impact: 'Shoppers cannot check whether a size is in stock at nearby stores; every lookup sits on a spinner and then errors.',
     },
     supportCenter: 'Ralph Lauren Customer Service',
-    disclaimer: 'NOT ACTUALLY A RALPH LAUREN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ralph Lauren product.',
+    disclaimer: 'NOT ACTUALLY A RALPH LAUREN SITE — internal demo only, not affiliated with, endorsed by, or a real Ralph Lauren product.',
   },
   '103a3994': {
     slug: '103a3994',
@@ -3439,7 +3439,7 @@ const ONCALL_SKINS = {
       symptom: 'Quote requests hang ~8s and then fail with 504 Gateway Timeout. Upstream adjudication latency is elevated.',
       impact: 'Customers cannot get a pet insurance quote; every Get quote request times out after a long hang.',
     },
-    disclaimer: 'NOT ACTUALLY A PETSURE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real PetSure or Commonwealth Bank product.',
+    disclaimer: 'NOT ACTUALLY A PETSURE SITE — internal demo only, not affiliated with, endorsed by, or a real PetSure or Commonwealth Bank product.',
   },
   '0aa7a097': {
     slug: '0aa7a097',
@@ -3464,7 +3464,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Peacock Help Center',
-    disclaimer: 'NOT ACTUALLY A PEACOCK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Peacock product.',
+    disclaimer: 'NOT ACTUALLY A PEACOCK SITE — internal demo only, not affiliated with, endorsed by, or a real Peacock product.',
   },
   '42a72d14': {
     slug: '42a72d14',
@@ -3522,14 +3522,14 @@ const ONCALL_SKINS = {
     alertCard: {
       impact: 'Prior authorization submissions in seeQer hang for ~9s and end in a timeout; practice staff see no payer acknowledgement and no PA status is recorded.',
     },
-    disclaimer: 'NOT ACTUALLY A CAREVISO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real careviso product.',
+    disclaimer: 'NOT ACTUALLY A CAREVISO SITE — internal demo only, not affiliated with, endorsed by, or a real careviso product.',
   },
   'f637b844': {
     slug: 'f637b844',
     company: 'VNS Health',
     vertical: 'insurance',
     page: { file: 'f637b844.html', title: 'Health Plans | VNS Health | New York' },
-    disclaimer: 'NOT ACTUALLY A VNS HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real VNS Health product.',
+    disclaimer: 'NOT ACTUALLY A VNS HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real VNS Health product.',
   },
   '919e7cf2': {
     slug: '919e7cf2',
@@ -3549,7 +3549,7 @@ const ONCALL_SKINS = {
     alertCard: {
       impact: 'Medical claim submissions in myCigna hang ~7s and end in a timeout; members see no claim confirmation and no claim reference is issued.',
     },
-    disclaimer: 'NOT ACTUALLY A CIGNA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cigna Healthcare product.',
+    disclaimer: 'NOT ACTUALLY A CIGNA SITE — internal demo only, not affiliated with, endorsed by, or a real Cigna Healthcare product.',
   },
   '7630d5fd': {
     slug: '7630d5fd',
@@ -3559,7 +3559,7 @@ const ONCALL_SKINS = {
       file: '7630d5fd.html',
       title: 'Pix Itaú: transfira e receba dinheiro qualquer dia da semana',
     },
-    disclaimer: 'NOT ACTUALLY A ITAÚ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Itaú product.',
+    disclaimer: 'NOT ACTUALLY A ITAÚ SITE — internal demo only, not affiliated with, endorsed by, or a real Itaú product.',
   },
   'fc9b0f00': {
     slug: 'fc9b0f00',
@@ -3584,7 +3584,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Zoom Support',
-    disclaimer: 'NOT ACTUALLY A ZOOM SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Zoom product.',
+    disclaimer: 'NOT ACTUALLY A ZOOM SITE — internal demo only, not affiliated with, endorsed by, or a real Zoom product.',
   },
   '2bd11ef7': {
     slug: '2bd11ef7',
@@ -3594,7 +3594,7 @@ const ONCALL_SKINS = {
       file: '2bd11ef7.html',
       title: 'PayID - CommBank',
     },
-    disclaimer: 'NOT ACTUALLY A COMMONWEALTH BANK AUSTRALIA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Commonwealth Bank Australia product.',
+    disclaimer: 'NOT ACTUALLY A COMMONWEALTH BANK AUSTRALIA SITE — internal demo only, not affiliated with, endorsed by, or a real Commonwealth Bank Australia product.',
   },
   '466f5553': {
     slug: '466f5553',
@@ -3604,7 +3604,7 @@ const ONCALL_SKINS = {
       file: '466f5553.html',
       title: 'Pix - transfira e receba com facilidade | Nubank',
     },
-    disclaimer: 'NOT ACTUALLY A NUBANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nubank product.',
+    disclaimer: 'NOT ACTUALLY A NUBANK SITE — internal demo only, not affiliated with, endorsed by, or a real Nubank product.',
   },
   'dc88da3c': {
     slug: 'dc88da3c',
@@ -3624,7 +3624,7 @@ const ONCALL_SKINS = {
     alertCard: {
       impact: 'Medical claim submissions in My Highmark hang ~7s and end in a timeout; members see no claim confirmation and no claim number is issued.',
     },
-    disclaimer: 'NOT ACTUALLY A HIGHMARK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Highmark product.',
+    disclaimer: 'NOT ACTUALLY A HIGHMARK SITE — internal demo only, not affiliated with, endorsed by, or a real Highmark product.',
   },
   '65adbade': {
     slug: '65adbade',
@@ -3632,7 +3632,7 @@ const ONCALL_SKINS = {
     vertical: 'inference',
     oncallOnly: true,
     page: { file: '65adbade.html', title: 'vllm-project/vllm | DeepWiki' },
-    disclaimer: 'NOT ACTUALLY A COGNITION AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cognition AI product.',
+    disclaimer: 'NOT ACTUALLY A COGNITION AI SITE — internal demo only, not affiliated with, endorsed by, or a real Cognition AI product.',
   },
   '7d9fc58b': {
     slug: '7d9fc58b',
@@ -3657,7 +3657,7 @@ const ONCALL_SKINS = {
       symptom: 'Generate note requests hang ~7–10s, then fail with 504 Gateway Timeout. p95 latency is far above baseline.',
       impact: 'Clinicians finish a session and get no note; they retry or write it up by hand.',
     },
-    disclaimer: 'NOT ACTUALLY A HEIDI HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Heidi Health product.',
+    disclaimer: 'NOT ACTUALLY A HEIDI HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Heidi Health product.',
   },
   '7c5709e7': {
     slug: '7c5709e7',
@@ -3678,7 +3678,7 @@ const ONCALL_SKINS = {
       release: 'subscriber-portal@1.0.3',
       impact: 'Subscription changes in My Account wait ~9 seconds before confirming; subscribers retry or abandon the change.',
     },
-    disclaimer: 'NOT ACTUALLY A TIMES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Times or News UK product.',
+    disclaimer: 'NOT ACTUALLY A TIMES SITE — internal demo only, not affiliated with, endorsed by, or a real Times or News UK product.',
   },
   '97205b35': {
     slug: '97205b35',
@@ -3702,7 +3702,7 @@ const ONCALL_SKINS = {
       symptom: 'Balance transfer submissions hang ~9s before completing. Error rate is normal \u2014 requests eventually succeed.',
       impact: 'Participants moving money between retirement accounts wait ~9 seconds for a confirmation number; many resubmit, and Participant Services is taking calls about duplicate transfers.',
     },
-    disclaimer: 'NOT ACTUALLY A TIAA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TIAA product.',
+    disclaimer: 'NOT ACTUALLY A TIAA SITE — internal demo only, not affiliated with, endorsed by, or a real TIAA product.',
   },
   '096a7944': {
     slug: '096a7944',
@@ -3723,7 +3723,7 @@ const ONCALL_SKINS = {
       release: 'servicing-payments@1.0.3',
       impact: 'Mortgage payments in the servicing portal wait ~9 seconds before confirming; clients retry the payment or call in.',
     },
-    disclaimer: 'NOT ACTUALLY A ROCKET MORTGAGE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rocket Mortgage or Rocket Companies product.',
+    disclaimer: 'NOT ACTUALLY A ROCKET MORTGAGE SITE — internal demo only, not affiliated with, endorsed by, or a real Rocket Mortgage or Rocket Companies product.',
   },
   'b3d1cff8': {
     slug: 'b3d1cff8',
@@ -3733,7 +3733,7 @@ const ONCALL_SKINS = {
       file: 'b3d1cff8.html',
       title: 'Payments Demo | Ripple',
     },
-    disclaimer: 'NOT ACTUALLY A RIPPLE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ripple product.',
+    disclaimer: 'NOT ACTUALLY A RIPPLE SITE — internal demo only, not affiliated with, endorsed by, or a real Ripple product.',
   },
   'fd5d1290': {
     slug: 'fd5d1290',
@@ -3744,7 +3744,7 @@ const ONCALL_SKINS = {
       file: 'fd5d1290.html',
       title: 'Cheap San Francisco 49ers Tickets from $77 | Gametime',
     },
-    disclaimer: 'NOT ACTUALLY A GAMETIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gametime product.',
+    disclaimer: 'NOT ACTUALLY A GAMETIME SITE — internal demo only, not affiliated with, endorsed by, or a real Gametime product.',
   },
   '5942af63': {
     slug: '5942af63',
@@ -3769,7 +3769,7 @@ const ONCALL_SKINS = {
       symptom: 'Engagement request submissions slowed sharply after the last release. p95 latency is far above the 7-day baseline.',
       impact: 'Founders and board members requesting an engagement wait ~7 seconds on every submission; some leave before it completes.',
     },
-    disclaimer: 'NOT ACTUALLY AN RPT PARTNERS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real RPT Partners product.',
+    disclaimer: 'NOT ACTUALLY AN RPT PARTNERS SITE — internal demo only, not affiliated with, endorsed by, or a real RPT Partners product.',
   },
   '07bae110': {
     slug: '07bae110',
@@ -3789,7 +3789,7 @@ const ONCALL_SKINS = {
     alertCard: {
       impact: 'Internet banking transfers take ~9s to complete instead of under a second; customers wait on the transfer button and retry.',
     },
-    disclaimer: 'NOT ACTUALLY A MUFG SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real MUFG product.',
+    disclaimer: 'NOT ACTUALLY A MUFG SITE — internal demo only, not affiliated with, endorsed by, or a real MUFG product.',
   },
   'abab7ea5': {
     slug: 'abab7ea5',
@@ -3808,7 +3808,7 @@ const ONCALL_SKINS = {
     alertCard: {
       impact: 'Merchant portal payments take ~9s to complete instead of under a second; merchants wait on Pay and retry.',
     },
-    disclaimer: 'NOT ACTUALLY AN ACI WORLDWIDE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real ACI Worldwide product.',
+    disclaimer: 'NOT ACTUALLY AN ACI WORLDWIDE SITE — internal demo only, not affiliated with, endorsed by, or a real ACI Worldwide product.',
   },
   '7ec9d6c9': {
     slug: '7ec9d6c9',
@@ -3832,7 +3832,7 @@ const ONCALL_SKINS = {
       symptom: 'Payments to existing payees hang ~9s before confirming. Error rate is normal \u2014 payments eventually go through.',
       impact: 'Customers paying an existing payee in Online Banking wait ~9 seconds for confirmation; some press Make payment again and call in about duplicate payments.',
     },
-    disclaimer: 'NOT ACTUALLY A BARCLAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
+    disclaimer: 'NOT ACTUALLY A BARCLAYS SITE — internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
   },
   'b7a95092': {
     slug: 'b7a95092',
@@ -3856,7 +3856,7 @@ const ONCALL_SKINS = {
       symptom: 'Place Order hangs ~9s before the order confirms. Error rate is normal \u2014 orders eventually go through.',
       impact: 'Fans buying tickets wait ~9 seconds on Place Order; some press it again or leave checkout before the order confirms.',
     },
-    disclaimer: 'NOT ACTUALLY A VIVID SEATS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Vivid Seats product.',
+    disclaimer: 'NOT ACTUALLY A VIVID SEATS SITE — internal demo only, not affiliated with, endorsed by, or a real Vivid Seats product.',
   },
   '898defe9': {
     slug: '898defe9',
@@ -3880,7 +3880,7 @@ const ONCALL_SKINS = {
       symptom: 'Complete purchase hangs ~9s before the order confirms. Error rate is normal \u2014 purchases eventually go through.',
       impact: 'Collectors buying NFTs wait ~9 seconds on Complete purchase; some press it again or abandon checkout before the order confirms.',
     },
-    disclaimer: 'NOT ACTUALLY AN OPENSEA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OpenSea product.',
+    disclaimer: 'NOT ACTUALLY AN OPENSEA SITE — internal demo only, not affiliated with, endorsed by, or a real OpenSea product.',
   },
   '53715b85': {
     slug: '53715b85',
@@ -3890,7 +3890,7 @@ const ONCALL_SKINS = {
       file: '53715b85.html',
       title: 'Where Data, Validation, & Analytics Converge - vExchange Vertican Technologies',
     },
-    disclaimer: 'NOT ACTUALLY A VERTICAN TECHNOLOGIES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Vertican Technologies product.',
+    disclaimer: 'NOT ACTUALLY A VERTICAN TECHNOLOGIES SITE — internal demo only, not affiliated with, endorsed by, or a real Vertican Technologies product.',
   },
   'ddfc5af1': {
     slug: 'ddfc5af1',
@@ -3916,7 +3916,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfer miles hangs ~9s before the transfer confirms. Error rate is normal \u2014 transfers eventually go through.',
       impact: 'MileagePlus members transferring miles wait ~9 seconds on Transfer miles; some press it again or abandon the transfer before it confirms.',
     },
-    disclaimer: 'NOT ACTUALLY A UNITED AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real United Airlines product.',
+    disclaimer: 'NOT ACTUALLY A UNITED AIRLINES SITE — internal demo only, not affiliated with, endorsed by, or a real United Airlines product.',
   },
   '1a251a01': {
     slug: '1a251a01',
@@ -3930,7 +3930,7 @@ const ONCALL_SKINS = {
       symptom: 'Generate signals requests hang ~8s and then fail with 504 Gateway Timeout.',
       impact: 'Users on the Session Replays dashboard cannot load Signals; every request times out after a long hang and the card shows an error.',
     },
-    disclaimer: 'NOT ACTUALLY AN AMPLITUDE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Amplitude product.',
+    disclaimer: 'NOT ACTUALLY AN AMPLITUDE SITE — internal demo only, not affiliated with, endorsed by, or a real Amplitude product.',
   },
   'ce351ea6': {
     slug: 'ce351ea6',
@@ -3954,7 +3954,7 @@ const ONCALL_SKINS = {
       impact: 'Policyholders filing benefit claims online wait ~8 seconds and the claim is not accepted; contact-center claim calls are rising.',
     },
     supportCenter: '第一生命コンタクトセンター',
-    disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
+    disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE — internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
   },
   '8cf0f1b7': {
     slug: '8cf0f1b7',
@@ -3978,7 +3978,7 @@ const ONCALL_SKINS = {
       impact: 'Prospects sending a cloud or development inquiry wait ~8 seconds and the inquiry is not received; inquiries are being dropped.',
     },
     supportCenter: 'KDDIアイレット お問い合わせ窓口',
-    disclaimer: 'NOT ACTUALLY A KDDI IRET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real KDDI iret product.',
+    disclaimer: 'NOT ACTUALLY A KDDI IRET SITE — internal demo only, not affiliated with, endorsed by, or a real KDDI iret product.',
   },
   '39080a2a': {
     slug: '39080a2a',
@@ -4006,7 +4006,7 @@ const ONCALL_SKINS = {
       symptom: 'Transferencias a terceros hang ~9s before the transfer confirms. Error rate is normal \u2014 transfers eventually go through.',
       impact: 'Clientes sending money to third parties from Banco en L\u00ednea wait ~9 seconds on Transferir; some press it again or abandon the transfer before it confirms.',
     },
-    disclaimer: 'NOT ACTUALLY A BANCO DE CHILE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco de Chile product.',
+    disclaimer: 'NOT ACTUALLY A BANCO DE CHILE SITE — internal demo only, not affiliated with, endorsed by, or a real Banco de Chile product.',
   },
   '749daebe': {
     slug: '749daebe',
@@ -4137,7 +4137,7 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'OpenSea Support',
     supportCenterSub: 'Checkout & transactions',
-    disclaimer: 'NOT ACTUALLY AN OPENSEA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OpenSea product. Collection, NFTs, wallets and prices are fictional and illustrative; testnet simulation only, no transactions are broadcast.',
+    disclaimer: 'NOT ACTUALLY AN OPENSEA SITE — internal demo only, not affiliated with, endorsed by, or a real OpenSea product. Collection, NFTs, wallets and prices are fictional and illustrative; testnet simulation only, no transactions are broadcast.',
   },
   e7a1c4d9: {
     slug: 'e7a1c4d9',
@@ -4289,7 +4289,7 @@ const ONCALL_SKINS = {
       symptom: 'Pago de recibos pendientes hangs ~9s before the payment confirms. Error rate is normal \u2014 payments eventually go through.',
       impact: 'Clientes paying an overdue loan or card installment from \u00c1rea Clientes wait ~9 seconds on Pagar recibo; some press it again or abandon the payment before it confirms.',
     },
-    disclaimer: 'NOT ACTUALLY A SANTANDER CONSUMER FINANCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Santander Consumer Finance product.',
+    disclaimer: 'NOT ACTUALLY A SANTANDER CONSUMER FINANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Santander Consumer Finance product.',
   },
   '90bf6ab8': {
     slug: '90bf6ab8',
@@ -4330,7 +4330,7 @@ const ONCALL_SKINS = {
         'Use "Copa Airlines" and "Pagar reserva" in your thread replies, PR title and PR description. Open a PR with the findings, fix, test and recordings; do not merge or deploy. Post the root cause and the PR link back in the alert thread.',
       ].join('\n'),
     },
-    disclaimer: 'NOT ACTUALLY A COPA AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Copa Airlines product. All bookings, passengers and payments are fictional.',
+    disclaimer: 'NOT ACTUALLY A COPA AIRLINES SITE — internal demo only, not affiliated with, endorsed by, or a real Copa Airlines product. All bookings, passengers and payments are fictional.',
   },
   'b094da01': {
     slug: 'b094da01',
@@ -4354,7 +4354,7 @@ const ONCALL_SKINS = {
       impact: 'Prospects requesting brochures or quotes online wait ~8 seconds and the request is not accepted; brochure-request dial calls are rising.',
     },
     supportCenter: '第一生命 資料請求ダイヤル',
-    disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
+    disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE — internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
   },
   '48298aa2': {
     slug: '48298aa2',
@@ -4378,7 +4378,7 @@ const ONCALL_SKINS = {
       impact: 'Patients booking health screenings online wait ~8 seconds after Submit and the appointment is not confirmed; calls and emails to the clinics are rising.',
     },
     supportCenter: 'HMI Medical Patient Services',
-    disclaimer: 'NOT ACTUALLY AN HMI MEDICAL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real HMI Medical product.',
+    disclaimer: 'NOT ACTUALLY AN HMI MEDICAL SITE — internal demo only, not affiliated with, endorsed by, or a real HMI Medical product.',
   },
   'd176d067': {
     slug: 'd176d067',
@@ -4411,7 +4411,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Heppner Customer Service',
-    disclaimer: 'NOT ACTUALLY A HEPPNER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Heppner product. All shipments and data are fictional.',
+    disclaimer: 'NOT ACTUALLY A HEPPNER SITE — internal demo only, not affiliated with, endorsed by, or a real Heppner product. All shipments and data are fictional.',
   },
   '2d1b07a6': {
     slug: '2d1b07a6',
@@ -4445,7 +4445,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'FIBI Banking Service Center',
-    disclaimer: 'NOT ACTUALLY A FIRST INTERNATIONAL BANK OF ISRAEL (FIBI) SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real FIBI product. All accounts, messages and data are fictional.',
+    disclaimer: 'NOT ACTUALLY A FIRST INTERNATIONAL BANK OF ISRAEL (FIBI) SITE — internal demo only, not affiliated with, endorsed by, or a real FIBI product. All accounts, messages and data are fictional.',
   },
   'b38fb843': {
     slug: 'b38fb843',
@@ -4479,7 +4479,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Kering Corporate Web',
-    disclaimer: 'NOT ACTUALLY A KERING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Kering product. House imagery belongs to its owners; all incidents and data are fictional.',
+    disclaimer: 'NOT ACTUALLY A KERING SITE — internal demo only, not affiliated with, endorsed by, or a real Kering product. House imagery belongs to its owners; all incidents and data are fictional.',
   },
   'b983a7ef': {
     slug: 'b983a7ef',
@@ -4489,7 +4489,7 @@ const ONCALL_SKINS = {
       file: 'b983a7ef.html',
       title: 'Intesa Sanpaolo Group: Corporate Website | Intesa Sanpaolo',
     },
-    disclaimer: 'NOT ACTUALLY A INTESA SANPAOLO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Intesa Sanpaolo product.',
+    disclaimer: 'NOT ACTUALLY A INTESA SANPAOLO SITE — internal demo only, not affiliated with, endorsed by, or a real Intesa Sanpaolo product.',
   },
   '21d0c234': {
     slug: '21d0c234',
@@ -4499,7 +4499,7 @@ const ONCALL_SKINS = {
       file: '21d0c234.html',
       title: 'Bank BNP Paribas | The bank for a changing world',
     },
-    disclaimer: 'NOT ACTUALLY A BNP PARIBAS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BNP Paribas product.',
+    disclaimer: 'NOT ACTUALLY A BNP PARIBAS SITE — internal demo only, not affiliated with, endorsed by, or a real BNP Paribas product.',
   },
   '6997dfbe': {
     slug: '6997dfbe',
@@ -4533,7 +4533,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Coca-Cola FEMSA Customer Service',
-    disclaimer: 'NOT ACTUALLY A COCA-COLA FEMSA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Coca-Cola FEMSA product. All messages and data are fictional.',
+    disclaimer: 'NOT ACTUALLY A COCA-COLA FEMSA SITE — internal demo only, not affiliated with, endorsed by, or a real Coca-Cola FEMSA product. All messages and data are fictional.',
   },
   '04eac4a1': {
     slug: '04eac4a1',
@@ -4600,7 +4600,7 @@ const ONCALL_SKINS = {
       symptom: 'Checkouts with "Pick up in store" hang ~8s and then fail with 504 Gateway Timeout; "Ship to address" checkouts are normal. Onset coincides with the bag-web 3.12.0 pickup-hold release.',
       impact: 'Shoppers who choose Pick up in store cannot complete checkout; every pickup order sits on "Placing your order\u2026" and then errors.',
     },
-    disclaimer: 'NOT ACTUALLY A GAP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gap product.',
+    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
   '34203e96': {
     slug: '34203e96',
@@ -4643,7 +4643,7 @@ const ONCALL_SKINS = {
       file: 'abaf79d0.html',
       title: 'Opportunity Alerts for Small Businesses | Real-Time Local Leads | Nextdoor',
     },
-    disclaimer: 'NOT ACTUALLY A NEXTDOOR SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nextdoor product.',
+    disclaimer: 'NOT ACTUALLY A NEXTDOOR SITE — internal demo only, not affiliated with, endorsed by, or a real Nextdoor product.',
   },
   '9e4e060c': {
     slug: '9e4e060c',
@@ -4667,7 +4667,7 @@ const ONCALL_SKINS = {
       symptom: 'Sell shares submissions hang ~9s before the sale instruction is confirmed. Error rate is normal \u2014 instructions are eventually accepted.',
       impact: 'Shareholders selling through Investor Centre wait ~9 seconds for confirmation; some press Confirm sale again and contact the helpline about duplicate sale instructions.',
     },
-    disclaimer: 'NOT ACTUALLY A COMPUTERSHARE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Computershare product.',
+    disclaimer: 'NOT ACTUALLY A COMPUTERSHARE SITE — internal demo only, not affiliated with, endorsed by, or a real Computershare product.',
   },
   'd2530969': {
     slug: 'd2530969',
@@ -4691,7 +4691,7 @@ const ONCALL_SKINS = {
       symptom: 'Reimbursement claim submissions hang ~8s and then fail with 504 Gateway Timeout.',
       impact: 'Members filing a reimbursement claim from their account wait ~8 seconds and get an error; Member Services is reporting rising call volume about claims that will not submit.',
     },
-    disclaimer: 'NOT ACTUALLY AN OSCAR HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Oscar Health product.',
+    disclaimer: 'NOT ACTUALLY AN OSCAR HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Oscar Health product.',
   },
   ebc99f00: {
     slug: 'ebc99f00',
@@ -4753,7 +4753,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'HP Customer Service',
-    disclaimer: 'NOT ACTUALLY AN HP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real HP product.',
+    disclaimer: 'NOT ACTUALLY AN HP SITE — internal demo only, not affiliated with, endorsed by, or a real HP product.',
   },
   'f49a69dd': {
     slug: 'f49a69dd',
@@ -4761,7 +4761,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: 'f49a69dd.html', title: 'Earnings | Lyft Driver' },
-    disclaimer: 'NOT ACTUALLY A LYFT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Lyft product.',
+    disclaimer: 'NOT ACTUALLY A LYFT SITE — internal demo only, not affiliated with, endorsed by, or a real Lyft product.',
   },
   'dc484310': {
     slug: 'dc484310',
@@ -4826,7 +4826,7 @@ const ONCALL_SKINS = {
       symptom: 'Add-course requests in STARS slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal.',
       impact: 'Students adding a course during the add/drop window wait ~7 seconds on every request; registration completion is dropping while vacancies fill up.',
     },
-    disclaimer: 'NOT ACTUALLY A NANYANG TECHNOLOGICAL UNIVERSITY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nanyang Technological University product.',
+    disclaimer: 'NOT ACTUALLY A NANYANG TECHNOLOGICAL UNIVERSITY SITE — internal demo only, not affiliated with, endorsed by, or a real Nanyang Technological University product.',
   },
   '2b2a8fe5': {
     slug: '2b2a8fe5',
@@ -4852,7 +4852,7 @@ const ONCALL_SKINS = {
       symptom: 'Plan changes in the FOX One account page slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal.',
       impact: 'Subscribers switching to Annual or the ESPN bundle wait ~7 seconds on every plan change; completion rate is dropping.',
     },
-    disclaimer: 'NOT ACTUALLY A FOX ONE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Fox Corporation product.',
+    disclaimer: 'NOT ACTUALLY A FOX ONE SITE — internal demo only, not affiliated with, endorsed by, or a real Fox Corporation product.',
   },
   '0176c39d': {
     slug: '0176c39d',
@@ -4878,7 +4878,7 @@ const ONCALL_SKINS = {
       symptom: 'Entitlement updates on the NYSE Data Products client portal slowed after the last release and get slower with every request. Process RSS trends up alongside latency.',
       impact: 'Firms adding display users to a feed wait 6+ seconds per request and the wait keeps growing under sustained traffic.',
     },
-    disclaimer: 'NOT ACTUALLY AN NYSE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real NYSE Group or Intercontinental Exchange product.',
+    disclaimer: 'NOT ACTUALLY AN NYSE SITE — internal demo only, not affiliated with, endorsed by, or a real NYSE Group or Intercontinental Exchange product.',
   },
   'c463302d': {
     slug: 'c463302d',
@@ -4904,7 +4904,7 @@ const ONCALL_SKINS = {
       symptom: 'Subscription changes in the Nasdaq Data Link account page slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal.',
       impact: 'Customers upgrading to Nasdaq Basic or Core US Equities wait ~7 seconds on every plan change; upgrade completion rate is dropping.',
     },
-    disclaimer: 'NOT ACTUALLY A NASDAQ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nasdaq, Inc. product.',
+    disclaimer: 'NOT ACTUALLY A NASDAQ SITE — internal demo only, not affiliated with, endorsed by, or a real Nasdaq, Inc. product.',
   },
   '5f19f1de': {
     slug: '5f19f1de',
@@ -4930,7 +4930,7 @@ const ONCALL_SKINS = {
       symptom: 'Adding seats to a Team workspace slowed after the last release and gets slower with every request. Process RSS trends up alongside latency.',
       impact: 'Workspace admins wait 6+ seconds to add seats and the wait keeps growing under sustained traffic; pending invitations stay blocked.',
     },
-    disclaimer: 'NOT ACTUALLY A MISTRAL AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Mistral AI product.',
+    disclaimer: 'NOT ACTUALLY A MISTRAL AI SITE — internal demo only, not affiliated with, endorsed by, or a real Mistral AI product.',
   },
   '29197ad0': {
     slug: '29197ad0',
@@ -4956,7 +4956,7 @@ const ONCALL_SKINS = {
       symptom: 'Online application submissions on マイナポータル hang ~8s and then fail with 504 Gateway Timeout. Upstream municipal submission latency is elevated.',
       impact: 'Residents cannot submit 児童手当 現況届 and other applications through the portal; every submission times out after a long hang, days before the June 30 deadline.',
     },
-    disclaimer: 'NOT ACTUALLY A DIGITAL AGENCY (デジタル庁 / マイナポータル) SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Government of Japan service.',
+    disclaimer: 'NOT ACTUALLY A DIGITAL AGENCY (デジタル庁 / マイナポータル) SITE — internal demo only, not affiliated with, endorsed by, or a real Government of Japan service.',
   },
   'eb976748': {
     slug: 'eb976748',
@@ -4995,7 +4995,7 @@ const ONCALL_SKINS = {
       impact: 'ネットスーパーで注文を確定するすべてのお客さまが約10秒待たされています。お客さまセンターへの問い合わせが増えており、確定できたか分からず再操作するお客さまも出ています。',
     },
     supportCenter: 'イオンネットスーパー お客さまセンター',
-    disclaimer: 'NOT ACTUALLY AN AEON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real AEON product. ／ イオンネットスーパーの実際のサイトではありません（社内デモ用）。',
+    disclaimer: 'NOT ACTUALLY AN AEON SITE — internal demo only, not affiliated with, endorsed by, or a real AEON product. ／ イオンネットスーパーの実際のサイトではありません（社内デモ用）。',
   },
   '3ae0c983': {
     slug: '3ae0c983',
@@ -5021,7 +5021,7 @@ const ONCALL_SKINS = {
       symptom: 'Where to Buy on the J6060B torque wrench product page fails immediately with HTTP 500; no retailer list is shown. Other SKUs on the page load retailers normally. Latency is normal.',
       impact: 'Buyers cannot find a distributor for the affected PROTO torque wrench; every Where to Buy click on it errors.',
     },
-    disclaimer: 'NOT ACTUALLY A PROTO INDUSTRIAL TOOLS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real PROTO Industrial Tools or Stanley Black & Decker product.',
+    disclaimer: 'NOT ACTUALLY A PROTO INDUSTRIAL TOOLS SITE — internal demo only, not affiliated with, endorsed by, or a real PROTO Industrial Tools or Stanley Black & Decker product.',
   },
   '7b3e91c4': {
     slug: '7b3e91c4',
@@ -5055,7 +5055,7 @@ const ONCALL_SKINS = {
       symptom: 'Run release gate for the INV800 800 V inverter fails immediately with HTTP 500; no GO/NO-GO verdict is shown. IDM220, DCDC48 and OBC11 evaluate normally. Latency is normal.',
       impact: 'Test leads cannot release-gate the INV800 release candidate; the program release review is blocked.',
     },
-    disclaimer: 'NOT ACTUALLY A BORGWARNER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BorgWarner product.',
+    disclaimer: 'NOT ACTUALLY A BORGWARNER SITE — internal demo only, not affiliated with, endorsed by, or a real BorgWarner product.',
   },
   '2993853c': {
     slug: '2993853c',
@@ -5063,7 +5063,7 @@ const ONCALL_SKINS = {
     vertical: 'hightech',
     oncallOnly: true,
     page: { file: '2993853c.html', title: 'Cross-Platform Video Player | Dolby OptiView Player' },
-    disclaimer: 'NOT ACTUALLY A DOLBY OPTIVIEW SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dolby OptiView or Dolby Laboratories product.',
+    disclaimer: 'NOT ACTUALLY A DOLBY OPTIVIEW SITE — internal demo only, not affiliated with, endorsed by, or a real Dolby OptiView or Dolby Laboratories product.',
   },
   '959dc0b3': {
     slug: '959dc0b3',
@@ -5071,7 +5071,7 @@ const ONCALL_SKINS = {
     vertical: 'insurance',
     oncallOnly: true,
     page: { file: '959dc0b3.html', title: 'Hippo Home Insurance - affordable, tailored quotes in under 60 seconds' },
-    disclaimer: 'NOT ACTUALLY A HIPPO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Hippo product.',
+    disclaimer: 'NOT ACTUALLY A HIPPO SITE — internal demo only, not affiliated with, endorsed by, or a real Hippo product.',
   },
   '1100f87e': {
     slug: '1100f87e',
@@ -5079,7 +5079,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: '1100f87e.html', title: 'Groupon\u00ae Official Site - Find Local Deals Near You' },
-    disclaimer: 'NOT ACTUALLY A GROUPON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Groupon product.',
+    disclaimer: 'NOT ACTUALLY A GROUPON SITE — internal demo only, not affiliated with, endorsed by, or a real Groupon product.',
   },
   '492753fe': {
     slug: '492753fe',
@@ -5106,7 +5106,7 @@ const ONCALL_SKINS = {
       symptom: 'Confirm reservation on the R2 configurator fails immediately with HTTP 500 for R2 Performance builds; no deposit is taken. Premium and Standard reservations succeed. Latency is normal.',
       impact: 'Buyers cannot reserve the R2 Performance, the only trim available now; every Confirm reservation on it errors.',
     },
-    disclaimer: 'NOT ACTUALLY A RIVIAN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rivian product.',
+    disclaimer: 'NOT ACTUALLY A RIVIAN SITE — internal demo only, not affiliated with, endorsed by, or a real Rivian product.',
   },
   'b4fb2968': {
     slug: 'b4fb2968',
@@ -5186,7 +5186,7 @@ const ONCALL_SKINS = {
       symptom: 'Deploy on the Dell Private Cloud \u2014 VMware vSphere 8 blueprint fails immediately with HTTP 500; no deployment is created. The Red Hat OpenShift and Nutanix AHV blueprints deploy normally. Latency is normal.',
       impact: 'Operators cannot deploy the vSphere private cloud blueprint to any site; every Deploy on it errors at the Summary step and planned cluster rollouts are queued behind it.',
     },
-    disclaimer: 'NOT ACTUALLY A DELL TECHNOLOGIES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dell Technologies product.',
+    disclaimer: 'NOT ACTUALLY A DELL TECHNOLOGIES SITE — internal demo only, not affiliated with, endorsed by, or a real Dell Technologies product.',
   },
   fd157043: {
     slug: 'fd157043',
@@ -5224,7 +5224,7 @@ const ONCALL_SKINS = {
       symptom: 'Opening Our Portfolio hangs ~8s and then fails with HTTP 504; the company grid never renders and the page shows "Our portfolio is temporarily unavailable". Narrower filtered views still load, slowly.',
       impact: 'Every visitor to the public Our Portfolio page waits ~8 seconds and then sees the portfolio as unavailable; no portfolio company is reachable from the page.',
     },
-    disclaimer: 'NOT ACTUALLY A HELLMAN & FRIEDMAN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Hellman & Friedman product.',
+    disclaimer: 'NOT ACTUALLY A HELLMAN & FRIEDMAN SITE — internal demo only, not affiliated with, endorsed by, or a real Hellman & Friedman product.',
   },
   '106675ec': {
     slug: '106675ec',
@@ -5248,7 +5248,7 @@ const ONCALL_SKINS = {
       symptom: 'Submit order hangs ~9s before the order confirmation returns. Error rate is normal \u2014 orders eventually submit.',
       impact: 'Builders submitting orders from a quote wait ~9 seconds for a confirmation; some click Submit order again and call their sales representative about duplicate orders.',
     },
-    disclaimer: 'NOT ACTUALLY A BUILDERS FIRSTSOURCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Builders FirstSource product.',
+    disclaimer: 'NOT ACTUALLY A BUILDERS FIRSTSOURCE SITE — internal demo only, not affiliated with, endorsed by, or a real Builders FirstSource product.',
   },
   '553b83cc': {
     slug: '553b83cc',
@@ -5275,7 +5275,7 @@ const ONCALL_SKINS = {
       symptom: 'Plan changes in the Base member account slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal \u2014 plan changes eventually confirm.',
       impact: 'Members adding a Base Core battery or moving to Energy + backup wait ~8 seconds for a confirmation; some press Confirm plan change again and contact Support about duplicate requests.',
     },
-    disclaimer: 'NOT ACTUALLY A BASE POWER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Base Power Company product.',
+    disclaimer: 'NOT ACTUALLY A BASE POWER SITE — internal demo only, not affiliated with, endorsed by, or a real Base Power Company product.',
   },
   'acf439e6': {
     slug: 'acf439e6',
@@ -5313,7 +5313,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfer hangs ~9s before the confirmation returns. Error rate is normal \u2014 transfers eventually complete.',
       impact: 'Customers moving money between their accounts wait ~9 seconds for a confirmation; some tap Transfer again and contact support about duplicate transfers.',
     },
-    disclaimer: 'NOT ACTUALLY A REVOLUT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
+    disclaimer: 'NOT ACTUALLY A REVOLUT SITE — internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
   },
   '6718a17e': {
     slug: '6718a17e',
@@ -5351,14 +5351,14 @@ const ONCALL_SKINS = {
       symptom: 'Transfers between a member\u2019s Checking and Savings Account hang ~9s before the confirmation returns. Error rate is normal \u2014 transfers eventually post.',
       impact: 'Members moving money between Checking and Savings wait ~9 seconds for a confirmation; some tap Transfer again and contact support about duplicate transfers.',
     },
-    disclaimer: 'NOT ACTUALLY A CHIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Chime product.',
+    disclaimer: 'NOT ACTUALLY A CHIME SITE — internal demo only, not affiliated with, endorsed by, or a real Chime product.',
   },
   '91241725': {
     slug: '91241725',
     company: 'Applied Data Finance',
     vertical: 'banking',
     page: { file: '91241725.html', title: 'Applied Data Finance: AI-Driven Credit & Fintech Lending Platform' },
-    disclaimer: 'NOT ACTUALLY AN APPLIED DATA FINANCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Applied Data Finance product.',
+    disclaimer: 'NOT ACTUALLY AN APPLIED DATA FINANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Applied Data Finance product.',
   },
   '9b7f0d70': {
     slug: '9b7f0d70',
@@ -5367,7 +5367,7 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     alertDestination: 'slack',
     page: { file: '9b7f0d70.html', title: 'Book Now | UTA Speakers' },
-    disclaimer: 'NOT ACTUALLY A UTA SPEAKERS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real UTA Speakers product.',
+    disclaimer: 'NOT ACTUALLY A UTA SPEAKERS SITE — internal demo only, not affiliated with, endorsed by, or a real UTA Speakers product.',
   },
   'eba2e983': {
     slug: 'eba2e983',
@@ -5416,7 +5416,7 @@ const ONCALL_SKINS = {
       file: 'e827989e.html',
       title: 'OtterWorks',
     },
-    disclaimer: 'NOT ACTUALLY AN OTTERWORKS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OtterWorks product.',
+    disclaimer: 'NOT ACTUALLY AN OTTERWORKS SITE — internal demo only, not affiliated with, endorsed by, or a real OtterWorks product.',
   },
   'fb89aa75': {
     slug: 'fb89aa75',
@@ -5455,7 +5455,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers between a member\u2019s SoFi Checking and Savings accounts hang ~9s before the confirmation returns. Error rate is normal \u2014 transfers eventually post.',
       impact: 'Members moving money between Checking, Savings, and Vaults wait ~9 seconds for a confirmation; some tap Transfer again and contact support about duplicate transfers.',
     },
-    disclaimer: 'NOT ACTUALLY A SOFI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real SoFi product.',
+    disclaimer: 'NOT ACTUALLY A SOFI SITE — internal demo only, not affiliated with, endorsed by, or a real SoFi product.',
   },
   '4e382093': {
     slug: '4e382093',
@@ -5494,7 +5494,7 @@ const ONCALL_SKINS = {
       symptom: 'Moving money from a customer\u2019s Monzo account into a Pot hangs ~9s before the confirmation returns. Error rate is normal \u2014 the money eventually lands in the Pot.',
       impact: 'Customers adding money to Pots or Savings Pots wait ~9 seconds for a confirmation; some tap Move money again and contact support through in-app chat about the same amount moving twice.',
     },
-    disclaimer: 'NOT ACTUALLY A MONZO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Monzo product.',
+    disclaimer: 'NOT ACTUALLY A MONZO SITE — internal demo only, not affiliated with, endorsed by, or a real Monzo product.',
   },
   '4b1753ea': {
     slug: '4b1753ea',
@@ -5533,7 +5533,7 @@ const ONCALL_SKINS = {
       symptom: 'Adding money from a customer\u2019s Starling current account into a Space hangs ~9s before the confirmation returns. Error rate is normal \u2014 the money eventually lands in the Space.',
       impact: 'Customers adding money to a Space wait ~9 seconds for a confirmation; some tap Add money again and contact the Help centre about the same amount being added twice.',
     },
-    disclaimer: 'NOT ACTUALLY A STARLING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Starling product.',
+    disclaimer: 'NOT ACTUALLY A STARLING SITE — internal demo only, not affiliated with, endorsed by, or a real Starling product.',
   },
   '6b1c0dca': {
     slug: '6b1c0dca',
@@ -5572,7 +5572,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from a customer\u2019s Varo Bank Account into their Varo Savings Account hang ~9s before the confirmation returns. Error rate is normal \u2014 the money eventually lands in savings.',
       impact: 'Customers moving money into savings wait ~9 seconds for a confirmation; some tap Transfer again and contact support about the same amount being moved twice.',
     },
-    disclaimer: 'NOT ACTUALLY A VARO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Varo product.',
+    disclaimer: 'NOT ACTUALLY A VARO SITE — internal demo only, not affiliated with, endorsed by, or a real Varo product.',
   },
   'ccfafac1': {
     slug: 'ccfafac1',
@@ -5580,7 +5580,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: 'ccfafac1.html', title: 'Payments | Handshake AI' },
-    disclaimer: 'NOT ACTUALLY A HANDSHAKE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Handshake product.',
+    disclaimer: 'NOT ACTUALLY A HANDSHAKE SITE — internal demo only, not affiliated with, endorsed by, or a real Handshake product.',
   },
   '40c949e4': {
     slug: '40c949e4',
@@ -5615,7 +5615,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'OpenRouter Support',
-    disclaimer: 'NOT ACTUALLY AN OPENROUTER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OpenRouter product.',
+    disclaimer: 'NOT ACTUALLY AN OPENROUTER SITE — internal demo only, not affiliated with, endorsed by, or a real OpenRouter product.',
   },
   '3522ef90': {
     slug: '3522ef90',
@@ -5623,7 +5623,7 @@ const ONCALL_SKINS = {
     vertical: 'inference',
     oncallOnly: true,
     page: { file: '3522ef90.html', title: 'DeepSeek V4 Pro 0813 | Model library' },
-    disclaimer: 'NOT ACTUALLY A BASETEN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Baseten product.',
+    disclaimer: 'NOT ACTUALLY A BASETEN SITE — internal demo only, not affiliated with, endorsed by, or a real Baseten product.',
   },
   '12d591ae': {
     slug: '12d591ae',
@@ -5706,7 +5706,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers between an institutional client\u2019s cash accounts (comptes esp\u00e8ces) in BDFdirect hang ~9s before the execution notice (avis d\u2019ex\u00e9cution) returns. Error rate is normal \u2014 the funds eventually reach the credited account.',
       impact: 'Institutional treasurers validating a transfer order in BDFdirect wait ~9 seconds for the execution notice; some click Valider l\u2019ordre again and contact the support technique about the same amount being transferred twice.',
     },
-    disclaimer: 'NOT ACTUALLY A BANQUE DE FRANCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banque de France product.',
+    disclaimer: 'NOT ACTUALLY A BANQUE DE FRANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Banque de France product.',
   },
   '9996f438': {
     slug: '9996f438',
@@ -5747,7 +5747,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from a customer\u2019s Klarna Personal account into one of their savings accounts hang ~9s before the confirmation returns. Error rate is normal \u2014 the money eventually lands in savings.',
       impact: 'Customers moving money into savings wait ~9 seconds for a confirmation; some tap Transfer again and contact customer service about the same amount being moved twice.',
     },
-    disclaimer: 'NOT ACTUALLY A KLARNA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Klarna product.',
+    disclaimer: 'NOT ACTUALLY A KLARNA SITE — internal demo only, not affiliated with, endorsed by, or a real Klarna product.',
   },
   'c64b095d': {
     slug: 'c64b095d',
@@ -5771,7 +5771,7 @@ const ONCALL_SKINS = {
       symptom: 'Card payments on the Pay for your booking step hang ~9s before the confirmation returns. Error rate is normal \u2014 payments eventually go through and bookings confirm.',
       impact: 'Every customer paying for a booking by card waits ~9 seconds on Taking payment\u2026 before the booking confirms; some press Pay now again or call Customer Services to check whether their card was charged twice.',
     },
-    disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
+    disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
   },
   'a83d3446': {
     slug: 'a83d3446',
@@ -5803,7 +5803,7 @@ const ONCALL_SKINS = {
       symptom: 'Pay my credit card in NetBank fails immediately with HTTP 500 when the payment is funded from Smart Access. Paying from NetBank Saver succeeds. Latency is normal.',
       impact: 'Customers cannot pay their credit card from their everyday account, the default funding account; every attempt shows an error and some contact CommBank Support.',
     },
-    disclaimer: 'NOT ACTUALLY A COMMONWEALTH BANK AUSTRALIA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Commonwealth Bank Australia product.',
+    disclaimer: 'NOT ACTUALLY A COMMONWEALTH BANK AUSTRALIA SITE — internal demo only, not affiliated with, endorsed by, or a real Commonwealth Bank Australia product.',
   },
   'f405f071': {
     slug: 'f405f071',
@@ -5831,7 +5831,7 @@ const ONCALL_SKINS = {
       symptom: 'Add hosts in Account Management takes ~7s and gets slower with every request since the last release. Process RSS trends up alongside it. Error rate is normal.',
       impact: 'Customers adding monitoring capacity wait several seconds for confirmation, and the wait grows under sustained traffic.',
     },
-    disclaimer: 'NOT ACTUALLY A DYNATRACE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dynatrace product.',
+    disclaimer: 'NOT ACTUALLY A DYNATRACE SITE — internal demo only, not affiliated with, endorsed by, or a real Dynatrace product.',
   },
   '0a1c49ed': {
     slug: '0a1c49ed',
@@ -5876,14 +5876,14 @@ const ONCALL_SKINS = {
       symptom: 'Payments to a saved recipient from Move money \u2192 Make a payment hang ~9s after the customer taps Confirm before the payment is shown as sent. Error rate is normal \u2014 the payment eventually leaves the account.',
       impact: 'Customers paying an existing recipient wait ~9 seconds after Confirm; some tap Confirm again and contact TSB Support about the same amount being paid twice.',
     },
-    disclaimer: 'NOT ACTUALLY A TSB SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TSB product.',
+    disclaimer: 'NOT ACTUALLY A TSB SITE — internal demo only, not affiliated with, endorsed by, or a real TSB product.',
   },
   'c21967eb': {
     slug: 'c21967eb',
     company: 'Avant',
     vertical: 'banking',
     page: { file: 'c21967eb.html', title: 'About Our Company | Borrow Better. Faster. | Avant' },
-    disclaimer: 'NOT ACTUALLY AN AVANT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Avant product.',
+    disclaimer: 'NOT ACTUALLY AN AVANT SITE — internal demo only, not affiliated with, endorsed by, or a real Avant product.',
   },
   '274cb37c': {
     slug: '274cb37c',
@@ -5911,7 +5911,7 @@ const ONCALL_SKINS = {
       symptom: 'One-time contributions from a linked bank account into a managed account hang ~9s after the advisor selects Submit request before the request is shown as submitted. Error rate is normal \u2014 the contribution is eventually accepted.',
       impact: 'Advisors funding client accounts wait ~9 seconds per request; some select Submit request again and contact Envestnet Support about the same contribution being submitted twice.',
     },
-    disclaimer: 'NOT ACTUALLY AN ENVESTNET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Envestnet product.',
+    disclaimer: 'NOT ACTUALLY AN ENVESTNET SITE — internal demo only, not affiliated with, endorsed by, or a real Envestnet product.',
   },
   'e5e30d7a': {
     slug: 'e5e30d7a',
@@ -5956,7 +5956,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from Pay & transfer \u2192 Transfer money hang ~9s after the customer selects Approve transfer before the receipt is shown. Error rate is normal \u2014 the transfer completes.',
       impact: 'Netbank customers wait ~9 seconds to approve a transfer; some select Approve transfer again and contact Danske Bank about the same amount being transferred twice.',
     },
-    disclaimer: 'NOT ACTUALLY A DANSKE BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Danske Bank product.',
+    disclaimer: 'NOT ACTUALLY A DANSKE BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Danske Bank product.',
   },
   '57b5abf1': {
     slug: '57b5abf1',
@@ -6001,7 +6001,7 @@ const ONCALL_SKINS = {
       symptom: 'Guarantee applications from Trade Finance \u2192 Guarantees \u2192 Issue guarantee hang ~9s after the user selects Send to Danske Bank before the receipt is shown. Error rate is normal \u2014 the application is received.',
       impact: 'Corporate District users wait ~9 seconds to send a guarantee application to Danske Bank; some select Send again and contact Trade Finance about the same guarantee being applied for twice.',
     },
-    disclaimer: 'NOT ACTUALLY A DANSKE BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Danske Bank product.',
+    disclaimer: 'NOT ACTUALLY A DANSKE BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Danske Bank product.',
   },
   '19a3a047': {
     slug: '19a3a047',
@@ -6046,7 +6046,7 @@ const ONCALL_SKINS = {
       symptom: 'Payment orders from Payments \u2192 New payment hang ~9s after the client selects Confirm payment before the confirmation appears. Error rate is normal \u2014 the order is executed.',
       impact: 'BCV-net clients wait ~9 seconds to validate a payment; some confirm again and call the BCV Service Line about duplicate orders.',
     },
-    disclaimer: 'NOT ACTUALLY A BCV SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BCV product.',
+    disclaimer: 'NOT ACTUALLY A BCV SITE — internal demo only, not affiliated with, endorsed by, or a real BCV product.',
   },
   '868accf3': {
     slug: '868accf3',
@@ -6091,7 +6091,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from Bank \u2192 Transfer hang ~9s after the customer selects Transfer now before the confirmation appears. Error rate is normal \u2014 the transfer completes.',
       impact: 'Nettbank customers moving money to savings wait ~9 seconds; some select Transfer now again and contact Kundeservice about the transfer appearing twice.',
     },
-    disclaimer: 'NOT ACTUALLY A STOREBRAND SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Storebrand product.',
+    disclaimer: 'NOT ACTUALLY A STOREBRAND SITE — internal demo only, not affiliated with, endorsed by, or a real Storebrand product.',
   },
   'e00ef148': {
     slug: 'e00ef148',
@@ -6136,7 +6136,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from Pay & transfer \u2192 Transfer hang ~9s after the customer selects Approve before the receipt is shown. Error rate is normal \u2014 the transfer completes.',
       impact: 'Netbank customers wait ~9 seconds to approve a transfer; some approve again and contact Nykredit Kundeservice about the amount leaving twice.',
     },
-    disclaimer: 'NOT ACTUALLY A NYKREDIT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nykredit product.',
+    disclaimer: 'NOT ACTUALLY A NYKREDIT SITE — internal demo only, not affiliated with, endorsed by, or a real Nykredit product.',
   },
   'f6861899': {
     slug: 'f6861899',
@@ -6181,7 +6181,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from Pay and transfer \u2192 Transfer hang ~9s after the customer selects Confirm before the receipt is shown. Error rate is normal \u2014 the transfer completes.',
       impact: 'Netbank customers wait ~9 seconds to confirm a transfer; some confirm again and contact Nordea Customer Service about the same transfer appearing twice.',
     },
-    disclaimer: 'NOT ACTUALLY A NORDEA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nordea product.',
+    disclaimer: 'NOT ACTUALLY A NORDEA SITE — internal demo only, not affiliated with, endorsed by, or a real Nordea product.',
   },
   'abe61d6c': {
     slug: 'abe61d6c',
@@ -6226,7 +6226,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from Pay and transfer \u2192 Transfer hang ~9s after the customer selects Approve before the receipt is shown. Error rate is normal \u2014 the transfer completes.',
       impact: 'Internetbanken customers wait ~9 seconds to approve a transfer; some approve again and contact Swedbank Kundservice about the same amount leaving twice.',
     },
-    disclaimer: 'NOT ACTUALLY A SWEDBANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Swedbank product.',
+    disclaimer: 'NOT ACTUALLY A SWEDBANK SITE — internal demo only, not affiliated with, endorsed by, or a real Swedbank product.',
   },
   '7dcf3f26': {
     slug: '7dcf3f26',
@@ -6254,7 +6254,7 @@ const ONCALL_SKINS = {
       symptom: 'Add subscriptions in NetCloud Manager takes ~6s and gets slower with every request since the last release. Error rate is normal \u2014 subscriptions are added.',
       impact: 'Enterprise admins adding endpoints for new routers wait several seconds for confirmation, and the wait grows under sustained traffic.',
     },
-    disclaimer: 'NOT ACTUALLY AN ERICSSON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
+    disclaimer: 'NOT ACTUALLY AN ERICSSON SITE — internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
   },
   'ca3a6180': {
     slug: 'ca3a6180',
@@ -6299,7 +6299,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers from Pay and transfer \u2192 Transfer hang ~9s after the customer selects Sign transfer before the receipt is shown. Error rate is normal \u2014 the transfer completes.',
       impact: 'SEB customers wait ~9 seconds to sign a transfer; some sign again and contact SEB Kundservice about the same amount being transferred twice.',
     },
-    disclaimer: 'NOT ACTUALLY A SEB SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real SEB product.',
+    disclaimer: 'NOT ACTUALLY A SEB SITE — internal demo only, not affiliated with, endorsed by, or a real SEB product.',
   },
   'bade25cd': {
     slug: 'bade25cd',
@@ -6332,7 +6332,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'ML Platform Support',
-    disclaimer: 'NOT ACTUALLY AN AB INBEV SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real AB InBev product.',
+    disclaimer: 'NOT ACTUALLY AN AB INBEV SITE — internal demo only, not affiliated with, endorsed by, or a real AB InBev product.',
   },
   '732a11bb': {
     slug: '732a11bb',
@@ -6364,7 +6364,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'BEES Care',
-    disclaimer: 'NOT ACTUALLY A BEES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BEES or AB InBev product.',
+    disclaimer: 'NOT ACTUALLY A BEES SITE — internal demo only, not affiliated with, endorsed by, or a real BEES or AB InBev product.',
   },
   'b10ef526': {
     slug: 'b10ef526',
@@ -6410,7 +6410,7 @@ const ONCALL_SKINS = {
       symptom: 'Send money transfers hang ~9s after the customer selects Send money before the transfer confirmation is shown. Error rate is normal \u2014 the transfer completes.',
       impact: 'Wise customers wait ~9 seconds for a transfer to confirm; some select Send money again and contact the Wise Help centre about the same transfer leaving their balance twice.',
     },
-    disclaimer: 'NOT ACTUALLY A WISE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Wise product.',
+    disclaimer: 'NOT ACTUALLY A WISE SITE — internal demo only, not affiliated with, endorsed by, or a real Wise product.',
   },
   'f2686bda': {
     slug: 'f2686bda',
@@ -6427,7 +6427,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#ffffff',
     },
     supportCenter: 'Bank of America Support',
-    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE — internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
   'd97ac514': {
     slug: 'd97ac514',
@@ -6462,7 +6462,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#ffffff',
     },
     supportCenter: 'Bank of America Support',
-    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE — internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
   'c26633a1': {
     slug: 'c26633a1',
@@ -6606,7 +6606,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#ffffff',
     },
     supportCenter: 'Children\u2019s Minnesota Financial Customer Service',
-    disclaimer: 'NOT ACTUALLY A CHILDREN\u2019S MINNESOTA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Children\u2019s Minnesota product.',
+    disclaimer: 'NOT ACTUALLY A CHILDREN\u2019S MINNESOTA SITE — internal demo only, not affiliated with, endorsed by, or a real Children\u2019s Minnesota product.',
   },
   '3692c035': {
     slug: '3692c035',
@@ -6617,7 +6617,7 @@ const ONCALL_SKINS = {
       file: '3692c035.html',
       title: 'Award-Winning Hospitality Management System - Cloudbeds',
     },
-    disclaimer: 'NOT ACTUALLY A CLOUDBEDS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cloudbeds product.',
+    disclaimer: 'NOT ACTUALLY A CLOUDBEDS SITE — internal demo only, not affiliated with, endorsed by, or a real Cloudbeds product.',
   },
   '004156f1': {
     slug: '004156f1',
@@ -6645,7 +6645,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Ericsson Fintech Platform Support',
-    disclaimer: 'NOT ACTUALLY AN ERICSSON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
+    disclaimer: 'NOT ACTUALLY AN ERICSSON SITE — internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
   },
   '50124a40': {
     slug: '50124a40',
@@ -6653,7 +6653,7 @@ const ONCALL_SKINS = {
     vertical: 'hightech',
     page: { file: '50124a40.html', title: 'Agentic AI for IT Operations | BigPanda' },
     oncallOnly: true,
-    disclaimer: 'NOT ACTUALLY A BIGPANDA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BigPanda product.',
+    disclaimer: 'NOT ACTUALLY A BIGPANDA SITE — internal demo only, not affiliated with, endorsed by, or a real BigPanda product.',
   },
   '0cde929a': {
     slug: '0cde929a',
@@ -6671,7 +6671,7 @@ const ONCALL_SKINS = {
     teamsAlerts: true,
     teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
     alertDestination: 'teams',
-    disclaimer: 'NOT ACTUALLY A BLUE OWL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blue Owl product.',
+    disclaimer: 'NOT ACTUALLY A BLUE OWL SITE — internal demo only, not affiliated with, endorsed by, or a real Blue Owl product.',
   },
   '50a6f684': {
     slug: '50a6f684',
@@ -6690,7 +6690,7 @@ const ONCALL_SKINS = {
       symptom: 'E-prescription order submissions hang ~8s and then fail with 504 Gateway Timeout. Upstream latency is elevated.',
       impact: 'Customers ordering prescription medicines online cannot complete the order; every submission times out after a long hang.',
     },
-    disclaimer: 'NOT ACTUALLY A EUROAPOTHECA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Euroapotheca product.',
+    disclaimer: 'NOT ACTUALLY A EUROAPOTHECA SITE — internal demo only, not affiliated with, endorsed by, or a real Euroapotheca product.',
   },
   'a6f389b5': {
     slug: 'a6f389b5',
@@ -6701,7 +6701,7 @@ const ONCALL_SKINS = {
       file: 'a6f389b5.html',
       title: 'トヨタ | 該当するリコール等の内容と実施状況の検索',
     },
-    disclaimer: 'NOT ACTUALLY A TOYOTA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Toyota product.',
+    disclaimer: 'NOT ACTUALLY A TOYOTA SITE — internal demo only, not affiliated with, endorsed by, or a real Toyota product.',
   },
   'c7b0b57a': {
     slug: 'c7b0b57a',
@@ -6757,7 +6757,7 @@ const ONCALL_SKINS = {
       symptom: 'P2P sends from Envoyer \u2192 Confirmer hang ~9s after the user taps Envoyer before the confirmation appears. Error rate is normal \u2014 the money is sent.',
       impact: 'BCV TWINT users wait ~9 seconds to send money to a contact; some tap Envoyer again and contact BCV about money sent twice.',
     },
-    disclaimer: 'NOT ACTUALLY A BCV TWINT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BCV TWINT product.',
+    disclaimer: 'NOT ACTUALLY A BCV TWINT SITE — internal demo only, not affiliated with, endorsed by, or a real BCV TWINT product.',
   },
   '7f7b606c': {
     slug: '7f7b606c',
@@ -6789,7 +6789,7 @@ const ONCALL_SKINS = {
       symptom: 'Transfers between own accounts hang ~9s after the customer taps Confirm transfer before Transfer complete appears. Error rate is normal \u2014 the money moves.',
       impact: 'Kestrel Bank customers wait ~9 seconds to move money between their own accounts; some tap Confirm transfer again and contact Help & support about money moved twice.',
     },
-    disclaimer: 'NOT ACTUALLY A KESTREL BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Kestrel Bank product. Kestrel Bank is a fictional bank.',
+    disclaimer: 'NOT ACTUALLY A KESTREL BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Kestrel Bank product. Kestrel Bank is a fictional bank.',
   },
   'f5cb3f67': {
     slug: 'f5cb3f67',
@@ -6834,7 +6834,7 @@ const ONCALL_SKINS = {
       symptom: 'Payments from Maksed \u2192 Uus makse hang ~9s after the customer selects Kinnitan makse before the confirmation is shown. Error rate is normal \u2014 the payment completes.',
       impact: 'SEB Pank customers wait ~9 seconds to confirm a payment; some confirm again and contact SEB klienditugi about the same payment being sent twice.',
     },
-    disclaimer: 'NOT ACTUALLY A SEB PANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real SEB Pank product.',
+    disclaimer: 'NOT ACTUALLY A SEB PANK SITE — internal demo only, not affiliated with, endorsed by, or a real SEB Pank product.',
   },
   'b804e8ab': {
     slug: 'b804e8ab',
@@ -6866,7 +6866,7 @@ const ONCALL_SKINS = {
       symptom: 'Membership changes from My account \u2192 Membership hang ~8s after the member selects Upgrade to Full membership before the confirmation appears. Error rate is normal \u2014 the membership changes.',
       impact: 'Members wait ~8 seconds to move to Full membership; some select Upgrade again or leave the page before Subscriber rates are confirmed.',
     },
-    disclaimer: 'NOT ACTUALLY A BP PULSE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real bp pulse product.',
+    disclaimer: 'NOT ACTUALLY A BP PULSE SITE — internal demo only, not affiliated with, endorsed by, or a real bp pulse product.',
   },
   'fadb6441': {
     slug: 'fadb6441',
@@ -6911,7 +6911,7 @@ const ONCALL_SKINS = {
       symptom: 'Payments from the Biscuit current account hang ~9s after the customer selects Send money, before the confirmation is shown. Error rate is normal \u2014 the payment completes.',
       impact: 'Zopa customers wait ~9 seconds for a payment to confirm; some select Send money again and contact Zopa Help about the same payment leaving their account twice.',
     },
-    disclaimer: 'NOT ACTUALLY A ZOPA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Zopa product.',
+    disclaimer: 'NOT ACTUALLY A ZOPA SITE — internal demo only, not affiliated with, endorsed by, or a real Zopa product.',
   },
   'b0f6f0ce': {
     slug: 'b0f6f0ce',
@@ -6958,7 +6958,7 @@ const ONCALL_SKINS = {
       symptom: 'Pay someone hangs ~9s after the customer selects Pay now, before the payment confirmation is shown. Error rate is normal \u2014 the payment is made.',
       impact: 'Kiwibank customers wait ~9 seconds for a payment to confirm; some select Pay now again and contact the Help hub about the same payment leaving their account twice.',
     },
-    disclaimer: 'NOT ACTUALLY A KIWIBANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Kiwibank product.',
+    disclaimer: 'NOT ACTUALLY A KIWIBANK SITE — internal demo only, not affiliated with, endorsed by, or a real Kiwibank product.',
   },
   '3fdd13be': {
     slug: '3fdd13be',
@@ -6982,7 +6982,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#ffffff',
     },
     supportCenter: 'Samsara Support',
-    disclaimer: 'NOT ACTUALLY A SAMSARA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Samsara product.',
+    disclaimer: 'NOT ACTUALLY A SAMSARA SITE — internal demo only, not affiliated with, endorsed by, or a real Samsara product.',
   },
 
   '62c39cd8': {
@@ -6999,7 +6999,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#ffffff',
     },
     supportCenter: 'NAB Help and support',
-    disclaimer: 'NOT ACTUALLY A NAB SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real National Australia Bank product.',
+    disclaimer: 'NOT ACTUALLY A NAB SITE — internal demo only, not affiliated with, endorsed by, or a real National Australia Bank product.',
   },
   'f4c46088': {
     slug: 'f4c46088',
@@ -7091,7 +7091,7 @@ const ONCALL_SKINS = {
       symptom: 'Payments from the Business Current Account and Savings Pot hang ~9s after the customer selects Make payment, before the confirmation is shown. Error rate is normal \u2014 the payment completes.',
       impact: 'Allica Bank business customers wait ~9 seconds for a payment to confirm; some select Make payment again and contact Help & FAQs about the same payment leaving their account twice.',
     },
-    disclaimer: 'NOT ACTUALLY AN ALLICA BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Allica Bank product.',
+    disclaimer: 'NOT ACTUALLY AN ALLICA BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Allica Bank product.',
   },
   '9e24626b': {
     slug: '9e24626b',
@@ -7229,7 +7229,7 @@ const ONCALL_SKINS = {
       symptom: 'Blue Rewards joins from Online Banking \u2192 Products hang ~8s after the customer selects Join Blue Rewards before the confirmation appears. Error rate is normal \u2014 memberships are created.',
       impact: 'Customers wait ~8 seconds to join Blue Rewards; some select Join again or leave the page before the membership is confirmed.',
     },
-    disclaimer: 'NOT ACTUALLY A BARCLAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
+    disclaimer: 'NOT ACTUALLY A BARCLAYS SITE — internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
   },
   'e19d82d5': {
     slug: 'e19d82d5',
@@ -7275,7 +7275,7 @@ const ONCALL_SKINS = {
       symptom: 'Place Order hangs ~9s after the shopper selects it, before the order confirmation is shown. Error rate is normal \u2014 orders are placed.',
       impact: 'Shoppers on ralphlauren.com wait ~9 seconds for an order to confirm; some select Place Order again or contact Customer Service about being charged twice.',
     },
-    disclaimer: 'NOT ACTUALLY A RALPH LAUREN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ralph Lauren product.',
+    disclaimer: 'NOT ACTUALLY A RALPH LAUREN SITE — internal demo only, not affiliated with, endorsed by, or a real Ralph Lauren product.',
   },
   '6e7e7068': {
     slug: '6e7e7068',
@@ -8092,7 +8092,7 @@ const ONCALL_SKINS = {
       symptom: 'Generate positioning report on the FX Signal Screen hangs ~9s after the subscriber selects Run, then fails with a gateway timeout. No report is produced for any G10 pair selection or horizon.',
       impact: 'Subscribers cannot generate FX positioning reports from Models & Signals; every run waits about 9 seconds and then fails, and clients contact Client Services instead.',
     },
-    disclaimer: 'NOT ACTUALLY A MACRO HIVE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Macro Hive product.',
+    disclaimer: 'NOT ACTUALLY A MACRO HIVE SITE — internal demo only, not affiliated with, endorsed by, or a real Macro Hive product.',
   },
   'aa81ab91': {
     slug: 'aa81ab91',
@@ -8142,7 +8142,7 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     alertDestination: 'slack',
     page: { file: '6938003e.html', title: 'Cloud-based platform for biotech R&D | Benchling' },
-    disclaimer: 'NOT ACTUALLY A BENCHLING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Benchling product.',
+    disclaimer: 'NOT ACTUALLY A BENCHLING SITE — internal demo only, not affiliated with, endorsed by, or a real Benchling product.',
   },
   '2bca8af5': {
     slug: '2bca8af5',
@@ -8169,7 +8169,16 @@ const ONCALL_SKINS = {
       symptom: 'Utility bill payments in the resident portal hang ~9s after the resident selects Submit Payment, then fail with a gateway timeout. The payment method is not charged.',
       impact: 'Residents cannot pay their utility statements online; every payment waits about 9 seconds and then fails, and residents contact Resident Support instead.',
     },
-    disclaimer: 'NOT ACTUALLY A CONSERVICE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Conservice product.',
+    disclaimer: 'NOT ACTUALLY A CONSERVICE SITE — internal demo only, not affiliated with, endorsed by, or a real Conservice product.',
+  },
+  'ab699480': {
+    slug: 'ab699480',
+    company: 'inDrive',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: 'ab699480.html', title: 'Cash Loans for Drivers | inDrive' },
+    disclaimer: 'NOT ACTUALLY AN INDRIVE SITE — internal demo only, not affiliated with, endorsed by, or a real inDrive product.',
   },
 };
 
