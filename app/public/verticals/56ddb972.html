@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book an appointment | Nextech</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #2C2C2C;
+      --muted: #575756;
+      --teal: #00A7B5;
+      --teal-ink: #00747E;
+      --teal-soft: #CEEBEE;
+      --lime: #BDE038;
+      --navy: #15295A;
+      --slate: #2E4357;
+      --cream: #FFFAF2;
+      --sand: #F5EEE5;
+      --line: #DDDDDD;
+      --sans: Poppins, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--sans); font-size: 16px; line-height: 1.5; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: var(--teal-ink); }
+    button, input, select { font: inherit; color: inherit; }
+
+    .util { background: var(--slate); color: #fff; font-size: 14px; }
+    .util-in { max-width: 1240px; margin: 0 auto; padding: 0 32px; display: flex; justify-content: flex-end; gap: 24px; }
+    .util a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+
+    .nav { border-bottom: 1px solid var(--line); background: #fff; }
+    .nav-in { max-width: 1240px; margin: 0 auto; padding: 0 32px; height: 76px; display: flex; align-items: center; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; min-height: 44px; gap: 10px; text-decoration: none; color: #333740; }
+    .brand-word { font-size: 26px; font-weight: 600; letter-spacing: -0.8px; }
+    .divider { width: 1px; height: 32px; background: var(--line); }
+    .practice { display: flex; flex-direction: column; line-height: 1.25; }
+    .practice strong { font-size: 15px; font-weight: 600; }
+    .practice span { font-size: 13px; color: var(--muted); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; border: 0; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .btn-outline { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
+    .btn-lime { background: var(--lime); color: var(--ink); }
+    .btn-lime:disabled { opacity: .7; cursor: progress; }
+
+    .hero { background: var(--sand); }
+    .hero-in { max-width: 1240px; margin: 0 auto; padding: 40px 32px 36px; display: flex; align-items: center; gap: 20px; }
+    .hero-icon { width: 64px; height: 64px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+    .hero-icon img { width: 40px; height: 40px; }
+    .eyebrow { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--teal-ink); text-transform: uppercase; letter-spacing: .4px; }
+    h1 { margin: 0; font-size: 40px; line-height: 1.15; font-weight: 500; letter-spacing: -0.8px; }
+    .hero p.sub { margin: 8px 0 0; color: var(--muted); }
+
+    .steps { max-width: 1240px; margin: 0 auto; padding: 20px 32px 0; display: flex; gap: 8px; list-style: none; flex-wrap: wrap; }
+    .steps li { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); padding-right: 16px; }
+    .steps li b { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--teal-soft); color: var(--teal-ink); font-size: 13px; font-weight: 600; }
+    .steps li.on { color: var(--ink); font-weight: 500; }
+    .steps li.on b { background: var(--teal); color: #fff; }
+
+    main { max-width: 1240px; margin: 0 auto; padding: 24px 32px 64px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 28px; }
+    .card + .card { margin-top: 20px; }
+    h2 { margin: 0 0 4px; font-size: 22px; font-weight: 500; }
+    .hint { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label, .label { font-size: 14px; font-weight: 500; }
+    select, input { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid #BFBFBF; border-radius: 6px; background: #fff; }
+    select:focus, input:focus, .slot:focus-visible, .day:focus-visible, .btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+    .days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .day { min-height: 64px; border: 1px solid #BFBFBF; border-radius: 6px; background: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; padding: 6px 4px; }
+    .day small { font-size: 12px; color: var(--muted); }
+    .day strong { font-size: 18px; font-weight: 600; }
+    .slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .slot { min-height: 44px; border: 1px solid #BFBFBF; border-radius: 6px; background: #fff; cursor: pointer; font-size: 15px; }
+    .day[aria-pressed="true"], .slot[aria-pressed="true"] { border-color: var(--teal-ink); background: var(--teal-soft); box-shadow: inset 0 0 0 1px var(--teal-ink); }
+    .day[aria-pressed="true"] small { color: var(--teal-ink); }
+
+    .slots-empty { grid-column: 1 / -1; font-size: 14px; color: var(--muted); padding: 8px 0; }
+
+    aside .card { position: sticky; top: 20px; }
+    .sum { list-style: none; margin: 16px 0; padding: 0; }
+    .sum li { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .sum li span:first-child { color: var(--muted); flex: none; }
+    .sum li span:last-child { text-align: right; font-weight: 500; }
+    .policy { font-size: 13px; color: var(--muted); margin: 0 0 16px; }
+    #submitBtn { width: 100%; min-height: 52px; font-size: 17px; }
+
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 6px; font-size: 14px; }
+    .result-box.success { display: block; background: #EEF7D6; border: 1px solid #9CBF2A; }
+    .result-box.error { display: block; background: #FDECEC; border: 1px solid #E08A8A; }
+    .result-box.pending { display: block; background: var(--cream); border: 1px solid var(--line); }
+    .result-title { font-weight: 600; margin-bottom: 2px; }
+
+    footer { background: var(--slate); color: #fff; }
+    .foot-in { max-width: 1240px; margin: 0 auto; padding: 32px; display: flex; flex-wrap: wrap; gap: 16px 40px; align-items: center; font-size: 14px; }
+    .foot-in a { color: #fff; display: inline-flex; align-items: center; min-height: 44px; }
+    .foot-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .foot-copy { margin-left: auto; opacity: .85; }
+
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+      aside .card { position: static; }
+    }
+    @media (max-width: 640px) {
+      .util-in { padding: 0 16px; justify-content: space-between; gap: 12px; font-size: 13px; }
+      .nav-in { padding: 0 16px; height: 68px; gap: 12px; }
+      .divider, .nav-right .btn-outline { display: none; }
+      .brand-word { font-size: 22px; }
+      .practice strong { font-size: 14px; }
+      .hero-in { padding: 28px 16px; align-items: flex-start; }
+      .hero-icon { width: 48px; height: 48px; }
+      .hero-icon img { width: 30px; height: 30px; }
+      h1 { font-size: 28px; }
+      .steps { padding: 16px 16px 0; }
+      main { padding: 16px 16px 48px; gap: 20px; }
+      .card { padding: 20px 16px; }
+      .grid { grid-template-columns: 1fr; }
+      .days { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+      .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .foot-in { padding: 24px 16px; }
+      .foot-copy { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util"><div class="util-in"><a href="#" onclick="return false">Patient portal</a><a href="#" onclick="return false">(813) 555-0142</a></div></div>
+  <header class="nav">
+    <div class="nav-in">
+      <a class="brand" href="#" onclick="return false" aria-label="Nextech online booking">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#00A7B5"/><path d="M10 25V9h2.6l8.8 11.3V9H24v16h-2.6L12.6 13.7V25z" fill="#fff"/><circle cx="26.5" cy="7.5" r="3" fill="#BDE038"/></svg>
+        <span class="brand-word">nextech</span>
+      </a>
+      <span class="divider"></span>
+      <div class="practice"><strong>Bayview Plastic Surgery</strong><span>Tampa &middot; St. Petersburg</span></div>
+      <div class="nav-right">
+        <a class="btn btn-outline" href="#" onclick="return false">Sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-in">
+      <div class="hero-icon"><img src="https://cdn.prod.website-files.com/688a8f75f9f5115eb8891d4a/6a17d0c8299ebed0395d1bd3_Plastic%20Surgery.svg" alt="" onerror="this.parentNode.style.display='none'"></div>
+      <div>
+        <p class="eyebrow">Online booking</p>
+        <h1>Book an appointment</h1>
+        <p class="sub">Choose a visit and provider, then pick an open time that works for you.</p>
+      </div>
+    </div>
+  </section>
+
+  <ol class="steps" aria-label="Booking steps">
+    <li class="on"><b>1</b>Visit</li>
+    <li class="on"><b>2</b>Date &amp; time</li>
+    <li class="on"><b>3</b>Confirm</li>
+  </ol>
+
+  <main>
+    <form id="bookingForm" novalidate>
+      <section class="card" aria-labelledby="visitHead">
+        <h2 id="visitHead">Visit details</h2>
+        <p class="hint">Signed in as Taylor Morgan &middot; DOB 04/12/1988</p>
+        <div class="grid">
+          <div class="field full">
+            <label for="visitType">Visit type</label>
+            <select id="visitType">
+              <option value="facial-consult">Facial rejuvenation consultation (45 min)</option>
+              <option value="breast-consult">Breast consultation (60 min)</option>
+              <option value="body-consult">Body contouring consultation (60 min)</option>
+              <option value="injectables-consult">Injectables consultation (30 min)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="providerId">Provider</label>
+            <select id="providerId">
+              <option value="PRV-1042">Dr. Elena Ruiz, MD</option>
+              <option value="PRV-1077">Dr. Marcus Hale, MD</option>
+              <option value="PRV-2015">Jenna Brooks, PA-C</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="locationId">Location</label>
+            <select id="locationId">
+              <option value="LOC-TPA-01">Tampa &middot; Westshore</option>
+              <option value="LOC-STP-02">St. Petersburg &middot; Downtown</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="timeHead">
+        <h2 id="timeHead">Date &amp; time</h2>
+        <p class="hint">Open times shown in Eastern Time.</p>
+        <div class="days" id="days" role="group" aria-label="Date"></div>
+        <div class="slots" id="slots" role="group" aria-label="Time"></div>
+      </section>
+    </form>
+
+    <aside>
+      <section class="card" aria-labelledby="sumHead">
+        <h2 id="sumHead">Appointment summary</h2>
+        <ul class="sum">
+          <li><span>Visit</span><span id="sumVisit"></span></li>
+          <li><span>Provider</span><span id="sumProvider"></span></li>
+          <li><span>Location</span><span id="sumLocation"></span></li>
+          <li><span>When</span><span id="sumWhen"></span></li>
+        </ul>
+        <p class="policy">Need to reschedule? You can change or cancel online up to 48 hours before your appointment.</p>
+        <button type="submit" id="submitBtn" form="bookingForm" class="btn btn-lime">Book appointment</button>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </section>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="foot-in">
+      <div class="foot-links"><a href="#" onclick="return false">Privacy Policy</a><a href="#" onclick="return false">Terms of Use</a><a href="#" onclick="return false">Accessibility</a></div>
+      <div class="foot-copy">Online booking powered by Nextech</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var form = document.getElementById('bookingForm');
+      var daysEl = document.getElementById('days');
+      var slotsEl = document.getElementById('slots');
+      var btn = document.getElementById('submitBtn');
+      var state = { days: [], dayIndex: 0, slot: null };
+      var loadSeq = 0;
+
+      function el(id) { return document.getElementById(id); }
+      function selectedText(id) { var s = el(id); return s.options[s.selectedIndex].text; }
+      function showResult(kind, title, detail) {
+        var result = el('result');
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        if (!kind) return;
+        var t = document.createElement('div'); t.className = 'result-title'; t.textContent = title;
+        var d = document.createElement('div'); d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+      }
+      function dayLabel(d) { return d.weekday + ', ' + MONTHS[d.month - 1] + ' ' + d.day; }
+      function press(container, btnEl) {
+        Array.prototype.forEach.call(container.children, function (b) { b.setAttribute('aria-pressed', b === btnEl ? 'true' : 'false'); });
+      }
+      function renderSummary() {
+        el('sumVisit').textContent = selectedText('visitType').replace(/\s*\(.*\)$/, '');
+        el('sumProvider').textContent = selectedText('providerId');
+        el('sumLocation').textContent = selectedText('locationId');
+        var day = state.days[state.dayIndex];
+        el('sumWhen').textContent = day && state.slot ? dayLabel(day) + ' at ' + state.slot.label : 'Choose a date and time';
+      }
+      function renderSlots() {
+        slotsEl.textContent = '';
+        var day = state.days[state.dayIndex];
+        if (!day) return;
+        day.slots.forEach(function (slot) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'slot'; b.textContent = slot.label;
+          b.setAttribute('aria-pressed', state.slot && state.slot.id === slot.id ? 'true' : 'false');
+          b.addEventListener('click', function () { state.slot = slot; press(slotsEl, b); showResult('', '', ''); renderSummary(); });
+          slotsEl.appendChild(b);
+        });
+      }
+      function renderDays() {
+        daysEl.textContent = '';
+        state.days.forEach(function (d, i) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'day';
+          b.setAttribute('aria-label', dayLabel(d));
+          b.setAttribute('aria-pressed', i === state.dayIndex ? 'true' : 'false');
+          b.innerHTML = '<small>' + d.weekday + '</small><strong>' + d.day + '</strong><small>' + MONTHS[d.month - 1] + '</small>';
+          b.addEventListener('click', function () {
+            state.dayIndex = i; state.slot = null; press(daysEl, b); renderSlots(); showResult('', '', ''); renderSummary();
+          });
+          daysEl.appendChild(b);
+        });
+        renderSlots();
+      }
+      function loadAvailability(preselect) {
+        var seq = ++loadSeq;
+        state.days = []; state.slot = null; state.dayIndex = 0;
+        daysEl.textContent = '';
+        slotsEl.innerHTML = '<p class="slots-empty">Loading open times\u2026</p>';
+        renderSummary();
+        fetch('/api/patient-scheduling/availability', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ providerId: el('providerId').value, locationId: el('locationId').value }),
+        }).then(function (r) { return r.json(); }).then(function (data) {
+          if (seq !== loadSeq) return;
+          if (!data.success) throw new Error('unavailable');
+          state.days = data.days || [];
+          if (preselect && state.days[1] && state.days[1].slots[2]) { state.dayIndex = 1; state.slot = state.days[1].slots[2]; }
+          renderDays(); renderSummary();
+        }).catch(function () {
+          if (seq !== loadSeq) return;
+          slotsEl.innerHTML = '<p class="slots-empty">Open times are not available right now. Call the practice at (813) 555-0142.</p>';
+        });
+      }
+
+      el('visitType').addEventListener('change', function () { showResult('', '', ''); renderSummary(); });
+      el('providerId').addEventListener('change', function () { showResult('', '', ''); loadAvailability(true); });
+      el('locationId').addEventListener('change', function () { showResult('', '', ''); loadAvailability(true); });
+      form.addEventListener('reset', function () { setTimeout(function () { showResult('', '', ''); loadAvailability(true); }, 0); });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var day = state.days[state.dayIndex];
+        if (!day || !state.slot) { showResult('error', 'Choose a time', 'Select an open date and time for your appointment.'); return; }
+        var summary = el('sumVisit').textContent + ' with ' + el('sumProvider').textContent + ', ' + dayLabel(day) + ' at ' + state.slot.label + ', ' + el('sumLocation').textContent;
+        btn.disabled = true; btn.textContent = 'Booking\u2026';
+        showResult('pending', 'Booking your appointment', 'Hold tight while we reserve your time.');
+        try {
+          var res = await fetch('/api/patient-scheduling/appointments', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'book-appointment',
+              providerId: el('providerId').value,
+              locationId: el('locationId').value,
+              visitType: el('visitType').value,
+              slotId: state.slot.id,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.ok && data.success) {
+            showResult('success', 'Appointment booked', summary + '. Confirmation ' + data.confirmationNumber + '. We\u2019ll text you a reminder the day before.');
+          } else if (res.status === 400 && data.error) {
+            showResult('error', 'Check your appointment', data.error);
+          } else {
+            showResult('error', 'This time can\u2019t be booked right now', 'Please choose another time, or call the practice at (813) 555-0142.');
+          }
+        } catch (err) {
+          showResult('error', 'We couldn\u2019t book this appointment', 'Check your connection and try again.');
+        } finally { btn.disabled = false; btn.textContent = 'Book appointment'; }
+      });
+
+      renderSummary();
+      document.addEventListener('DOMContentLoaded', function () { loadAvailability(true); });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
