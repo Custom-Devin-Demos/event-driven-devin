@@ -457,6 +457,9 @@ function startGateway() {
         };
         server.on('error', () => settle(null));
         server.listen(0, '127.0.0.1', () => {
+          // The edge gateway is in-process plumbing; it must not keep Node
+          // (or a Jest worker whose warm-up fires after stopGateway) alive.
+          server.unref();
           gateway = server;
           settle(server);
         });
