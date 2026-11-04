@@ -7,65 +7,60 @@ const { createSessionAndAlert } = require('../devin-session');
 const CUSTOMER = '6571dc84';
 const APP_SERVICE = 'customer-amadeus-cytric';
 const APP_PROJECT = 'amadeus-cytric';
-const APP_VERSION = '22.9.8';
+const APP_VERSION = '26.11.2';
 const APP_SOURCE_PREFIX = 'amadeus-cytric/';
 const APP_PLATFORMS = ['web', 'ios', 'android'];
 const PLATFORM_LABELS = { web: 'web', ios: 'iOS', android: 'Android' };
 const IOS_ERROR_PATH = '/api/amadeus/cytric/error';
-const APP_SCENARIO = 'trip-approval-premium-economy';
-const ERROR_CODE = 'CYT-APR-4221';
-const IOS_REPO = 'COG-GTM/event-driven-ios';
-const ANDROID_REPO = 'COG-GTM/android-demos';
-const ANDROID_APP = 'apps/6571dc84';
-const WEB_REPO = 'COG-GTM/event-driven-devin';
-const WEB_PAGE = 'app/public/verticals/6571dc84.html';
-const WEB_TEST = 'tests/6571dc84-amadeus-cytric.test.js';
-const APP_CULPRIT = 'TripApproval.approve(request:) — travel policy cabin rule lookup (CytricCore/TravelPolicy.swift + web replica)';
-// The orchestrator only diagnoses and delegates: the iOS child needs Xcode + the
-// iOS Simulator (macOS), the Android child needs the Android SDK + emulator
-// (Linux) and the web child needs Node + a browser (Linux).
+const APP_SCENARIO = 'booking-retrieval-traveler-verification';
+const ERROR_CODE = 'CYT-TRP-4031';
+const BACKEND_CODE = 'TRAVELER_VERIFICATION_REQUIRED';
+// Where the fix lands: the three joao-cognition demo repos (backend + web, Android, iOS).
+// The lead follows the cross-platform-incident-fix skill kept in the backend repo.
+const BACKEND_REPO = 'joao-cognition/demo_webapp';
+const WEB_REPO = 'joao-cognition/demo_webapp';
+const ANDROID_REPO = 'joao-cognition/demo_android';
+const IOS_REPO = 'joao-cognition/demo_ios';
+const SKILL_PATH = '.agents/skills/cross-platform-incident-fix/SKILL.md';
+const APP_CULPRIT = 'backend/traveler-verification.js — assertTravelerVerified (403 TRAVELER_VERIFICATION_REQUIRED not handled by the cytric clients)';
+// The lead only diagnoses and delegates: the iOS child needs Xcode + the iOS Simulator (macOS),
+// the Android child needs the Android SDK + emulator (Linux) and the web child needs Node + a browser (Linux).
 const CYTRIC_SESSION_PLATFORM = process.env.CYTRIC_SESSION_PLATFORM === undefined
   ? 'linux'
   : process.env.CYTRIC_SESSION_PLATFORM;
 const CYTRIC_SLACK_MEMBER_ID = process.env.CYTRIC_SLACK_MEMBER_ID || '';
 
-const APP_REMEDIATION_DIRECTIVE = `*Repositories:* \`github.com/${IOS_REPO}\` (Swift / SwiftUI, native iOS), \`github.com/${ANDROID_REPO}\` (Kotlin / Jetpack Compose, native Android) and \`github.com/${WEB_REPO}\` (web replica)
+const APP_REMEDIATION_DIRECTIVE = `*Repositories:* \`github.com/${BACKEND_REPO}\` (Node backend: airline booking retrieval API + cytric web, React/Next.js), \`github.com/${ANDROID_REPO}\` (Kotlin / Jetpack Compose, \`CytricApp/\`) and \`github.com/${IOS_REPO}\` (Swift / SwiftUI, \`CytricApp/\`)
 
-This alert came from Amadeus Cytric Mobile, the corporate travel & expense app. The same Cytric client ships on
-three platforms that each carry their own copy of the shared travel policy rules (the cabin rule table used by
-*Approve* on a trip request in Tasks):
-- iOS: \`${IOS_REPO}\`, folders \`CytricCore/\` (Foundation-only rules, \`TravelPolicy.swift\`) and \`CytricMobile/\` (SwiftUI)
-- Android: \`${ANDROID_REPO}\`, \`${ANDROID_APP}/\` (\`core/TravelPolicy.kt\` \`TravelPolicy\`, Compose UI); read its \`DEMO.md\`
-- Web: \`${WEB_REPO}\`, \`${WEB_PAGE}\` (the \`TRAVEL_POLICY\` block), served at \`/cytric\`
+This alert came from Amadeus cytric, the corporate travel & expense app (synthetic demo estate, not Amadeus or airline data).
+A traveler opened *My trips -> TR-48213 (Claire Martin, London -> Nice) -> Boarding pass* and saw "We couldn't open your booking"
+with \`${ERROR_CODE}\`. The client asked the airline booking retrieval API for record locator 6KQ2RT and received
+\`403 ${BACKEND_CODE}\` (backend request ID in this report).
 
-Failing path on all three: Sign in -> Tasks -> trip request TR-48213 (Claire Martin, London -> Nice, Premium Economy)
--> *Approve* fails with \`${ERROR_CODE}\`. The Madrid trip request (Economy) approves normally.
+You are the LEAD Devin. Run the skill *cross-platform-incident-fix* (\`${SKILL_PATH}\` in \`${BACKEND_REPO}\`, Amadeus cytric
+scenario) end to end; it overrides this session's playbook. Read \`AGENTS.md\`, \`docs/SHARED-BACKEND-DEMO.md\` and
+\`docs/QA-HANDOFF.md\` in that repo first. Do not clone, change or open PRs in \`COG-GTM/event-driven-devin\`,
+\`COG-GTM/event-driven-ios\` or \`COG-GTM/android-demos\`, even though this hosted page and the native twin live there.
+1. ROOT CAUSE IN THE BACKEND (\`${BACKEND_REPO}\`, isolated run with AMADEUS_ENABLE_INCIDENTS=0): reproduce the retrieval, find the
+   release that introduced \`403 ${BACKEND_CODE}\` (\`backend/traveler-verification.js\`, security control SEC-2041: six-character
+   record locators are enumerable, so a locator-only retrieval leaks itineraries, names and e-ticket numbers), capture the contract
+   with \`npm run parity:contract\`. The control is right. Never roll it back, weaken it, lengthen token lifetimes or verify server-side.
+2. SHORT RCA to the user (3 sentences + the BEFORE/AFTER diagram), then
+3. THREE child Devin sessions IN PARALLEL, one per client, each on its own machine, all pinned to the same backend SHA:
+   - a *macOS* child for \`${IOS_REPO}\` (\`CytricApp/\`): Xcode + iOS Simulator, \`swift test --package-path CytricApp/CytricKit\`,
+     run with CYTRIC_API_BASE_URL=http://127.0.0.1:3001 CYTRIC_DISABLE_FAILURE_REPORTS=1.
+   - a *Linux* child for \`${ANDROID_REPO}\` (\`CytricApp/\`): Android SDK + emulator, \`./gradlew testDebugUnitTest assembleDebug -PcytricApiBaseUrl=http://10.0.2.2:3001\`.
+   - a *Linux* child for \`${WEB_REPO}\` (\`web/\` only, never \`backend/\`): \`npm run build:web\`, \`CYTRIC_EXPECT_BOOKING=failure|success npm run qa:web\`.
+   Each child adds the *Verify traveler* step (airline, record locator, surname field, *Verify and continue* resubmitting the identical
+   request with travelerLastName + verificationToken, *Cancel* sending nothing, TRAVELER_VERIFICATION_FAILED inline), renders the boarding
+   pass, adds tests, keeps the client identity (\`${APP_SERVICE}\`, \`${APP_SOURCE_PREFIX}<web|ios|android>\`, \`POST ${IOS_ERROR_PATH}\`)
+   unchanged, records BASE (red) then FIX (green) on its real browser / emulator / simulator and returns parity rows P1-P5.
+4. PARITY REPORT (scenario x surface, SHAs, evidence) posted on all three PRs, then the clean HTML fix report; Devin Review on each PR,
+   owning child fixes findings. Then request human review and stop.
+Never merge, deploy, fire incidents or post to Slack/Teams. The hosted page keeps the planted client behaviour so the demo can be re-run.
 
-You are the ORCHESTRATOR for this incident. Do not edit, build or run any app yourself.
-1. Diagnose read-only: open the cabin rule lookup in all three clients and state the root cause (why a Premium Economy
-   trip request has no policy rule). DEMO docs describe the symptom, not the cause.
-2. Because the defect lives in a dependency all three clients carry, create THREE child Devin sessions in parallel and give
-   each the diagnosis:
-   - a *macOS* child for \`${IOS_REPO}\` (\`CytricCore/\`, \`CytricMobile/\` only): needs Xcode + the iOS Simulator.
-     \`swift test --package-path CytricCore\`, \`make test-cytric\`, repro with \`make run-cytric\`
-     (sets \`CYTRIC_DISABLE_FAILURE_REPORTS=1\`).
-   - a *Linux* child for \`${ANDROID_REPO}\` (\`${ANDROID_APP}/\` only): needs the Android SDK + emulator.
-     \`export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64\`, \`make test APP=6571dc84\`, repro with \`make run APP=6571dc84\`
-     (reports stay off; never \`make demo\`).
-   - a *Linux* child for \`${WEB_REPO}\` (\`${WEB_PAGE}\` and \`${WEB_TEST}\` only): \`npx jest ${WEB_TEST}\`,
-     repro in a browser at \`http://localhost:<port>/cytric?reports=off\`.
-3. Each child must: reproduce with failure reports off; fix the root cause in its travel policy rules (do not swallow the
-   error, change the fare's cabin, auto-reject the request or hide the red error state); add a regression test that fails
-   before and passes after; keep the client identity (\`${APP_SERVICE}\`, \`${APP_SOURCE_PREFIX}<web|ios|android>\`,
-   \`POST ${IOS_ERROR_PATH}\`) and payload shape unchanged; record BEFORE/AFTER; open a *draft* PR against \`main\` titled
-   \`[DEMO — DO NOT MERGE] ...\`, and report the PR link and test output.
-4. Wait for all three children, review all three PRs (the iOS, Android and web fixes must be equivalent and each must
-   carry a regression test), send corrections back to the owning child, then post a summary with all three PR links
-   to the Slack thread.
-Never merge: \`main\` keeps the planted defect so the demo can be re-run.
-
-Reproduction safety: every failure report raises a real Slack alert and Devin session. Never run the iOS or Android app
-with failure reports on, and always open the web page with \`?reports=off\`.`;
+Reproduction safety: every failure report raises a real Slack alert and Devin session. Always open the hosted page with
+\`?reports=off\` and run the native apps with CYTRIC_DISABLE_FAILURE_REPORTS=1 during QA.`;
 
 function clip(value, max) {
   if (value === undefined || value === null) return '';
@@ -86,26 +81,26 @@ function isAppReport(body) {
 function reportAppFailure(report) {
   const reference = uuidv4();
   const platform = platformOf(report) || 'unknown';
-  const screen = clip(report.screen || 'TaskDetail', 64);
-  const action = clip(report.action || 'approveTripRequest', 64);
-  const requestId = clip(report.requestId || 'unknown', 32);
-  const tripTitle = clip(report.tripTitle || 'unknown', 128);
-  const traveler = clip(report.traveler || 'unknown', 64);
-  const cabin = clip(report.cabin || 'unknown', 32);
-  const policy = clip(report.policy || 'unknown', 64);
-  const approver = clip(report.approver || 'unknown', 64);
-  const total = clip(report.total || 'unknown', 32);
+  const screen = clip(report.screen || 'trip', 64);
+  const action = clip(report.action || 'open_boarding_pass', 64);
+  const backendCode = clip(report.backendCode || BACKEND_CODE, 64);
+  const backendRequestId = clip(report.backendRequestId || 'unknown', 64);
+  const recordLocator = clip(report.recordLocator || 'unknown', 8);
+  const tripId = clip(report.tripId || 'unknown', 16);
+  const airline = clip(report.airline || 'unknown', 64);
   const errorCode = clip(report.errorCode || ERROR_CODE, 32);
-  const device = clip(report.device || (platform === 'ios' ? 'iPhone' : 'web'), 64);
+  const device = clip(report.device || (platform === 'web' ? 'web' : platform === 'ios' ? 'iPhone' : 'Android'), 64);
   const osVersion = clip(report.osVersion, 64);
   const appVersion = clip(report.appVersion || APP_VERSION, 32);
-  const errorType = clip(report.errorType || 'ApprovalError', 128);
-  const errorMessage = clip(report.errorMessage || 'Trip approval failed', 512);
+  const errorType = clip(report.errorType || 'BookingRetrievalRejected', 128);
+  const errorMessage = clip(report.errorMessage || `${ERROR_CODE}: airline booking retrieval rejected (${backendCode})`, 512);
   const stackTrace = clip(report.stackTrace, 4000);
   const release = clip(report.release || `amadeus-cytric-${platform}@${APP_VERSION}`, 64);
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
+  // Traveler names and surnames never leave the client; only locator/trip identifiers are kept.
   const details = {
-    platform, screen, action, requestId, tripTitle, traveler, cabin, policy, approver, total, errorCode, device, osVersion, appVersion,
+    platform, screen, action, backendCode, backendRequestId, recordLocator, tripId, airline, errorCode, device, osVersion, appVersion,
+    control: 'SEC-2041 booking retrieval hardening',
   };
   const tags = {
     route: IOS_ERROR_PATH,
@@ -114,23 +109,23 @@ function reportAppFailure(report) {
     platform,
     screen,
     action,
-    cabin,
+    backend_code: backendCode,
     error_code: errorCode,
     scenario: APP_SCENARIO,
     alert_path: 'instant',
   };
 
-  incrementMetric('amadeus_cytric.trip_approval.failure', {
-    route: IOS_ERROR_PATH, errorClass: errorType, platform, screen, action, cabin,
+  incrementMetric('amadeus_cytric.booking_retrieval.failure', {
+    route: IOS_ERROR_PATH, errorClass: errorType, platform, screen, action, backendCode,
   });
 
-  logger.error('Amadeus Cytric app reported a trip approval failure', {
+  logger.error('Amadeus cytric client reported a booking retrieval failure', {
     reference, service: APP_SERVICE, ...details, errorClass: errorType, error: errorMessage,
   });
 
   const error = new Error(errorMessage);
   error.name = errorType;
-  error.stack = `${errorType}: ${errorMessage}\n    at TripApproval.approve (${APP_SOURCE_PREFIX}${platform}/${screen}/${action}:1:1)`;
+  error.stack = `${errorType}: ${errorMessage}\n    at BookingService.retrieve (${APP_SOURCE_PREFIX}${platform}/${screen}/${action}:1:1)`;
 
   Sentry.withScope((scope) => {
     scope.setTransactionName(`${APP_SOURCE_PREFIX}${platform} ${screen} ${action}`);
@@ -155,12 +150,13 @@ function reportAppFailure(report) {
     slackMemberId: report.devinEmail ? '' : CYTRIC_SLACK_MEMBER_ID,
     slackMemberIdFallback: CYTRIC_SLACK_MEMBER_ID,
     service: APP_SERVICE,
-    verticalLabel: `Amadeus Cytric — Trip request Approve (${PLATFORM_LABELS[platform] || 'web'})`,
+    verticalLabel: `Amadeus cytric — Boarding pass / booking retrieval (${PLATFORM_LABELS[platform] || 'web'})`,
     customer: CUSTOMER,
     project: APP_PROJECT,
     release,
-    title: `[Amadeus Cytric] ${errorCode} Approve failed for ${cabin} trip request (${platform})`,
+    title: `[Amadeus cytric] ${errorCode} Boarding pass failed: airline API ${backendCode} (${platform})`,
     sessionPlatform: CYTRIC_SESSION_PLATFORM || undefined,
+    repos: [BACKEND_REPO, ANDROID_REPO, IOS_REPO],
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
     skipVulnerablePr: true,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
@@ -175,7 +171,7 @@ function reportAppFailure(report) {
     environment,
     triggeredRule: '',
   })).catch((alertError) => {
-    logger.error('Failed to create Devin session for Amadeus Cytric failure report', {
+    logger.error('Failed to create Devin session for Amadeus cytric failure report', {
       error: alertError.message,
       reference,
     });
@@ -194,9 +190,12 @@ module.exports = {
   APP_SCENARIO,
   APP_CULPRIT,
   ERROR_CODE,
+  BACKEND_CODE,
+  BACKEND_REPO,
   IOS_REPO,
   ANDROID_REPO,
   WEB_REPO,
+  SKILL_PATH,
   CYTRIC_SESSION_PLATFORM,
   APP_REMEDIATION_DIRECTIVE,
   platformOf,

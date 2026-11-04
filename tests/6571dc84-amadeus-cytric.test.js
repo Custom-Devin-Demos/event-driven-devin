@@ -43,32 +43,29 @@ const WEB_REPORT = {
   source: 'amadeus-cytric/web',
   service: APP_SERVICE,
   platform: 'web',
-  screen: 'TripRequestApproval',
-  action: 'approveTripRequest',
-  errorType: 'ApprovalError.cabinRuleNotFound(cabin: "premium_economy", policy: "EU-SHORT-HAUL")',
-  errorMessage: 'No travel policy rule for cabin premium_economy (trip request TR-48213, policy EU-SHORT-HAUL)',
-  errorCode: 'CYT-APR-4221',
-  requestId: 'TR-48213',
-  tripTitle: "15/12/2026 - NCE, Nice Côte d'Azur",
-  traveler: 'Claire Martin',
-  cabin: 'premium_economy',
-  policy: 'EU-SHORT-HAUL',
-  approver: 'Sophie Laurent',
-  total: '1184.60 EUR',
-  appVersion: '22.9.8',
+  screen: 'trip',
+  action: 'open_boarding_pass',
+  errorType: 'BookingRetrievalRejected',
+  errorMessage: 'CYT-TRP-4031: airline booking retrieval rejected (TRAVELER_VERIFICATION_REQUIRED)',
+  errorCode: 'CYT-TRP-4031',
+  backendCode: 'TRAVELER_VERIFICATION_REQUIRED',
+  backendRequestId: '53ed867a-049b-470a-84a7-3e9658d107a1',
+  recordLocator: '6KQ2RT',
+  tripId: 'TR-48213',
+  airline: 'British Airways',
+  appVersion: '26.11.2',
   devinUserId: '',
   devinEmail: '',
   devinOrgId: '',
 };
 
-/** Evaluates the page's travel policy rules (no DOM) so the planted defect is tested as code. */
-function loadTravelPolicy() {
+/** Evaluates the page's airline retrieval stub (no DOM) so the planted client behaviour is tested as code. */
+function loadAirlineApi() {
   const script = PAGE.match(/<script>([\s\S]*?)<\/script>/)[1];
-  const requests = script.slice(script.indexOf('var TRIP_REQUESTS'), script.indexOf('/* Travel policy rules'));
-  const rules = script.slice(script.indexOf('var CABIN_LABELS'), script.indexOf('/* end travel policy rules */'));
-  const sandbox = {};
-  vm.runInNewContext(`${requests}\n${rules}\nthis.approveTripRequest = approveTripRequest; this.TRIP_REQUESTS = TRIP_REQUESTS;`, sandbox);
-  return sandbox;
+  const api = script.slice(script.indexOf('var AIRLINE_API'), script.indexOf('/* end airline retrieval api */'));
+  const sandbox = { crypto: require('crypto') };
+  vm.runInNewContext(`function uuid() { return crypto.randomUUID(); }\n${api}\nthis.AIRLINE_API = AIRLINE_API;`, sandbox);
+  return sandbox.AIRLINE_API;
 }
 
 async function postJson(server, body) {
@@ -94,20 +91,22 @@ describe('Amadeus Cytric web replica (/cytric)', () => {
     expect(PAGE).not.toMatch(/@cognition\.ai|org_[A-Za-z0-9]{8,}/);
   });
 
-  test('shows a red error banner and modal on the failed approval', () => {
-    expect(PAGE).toMatch(/--red: #d0021b/);
-    expect(PAGE).toContain('data-testid="approval-error"');
-    expect(PAGE).toContain('id="error-modal"');
-    expect(PAGE).toContain('Approval failed');
+  test('shows the red booking error card on the failed boarding pass', () => {
+    expect(PAGE).toMatch(/--red:\s*#c62828/);
+    expect(PAGE).toContain('data-testid="booking-error"');
+    expect(PAGE).toContain('id="trip-boarding-pass"');
+    expect(PAGE).toContain("We couldn\\'t open your booking");
+    expect(PAGE).toContain("var CLIENT_ERROR_CODE = 'CYT-TRP-4031';");
   });
 
-  test('keeps the planted defect: Premium Economy has no travel policy cabin rule', () => {
-    const { approveTripRequest, TRIP_REQUESTS } = loadTravelPolicy();
-    const [nice, madrid] = TRIP_REQUESTS;
-
-    expect(nice.id).toBe('TR-48213');
-    expect(() => approveTripRequest(nice)).toThrow(/No travel policy rule for cabin premium_economy/);
-    expect(approveTripRequest(madrid)).toMatchObject({ requestId: 'TR-48207', status: 'Approved' });
+  test('keeps the planted client behaviour: a locator-only retrieval is refused by the airline API control', () => {
+    const api = loadAirlineApi();
+    const first = api.retrieve({ recordLocator: '6KQ2RT', channel: 'cytric-web' });
+    expect(first.status).toBe(403);
+    expect(first.body).toMatchObject({ success: false, code: 'TRAVELER_VERIFICATION_REQUIRED', requestId: expect.any(String) });
+    expect(first.body.verification).toMatchObject({ recordLocator: '6KQ2RT', requiredField: 'travelerLastName', token: expect.any(String) });
+    expect(JSON.stringify(first.body)).not.toMatch(/Martin|BA 348/);
+    expect(api.retrieve({ recordLocator: '6K' }).status).toBe(400);
   });
 });
 
@@ -156,10 +155,12 @@ describe('Amadeus Cytric failure report bridge', () => {
       sessionPlatform: 'linux',
       promptAppendix: APP_REMEDIATION_DIRECTIVE,
       skipVulnerablePr: true,
-      title: `[Amadeus Cytric] ${ERROR_CODE} Approve failed for premium_economy trip request (web)`,
+      title: `[Amadeus cytric] ${ERROR_CODE} Boarding pass failed: airline API TRAVELER_VERIFICATION_REQUIRED (web)`,
+      repos: ['joao-cognition/demo_webapp', 'joao-cognition/demo_android', 'joao-cognition/demo_ios'],
     });
-    expect(alertData.verticalLabel).toContain('Amadeus Cytric');
-    expect(alertData.extra).toMatchObject({ requestId: 'TR-48213', cabin: 'premium_economy', platform: 'web' });
+    expect(alertData.verticalLabel).toContain('Amadeus cytric');
+    expect(alertData.extra).toMatchObject({ backendRequestId: WEB_REPORT.backendRequestId, recordLocator: '6KQ2RT', tripId: 'TR-48213', platform: 'web' });
+    expect(JSON.stringify(alertData.extra)).not.toMatch(/Martin/);
     expect(isInstantPathEvent(alertData)).toBe(true);
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
   });
@@ -168,17 +169,19 @@ describe('Amadeus Cytric failure report bridge', () => {
     const { status } = await postJson(server, { ...WEB_REPORT, source: 'amadeus-cytric/android', platform: 'android' });
     expect(status).toBe(202);
     await new Promise((resolve) => { setImmediate(resolve); });
-    expect(createSessionAndAlert.mock.calls[0][0].verticalLabel).toBe('Amadeus Cytric — Trip request Approve (Android)');
+    expect(createSessionAndAlert.mock.calls[0][0].verticalLabel).toBe('Amadeus cytric — Boarding pass / booking retrieval (Android)');
   });
 
-  test('the orchestrator prompt routes each platform to the right VM and repo', () => {
+  test('the lead prompt routes the fix to the three demo repos via the incident skill and never to the hosted repos', () => {
     expect(CYTRIC_SESSION_PLATFORM).toBe('linux');
-    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*macOS\* child for `COG-GTM\/event-driven-ios`/);
-    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*Linux\* child for `COG-GTM\/event-driven-devin`/);
-    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*Linux\* child for `COG-GTM\/android-demos`/);
-    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/create THREE child/);
-    expect(APP_REMEDIATION_DIRECTIVE).toContain('CytricCore/');
+    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*macOS\* child for `joao-cognition\/demo_ios`/);
+    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*Linux\* child for `joao-cognition\/demo_android`/);
+    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*Linux\* child for `joao-cognition\/demo_webapp`/);
+    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/THREE child Devin sessions IN PARALLEL/);
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('cross-platform-incident-fix');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('SEC-2041');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('Do not clone, change or open PRs in `COG-GTM/event-driven-devin`');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('?reports=off');
-    expect(APP_REMEDIATION_DIRECTIVE).toContain('[DEMO — DO NOT MERGE]');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('Never merge');
   });
 });
