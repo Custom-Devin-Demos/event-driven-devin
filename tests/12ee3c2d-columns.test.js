@@ -5,7 +5,9 @@ jest.mock('../app/services/devin-session', () => ({
 }));
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
-const { saveColumnLayout, getPortal, DEFAULT_LAYOUT } = require('../app/services/verticals/12ee3c2d');
+const {
+  saveColumnLayout, getPortal, respondToDispute, DEFAULT_LAYOUT,
+} = require('../app/services/verticals/12ee3c2d');
 
 describe('American Express Merchant settlements columns (12ee3c2d)', () => {
   beforeEach(() => createSessionAndAlert.mockClear());
@@ -27,5 +29,18 @@ describe('American Express Merchant settlements columns (12ee3c2d)', () => {
     const portal = getPortal();
     expect(portal.columns).toHaveLength(15);
     expect(portal.defaultLayout).toHaveLength(11);
+  });
+
+  test('a saved layout is returned on the next portal load', async () => {
+    const layout = ['settlement_date', 'number_of_transactions', 'settlement_amount'];
+    await saveColumnLayout({ layout });
+    expect(getPortal().savedLayout).toEqual(layout);
+  });
+
+  test('a responded dispute leaves Response Needed and cannot be answered twice', () => {
+    const first = respondToDispute('D-urovq', { responseType: 'disagree' });
+    expect(first.status).toBe('Review in Progress');
+    expect(getPortal().disputes.map((d) => d.caseNumber)).not.toContain('D-urovq');
+    expect(respondToDispute('D-urovq', { responseType: 'disagree' })).toBeNull();
   });
 });

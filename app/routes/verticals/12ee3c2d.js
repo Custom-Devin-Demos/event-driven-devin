@@ -52,7 +52,11 @@ router.post('/api/12ee3c2d/disputes/:caseNumber/respond', (req, res) => {
   if (typeof body.initials !== 'string' || !/^[A-Za-z]{2,3}$/.test(body.initials.trim())) {
     return res.status(400).json({ success: false, error: 'Enter your initials to verify your response', code: 'VALIDATION_ERROR' });
   }
-  return res.json(respondToDispute(req.params.caseNumber, body));
+  const result = respondToDispute(req.params.caseNumber, body);
+  if (!result) {
+    return res.status(409).json({ success: false, error: 'A response has already been submitted for this case', code: 'ALREADY_RESPONDED' });
+  }
+  return res.json(result);
 });
 
 module.exports = router;

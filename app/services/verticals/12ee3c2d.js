@@ -70,13 +70,14 @@ function round2(n) {
   return Math.round(n * 100) / 100;
 }
 
-function buildSettlement(date, number, charges, credits, txns, chargebacks, adjustments, openingDebit, status) {
+function buildSettlement(date, number, charges, credits, txns, chargebacks, adjustments, openingDebit, status, locationId = 'LOC-0101') {
+  const location = MERCHANT.locations.find((l) => l.id === locationId);
   const submissionAmount = round2(charges - credits);
   const discountAmount = round2(submissionAmount * 0.0265);
   const feesAndIncentives = round2(txns * 0.1);
   const settlementAmount = round2(submissionAmount - discountAmount - feesAndIncentives - chargebacks + adjustments);
   return {
-    settlementDate: date, settlementNumber: number, payeeMerchantNumber: MERCHANT.merchantNumber, payeeLocationId: 'LOC-0101',
+    settlementDate: date, settlementNumber: number, payeeMerchantNumber: location.merchantNumber, payeeLocationId: locationId,
     totalCharges: charges, credits, submissionAmount, discountAmount, feesAndIncentives, chargebacks, adjustments,
     settlementAmount, amountPaidToBank: round2(Math.max(settlementAmount - openingDebit, 0)), transactionCount: txns,
     openingDebitBalance: openingDebit, status,
@@ -85,42 +86,79 @@ function buildSettlement(date, number, charges, credits, txns, chargebacks, adju
 
 const SETTLEMENTS = [
   buildSettlement('2026-11-04', '60318822', 4128.4, 62.5, 311, 0, 0, 0, 'pending'),
-  buildSettlement('2026-11-03', '60318407', 3896.15, 0, 296, 0, 0, 0, 'pending'),
+  buildSettlement('2026-11-04', '60318830', 2214.6, 0, 168, 0, 0, 0, 'pending', 'LOC-0103'),
+  buildSettlement('2026-11-03', '60318407', 3896.15, 0, 296, 0, 0, 0, 'posted'),
+  buildSettlement('2026-11-03', '60318415', 2788.35, 41.2, 214, 0, 0, 0, 'posted', 'LOC-0102'),
   buildSettlement('2026-11-02', '60317986', 5212.75, 118.0, 402, 0, 0, 0, 'posted'),
+  buildSettlement('2026-11-02', '60317994', 1906.8, 0, 131, 0, 0, 0, 'posted', 'LOC-0103'),
   buildSettlement('2026-11-01', '60317544', 4987.3, 45.25, 377, 86.4, 0, 0, 'posted'),
+  buildSettlement('2026-11-01', '60317552', 2631.15, 0, 198, 0, 0, 0, 'posted', 'LOC-0102'),
   buildSettlement('2026-10-31', '60317120', 3644.9, 0, 271, 0, 0, 0, 'posted'),
   buildSettlement('2026-10-30', '60316698', 3412.55, 22.0, 259, 0, -35.0, 0, 'posted'),
+  buildSettlement('2026-10-30', '60316706', 2402.4, 18.5, 182, 0, 0, 0, 'posted', 'LOC-0102'),
   buildSettlement('2026-10-29', '60316271', 3305.2, 0, 248, 142.18, 0, 142.18, 'posted'),
   buildSettlement('2026-10-28', '60315849', 3189.65, 54.75, 240, 0, 0, 0, 'posted'),
+  buildSettlement('2026-10-28', '60315857', 1744.9, 0, 119, 0, 0, 0, 'posted', 'LOC-0103'),
   buildSettlement('2026-10-27', '60315402', 2976.4, 0, 223, 0, 12.5, 0, 'posted'),
   buildSettlement('2026-10-26', '60314988', 4411.8, 31.9, 335, 0, 0, 0, 'posted'),
+  buildSettlement('2026-10-25', '60314561', 3988.05, 0, 301, 0, 0, 0, 'posted'),
+  buildSettlement('2026-10-24', '60314137', 3577.3, 26.4, 268, 0, 0, 0, 'posted'),
 ];
+
+function adjustment(settlementDate, adjustmentNumber, cardNumber, amount, disputeType, description, amexDate, locationId = 'LOC-0101') {
+  const location = MERCHANT.locations.find((l) => l.id === locationId);
+  return {
+    submittingMerchantNumber: location.merchantNumber, submittingLocationId: locationId, payeeMerchantNumber: location.merchantNumber,
+    payeeLocationId: locationId, settlementAmount: amount, settlementDate, cardNumber, adjustmentNumber, submissionAmount: amount,
+    totalCharges: 0, credits: Math.abs(amount), discountAmount: 0, feesAndIncentives: 0, disputeType, description, transactionCount: 1, amexDate,
+  };
+}
 
 const ADJUSTMENTS = [
-  { settlementDate: '2026-11-01', adjustmentNumber: '884120', cardNumber: '\u2022\u2022\u2022\u2022 31009', settlementAmount: -86.4, disputeType: 'Chargeback', description: 'Chargeback \u2014 goods/services not received (C08)', amexDate: '2026-10-30' },
-  { settlementDate: '2026-10-30', adjustmentNumber: '883961', cardNumber: '\u2022\u2022\u2022\u2022 72004', settlementAmount: -35.0, disputeType: 'Adjustment', description: 'Duplicate submission reversal', amexDate: '2026-10-29' },
-  { settlementDate: '2026-10-29', adjustmentNumber: '883712', cardNumber: '\u2022\u2022\u2022\u2022 11005', settlementAmount: -142.18, disputeType: 'Chargeback', description: 'Chargeback \u2014 no card member authorization (F29)', amexDate: '2026-10-27' },
-  { settlementDate: '2026-10-27', adjustmentNumber: '883350', cardNumber: '\u2022\u2022\u2022\u2022 45001', settlementAmount: 12.5, disputeType: 'Adjustment', description: 'Fee credit \u2014 terminal rental proration', amexDate: '2026-10-26' },
+  adjustment('2026-11-01', '884120', '374355XXXXX1009', -86.4, 'Chargebacks', 'GOODS NOT RECEIVED', '2026-10-30'),
+  adjustment('2026-11-01', '884117', '379783XXXXX3008', -24.75, 'Adjustments', 'DEBIT AS CARDMEMBER PAID DIRECT', '2026-10-30', 'LOC-0102'),
+  adjustment('2026-10-30', '883961', '372004XXXXX7204', -35.0, 'Adjustments', 'DEBIT FOR MULTIPLE CHARGE', '2026-10-29'),
+  adjustment('2026-10-29', '883712', '371105XXXXX1005', -142.18, 'Chargebacks', 'DEBIT AS NO APPROVAL GAINED', '2026-10-27'),
+  adjustment('2026-10-28', '883590', '379280XXXXX1004', -18.6, 'Adjustments', 'DEBIT FOR NO REPLY TO INQUIRY', '2026-10-27', 'LOC-0103'),
+  adjustment('2026-10-27', '883350', '374501XXXXX4501', 12.5, 'Adjustments', 'CREDIT FOR TERMINAL FEE PRORATION', '2026-10-26'),
+  adjustment('2026-10-26', '883204', '376611XXXXX2207', -51.3, 'Adjustments', 'NOT AS DESCRIBED', '2026-10-24', 'LOC-0102'),
 ];
 
+function dispute(caseNumber, amount, transactionDate, reason, code, caseType, disputeType, expires, daysLeft, cardNumber, locationId, detail) {
+  const location = MERCHANT.locations.find((l) => l.id === locationId);
+  return {
+    caseNumber, amount: -amount, transactionAmount: amount, transactionDate, reason, code, caseType, disputeType,
+    type: disputeType === 'CB' ? 'Chargeback' : 'Inquiry', expires, daysLeft, cardNumber, merchantNumber: location.merchantNumber,
+    locationId, chargeReference: `CR${caseNumber.slice(2).toUpperCase()}88`, detail,
+  };
+}
+
 const DISPUTES = [
-  { caseNumber: 'D-48217', amount: -142.18, transactionAmount: 142.18, transactionDate: '2026-10-12', reason: 'No Card Member Authorization', code: 'F29', caseType: 'Fraud', disputeType: 'CB', type: 'Chargeback', expires: '2026-11-14', daysLeft: 11 },
-  { caseNumber: 'D-48233', amount: -86.4, transactionAmount: 86.4, transactionDate: '2026-10-15', reason: 'Goods/Services Not Received', code: 'C08', caseType: 'Card Member Dispute', disputeType: 'CB', type: 'Chargeback', expires: '2026-11-17', daysLeft: 14 },
-  { caseNumber: 'D-48251', amount: -58.0, transactionAmount: 58.0, transactionDate: '2026-10-19', reason: 'Credit Not Presented', code: 'C02', caseType: 'Card Member Dispute', disputeType: 'CB', type: 'Chargeback', expires: '2026-11-20', daysLeft: 17 },
-  { caseNumber: 'D-48266', amount: -214.5, transactionAmount: 214.5, transactionDate: '2026-10-21', reason: 'Multiple Processing', code: 'P08', caseType: 'Processing Error', disputeType: 'CB', type: 'Chargeback', expires: '2026-11-22', daysLeft: 19 },
-  { caseNumber: 'D-48279', amount: -39.75, transactionAmount: 39.75, transactionDate: '2026-10-24', reason: 'Cancelled Recurring Billing', code: 'C28', caseType: 'Card Member Dispute', disputeType: 'CU', type: 'Inquiry', expires: '2026-11-25', daysLeft: 22 },
+  dispute('D-utgq6', 142.18, '2026-10-12', 'Card not present fraud', 'F29', 'Fraud', 'CB', '2026-11-14', 11, '374355XXXXX5847', 'LOC-0103',
+    'Card Member denies participating in a card not present transaction. To request a reversal, provide proof that the Card Member participated in the transaction, such as AVS/CVV match and proof of delivery to the verified address.'),
+  dispute('D-urovq', 86.4, '2026-10-15', 'Goods/Services not received', 'C08', 'Card Member Dispute', 'CB', '2026-11-17', 14, '379783XXXXX3008', 'LOC-0101',
+    'Card Member states the order was never received. To request a reversal, provide proof of delivery or proof that the Card Member collected the goods in store.'),
+  dispute('D-urw24', 58.0, '2026-10-19', 'Credit not presented', 'C02', 'Card Member Dispute', 'CB', '2026-11-20', 17, '379280XXXXX1004', 'LOC-0102',
+    'Card Member states a credit was promised but never processed. To request a reversal, provide proof that the credit was issued or that no credit is due.'),
+  dispute('D-urw25', 214.5, '2026-10-21', 'Multiple processing', 'P08', 'Processing Error', 'CB', '2026-11-22', 19, '379280XXXXX1004', 'LOC-0101',
+    'Card Member states the same charge was processed more than once. To request a reversal, provide itemized receipts showing separate purchases.'),
+  dispute('D-usk7m', 39.75, '2026-10-24', 'Cancelled recurring billing', 'C28', 'Card Member Dispute', 'CU', '2026-11-25', 22, '376611XXXXX2207', 'LOC-0103',
+    'We did not receive your response to our initial inquiry. To request a reversal, provide proof that the subscription was not cancelled before the billing date.'),
 ];
 
 const savedLayouts = new Map();
+const disputeResponses = new Map();
 
 function getPortal() {
   return {
     merchant: MERCHANT,
     settlements: SETTLEMENTS,
     adjustments: ADJUSTMENTS,
-    disputes: DISPUTES,
+    disputes: DISPUTES.filter((d) => !disputeResponses.has(d.caseNumber)),
+    reviewInProgress: 3 + disputeResponses.size,
     columns: SETTLEMENT_COLUMNS.map(({ key, label }) => ({ key, label })),
     defaultLayout: DEFAULT_LAYOUT,
+    savedLayout: savedLayouts.get(MERCHANT.merchantNumber) || null,
   };
 }
 
@@ -219,8 +257,9 @@ async function saveColumnLayout(data) {
 }
 
 function respondToDispute(caseNumber, response) {
+  if (disputeResponses.has(caseNumber)) return null;
   const dispute = DISPUTES.find((d) => d.caseNumber === caseNumber);
-  return {
+  const record = {
     success: true,
     caseNumber: dispute.caseNumber,
     responseType: response.responseType,
@@ -228,6 +267,8 @@ function respondToDispute(caseNumber, response) {
     status: 'Review in Progress',
     submittedAt: new Date().toISOString(),
   };
+  disputeResponses.set(caseNumber, record);
+  return record;
 }
 
 module.exports = {
