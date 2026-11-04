@@ -113,6 +113,7 @@
     .btn-primary { background: var(--navy); color: #fff; border: 0; border-radius: 8px; height: 48px; padding: 0 32px; font-size: 14px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; min-width: 200px; }
     .btn-primary:hover { background: #0B3366; }
     .btn-primary:disabled { opacity: .7; cursor: progress; }
+    .btn-ghost:disabled { opacity: .5; cursor: not-allowed; }
     .btn-ghost { background: #fff; border: 1px solid var(--line); color: var(--navy-2); border-radius: 8px; height: 48px; padding: 0 22px; font-size: 14px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; }
     @media (max-width: 600px) { .btn-primary, .btn-ghost { width: 100%; } }
     .smartpass { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); margin-top: 16px; }
@@ -262,7 +263,6 @@
                       <select id="accountTier">
                         <option value="standard">Plus</option>
                         <option value="premium">Priority Banking</option>
-                        <option value="basic">Current account (no package)</option>
                       </select>
                     </div>
                     <span class="hint">Determines your transfer charges and limits.</span>
@@ -370,6 +370,7 @@
       var amountEl = document.getElementById('amount');
       var tierSel = document.getElementById('accountTier');
       var btn = document.getElementById('submitBtn');
+      var cancelBtn = document.getElementById('cancelBtn');
       var result = document.getElementById('result');
       var pendingTimer = null;
       var IBAN_LAST4 = { 'BEN-IN-0417': '3307', 'BEN-GB-0233': '8126', 'BEN-PH-0581': '4410', 'BEN-EG-0196': '9052' };
@@ -381,7 +382,7 @@
       function amountValue() { var v = parseFloat(amountEl.value); return isNaN(v) ? 0 : v; }
       function receives(amt) { var o = opt(toSel); return o.dataset.ccy + ' ' + fmt(amt * parseFloat(o.dataset.rate)); }
       /* Mirrors the transfer service's fee schedule: max(rate * amount, flat). */
-      var FEE_SCHEDULE = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
+      var FEE_SCHEDULE = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 } };
       function feeFor(amt) { var t = FEE_SCHEDULE[tierSel.value] || FEE_SCHEDULE.standard; return Math.max(t.rate * amt, t.flat); }
 
       function renderSummary() {
@@ -409,7 +410,7 @@
       }
       function clearResult() { if (pendingTimer) clearTimeout(pendingTimer); pendingTimer = null; result.className = 'result-box'; result.innerHTML = ''; }
 
-      document.getElementById('cancelBtn').addEventListener('click', function () { form.reset(); clearResult(); renderSummary(); });
+      cancelBtn.addEventListener('click', function () { form.reset(); clearResult(); renderSummary(); });
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -419,7 +420,7 @@
         if (amt > 100000) { show('error', 'This amount is above your daily international transfer limit.', 'You can send up to AED 100,000 a day.'); amountEl.focus(); return; }
         if (amt + feeFor(amt) > parseFloat(fromOpt.dataset.balance)) { show('error', 'Insufficient balance for this transfer.', 'Available in ' + fromLabel() + ': ' + aed(parseFloat(fromOpt.dataset.balance)) + '. Transfer fee: ' + aed(feeFor(amt)) + '.'); amountEl.focus(); return; }
 
-        btn.disabled = true; btn.textContent = 'Sending\u2026';
+        btn.disabled = true; cancelBtn.disabled = true; btn.textContent = 'Sending\u2026';
         clearResult();
         show('pending', 'Sending your transfer\u2026', '');
         pendingTimer = setTimeout(function () {
@@ -453,7 +454,7 @@
           show('error', 'We couldn\u2019t send your transfer right now.', 'Please check your connection and try again.');
         } finally {
           pendingTimer = null;
-          btn.disabled = false; btn.textContent = 'Send money';
+          btn.disabled = false; cancelBtn.disabled = false; btn.textContent = 'Send money';
         }
       });
     })();
