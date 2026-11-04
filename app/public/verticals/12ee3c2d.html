@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merchant Services | American Express</title>
+  <link rel="icon" href="https://www.aexp-static.com/cdaas/one/statics/axp-static-assets/1.8.0/package/dist/img/logos/dls-logo-bluebox-solid.svg">
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <style>
+    :root { --blue: #006fcf; --blue-hover: #00539b; --navy: #00175a; --ink: #333; --muted: #53565a; --line: #e0e2e4; --line2: #c8c9c7; --bg: #f2f4f6; --soft: #f7f8f9; --red: #c40000; --green: #008767; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); background: var(--bg); font-size: 14px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { font-family: inherit; cursor: pointer; }
+    .hidden { display: none !important; }
+    svg { flex: none; }
+    header.top { background: #fff; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; position: relative; }
+    .menu-btn { background: var(--blue); color: #fff; border: 0; border-radius: 3px; padding: 9px 16px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+    .wordmark { position: absolute; left: 50%; transform: translateX(-50%); color: var(--blue); font-weight: 800; font-size: 22px; letter-spacing: 1.2px; font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif; }
+    .wordmark:hover { text-decoration: none; }
+    .top-right { display: flex; align-items: center; gap: 26px; font-size: 14px; }
+    .top-right button { border: 0; background: none; padding: 0; display: flex; }
+    nav.main { background: var(--blue); display: flex; justify-content: space-between; align-items: stretch; padding: 0 40px; height: 52px; }
+    nav.main .tabs { display: flex; gap: 30px; }
+    nav.main .tabs a { color: #fff; display: flex; align-items: center; border-bottom: 3px solid transparent; border-top: 3px solid transparent; font-size: 14px; }
+    nav.main .tabs a:hover { text-decoration: none; border-bottom-color: rgba(255,255,255,.5); }
+    nav.main .tabs a.active { border-bottom-color: #fff; }
+    nav.main .right { display: flex; align-items: center; gap: 22px; }
+    .bell { position: relative; display: flex; }
+    .badge { position: absolute; top: -6px; right: -7px; background: #e5262b; color: #fff; font-size: 10px; font-weight: 700; border-radius: 9px; min-width: 16px; height: 16px; display: grid; place-items: center; padding: 0 4px; }
+    main { max-width: 1240px; margin: 0 auto; padding: 0 24px 80px; }
+    .band { background: #fff; margin: 0 -24px 24px; padding: 22px 48px; display: flex; justify-content: space-between; align-items: center; min-height: 82px; }
+    .band h1 { margin: 0; font-weight: 400; font-size: 20px; color: var(--ink); }
+    .band .actions { display: flex; gap: 12px; align-items: center; }
+    .card { background: #fff; }
+    .btn { border: 1px solid var(--blue); background: #fff; color: var(--blue); padding: 8px 18px; font-size: 14px; border-radius: 3px; display: inline-flex; align-items: center; gap: 8px; line-height: 1.2; white-space: nowrap; }
+    .btn:hover { background: #f0f6fd; text-decoration: none; }
+    .btn.primary { background: var(--blue); color: #fff; }
+    .btn.primary:hover { background: var(--blue-hover); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn.icon { padding: 7px 9px; }
+    .btn.lg { padding: 13px 28px; font-size: 16px; min-width: 200px; justify-content: center; }
+    .btn.link { border: 0; background: none; padding: 8px 4px; }
+    select.dd, input.field { height: 38px; padding: 0 34px 0 12px; font-size: 13px; color: var(--muted); border: 1px solid var(--line2); background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2353565a' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center; border-radius: 3px; -webkit-appearance: none; appearance: none; font-family: inherit; }
+    input.field { background-image: none; padding: 0 12px; }
+    .welcome { padding: 22px 28px; margin: 28px 0; }
+    .welcome h2 { margin: 0 0 4px; font-size: 15px; }
+    .welcome p { margin: 0; font-size: 13px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .tile { padding: 24px 28px 28px; display: flex; flex-direction: column; min-height: 360px; }
+    .tile h3 { margin: 0 0 22px; font-size: 15px; text-align: center; }
+    .big { font-size: 28px; text-align: center; }
+    .center { text-align: center; }
+    .kv { display: flex; justify-content: space-between; padding: 9px 0; font-size: 13px; }
+    .tile .btn { margin-top: auto; width: 100%; justify-content: center; padding: 11px; }
+    .label { font-size: 11px; font-weight: 700; letter-spacing: .4px; color: var(--ink); text-transform: uppercase; }
+    .dl-link { display: flex; gap: 10px; align-items: center; margin: 14px 0; font-size: 13px; }
+    .caught { display: flex; flex-direction: column; align-items: center; gap: 18px; font-size: 17px; color: var(--muted); text-align: center; margin-top: 10px; }
+    .muted { color: var(--muted); }
+    .pay-head { margin: 28px 0 22px; padding: 0; }
+    .pay-head h1 { margin: 0; padding: 18px 28px 14px; font-size: 22px; font-weight: 400; }
+    .subtabs { display: flex; gap: 0; padding: 0 28px; font-size: 13px; }
+    .subtabs a { padding: 10px 14px 9px; color: var(--blue); border-bottom: 3px solid transparent; }
+    .subtabs a:first-child { padding-left: 0; }
+    .subtabs a.active { color: var(--ink); border-bottom-color: var(--blue); }
+    .subtabs a.boxed { border: 1px solid var(--line); border-bottom: 0; margin-left: 6px; }
+    .toolbar { display: flex; align-items: center; gap: 14px; padding: 16px 0; }
+    .toolbar .spacer { flex: 1; }
+    .filter-label { font-size: 12px; font-weight: 700; }
+    .group { border-top: 1px solid var(--line); }
+    .group-head { display: flex; align-items: center; gap: 14px; padding: 12px 6px; cursor: pointer; font-size: 16px; user-select: none; color: var(--ink); }
+    .chev { transition: transform .15s; }
+    .group.open > .group-head .chev { transform: rotate(90deg); }
+    .table-card { background: #fff; overflow-x: auto; border-top: 3px solid transparent; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: right; font-size: 10px; letter-spacing: .3px; text-transform: uppercase; font-weight: 700; color: var(--ink); padding: 12px 8px 10px; border-bottom: 1px solid var(--line2); background: #fff; vertical-align: bottom; line-height: 1.25; }
+    th.sorted { border-bottom: 3px solid var(--navy); }
+    th .sort { color: #97999b; font-size: 9px; }
+    th.l, td.l { text-align: left; }
+    th.c, td.c { text-align: center; width: 44px; }
+    td { text-align: right; padding: 11px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; color: var(--ink); }
+    td.neg, .neg { color: var(--red); }
+    tr.row { cursor: pointer; }
+    tr.row:hover td { background: #f5f9fd; }
+    tr.detail td { background: var(--soft); text-align: left; }
+    .detail-box { display: flex; gap: 48px; font-size: 12px; color: var(--muted); padding: 4px 8px; }
+    .detail-box b { display: block; color: var(--ink); font-weight: 400; font-size: 13px; margin-top: 3px; }
+    .gear { border: 0; background: none; padding: 2px; display: inline-flex; }
+    .gear-btn { border: 1px solid var(--blue); background: #fff; border-radius: 3px; width: 36px; height: 36px; display: grid; place-items: center; }
+    .pager { display: flex; align-items: center; justify-content: space-between; padding: 14px 8px; font-size: 12px; }
+    .pager .pages { display: flex; gap: 6px; }
+    .pager .pages span { min-width: 24px; height: 24px; display: grid; place-items: center; color: var(--blue); }
+    .pager .pages span.on { background: var(--blue); color: #fff; border-radius: 2px; }
+    .empty { padding: 28px; text-align: center; color: var(--muted); }
+    .chat { position: fixed; right: 40px; bottom: 22px; background: var(--navy); color: #fff; border: 0; border-radius: 20px; padding: 9px 18px; display: flex; align-items: center; gap: 8px; font-size: 13px; z-index: 30; }
+    .feedback { position: fixed; right: 0; top: 55%; background: var(--navy); color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); padding: 12px 7px; font-size: 12px; border-radius: 0 3px 3px 0; z-index: 30; }
+    .disputes-layout { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; }
+    .sidenav { padding: 10px 0; }
+    .sidenav a { display: block; padding: 12px 22px; font-size: 13px; line-height: 1.4; }
+    .sidenav a.active { color: var(--navy); font-weight: 400; background: transparent; cursor: default; text-decoration: none; }
+    .panel { padding: 24px 22px 0; }
+    .panel h2 { margin: 0; font-size: 18px; font-weight: 400; }
+    .panel-row { display: flex; align-items: center; gap: 10px; }
+    .intro { font-size: 12.5px; line-height: 1.5; margin: 14px 0 22px; max-width: 760px; }
+    .filters { display: flex; gap: 10px; align-items: center; background: var(--soft); margin: 16px -22px 0; padding: 12px 22px; }
+    .star { border: 0; background: none; padding: 0; color: #97999b; font-size: 17px; line-height: 1; }
+    .star.on { color: #e8a33d; }
+    .search-row { display: flex; gap: 14px; align-items: flex-end; }
+    .search-row label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .search-input { display: flex; }
+    .search-input input { border-right: 0; border-radius: 3px 0 0 3px; width: 220px; }
+    .search-input button { border: 1px solid var(--line2); background: #fff; border-radius: 0 3px 3px 0; width: 40px; display: grid; place-items: center; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .section-title { font-size: 12px; font-weight: 700; letter-spacing: .3px; margin: 0 0 18px; text-transform: uppercase; }
+    .pad { padding: 22px 26px; }
+    .details-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .details-row:last-of-type { border-bottom: 0; }
+    .details-row .k { color: var(--muted); }
+    .details-row p { margin: 10px 0 0; line-height: 1.5; color: var(--muted); }
+    .days-left { text-align: center; font-weight: 700; padding: 20px 0 6px; font-size: 14px; }
+    .timeline { list-style: none; padding: 0; margin: 0; position: relative; }
+    .timeline li { position: relative; padding: 0 0 16px 36px; margin-bottom: 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .timeline li:last-child { border-bottom: 0; margin-bottom: 0; }
+    .timeline li::before { content: ''; position: absolute; left: 6px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--blue); }
+    .timeline li:first-child::before { left: 2px; top: 0; width: 13px; height: 13px; background: #fff; border: 2px solid var(--navy); box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 6px var(--navy); }
+    .timeline::before { content: ''; position: absolute; left: 10px; top: 6px; bottom: 26px; width: 1px; background: var(--blue); }
+    .timeline b { display: block; font-size: 12.5px; }
+    .timeline .d { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .tl-full li { padding-bottom: 22px; }
+    .tl-full .lbl { font-size: 11px; text-transform: uppercase; margin-top: 14px; color: var(--ink); }
+    .tl-full p { margin: 4px 0 0; line-height: 1.5; color: var(--muted); max-width: 780px; }
+    .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .5); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 50; overflow: auto; }
+    .modal { background: #fff; width: 960px; max-width: 100%; }
+    .modal.narrow { width: 640px; }
+    .modal-blue-head { background: var(--blue); color: #fff; text-align: center; font-size: 17px; padding: 15px 50px; position: relative; }
+    .modal-blue-head .x { position: absolute; right: 16px; top: 10px; color: #fff; }
+    .x { border: 0; background: none; font-size: 28px; line-height: 1; color: var(--muted); padding: 0 4px; }
+    .modal-plain-head { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px 0; }
+    .modal-plain-head h2 { margin: 0; font-size: 15px; }
+    .modal-body { padding: 10px 28px 18px; }
+    .modal-desc { font-size: 13px; margin: 14px 0 22px; }
+    .zone { min-height: 44px; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; position: relative; }
+    .zone.drag-over { outline: 2px dashed var(--blue); outline-offset: 4px; }
+    .active-box { border: 1px solid var(--line2); padding: 12px 12px 6px; }
+    .zone-hint { width: 100%; text-align: center; font-size: 13px; color: var(--muted); padding: 18px 0 10px; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 13px; cursor: grab; user-select: none; border-radius: 1px; }
+    .zone.active .chip { background: var(--blue); color: #fff; }
+    .zone.inactive .chip { background: #fff; border: 1px solid var(--line2); color: var(--muted); }
+    .chip.dragging { opacity: .4; }
+    .chip.locked { background: #e6e7e8 !important; color: var(--muted) !important; cursor: default; }
+    .slot { display: inline-flex; align-items: center; gap: 8px; padding-right: 10px; border-right: 1px solid var(--line); }
+    .slot .n { color: #97999b; font-size: 12px; }
+    .slot.placeholder { color: #97999b; font-size: 13px; border-right: 0; }
+    .inactive-band { background: var(--soft); padding: 22px 28px 20px; }
+    .modal-foot { display: flex; justify-content: space-between; align-items: center; padding: 18px 28px 22px; gap: 16px; }
+    .modal-foot.right { justify-content: flex-end; }
+    .inline-error { margin: 0 28px 4px; padding: 12px 14px; background: #fdf0f0; border-left: 4px solid var(--red); color: var(--red); font-size: 13px; }
+    .settings-wrap { display: grid; grid-template-columns: 190px 1fr; }
+    .settings-nav { padding-top: 10px; }
+    .settings-nav a { display: block; padding: 13px 14px; font-size: 14px; }
+    .settings-nav a.on { background: var(--bg); color: var(--navy); text-decoration: none; }
+    .settings-main { border-left: 1px solid var(--line); }
+    .settings-main h3 { margin: 18px 0 0; font-size: 15px; }
+    .group-label { font-size: 11.5px; font-weight: 700; margin: 16px 0 10px; text-transform: uppercase; }
+    .links-row { display: flex; justify-content: space-between; padding: 16px 16px 4px; font-size: 14px; }
+    .respond-q { font-size: 30px; font-weight: 400; margin: 6px 0 14px; color: var(--ink); }
+    .radio { display: flex; gap: 16px; align-items: flex-start; padding: 12px 18px; cursor: pointer; font-weight: 700; font-size: 16px; color: var(--ink); }
+    .radio input { width: 22px; height: 22px; margin: 0; flex: none; }
+    .respond-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    .claim-head { padding: 16px 20px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; }
+    .step { display: flex; gap: 14px; margin-bottom: 26px; }
+    .step-num { font-size: 18px; color: var(--muted); width: 16px; }
+    .step h4 { margin: 0 0 18px; font-weight: 400; font-size: 18px; line-height: 1.35; }
+    .support { font-size: 12.5px; line-height: 1.5; }
+    .support ul { margin: 6px 0 22px; padding-left: 22px; }
+    .support ul ul { list-style: circle; margin-bottom: 4px; }
+    .field-label { font-weight: 700; font-size: 13px; margin: 0 0 10px; }
+    textarea { width: 100%; max-width: 420px; min-height: 100px; padding: 10px; font: inherit; border: 1px solid var(--line2); }
+    .counter { display: flex; justify-content: space-between; max-width: 420px; font-size: 12px; margin-top: 4px; }
+    input.initials { width: 140px; text-transform: uppercase; }
+    .resp-table { width: 100%; font-size: 12px; border: 1px solid var(--line); }
+    .resp-table th { text-align: left; border-bottom: 1px solid var(--line); font-size: 11px; }
+    .resp-table td { text-align: left; border-bottom: 0; }
+    .toast { position: fixed; right: 24px; bottom: 76px; width: 380px; background: #fff; border-left: 5px solid var(--green); box-shadow: 0 6px 24px rgba(0,0,0,.2); padding: 14px 18px; z-index: 80; font-size: 13px; }
+    .toast.error { border-left-color: var(--red); }
+    .toast b { display: block; margin-bottom: 4px; font-size: 14px; }
+    .toast small { color: var(--muted); display: block; margin-top: 6px; word-break: break-word; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 0 32px; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <button class="menu-btn" type="button"><svg width="16" height="12" viewBox="0 0 16 12"><path d="M0 1h16M0 6h16M0 11h16" stroke="#fff" stroke-width="1.6"/></svg>Menu</button>
+    <a class="wordmark" href="#dashboard">AMERICAN EXPRESS</a>
+    <div class="top-right">
+      <button type="button" aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#006fcf" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg></button>
+      <a href="#dashboard">Help</a><a href="#dashboard">Log Out</a>
+    </div>
+  </header>
+  <nav class="main">
+    <div class="tabs">
+      <a href="#dashboard" data-nav="dashboard">Dashboard</a>
+      <a href="#settlements" data-nav="payments">Payments</a>
+      <a href="#disputes" data-nav="disputes">Disputes</a>
+      <a href="#dashboard" data-nav="x1">Account Services</a>
+      <a href="#dashboard" data-nav="x2">Grow your Business</a>
+      <a href="#dashboard" data-nav="x3">Support</a>
+    </div>
+    <div class="right">
+      <svg width="22" height="15" viewBox="0 0 22 15" aria-label="United States"><rect width="22" height="15" fill="#fff"/><g fill="#d22f27"><rect y="0" width="22" height="1.6"/><rect y="3.2" width="22" height="1.6"/><rect y="6.4" width="22" height="1.6"/><rect y="9.6" width="22" height="1.6"/><rect y="12.8" width="22" height="1.6"/></g><rect width="9.5" height="8" fill="#1e3f8c"/></svg>
+      <svg width="24" height="20" viewBox="0 0 24 20" fill="none" stroke="#fff" stroke-width="1.6"><rect x="1" y="2" width="22" height="16"/><path d="M1 3l11 8 11-8"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="8" r="4.5"/><path d="M3 22c1-5 4.5-7.5 9-7.5s8 2.5 9 7.5"/></svg>
+      <span class="bell"><svg width="20" height="22" viewBox="0 0 24 26" fill="none" stroke="#fff" stroke-width="1.6"><path d="M5 19V11a7 7 0 0114 0v8l2 2H3z"/><path d="M10 24h4"/></svg><span class="badge">2</span></span>
+    </div>
+  </nav>
+  <main id="app"></main>
+  <footer>&copy; 2026 American Express. All rights reserved.</footer>
+  <button class="chat" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16v12H8l-4 4z"/></svg>Chat</button>
+  <div class="feedback">Feedback</div>
+  <div id="modalRoot"></div>
+  <div id="toastRoot"></div>
+
+  <script>
+  (function () {
+    var ANCHOR = '2026-11-04';
+    var STATE = { queue: [], portal: null, layout: null, openRows: {}, pendingOpen: false, postedOpen: true, adjOpen: true, cbOpen: false, location: 'all', days: 14, starred: {}, selected: {}, searchOpen: false, search: { by: 'case', q: '' }, merchantFilter: 'all', amountFilter: 'any', typeFilter: 'all' };
+    var FIELD = {
+      settlement_date: 'settlementDate', settlement_number: 'settlementNumber', total_charges: 'totalCharges', credits: 'credits',
+      submission_amount: 'submissionAmount', discount_amount: 'discountAmount', fees_incentives: 'feesAndIncentives', chargebacks: 'chargebacks',
+      adjustments: 'adjustments', settlement_amount: 'settlementAmount', amount_paid_to_bank: 'amountPaidToBank',
+      payee_merchant_number: 'payeeMerchantNumber', payee_location_id: 'payeeLocationId', number_of_transactions: 'transactionCount',
+      opening_debit_balance: 'openingDebitBalance'
+    };
+    var TEXT_COLS = { settlement_date: 1, settlement_number: 1, payee_merchant_number: 1, payee_location_id: 1, number_of_transactions: 1 };
+    var DISPUTE_FIELDS = [
+      { group: 'Case Info', key: 'caseNumber', label: 'Case #' },
+      { group: 'Case Info', key: 'reason', label: 'Reason' },
+      { group: 'Case Info', key: 'code', label: 'Reason Code' },
+      { group: 'Case Info', key: 'caseType', label: 'Case Type' },
+      { group: 'Case Info', key: 'type', label: 'Type' },
+      { group: 'Case Info', key: 'daysLeft', label: 'Days Left' },
+      { group: 'Transaction Info', key: 'amount', label: 'Amount' },
+      { group: 'Transaction Info', key: 'transactionAmount', label: 'Transaction Amount' },
+      { group: 'Transaction Info', key: 'cardNumber', label: 'Card Number' },
+      { group: 'Transaction Info', key: 'chargeReference', label: 'Charge Reference Number' },
+      { group: 'Date Types', key: 'transactionDate', label: 'Transaction Date' },
+      { group: 'Date Types', key: 'expires', label: 'Expires' },
+      { group: 'Location Info', key: 'merchantNumber', label: 'Payee Merchant Number' },
+      { group: 'Location Info', key: 'locationId', label: 'Payee Location ID' },
+      { group: 'Case Info', key: 'cardMemberName', label: 'Card Member Name' }
+    ];
+    var DISPUTE_DEFAULT = ['caseNumber', 'amount', 'reason', 'cardNumber', 'type', 'expires'];
+    STATE.disputeCols = (function () { try { var v = JSON.parse(localStorage.getItem('amexMerchantDisputeCols') || 'null'); if (Array.isArray(v) && v[0] === 'caseNumber' && v.every(function (k) { return DISPUTE_FIELDS.some(function (f) { return f.key === k; }); })) return v; } catch (e) { /* ignore */ } return DISPUTE_DEFAULT.slice(); })();
+    var app = document.getElementById('app');
+    var ICON = {
+      chev: '<svg class="chev" width="10" height="16" viewBox="0 0 10 16"><path d="M2 2l6 6-6 6" fill="none" stroke="#006fcf" stroke-width="2"/></svg>',
+      gear: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#006fcf" stroke-width="1.6"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5l1.6 2.6 3-.6.9 2.9 2.9.9-.6 3 2.6 1.7-2.6 1.6.6 3-2.9.9-.9 2.9-3-.6L12 21.5l-1.6-2.6-3 .6-.9-2.9-2.9-.9.6-3L1.6 12l2.6-1.7-.6-3 2.9-.9.9-2.9 3 .6z"/></svg>',
+      search: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#006fcf" stroke-width="2.2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>',
+      download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006fcf" stroke-width="2"><path d="M12 3v12M6 10l6 6 6-6M4 21h16"/></svg>',
+      expand: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006fcf" stroke-width="2"><path d="M14 3h7v7M10 21H3v-7M21 3l-8 8M3 21l8-8"/></svg>',
+      ext: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#006fcf" stroke-width="1.7"><rect x="3" y="7" width="14" height="14" rx="1"/><path d="M10 14L21 3M14 3h7v7"/></svg>',
+      print: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#006fcf" stroke-width="1.6"><path d="M6 9V3h12v6M6 18H3v-8h18v8h-3M6 14h12v7H6z"/></svg>',
+      lock: '<svg width="12" height="13" viewBox="0 0 12 14" fill="none" stroke="#97999b" stroke-width="1.4"><rect x="1" y="6" width="10" height="7"/><path d="M3 6V4a3 3 0 016 0v2"/></svg>',
+      check: '<svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="#008767" stroke-width="3"><circle cx="32" cy="32" r="29"/><path d="M19 33l9 9 17-19"/></svg>',
+      close: '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M1 1l12 12M13 1L1 13" stroke="#006fcf" stroke-width="1.8"/></svg>'
+    };
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function money(n) { var a = Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return (n < 0 ? '-$' : '$') + a; }
+    function mdy(d) { var p = d.split('-'); return p[1] + '/' + p[2] + '/' + p[0]; }
+    function longDate(d) { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+    function shortDate(d) { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }); }
+    function addDays(d, n) { var t = new Date(d + 'T12:00:00'); t.setDate(t.getDate() + n); return t.toISOString().slice(0, 10); }
+    function label(key) { var c = STATE.portal.columns.filter(function (x) { return x.key === key; })[0]; return c ? c.label : key; }
+    function dField(key) { return DISPUTE_FIELDS.filter(function (f) { return f.key === key; })[0]; }
+    function cell(row, key) {
+      var v = row[FIELD[key]];
+      if (key === 'settlement_date') return mdy(v);
+      if (TEXT_COLS[key]) return esc(v);
+      return money(v);
+    }
+    function identity() {
+      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
+    }
+    function toast(kind, title, msg, detail) {
+      var root = document.getElementById('toastRoot');
+      root.innerHTML = '<div class="toast ' + kind + '" data-testid="toast"><b>' + esc(title) + '</b>' + esc(msg) + (detail ? '<small>' + esc(detail) + '</small>' : '') + '</div>';
+      clearTimeout(toast.t); toast.t = setTimeout(function () { root.innerHTML = ''; }, 6000);
+    }
+    function setNav(which) {
+      document.querySelectorAll('nav.main [data-nav]').forEach(function (a) { a.classList.toggle('active', a.getAttribute('data-nav') === which); });
+    }
+    function inRange(date) { return date >= addDays(ANCHOR, -STATE.days) && date <= ANCHOR; }
+    function atLocation(locId) { return STATE.location === 'all' || STATE.location === locId; }
+
+    function bindDnD(root, onChange) {
+      var dragKey = null;
+      root.querySelectorAll('.chip[draggable=true]').forEach(function (c) {
+        c.addEventListener('dragstart', function (e) { dragKey = c.getAttribute('data-key'); c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragKey); });
+        c.addEventListener('dragend', function () { c.classList.remove('dragging'); root.querySelectorAll('.zone').forEach(function (z) { z.classList.remove('drag-over'); }); });
+        c.addEventListener('dblclick', function () {
+          var from = c.closest('.zone').getAttribute('data-zone');
+          var z = root.querySelector('[data-zone=' + (from === 'active' ? 'inactive' : 'active') + ']');
+          if (from === 'active') { var home = root.querySelector('[data-zone=inactive][data-group="' + c.getAttribute('data-group') + '"]'); if (home) z = home; }
+          z.insertBefore(c, z.querySelector('.zone-end')); if (onChange) onChange();
+        });
+      });
+      root.querySelectorAll('.zone').forEach(function (z) {
+        z.addEventListener('dragover', function (e) { e.preventDefault(); z.classList.add('drag-over'); });
+        z.addEventListener('dragleave', function (e) { if (!z.contains(e.relatedTarget)) z.classList.remove('drag-over'); });
+        z.addEventListener('drop', function (e) {
+          e.preventDefault(); z.classList.remove('drag-over');
+          var key = dragKey || e.dataTransfer.getData('text/plain');
+          var el = root.querySelector('.chip[data-key="' + key + '"]'); if (!el) return;
+          var target = e.target.closest ? e.target.closest('.chip') : null;
+          if (target && target !== el && target.closest('.zone') === z && !target.classList.contains('locked')) {
+            var r = target.getBoundingClientRect();
+            z.insertBefore(el, e.clientX > r.left + r.width / 2 ? target.nextSibling : target);
+          } else {
+            z.insertBefore(el, z.querySelector('.zone-end'));
+          }
+          dragKey = null; if (onChange) onChange();
+        });
+      });
+    }
+
+    function renderDashboard() {
+      setNav('dashboard');
+      var m = STATE.portal.merchant;
+      var since = addDays(ANCHOR, -7);
+      var posted = STATE.portal.settlements.filter(function (s) { return s.status === 'posted' && s.settlementDate >= since; });
+      var sum = function (f) { return posted.reduce(function (a, s) { return a + s[f]; }, 0); };
+      var open = STATE.portal.disputes.length;
+      app.innerHTML =
+        '<div class="card welcome"><h2>Welcome, ' + esc(m.firstName) + '!</h2><p>Thank you, ' + esc(m.firstName) + ' ' + esc(m.businessName) + ', for accepting American Express.</p></div>' +
+        '<div class="grid3">' +
+          '<div class="card tile"><h3>Payments</h3><div class="big" style="color:var(--green)">' + money(sum('amountPaidToBank')) + '</div><div class="center" style="font-size:13px;margin:12px 0 22px">settled in the last 7 days<br>(from ' + mdy(since).slice(0, 6) + since.slice(2, 4) + ' - today)</div>' +
+            '<div class="kv"><span>Submission Amount</span><span>' + money(sum('submissionAmount')) + '</span></div>' +
+            '<div class="kv"><span>Discount Amount</span><span>' + money(sum('discountAmount')) + '</span></div>' +
+            '<div class="kv" style="margin-bottom:22px"><span>Fees &amp; Incentives</span><span>' + money(sum('feesAndIncentives')) + '</span></div>' +
+            '<a class="btn primary" href="#settlements">See All Payments</a></div>' +
+          '<div class="card tile"><h3>Download E-Statements</h3><div class="label">Location</div><select class="dd" style="width:100%;margin:10px 0 26px">' +
+            m.locations.map(function (l) { return '<option>' + esc(l.name) + '</option>'; }).join('') + '</select><div class="label">Latest PDF Statements</div>' +
+            '<a class="dl-link" href="#dashboard">' + ICON.download + '2026-10-31</a><a class="dl-link" href="#dashboard">' + ICON.download + '2026-09-30</a><button class="btn" type="button">More Download Options</button></div>' +
+          '<div class="card tile"><h3>Disputes</h3>' + (open ? '<div class="big" style="font-size:40px;color:var(--blue)">' + open + '</div><div class="center muted" style="font-size:15px;margin:10px 0 24px">disputes need your response</div><a class="btn primary" href="#disputes">Respond to Disputes</a>'
+            : '<div class="caught">' + ICON.check + '<span>You are all caught up. No disputes at this time.</span></div>') + '</div>' +
+        '</div>';
+    }
+
+    function paymentsHead(active) {
+      var tabs = [['settlements', 'Settlements'], ['submissions', 'Submissions'], ['transactions', 'Transactions'], ['adjustments', 'Adjustments'], ['statements', 'Statements &amp; Reports'], ['more', 'More Options']];
+      return '<div class="card pay-head"><h1>Payments</h1><div class="subtabs">' +
+        tabs.map(function (t) { var href = (t[0] === 'settlements' || t[0] === 'adjustments') ? t[0] : active; return '<a href="#' + href + '" class="' + (t[0] === active ? 'active' : '') + (t[0] === 'more' ? ' boxed' : '') + '">' + t[1] + '</a>'; }).join('') + '</div></div>';
+    }
+    function filterBar(searchLabel) {
+      var opts = [[7, 'Last 7 days'], [14, 'Last 14 days'], [30, 'Last 30 days']];
+      return '<div class="toolbar"><button class="btn" type="button" style="min-width:180px;justify-content:center">' + ICON.search + searchLabel + '</button><span class="spacer"></span><span class="filter-label">Filter By</span>' +
+        '<select class="dd" id="locSel" data-testid="location-filter" style="min-width:170px"><option value="all">All Locations</option>' + STATE.portal.merchant.locations.map(function (l) { return '<option value="' + l.id + '"' + (STATE.location === l.id ? ' selected' : '') + '>' + esc(l.name) + '</option>'; }).join('') + '</select>' +
+        '<select class="dd" id="daySel" data-testid="date-filter" style="min-width:250px">' + opts.map(function (o) { return '<option value="' + o[0] + '"' + (STATE.days === o[0] ? ' selected' : '') + '>(' + mdy(addDays(ANCHOR, -o[0])) + ') - (' + mdy(ANCHOR) + ')</option>'; }).join('') + '</select>' +
+        '<span class="spacer"></span><button class="btn" type="button">' + ICON.download + 'Download</button></div>';
+    }
+    function bindFilters(rerender) {
+      document.getElementById('locSel').addEventListener('change', function () { STATE.location = this.value; rerender(); });
+      document.getElementById('daySel').addEventListener('change', function () { STATE.days = Number(this.value); rerender(); });
+    }
+    function pager() { return '<div class="pager"><span class="muted">Previous</span><div class="pages"><span class="on">1</span></div><span class="muted">Next</span></div>'; }
+
+    function settlementTable(rows, withGear) {
+      if (!rows.length) return '<div class="empty">No settlements match the selected filters.</div>';
+      var cols = STATE.layout;
+      var head = '<tr><th class="c">' + (withGear ? '<button class="gear" type="button" data-testid="columns-btn" title="Customize columns" id="gearBtn">' + ICON.gear + '</button>' : '') + '</th>' +
+        cols.map(function (k) { var date = k === 'settlement_date'; return '<th class="' + (date ? 'l sorted' : '') + '">' + esc(label(k)) + (date ? ' <span style="color:var(--navy)">\u25bc</span>' : '') + '</th>'; }).join('') + '</tr>';
+      var body = rows.map(function (r) {
+        var open = STATE.openRows[r.settlementNumber];
+        var tr = '<tr class="row" data-row="' + r.settlementNumber + '"><td class="c"><span style="display:inline-block;transform:rotate(' + (open ? 90 : 0) + 'deg)">' + ICON.chev.replace('class="chev" ', '') + '</span></td>' +
+          cols.map(function (k) { var v = r[FIELD[k]]; return '<td class="' + (k === 'settlement_date' ? 'l' : '') + (typeof v === 'number' && v < 0 && !TEXT_COLS[k] ? ' neg' : '') + '">' + cell(r, k) + '</td>'; }).join('') + '</tr>';
+        if (open) {
+          tr += '<tr class="detail"><td></td><td colspan="' + cols.length + '"><div class="detail-box">' +
+            '<div>Settlement date<b>' + mdy(r.settlementDate) + '</b></div><div>Settlement number<b>' + r.settlementNumber + '</b></div>' +
+            '<div>Payee location<b>' + esc(r.payeeLocationId) + '</b></div><div>Settlement amount<b>' + money(r.settlementAmount) + '</b></div>' +
+            '<div>Amount paid to bank<b>' + money(r.amountPaidToBank) + '</b></div><div>Transactions<b>' + r.transactionCount + '</b></div></div></td></tr>';
+        }
+        return tr;
+      }).join('');
+      return '<div class="table-card"><table data-testid="settlements-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' + pager() + '</div>';
+    }
+
+    function renderSettlements() {
+      setNav('payments');
+      var s = STATE.portal.settlements.filter(function (r) { return atLocation(r.payeeLocationId) && inRange(r.settlementDate); });
+      var pending = s.filter(function (r) { return r.status === 'pending'; });
+      var posted = s.filter(function (r) { return r.status === 'posted'; });
+      app.innerHTML = paymentsHead('settlements') + filterBar('Settlements Search') +
+        '<div class="group ' + (STATE.pendingOpen ? 'open' : '') + '"><div class="group-head" data-group="pending">' + ICON.chev + 'Pending</div>' + (STATE.pendingOpen ? settlementTable(pending, false) : '') + '</div>' +
+        '<div class="group ' + (STATE.postedOpen ? 'open' : '') + '"><div class="group-head" data-group="posted">' + ICON.chev + 'Posted</div>' + (STATE.postedOpen ? settlementTable(posted, true) : '') + '</div>';
+      bindFilters(renderSettlements);
+      app.querySelectorAll('[data-group]').forEach(function (h) {
+        h.addEventListener('click', function () { var g = h.getAttribute('data-group'); STATE[g + 'Open'] = !STATE[g + 'Open']; renderSettlements(); });
+      });
+      app.querySelectorAll('tr.row').forEach(function (tr) {
+        tr.addEventListener('click', function () { var n = tr.getAttribute('data-row'); STATE.openRows[n] = !STATE.openRows[n]; renderSettlements(); });
+      });
+      var gear = document.getElementById('gearBtn');
+      if (gear) gear.addEventListener('click', function (e) { e.stopPropagation(); openColumnsModal(); });
+    }
+
+    function adjustmentsTable(rows) {
+      if (!rows.length) return '<div class="empty">No records match the selected filters.</div>';
+      var cols = [['submittingMerchantNumber', 'Submitting Merchant Number', 't'], ['submittingLocationId', 'Submitting Location ID', 't'], ['payeeMerchantNumber', 'Payee Merchant Number', 't'], ['payeeLocationId', 'Payee Location ID', 't'],
+        ['settlementAmount', 'Settlement Amount', 'm'], ['settlementDate', 'Settlement Date', 'd'], ['cardNumber', 'Card Number', 't'], ['adjustmentNumber', 'Adjustment Number', 't'], ['submissionAmount', 'Submission Amount', 'm'],
+        ['totalCharges', 'Total Charges', 'm'], ['credits', 'Credits', 'm'], ['discountAmount', 'Discount Amount', 'm'], ['feesAndIncentives', 'Fees & Incentives', 'm'], ['disputeType', 'Dispute Type', 'l'], ['description', 'Description', 'l'], ['transactionCount', 'Transaction Count', 't'], ['amexDate', 'Amex Date', 'd']];
+      return '<div class="table-card"><table><thead><tr><th class="c">' + ICON.gear + '</th>' + cols.map(function (c) {
+        return '<th class="' + (c[2] === 'l' ? 'l' : '') + (c[0] === 'settlementDate' ? ' sorted' : '') + '">' + esc(c[1]) + (c[0] === 'settlementDate' ? ' <span style="color:var(--navy)">\u25bc</span>' : (/Merchant Number|Settlement Amount|Dispute Type/.test(c[1]) ? ' <span class="sort">\u25bc</span>' : '')) + '</th>';
+      }).join('') + '</tr></thead><tbody>' + rows.map(function (a) {
+        return '<tr><td class="c">' + ICON.ext + '</td>' + cols.map(function (c) {
+          var v = a[c[0]];
+          if (c[2] === 'm') return '<td class="' + (v < 0 ? 'neg' : '') + '">' + money(v) + '</td>';
+          if (c[2] === 'd') return '<td>' + mdy(v) + '</td>';
+          return '<td class="' + (c[2] === 'l' ? 'l' : '') + '">' + esc(v) + '</td>';
+        }).join('') + '</tr>';
+      }).join('') + '</tbody></table>' + pager() + '</div>';
+    }
+    function renderAdjustments() {
+      setNav('payments');
+      var rows = STATE.portal.adjustments.filter(function (a) { return atLocation(a.payeeLocationId) && inRange(a.settlementDate); });
+      var adj = rows.filter(function (a) { return a.disputeType === 'Adjustments'; });
+      var cb = rows.filter(function (a) { return a.disputeType === 'Chargebacks'; });
+      app.innerHTML = paymentsHead('adjustments') + filterBar('Adjustments Search') +
+        '<div class="group ' + (STATE.adjOpen ? 'open' : '') + '"><div class="group-head" data-g="adjOpen">' + ICON.chev + 'Adjustments</div>' + (STATE.adjOpen ? adjustmentsTable(adj) : '') + '</div>' +
+        '<div class="group ' + (STATE.cbOpen ? 'open' : '') + '"><div class="group-head" data-g="cbOpen">' + ICON.chev + 'Chargebacks</div>' + (STATE.cbOpen ? adjustmentsTable(cb) : '') + '</div>';
+      bindFilters(renderAdjustments);
+      app.querySelectorAll('[data-g]').forEach(function (h) { h.addEventListener('click', function () { var g = h.getAttribute('data-g'); STATE[g] = !STATE[g]; renderAdjustments(); }); });
+    }
+
+    function disputeCell(d, key) {
+      var v = d[key];
+      if (key === 'caseNumber') return '<td class="l"><a href="#dispute/' + d.caseNumber + '" data-testid="case-' + d.caseNumber + '">' + d.caseNumber + '</a></td>';
+      if (key === 'amount' || key === 'transactionAmount') return '<td class="l' + (v < 0 ? ' neg' : '') + '">' + money(v) + '</td>';
+      if (key === 'transactionDate' || key === 'expires') return '<td class="l">' + mdy(v) + '</td>';
+      return '<td class="l">' + esc(v) + '</td>';
+    }
+    function filteredDisputes() {
+      var q = STATE.search.q.trim().toLowerCase();
+      return STATE.portal.disputes.filter(function (d) {
+        if (STATE.merchantFilter !== 'all' && d.merchantNumber !== STATE.merchantFilter) return false;
+        if (STATE.amountFilter === 'under' && d.transactionAmount >= 100) return false;
+        if (STATE.amountFilter === 'over' && d.transactionAmount < 100) return false;
+        if (STATE.typeFilter !== 'all' && d.type !== STATE.typeFilter) return false;
+        if (q) {
+          var hay = { case: d.caseNumber, charge: d.chargeReference, name: d.cardMemberName || '', card: d.cardNumber }[STATE.search.by] || '';
+          if (hay.toLowerCase().indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+    }
+    function renderDisputes() {
+      setNav('disputes');
+      var all = STATE.portal.disputes;
+      var list = filteredDisputes();
+      var selCount = Object.keys(STATE.selected).filter(function (k) { return STATE.selected[k]; }).length;
+      var searchBlock = STATE.searchOpen
+        ? '<div class="band" style="flex-wrap:wrap;align-items:flex-start"><div><h1 style="margin-bottom:18px">Disputes</h1><div class="search-row"><div><label>Search By</label><select class="dd" id="searchBy" style="width:170px"><option value="case">Case #</option><option value="charge">Charge Reference #</option><option value="name">Card Member Name</option><option value="card">Card Number</option></select></div>' +
+          '<div class="search-input"><input class="field" id="searchQ" placeholder="" value="' + esc(STATE.search.q) + '"><button type="button" id="searchGo" aria-label="Search">' + ICON.search + '</button></div></div></div>' +
+          '<button class="btn" type="button" id="closeSearch" style="min-width:130px;justify-content:center">' + ICON.close + 'Close Search</button></div>'
+        : '<div class="band"><h1>Disputes</h1><a href="#disputes" id="openSearch" style="display:flex;gap:10px;align-items:center">' + ICON.search + 'Search Disputes</a></div>';
+      app.innerHTML = searchBlock +
+        '<div class="disputes-layout"><div class="card sidenav"><a class="active">Response Needed<br>(' + all.length + ')</a><a href="#disputes">Review in Progress<br>(' + STATE.portal.reviewInProgress + ')</a><a href="#disputes">Closed<br>(41)</a><a href="#disputes">Accelerated Dispute Resolution</a><a href="#disputes">About Disputes</a></div>' +
+        '<div class="card"><div class="panel"><div class="panel-row" style="justify-content:space-between"><h2>Response Needed</h2><select class="dd" id="merchantSel"><option value="all">All Merchant IDs</option>' +
+        STATE.portal.merchant.locations.map(function (l) { return '<option value="' + l.merchantNumber + '"' + (STATE.merchantFilter === l.merchantNumber ? ' selected' : '') + '>' + l.merchantNumber + '</option>'; }).join('') + '</select></div>' +
+        '<p class="intro">These disputes need your attention. To take action, select the case number below. Keep in mind cases that expire without your response may be closed in the Card Member\u2019s favor.</p>' +
+        '<div class="panel-row"><b style="font-size:12px">' + list.length + ' OF ' + all.length + '</b><span style="flex:1"></span><button class="btn" type="button" id="respondSel"' + (selCount ? '' : ' disabled') + '>Respond to Selected (' + selCount + ')</button><button class="btn" type="button">Win/Loss Reports</button><button class="btn icon" type="button" aria-label="Download">' + ICON.download + '</button><button class="btn icon" type="button" aria-label="Expand">' + ICON.expand + '</button></div>' +
+        '<div class="filters"><button class="gear-btn" type="button" id="disputeGear" data-testid="disputes-settings-btn" aria-label="Disputes settings">' + ICON.gear + '</button>' +
+        '<select class="dd" id="amountSel"><option value="any">Any Amount</option><option value="under"' + (STATE.amountFilter === 'under' ? ' selected' : '') + '>Under $100</option><option value="over"' + (STATE.amountFilter === 'over' ? ' selected' : '') + '>$100 and over</option></select>' +
+        '<select class="dd" id="typeSel"><option value="all">All Types</option><option' + (STATE.typeFilter === 'Chargeback' ? ' selected' : '') + '>Chargeback</option><option' + (STATE.typeFilter === 'Inquiry' ? ' selected' : '') + '>Inquiry</option></select>' +
+        '<select class="dd"><option>More</option><option>Starred only</option></select></div></div>' +
+        '<div class="table-card">' + (list.length ? '<table data-testid="disputes-table"><thead><tr><th class="c"><input type="checkbox" id="selAll"></th><th class="c">\u2606</th>' +
+          STATE.disputeCols.map(function (k) { return '<th class="l">' + esc(dField(k).label) + (/caseNumber|amount|type/.test(k) ? ' <span class="sort">\u25bc</span>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          list.map(function (d) {
+            return '<tr><td class="c"><input type="checkbox" data-sel="' + d.caseNumber + '"' + (STATE.selected[d.caseNumber] ? ' checked' : '') + '></td><td class="c"><button class="star' + (STATE.starred[d.caseNumber] ? ' on' : '') + '" type="button" data-star="' + d.caseNumber + '">' + (STATE.starred[d.caseNumber] ? '\u2605' : '\u2606') + '</button></td>' +
+              STATE.disputeCols.map(function (k) { return disputeCell(d, k); }).join('') + '</tr>';
+          }).join('') + '</tbody></table>' : '<div class="empty">No disputes match your filters.</div>') + '</div></div></div>';
+
+      var rr = renderDisputes;
+      document.getElementById('merchantSel').addEventListener('change', function () { STATE.merchantFilter = this.value; rr(); });
+      document.getElementById('amountSel').addEventListener('change', function () { STATE.amountFilter = this.value; rr(); });
+      document.getElementById('typeSel').addEventListener('change', function () { STATE.typeFilter = this.value; rr(); });
+      document.getElementById('disputeGear').addEventListener('click', openDisputeSettings);
+      app.querySelectorAll('[data-star]').forEach(function (b) { b.addEventListener('click', function () { var k = b.getAttribute('data-star'); STATE.starred[k] = !STATE.starred[k]; rr(); }); });
+      app.querySelectorAll('[data-sel]').forEach(function (b) { b.addEventListener('change', function () { STATE.selected[b.getAttribute('data-sel')] = b.checked; rr(); }); });
+      var selAll = document.getElementById('selAll');
+      if (selAll) selAll.addEventListener('change', function () { list.forEach(function (d) { STATE.selected[d.caseNumber] = selAll.checked; }); rr(); });
+      document.getElementById('respondSel').addEventListener('click', function () {
+        var picked = list.filter(function (d) { return STATE.selected[d.caseNumber]; }); STATE.queue = picked.slice(1).map(function (d) { return d.caseNumber; }); if (picked[0]) openRespondModal(picked[0]);
+      });
+      var os = document.getElementById('openSearch');
+      if (os) os.addEventListener('click', function (e) { e.preventDefault(); STATE.searchOpen = true; rr(); });
+      var cs = document.getElementById('closeSearch');
+      if (cs) {
+        document.getElementById('searchBy').value = STATE.search.by;
+        cs.addEventListener('click', function () { STATE.searchOpen = false; STATE.search.q = ''; rr(); });
+        var go = function () { STATE.search.by = document.getElementById('searchBy').value; STATE.search.q = document.getElementById('searchQ').value; rr(); };
+        document.getElementById('searchGo').addEventListener('click', go);
+        document.getElementById('searchQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+      }
+    }
+
+    function openDisputeSettings() {
+      var root = document.getElementById('modalRoot');
+      function draw(active) {
+        var inactive = DISPUTE_FIELDS.filter(function (f) { return active.indexOf(f.key) === -1; });
+        var groups = ['Case Info', 'Transaction Info', 'Date Types', 'Location Info'];
+        root.innerHTML = '<div class="overlay"><div class="modal" data-testid="disputes-settings"><div class="modal-blue-head">Disputes Settings<button class="x" type="button" data-close aria-label="Close">&times;</button></div>' +
+          '<div class="settings-wrap"><div class="settings-nav"><a class="on" href="#disputes" onclick="return false">Column Customization</a><a href="#disputes" onclick="return false">Bulk Response</a></div><div class="settings-main"><div class="modal-body">' +
+          '<h3>Customize Your Columns for the Response Needed Table</h3><p class="modal-desc">You may add, remove or reorder columns for your table by dragging and arranging them here.</p><div class="label" style="margin-bottom:10px">Active</div>' +
+          '<div class="active-box" style="padding:8px 12px"><div class="zone active" data-zone="active" style="gap:12px;min-height:30px">' +
+          active.map(function (k, i) {
+            var f = dField(k), locked = k === 'caseNumber';
+            return '<span class="slot"><span class="n">' + (i + 1) + '</span><span class="chip' + (locked ? ' locked' : '') + '" draggable="' + (!locked) + '" data-key="' + k + '" data-group="' + f.group + '">' + esc(f.label) + '</span>' + (locked ? ICON.lock : '') + '</span>';
+          }).join('') + '<span class="slot placeholder zone-end"><span class="n">' + (active.length + 1) + '</span> Drag column here</span></div></div>' +
+          '<div class="links-row"><a href="#disputes" id="dsReset">Reset to Default</a><a href="#disputes" onclick="return false">Need more columns?</a></div></div>' +
+          '<div class="inactive-band"><div class="label">Inactive</div>' + groups.map(function (g) {
+            var items = inactive.filter(function (f) { return f.group === g; });
+            return '<div class="group-label">' + g + '</div><div class="zone inactive" data-zone="inactive" data-group="' + g + '">' + items.map(function (f) { return '<span class="chip" draggable="true" data-key="' + f.key + '" data-group="' + f.group + '">' + esc(f.label) + '</span>'; }).join('') + '<span class="zone-end"></span></div>';
+          }).join('') + '<div class="zone-hint">To remove columns, drag them here</div></div>' +
+          '<div class="modal-foot right"><button class="btn lg" type="button" data-close>Cancel</button><button class="btn primary lg" type="button" id="dsSave">Save Settings</button></div></div></div></div></div>';
+        bindDnD(root, function () {
+          var keys = Array.prototype.map.call(root.querySelectorAll('[data-zone=active] .chip'), function (c) { return c.getAttribute('data-key'); });
+          keys = ['caseNumber'].concat(keys.filter(function (k) { return k !== 'caseNumber'; }));
+          draw(keys);
+        });
+        root.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { root.innerHTML = ''; }); });
+        document.getElementById('dsReset').addEventListener('click', function (e) { e.preventDefault(); draw(DISPUTE_DEFAULT.slice()); });
+        document.getElementById('dsSave').addEventListener('click', function () {
+          STATE.disputeCols = active.slice(); localStorage.setItem('amexMerchantDisputeCols', JSON.stringify(STATE.disputeCols)); root.innerHTML = ''; renderDisputes();
+          toast('', 'Settings saved', 'Your Response Needed table now shows ' + active.length + ' columns.');
+        });
+      }
+      draw(STATE.disputeCols.slice());
+    }
+
+    function findCase(id) { return STATE.portal.disputes.filter(function (d) { return d.caseNumber === id; })[0]; }
+    function caseBand(title, d, extra) {
+      return '<div class="band"><h1>' + title + '</h1><div class="actions">' + (extra || '') + '<a class="btn" href="#' + (title.indexOf('Case #') === 0 ? 'disputes' : 'dispute/' + d.caseNumber) + '" style="min-width:90px;justify-content:center">Back</a></div></div>';
+    }
+    function renderDispute(id) {
+      setNav('disputes');
+      var d = findCase(id); if (!d) { location.hash = '#disputes'; return; }
+      app.innerHTML = '<div class="band"><h1>Case # ' + d.caseNumber + '</h1><div class="actions"><span style="margin-right:12px">' + ICON.print + '</span><a class="btn" href="#disputes" style="min-width:90px;justify-content:center">Back</a><button class="btn primary" type="button" id="respondBtn" data-testid="respond-btn">Respond to this Dispute</button></div></div>' +
+        '<div class="two-col"><div class="card pad"><p class="section-title">Dispute Details</p>' +
+          '<div class="details-row"><span class="k">Status</span><span>Response Needed</span></div>' +
+          '<div class="details-row"><span class="k">Chargeback Amount</span><span class="neg">' + money(d.amount) + '</span></div>' +
+          '<div class="details-row"><span class="k">Transaction Amount</span><span>' + money(d.transactionAmount) + '</span></div>' +
+          '<div class="details-row"><span class="k">Transaction Date</span><span>' + mdy(d.transactionDate) + '</span></div>' +
+          '<div class="details-row"><span class="k">Reason and Code</span><span>' + esc(d.reason) + '\u2013' + d.code + '<p>' + esc(d.detail) + '</p></span></div>' +
+          '<div class="details-row"><span class="k">Case Type</span><span>' + esc(d.caseType) + '</span></div>' +
+          '<div class="details-row"><span class="k">Dispute Type</span><span>' + d.disputeType + '</span></div>' +
+          '<div class="days-left">' + d.daysLeft + ' Days Left to Respond</div></div>' +
+        '<div><div class="card pad" style="margin-bottom:24px"><p class="section-title">Dispute Timeline</p><div style="text-align:right;margin:-34px 0 18px"><a href="#timeline/' + d.caseNumber + '" style="font-size:12px">View Timeline Details</a></div><ul class="timeline">' +
+          '<li><b>Response Needed</b><div class="d">' + longDate(addDays(d.transactionDate, 7)) + '</div></li><li><b>Card Member Dispute Received</b><div class="d">' + longDate(addDays(d.transactionDate, 3)) + '</div></li><li><b>Please respond (Request a Reversal)</b><div class="d">' + longDate(d.expires) + '</div></li></ul></div>' +
+        '<div class="card pad"><p class="section-title">Card Member Uploaded Documents</p><p style="margin:0;font-size:13px">There are no documents available to display.</p></div></div></div>';
+      document.getElementById('respondBtn').addEventListener('click', function () { openRespondModal(d); });
+    }
+    function renderTimeline(id) {
+      setNav('disputes');
+      var d = findCase(id); if (!d) { location.hash = '#disputes'; return; }
+      var typeLbl = d.disputeType === 'CB' ? 'Chargeback (CB)' : 'Inquiry (CU)';
+      app.innerHTML = caseBand('Timeline for Case # ' + d.caseNumber, d) +
+        '<div class="card pad"><p class="section-title">Dispute Timeline</p><ul class="timeline tl-full">' +
+        '<li><b>Response Needed</b><div class="d">' + shortDate(addDays(d.transactionDate, 7)) + '</div><div class="lbl">Dispute Type</div><p>' + typeLbl + '</p><div class="lbl">Reason and Code</div><p>' + esc(d.reason) + '\u2013' + d.code + '</p><p style="margin-top:12px">' + esc(d.detail) + '</p></li>' +
+        '<li><b>Card Member Dispute Received</b><div class="d">' + shortDate(addDays(d.transactionDate, 3)) + '</div><p style="margin-top:10px">The Card Member contacted American Express about this charge.</p><a href="#adjustments" style="display:inline-block;margin-top:10px;font-size:13px">View Adjustments</a><div class="lbl">Chargeback Amount</div><p class="neg">' + money(d.amount) + '</p></li>' +
+        '<li><b>Please respond (Request a Reversal)</b><div class="d">' + shortDate(d.expires) + '</div><p style="margin-top:10px">To request a reversal on this ' + (d.disputeType === 'CB' ? 'chargeback' : 'inquiry') + ', please respond by ' + shortDate(d.expires) + ' with required support.</p><a href="#adjustments" style="display:inline-block;margin-top:10px;font-size:13px">View Adjustments</a></li></ul></div>';
+    }
+    function openRespondModal(d) {
+      var root = document.getElementById('modalRoot');
+      root.innerHTML = '<div class="overlay"><div class="modal narrow"><div class="modal-blue-head">Respond to Dispute<button class="x" type="button" data-close aria-label="Close">&times;</button></div><div class="modal-body" style="padding:30px 44px 10px">' +
+        '<h2 class="respond-q">How do you want to respond?</h2><p style="font-size:15px;margin:0 0 22px">You will be able to provide more information to support your response.</p>' +
+        '<label class="radio"><input type="radio" name="rt" value="disagree"> I do not agree with the Card Member or I already issued a refund.</label><label class="radio"><input type="radio" name="rt" value="refund"> I agree with the Card Member and I would like to provide a full refund.</label></div>' +
+        '<div class="modal-foot" style="justify-content:center;gap:22px;padding:30px 0 34px"><button class="btn lg" type="button" data-close>Cancel</button><button class="btn primary lg" type="button" id="rtContinue" disabled>Continue</button></div></div></div>';
+      root.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { root.innerHTML = ''; }); });
+      root.querySelectorAll('input[name=rt]').forEach(function (r) { r.addEventListener('change', function () { document.getElementById('rtContinue').disabled = false; }); });
+      document.getElementById('rtContinue').addEventListener('click', function () {
+        var rt = root.querySelector('input[name=rt]:checked').value; root.innerHTML = ''; location.hash = '#respond/' + d.caseNumber + '/' + rt;
+      });
+    }
+    function renderRespond(id, rt) {
+      setNav('disputes');
+      var d = findCase(id); if (!d) { location.hash = '#disputes'; return; }
+      var disagree = rt !== 'refund';
+      app.innerHTML = '<div class="band"><h1>Responding to Case # ' + d.caseNumber + '</h1><div class="actions"><a class="btn" href="#dispute/' + d.caseNumber + '" style="min-width:90px;justify-content:center">Back</a><button class="btn primary" type="button" id="submitResp" data-testid="submit-response">Submit Response</button></div></div>' +
+        '<div class="respond-grid"><div><div class="card claim-head">' + (disagree ? 'You disagree with the Card Member\u2019s claim' : 'You agree to provide a full refund') + '</div><div class="card pad">' +
+        '<div class="step"><div class="step-num">1</div><div style="flex:1"><h4>Please provide documents and/or comments to support your response.</h4>' +
+        (disagree ? '<div class="support"><b>Support required to request a Chargeback Reversal:</b><ul>' +
+          '<li>Proof that you attempted to validate the CID and you did not receive a response or you received an \u201cunchecked\u201d response, or</li>' +
+          '<li>Proof of delivery containing actual delivery documents from shipper to Card Member\u2019s address containing:<ul><li>If shipped through US Post Office - Shipping tracking number (same must be mentioned on the shipping invoice), State, City, and Zip code.</li><li>If shipped through any other Service: Card Member\u2019s complete address which must include Street name/number, city, state, and zip code, or</li></ul></li>' +
+          '<li>Proof that you validated the address via Authorization and delivered goods to the validated address, or</li><li>Proof that a Credit which directly offsets the Disputed Charge has already been processed, or</li>' +
+          '<li>Compelling Evidence (see U.S. Merchant Regulations), or</li><li>Any other proof / supporting documentation, indicating that chargeback was invalid.</li></ul></div>' +
+          '<p class="field-label">Support with attached files</p><button class="btn" type="button">Attach Files</button><div style="margin:10px 0 28px"><a href="#respond/' + d.caseNumber + '/' + rt + '" onclick="return false">View Formats we Accept</a></div>'
+          : '<p class="support">Your response will be sent to American Express for review. Issue the full refund to the Card Member through your point of sale; the case closes once the credit is received.</p>') +
+        '<p class="field-label">Support with comments</p><textarea id="respComment" maxlength="1500"></textarea><div class="counter"><a href="#respond/' + d.caseNumber + '/' + rt + '" onclick="return false">See Saved Comments</a><span><span id="cc">0</span>/1500</span></div></div></div>' +
+        '<div class="step"><div class="step-num">2</div><div><h4>To verify your response, please enter your initials.</h4><p class="field-label">Initials</p><input class="field initials" id="initials" maxlength="3" data-testid="initials"></div></div></div></div>' +
+        '<div class="card pad"><p class="section-title" style="margin-bottom:12px">You\u2019re responding to:</p><table class="resp-table"><thead><tr><th>Case #</th><th>Amount</th><th>Expires</th></tr></thead><tbody><tr><td>' + d.caseNumber + '</td><td>' + money(d.amount) + '</td><td>' + mdy(d.expires) + '</td></tr></tbody></table></div></div>';
+      var c = document.getElementById('respComment');
+      c.addEventListener('input', function () { document.getElementById('cc').textContent = c.value.length; });
+      document.getElementById('submitResp').addEventListener('click', function () {
+        var body = Object.assign({ responseType: disagree ? 'disagree' : 'refund', initials: document.getElementById('initials').value, comment: c.value }, identity());
+        fetch('/api/12ee3c2d/disputes/' + d.caseNumber + '/respond', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) { toast('error', 'Response not submitted', res.j.error); return; }
+            STATE.portal.disputes = STATE.portal.disputes.filter(function (x) { return x.caseNumber !== d.caseNumber; });
+            STATE.portal.reviewInProgress += 1; delete STATE.selected[d.caseNumber];
+            var next = (STATE.queue || []).filter(function (id) { return findCase(id); })[0];
+            STATE.queue = (STATE.queue || []).filter(function (id) { return id !== next && findCase(id); });
+            toast('', 'Response submitted', 'Case ' + d.caseNumber + ' is now Review in Progress. Confirmation ' + res.j.confirmation + '.' + (next ? ' Next: ' + next + '.' : ''));
+            STATE.pendingRespond = next || null;
+            location.hash = '#disputes';
+          });
+      });
+    }
+
+    function openColumnsModal() {
+      var root = document.getElementById('modalRoot');
+      function chip(k) { return '<span class="chip" draggable="true" data-key="' + k + '" data-testid="col-' + k + '">' + esc(label(k)) + '</span>'; }
+      function draw(active) {
+        var inactive = STATE.portal.columns.map(function (c) { return c.key; }).filter(function (k) { return active.indexOf(k) === -1; });
+        root.innerHTML = '<div class="overlay" data-testid="columns-modal"><div class="modal"><div class="modal-plain-head"><h2>Column Customizations</h2><button class="x" type="button" data-close aria-label="Close">&times;</button></div>' +
+          '<div class="modal-body"><p class="modal-desc">You may add, remove, or reorder columns for your table by dragging and arranging them here.</p><div class="label" style="margin-bottom:8px">Active</div>' +
+          '<div class="active-box"><div class="zone active" data-zone="active">' + active.map(chip).join('') + '<div class="zone-hint zone-end">To include columns, drag them here.</div></div></div></div>' +
+          '<div class="inactive-band"><div class="label" style="margin-bottom:12px">Inactive</div><div class="zone inactive" data-zone="inactive">' + inactive.map(chip).join('') + '<div class="zone-hint zone-end">To remove columns, drag them here.</div></div></div>' +
+          '<div id="colErr" style="padding-top:14px"></div><div class="modal-foot"><button class="btn lg" type="button" data-close>Cancel</button><button class="btn link" type="button" id="colReset">Reset to Default</button><span style="flex:1"></span><button class="btn primary lg" type="button" id="colApply" data-testid="columns-apply">Apply</button></div></div></div>';
+        bindDnD(root);
+        root.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { root.innerHTML = ''; }); });
+        document.getElementById('colReset').addEventListener('click', function () { draw(STATE.portal.defaultLayout.slice()); });
+        document.getElementById('colApply').addEventListener('click', apply);
+      }
+      function apply() {
+        var layout = Array.prototype.map.call(root.querySelectorAll('[data-zone=active] .chip'), function (c) { return c.getAttribute('data-key'); });
+        var err = document.getElementById('colErr');
+        err.innerHTML = '';
+        if (!layout.length) { err.innerHTML = '<div class="inline-error">Keep at least one column in Active.</div>'; return; }
+        var btn = document.getElementById('colApply'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+        fetch('/api/12ee3c2d/settlements/columns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ layout: layout }, identity())) })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
+          .then(function (res) {
+            btn.disabled = false; btn.textContent = 'Apply';
+            if (!res.ok) {
+              err.innerHTML = '<div class="inline-error" data-testid="columns-error">We couldn\u2019t save your column preferences. Please try again later.' + (res.j.preferenceRef ? ' Reference: ' + esc(res.j.preferenceRef) : '') + '</div>';
+              toast('error', 'Column preferences not saved', 'HTTP ' + res.status + ' \u2014 ' + (res.j.code || 'ERROR'), (res.j.errorClass ? res.j.errorClass + ': ' : '') + (res.j.error || ''));
+              return;
+            }
+            STATE.layout = res.j.layout;
+            root.innerHTML = '';
+            renderSettlements();
+            toast('', 'Column preferences saved', 'Your Settlements table now shows ' + res.j.layout.length + ' columns.');
+          })
+          .catch(function () { btn.disabled = false; btn.textContent = 'Apply'; err.innerHTML = '<div class="inline-error">Network error. Please try again.</div>'; });
+      }
+      draw(STATE.layout.slice());
+    }
+
+    function route() {
+      if (!STATE.portal) return;
+      document.getElementById('modalRoot').innerHTML = '';
+      var h = (location.hash || '#dashboard').slice(1).split('/');
+      window.scrollTo(0, 0);
+      if (h[0] === 'settlements') return renderSettlements();
+      if (h[0] === 'adjustments') return renderAdjustments();
+      if (h[0] === 'disputes') {
+        renderDisputes();
+        var queued = STATE.pendingRespond && findCase(STATE.pendingRespond);
+        STATE.pendingRespond = null;
+        if (queued) openRespondModal(queued);
+        return;
+      }
+      if (h[0] === 'dispute') return renderDispute(h[1]);
+      if (h[0] === 'timeline') return renderTimeline(h[1]);
+      if (h[0] === 'respond') return renderRespond(h[1], h[2]);
+      return renderDashboard();
+    }
+    window.addEventListener('hashchange', route);
+    fetch('/api/12ee3c2d/portal').then(function (r) { return r.json(); }).then(function (p) {
+      STATE.portal = p; STATE.layout = (p.savedLayout || p.defaultLayout).slice(); route();
+    });
+  })();
+  </script>
+</body>
+</html>
