@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Use Case Workflow | OneTrust</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #111412;
+      --muted: rgba(17, 20, 18, 0.62);
+      --faint: rgba(17, 20, 18, 0.38);
+      --line: #e3e3dc;
+      --line-soft: #ecece6;
+      --canvas: #f6f6f2;
+      --frame: #dedfd3;
+      --rail: #000000;
+      --mint: #6ceead;
+      --mint-soft: #e6fbf0;
+      --mint-ink: #0b7a4f;
+      --green: #4cc35f;
+      --blue: #3d3ddb;
+      --blue-2: #8f95f2;
+      --blue-3: #d3d6fb;
+      --red: #e5372e;
+      --display: "Antique Legacy", "Inter Tight", Arial, sans-serif;
+      --body: "Brut Grotesque", "Work Sans", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--frame); }
+    body { font-family: var(--body); color: var(--ink); -webkit-font-smoothing: antialiased; }
+    button, input, select { font-family: inherit; }
+    .app { display: flex; min-height: 100vh; }
+
+    /* left rail */
+    .rail { width: 60px; flex: 0 0 60px; background: var(--rail); display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 14px; }
+    .rail button { width: 36px; height: 36px; border-radius: 10px; border: 1px solid #2a2a2a; background: #0c0c0c; display: grid; place-items: center; cursor: pointer; position: relative; }
+    .rail button::before { content: ""; position: absolute; inset: -4px; }
+    .rail button.on { background: #1e1e1e; border-color: #3a3a3a; }
+    .rail button svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 1.8; }
+    .rail hr { width: 36px; border: 0; border-top: 1px solid #2a2a2a; margin: 4px 0; }
+    .rail .spacer { flex: 1; }
+    .rail .me { width: 32px; height: 32px; border-radius: 50%; background: #9b7cf0; color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+
+    .main { flex: 1; min-width: 0; background: #fff; display: flex; flex-direction: column; }
+    .top { height: 64px; display: flex; align-items: center; gap: 24px; padding: 0 28px; border-bottom: 1px solid var(--line); background: #fff; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+    .logo svg { width: 38px; height: 22px; }
+    .logo span { font-family: var(--display); font-size: 22px; font-weight: 500; letter-spacing: -0.3px; }
+    .crumbs { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+    .crumbs b { color: var(--ink); font-weight: 500; }
+    .top .grow { flex: 1; }
+    .search { height: 36px; width: 280px; border: 1px solid var(--line); border-radius: 18px; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: var(--faint); font-size: 14px; }
+    .bell { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; position: relative; cursor: pointer; }
+    .bell::after { content: ""; position: absolute; top: 11px; right: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--red); }
+
+    .content { padding: 28px 28px 40px; display: flex; flex-direction: column; gap: 24px; background: linear-gradient(#fff, #fafaf7); }
+    .banner { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 15px; line-height: 21px; }
+    .tag { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 6px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .tag.mint { background: var(--mint); color: #08341f; }
+    .tag.blue { background: #3f8cff; color: #fff; }
+    .tag.pending { background: var(--mint); color: #08341f; border-radius: 13px; height: 24px; }
+
+    /* workflow card */
+    .wf { border: 1px solid var(--line); border-radius: 16px; background: #fff; overflow: hidden; }
+    .wf-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 24px 18px; border-bottom: 1px solid var(--line); }
+    .wf-head h1 { font-family: var(--display); font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.2px; }
+    .wf-head p { margin-top: 4px; font-size: 15px; color: var(--muted); }
+    .status { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 22px; font-weight: 600; font-size: 15px; white-space: nowrap; }
+    .status i { width: 9px; height: 9px; border-radius: 50%; background: var(--mint); }
+
+    .stages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); position: relative; }
+    .stage { display: flex; gap: 12px; align-items: flex-start; padding: 18px 20px 34px; border-right: 1px solid var(--line-soft); }
+    .stage:last-child { border-right: 0; }
+    .stage .ic { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; border: 1.5px solid #c9cac0; display: grid; place-items: center; background: #fff; }
+    .stage .ic svg { width: 16px; height: 16px; fill: none; stroke: #6b6d66; stroke-width: 1.8; }
+    .stage.done .ic { border-color: var(--mint); }
+    .stage.done .ic svg { stroke: #111; }
+    .stage.active .ic { border-color: var(--mint); box-shadow: 0 0 0 5px var(--mint-soft); }
+    .stage.active .ic svg { stroke: #111; }
+    .stage b { display: block; font-family: var(--display); font-size: 16px; font-weight: 600; letter-spacing: -0.1px; }
+    .stage span { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
+    .track { position: absolute; left: 6%; right: 6%; bottom: 14px; height: 3px; background: #e6e6df; border-radius: 2px; }
+    .track .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 37%; background: var(--mint); border-radius: 2px; transition: width .6s ease; }
+    .track .dot { position: absolute; top: 50%; left: 37%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 4px var(--mint-soft); transition: left .6s ease; }
+
+    .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .col { padding: 16px 20px 24px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 14px; }
+    .col:last-child { border-right: 0; }
+    .card { border: 1px solid var(--line); border-radius: 14px; padding: 16px; background: #fff; }
+    .card .lbl { font-size: 13px; color: var(--muted); }
+    .card .val { font-size: 15px; font-weight: 600; margin-top: 2px; }
+    .card h3 { font-family: var(--display); font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.1px; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 14px; }
+    .skel { height: 10px; border-radius: 5px; background: #eeeee9; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 13px; color: var(--muted); }
+    .field label .req { color: var(--red); }
+    .field select, .field input { height: 44px; width: 100%; border: 1px solid #d5d6cd; border-radius: 8px; background: #fff; padding: 0 12px; font-size: 15px; font-weight: 500; color: var(--ink); appearance: none; -webkit-appearance: none; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--mint); outline-offset: 1px; border-color: #9ad9b8; }
+
+    .ai { border-color: #cdeedd; background: linear-gradient(#f2fcf7, #fff 120px); box-shadow: 0 0 0 4px #f3fbf7; }
+    .ai-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+    .ai-badge { height: 30px; padding: 0 12px; border-radius: 15px; background: #eef1ec; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .ai .stack { display: flex; flex-direction: column; gap: 12px; }
+    .btn { height: 44px; border-radius: 22px; border: 0; background: #000; color: #fff; font-size: 15px; font-weight: 500; cursor: pointer; width: 100%; }
+    .btn:disabled { background: #3b3d3a; cursor: progress; }
+    .btn.ghost { background: #9a9b97; color: #fff; cursor: not-allowed; }
+    .risk { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    .risk .val { font-size: 15px; font-weight: 600; margin-top: 4px; }
+    .findings { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    .findings h4 { font-family: var(--display); font-size: 16px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    .findings li { list-style: none; display: flex; justify-content: space-between; gap: 10px; padding: 10px 0 10px 14px; border-bottom: 1px solid var(--line-soft); position: relative; font-size: 14px; }
+    .findings li:last-child { border-bottom: 0; padding-bottom: 2px; }
+    .findings li::before { content: ""; position: absolute; left: 0; top: 15px; width: 5px; height: 5px; border-radius: 50%; background: var(--mint); }
+    .findings li b { font-weight: 600; white-space: nowrap; }
+    .findings li b.low { color: var(--mint-ink); }
+    .updated { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    .faded { opacity: 0.55; }
+    .reviewer { display: flex; gap: 12px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .reviewer .av { width: 40px; height: 40px; border-radius: 50%; background: #eeeee9; display: grid; place-items: center; flex: 0 0 40px; }
+    .reviewer b { display: block; font-size: 15px; font-weight: 600; }
+    .reviewer span { display: block; font-size: 13px; color: var(--muted); }
+    .spark { height: 120px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+
+    .result-box { padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 18px; display: none; }
+    .result-box.error { display: block; background: #fdecea; border: 1px solid #f3b3ae; color: #8e1a14; }
+    .result-box.success { display: block; background: var(--mint-soft); border: 1px solid var(--mint); color: #0b5c3b; }
+    .result-box .error-title { font-weight: 600; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 12px; opacity: 0.9; word-break: break-word; }
+
+    /* dashboards */
+    .dash-title { font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.2px; }
+    .dash { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; }
+    .panel { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: #fff; }
+    .panel h3 { font-size: 15px; font-weight: 600; }
+    .panel p { font-size: 14px; color: var(--muted); margin-top: 2px; }
+    .donut-wrap { display: flex; align-items: center; justify-content: center; gap: 28px; padding: 22px 0 6px; }
+    .legend { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+    .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; }
+    .bars { display: grid; grid-template-columns: 90px 1fr; gap: 8px 12px; align-items: center; padding-top: 18px; font-size: 12px; color: var(--muted); }
+    .bars div.b { height: 26px; border-radius: 2px; }
+    .projects { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; }
+    .proj { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr) minmax(0, .8fr); gap: 16px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: #fff; }
+    .proj + .proj { margin-top: 10px; }
+    .proj .name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 18px; font-weight: 500; }
+    .proj .lvl { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+    .proj .lvl i { width: 9px; height: 9px; border-radius: 50%; }
+    .proj .stg { font-size: 15px; }
+    .proj .stg small { display: block; font-size: 13px; color: var(--muted); }
+    .activity { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: #fff; }
+    .activity h3 { font-size: 15px; font-weight: 600; }
+    .activity p { font-size: 14px; color: var(--muted); }
+    .activity li { list-style: none; margin-top: 12px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    .activity li i { width: 7px; height: 7px; border-radius: 50%; }
+
+    @media (max-width: 1200px) {
+      .cols, .stages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stage:nth-child(2) { border-right: 0; }
+      .track { display: none; }
+      .col:nth-child(2) { border-right: 0; }
+      .search { display: none; }
+    }
+    @media (max-width: 860px) {
+      .dash, .projects { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 767px) {
+      .rail { display: none; }
+      .top { padding: 0 12px 0 16px; gap: 12px; }
+      .crumbs { display: none; }
+      .content { padding: 16px 12px 32px; gap: 16px; }
+      .banner { align-items: flex-start; font-size: 14px; flex-direction: column; gap: 8px; }
+      .wf-head { flex-direction: column; padding: 18px 16px 14px; }
+      .stages, .cols { grid-template-columns: minmax(0, 1fr); }
+      .stage { border-right: 0; border-bottom: 1px solid var(--line-soft); padding: 12px 16px; }
+      .col { border-right: 0; padding: 14px 16px 18px; }
+      .proj { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+      .donut-wrap { gap: 18px; }
+      .bars { grid-template-columns: 76px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Product navigation">
+      <button type="button" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
+      <button type="button" class="on" aria-label="AI Governance"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></button>
+      <button type="button" aria-label="Data use governance"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+      <hr>
+      <button type="button" aria-label="Dashboards & Analytics"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></button>
+      <div class="spacer"></div>
+      <div class="me" aria-label="Signed in as AB">AB</div>
+    </nav>
+
+    <div class="main">
+      <header class="top">
+        <a href="#" class="logo" aria-label="OneTrust">
+          <svg viewBox="0 0 38 22" aria-hidden="true"><path d="M10 0h3v22h-3A10 11 0 0 1 10 0Z" fill="#000"/><rect x="15.5" y="0" width="7" height="22" rx="1.2" fill="#000"/><path d="M25 0h3a10 11 0 0 1 0 22h-3Z" fill="#000"/></svg>
+          <span>OneTrust</span>
+        </a>
+        <div class="crumbs">AI Governance <span>/</span> AI use cases <span>/</span> <b id="crumbUseCase">Intelligent Document Summarization</b></div>
+        <div class="grow"></div>
+        <div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Search models, agents, datasets</div>
+        <button type="button" class="bell" aria-label="Notifications"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
+      </header>
+
+      <main class="content">
+        <div class="banner"><span class="tag mint">New data</span><span>New data has been linked to Zentoso project. Review project for new risks and ensure appropriate controls are in place.</span></div>
+
+        <form id="provisionForm" class="wf">
+          <div class="wf-head">
+            <div>
+              <h1>AI use case workflow</h1>
+              <p>Progression from intake through continuous monitoring</p>
+            </div>
+            <span class="status"><i></i>In Progress</span>
+          </div>
+
+          <div class="stages">
+            <div class="stage done"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div><div><b>Intake</b><span>Use case captured</span></div></div>
+            <div class="stage active" id="stageAssess"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></svg></div><div><b>AI Risk Assessment</b><span id="assessState">In progress</span></div></div>
+            <div class="stage" id="stageReview"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 0 1 0 6M18 15c2 .5 3 2.5 3 5"/></svg></div><div><b>Review &amp; Approve</b><span id="reviewState">Pending</span></div></div>
+            <div class="stage"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 20V12M10 20V8M15 20v-5M20 20H3"/></svg></div><div><b>Monitor &amp; Enforce</b><span>Continuous</span></div></div>
+            <div class="track" aria-hidden="true"><div class="fill" id="trackFill"></div><div class="dot" id="trackDot"></div></div>
+          </div>
+
+          <div class="cols">
+            <div class="col">
+              <div class="card">
+                <div class="field">
+                  <label for="product">Use case <span class="req">*</span></label>
+                  <select id="product">
+                    <option value="enterprise_suite">Intelligent Document Summarization</option>
+                    <option value="devops_platform">Product recommendation bot</option>
+                    <option value="analytics_cloud">Customer support assistant</option>
+                    <option value="security_gateway">Lesson Plan Generator</option>
+                  </select>
+                </div>
+                <div class="skel" style="width:72%;margin-top:14px"></div>
+                <div class="skel" style="width:56%;margin-top:8px"></div>
+              </div>
+              <div class="card">
+                <div class="facts">
+                  <div><div class="lbl">Business Unit</div><div class="val" id="ctxUnit">Legal</div></div>
+                  <div><div class="lbl">Data Involved</div><div class="val" id="ctxData">Customer Contracts</div></div>
+                  <div><div class="lbl">AI Technologies</div><div class="val" id="ctxTech">LLM, NLP</div></div>
+                  <div><div class="lbl">Owner</div><div class="val" id="ctxOwner">Amanda Baker</div></div>
+                </div>
+                <div class="field" style="margin-top:16px">
+                  <label for="region">Region</label>
+                  <select id="region">
+                    <option value="us-east">United States (East)</option>
+                    <option value="us-west">United States (West)</option>
+                    <option value="eu-west">European Union</option>
+                    <option value="ap-south">Asia Pacific</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="card ai">
+                <div class="ai-head"><h3>AI-assisted<br>assessment</h3><span class="ai-badge">AI <svg width="12" height="12" viewBox="0 0 24 24" fill="#111"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span></div>
+                <div class="stack">
+                  <div class="field">
+                    <label for="planTier">Assessment framework</label>
+                    <select id="planTier">
+                      <option value="enterprise">EU AI Act</option>
+                      <option value="business">NIST AI RMF</option>
+                      <option value="starter">ISO/IEC 42001</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="seats">Models, agents &amp; datasets in scope</label>
+                    <input type="number" id="seats" value="25" min="1">
+                  </div>
+                  <button type="submit" class="btn" id="submitBtn">Run AI risk assessment</button>
+                  <div id="result" class="result-box"></div>
+                  <div class="risk"><div class="lbl">Risk summary</div><div class="val" id="ctxRisk">Medium</div><div class="updated" id="riskUpdated">Last assessed 14 days ago</div></div>
+                  <div class="findings">
+                    <h4>Key findings</h4>
+                    <ul id="ctxFindings">
+                      <li><span>Personal Data Processing</span><b>Medium</b></li>
+                      <li><span>Model Accuracy</span><b class="low">Low</b></li>
+                      <li><span>Transparency</span><b>Medium</b></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col faded" id="reviewCol">
+              <div class="card">
+                <h3>Review &amp; Approve</h3>
+                <p class="lbl" style="margin-top:2px">3 pending reviews</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+                  <div class="reviewer"><div class="av"><svg width="18" height="18" viewBox="0 0 24 24" fill="#c9cac2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6z"/></svg></div><div><b>Privacy</b><span>Reviewer</span></div></div>
+                  <div class="reviewer"><div class="av"><svg width="18" height="18" viewBox="0 0 24 24" fill="#c9cac2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6z"/></svg></div><div><b>Security</b><span>Reviewer</span></div></div>
+                  <div class="reviewer"><div class="av"><svg width="18" height="18" viewBox="0 0 24 24" fill="#c9cac2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6z"/></svg></div><div><b>Legal</b><span>Reviewer</span></div></div>
+                </div>
+                <button type="button" class="btn ghost" style="margin-top:14px" disabled>Approve</button>
+              </div>
+            </div>
+
+            <div class="col faded">
+              <div class="card">
+                <h3>Monitoring &amp; insights</h3>
+                <p class="lbl" style="margin-top:2px">Real-time oversight and alerts after workflow completion.</p>
+                <div class="spark" style="margin-top:14px"><svg viewBox="0 0 200 120" preserveAspectRatio="none" width="100%" height="100%"><path d="M0 120V80c20-10 30-30 50-28s25 30 45 26 30-40 55-38 30 30 50 20v60z" fill="#f1f1ec"/></svg></div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <h2 class="dash-title">Dashboards &amp; Analytics</h2>
+        <section class="dash">
+          <div class="panel">
+            <h3>What is the risk of my AI projects?</h3>
+            <p>Number of projects by level of risk</p>
+            <div class="donut-wrap">
+              <svg width="150" height="150" viewBox="0 0 42 42" role="img" aria-label="Projects by risk">
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e6e6e3" stroke-width="5"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#d3d6fb" stroke-width="5" stroke-dasharray="48 52" stroke-dashoffset="-30"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#8f95f2" stroke-width="5" stroke-dasharray="10 90" stroke-dashoffset="-78"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#3d3ddb" stroke-width="5" stroke-dasharray="8 92" stroke-dashoffset="-88"/>
+              </svg>
+              <div class="legend">
+                <span><i style="background:#3d3ddb"></i>Very High</span>
+                <span><i style="background:#8f95f2"></i>High</span>
+                <span><i style="background:#d3d6fb"></i>Medium</span>
+                <span><i style="background:#e6e6e3"></i>Low</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Are my projects on track?</h3>
+            <p>Number of projects by workflow and stage</p>
+            <div class="bars">
+              <span>Not started</span><div class="b" style="width:26%;background:#d3d6fb"></div>
+              <span>In progress</span><div class="b" style="width:100%;background:#3d3ddb"></div>
+              <span>In review</span><div class="b" style="width:57%;background:#8f95f2"></div>
+              <span>Completed</span><div class="b" style="width:78%;background:#3d3ddb"></div>
+              <span>Rejected</span><div class="b" style="width:46%;background:#8f95f2"></div>
+              <span>Archived</span><div class="b" style="width:26%;background:#d3d6fb"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="projects">
+          <div>
+            <div class="proj">
+              <div class="name">Lessonly <span class="tag pending">Pending review</span> <span class="tag blue">New risks</span></div>
+              <div class="lvl"><i style="background:#3d3ddb"></i>High risk</div>
+              <div class="stg">Deployment<small>1 outstanding item</small></div>
+            </div>
+            <div class="proj">
+              <div class="name">Zentoso <span class="tag pending">Pending review</span></div>
+              <div class="lvl"><i style="background:var(--mint)"></i>Low risk</div>
+              <div class="stg">Completed<small>Monitoring</small></div>
+            </div>
+          </div>
+          <div class="activity">
+            <h3>Recent activity</h3>
+            <p>Zentoso deployed</p>
+            <ul>
+              <li>New data <i style="background:#f5d90a"></i></li>
+              <li>New risks <i style="background:var(--red)"></i></li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var USE_CASES = {
+      enterprise_suite: { unit: 'Legal', data: 'Customer Contracts', tech: 'LLM, NLP', owner: 'Amanda Baker', risk: 'Medium', age: '14 days ago',
+        findings: [['Personal Data Processing', 'Medium'], ['Model Accuracy', 'Low'], ['Transparency', 'Medium']] },
+      devops_platform: { unit: 'Digital Commerce', data: 'Purchase History', tech: 'Recommender, ML', owner: 'Jordan Lee', risk: 'High', age: '9 days ago',
+        findings: [['Profiling & Automated Decisions', 'High'], ['Personal Data Processing', 'Medium'], ['Transparency', 'Medium']] },
+      analytics_cloud: { unit: 'Customer Service', data: 'Support Transcripts', tech: 'LLM, RAG', owner: 'Priya Natarajan', risk: 'Medium', age: '21 days ago',
+        findings: [['Sensitive Data Exposure', 'Medium'], ['Hallucination', 'Medium'], ['Human Oversight', 'Low']] },
+      security_gateway: { unit: 'Learning & Development', data: 'Employee Records', tech: 'LLM', owner: 'Marcus Webb', risk: 'High', age: '6 days ago',
+        findings: [['Employer/Worker Management', 'High'], ['Bias & Fairness', 'Medium'], ['Transparency', 'Low']] }
+    };
+    document.getElementById('product').addEventListener('change', function (e) {
+      var sel = e.target, c = USE_CASES[sel.value];
+      document.getElementById('crumbUseCase').textContent = sel.options[sel.selectedIndex].text;
+      if (!c) return;
+      document.getElementById('ctxUnit').textContent = c.unit;
+      document.getElementById('ctxData').textContent = c.data;
+      document.getElementById('ctxTech').textContent = c.tech;
+      document.getElementById('ctxOwner').textContent = c.owner;
+      document.getElementById('ctxRisk').textContent = c.risk;
+      document.getElementById('riskUpdated').textContent = 'Last assessed ' + c.age;
+      var ul = document.getElementById('ctxFindings');
+      ul.innerHTML = '';
+      c.findings.forEach(function (f) {
+        var li = document.createElement('li'), name = document.createElement('span'), lvl = document.createElement('b');
+        name.textContent = f[0]; lvl.textContent = f[1];
+        if (f[1] === 'Low') lvl.className = 'low';
+        li.appendChild(name); li.appendChild(lvl); ul.appendChild(li);
+      });
+    });
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const product = document.getElementById('product');
+      const useCase = product.options[product.selectedIndex].text;
+      btn.disabled = true; btn.textContent = 'Running assessment...';
+      document.getElementById('assessState').textContent = 'Running';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: product.value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Assessment could not be completed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          document.getElementById('assessState').textContent = 'In progress';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">AI risk assessment complete</div><div class="error-detail">${data.seatsAdded} models, agents and datasets assessed for ${useCase}. Sent to Review &amp; Approve.</div>`;
+          document.getElementById('assessState').textContent = 'Completed';
+          document.getElementById('reviewState').textContent = '3 pending reviews';
+          document.getElementById('stageAssess').className = 'stage done';
+          document.getElementById('stageReview').className = 'stage active';
+          document.getElementById('reviewCol').classList.remove('faded');
+          document.getElementById('trackFill').style.width = '62%';
+          document.getElementById('trackDot').style.left = '62%';
+          document.getElementById('riskUpdated').textContent = 'Last assessed just now';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        document.getElementById('assessState').textContent = 'In progress';
+      } finally { btn.disabled = false; btn.textContent = 'Run AI risk assessment'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
