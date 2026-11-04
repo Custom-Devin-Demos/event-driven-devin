@@ -8222,6 +8222,15 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A GAP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
+  'ab699480': {
+    slug: 'ab699480',
+    company: 'inDrive',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: 'ab699480.html', title: 'Cash Loans for Drivers | inDrive' },
+    disclaimer: 'NOT ACTUALLY AN INDRIVE SITE — internal demo only, not affiliated with, endorsed by, or a real inDrive product.',
+  },
 };
 
 function getOncallSkin(slug) {
