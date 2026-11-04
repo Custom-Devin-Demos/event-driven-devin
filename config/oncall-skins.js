@@ -8293,6 +8293,24 @@ const ONCALL_SKINS = {
     page: { file: '59139c0e.html', title: 'Tax Withholding Software | Sovos' },
     disclaimer: 'NOT ACTUALLY A SOVOS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Sovos product.',
   },
+  'a7577aa9': {
+    slug: 'a7577aa9',
+    company: 'OneTrust',
+    vertical: 'hightech',
+    oncallOnly: true,
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    page: { file: 'a7577aa9.html', title: 'AI Governance Software | Solutions | OneTrust' },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 AI Governance: Run AI risk assessment',
+      release: 'ai-governance@2026.11.1',
+      team: 'ai-governance-oncall',
+      symptom: 'AI risk assessment runs got slow after the last release and take longer with every request. Process memory trends up alongside latency.',
+      impact: 'Governance teams wait several seconds for every AI use case risk assessment, and the wait grows under sustained use.',
+    },
+    disclaimer: 'NOT ACTUALLY A ONETRUST SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OneTrust product.',
+  },
 };
 
 function getOncallSkin(slug) {
