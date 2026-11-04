@@ -6647,6 +6647,21 @@ const ONCALL_SKINS = {
     supportCenter: 'Ericsson Fintech Platform Support',
     disclaimer: 'NOT ACTUALLY AN ERICSSON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
   },
+  '12b7efa0': {
+    slug: '12b7efa0',
+    company: 'Sixth Street',
+    vertical: 'banking',
+    page: { file: '12b7efa0.html', title: 'Investor Resources | Sixth Street' },
+    oncallOnly: true,
+    alertCard: {
+      title: 'p95 latency \u2014 LP capital call wire submissions',
+      release: 'investor-resources@2026.11.1',
+      team: 'investor-operations-oncall',
+      symptom: 'Capital call wire submissions from the Limited Partners page hang ~9s before completing. Error rate is normal \u2014 requests eventually succeed.',
+      impact: 'Every limited partner funding a capital call waits ~9 seconds on submit; some resubmit, and Investor Relations is fielding calls about duplicate wires.',
+    },
+    disclaimer: 'NOT ACTUALLY A SIXTH STREET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Sixth Street product.',
+  },
   '50124a40': {
     slug: '50124a40',
     company: 'BigPanda',
