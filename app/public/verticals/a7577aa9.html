@@ -247,10 +247,10 @@
               </div>
               <div class="card">
                 <div class="facts">
-                  <div><div class="lbl">Business Unit</div><div class="val">Legal</div></div>
-                  <div><div class="lbl">Data Involved</div><div class="val">Customer Contracts</div></div>
-                  <div><div class="lbl">AI Technologies</div><div class="val">LLM, NLP</div></div>
-                  <div><div class="lbl">Owner</div><div class="val">Amanda Baker</div></div>
+                  <div><div class="lbl">Business Unit</div><div class="val" id="ctxUnit">Legal</div></div>
+                  <div><div class="lbl">Data Involved</div><div class="val" id="ctxData">Customer Contracts</div></div>
+                  <div><div class="lbl">AI Technologies</div><div class="val" id="ctxTech">LLM, NLP</div></div>
+                  <div><div class="lbl">Owner</div><div class="val" id="ctxOwner">Amanda Baker</div></div>
                 </div>
                 <div class="field" style="margin-top:16px">
                   <label for="region">Region</label>
@@ -282,10 +282,10 @@
                   </div>
                   <button type="submit" class="btn" id="submitBtn">Run AI risk assessment</button>
                   <div id="result" class="result-box"></div>
-                  <div class="risk"><div class="lbl">Risk summary</div><div class="val">Medium</div><div class="updated" id="riskUpdated">Last assessed 14 days ago</div></div>
+                  <div class="risk"><div class="lbl">Risk summary</div><div class="val" id="ctxRisk">Medium</div><div class="updated" id="riskUpdated">Last assessed 14 days ago</div></div>
                   <div class="findings">
                     <h4>Key findings</h4>
-                    <ul>
+                    <ul id="ctxFindings">
                       <li><span>Personal Data Processing</span><b>Medium</b></li>
                       <li><span>Model Accuracy</span><b class="low">Low</b></li>
                       <li><span>Transparency</span><b>Medium</b></li>
@@ -389,8 +389,34 @@
     })();
   </script>
   <script>
+    var USE_CASES = {
+      enterprise_suite: { unit: 'Legal', data: 'Customer Contracts', tech: 'LLM, NLP', owner: 'Amanda Baker', risk: 'Medium', age: '14 days ago',
+        findings: [['Personal Data Processing', 'Medium'], ['Model Accuracy', 'Low'], ['Transparency', 'Medium']] },
+      devops_platform: { unit: 'Digital Commerce', data: 'Purchase History', tech: 'Recommender, ML', owner: 'Jordan Lee', risk: 'High', age: '9 days ago',
+        findings: [['Profiling & Automated Decisions', 'High'], ['Personal Data Processing', 'Medium'], ['Transparency', 'Medium']] },
+      analytics_cloud: { unit: 'Customer Service', data: 'Support Transcripts', tech: 'LLM, RAG', owner: 'Priya Natarajan', risk: 'Medium', age: '21 days ago',
+        findings: [['Sensitive Data Exposure', 'Medium'], ['Hallucination', 'Medium'], ['Human Oversight', 'Low']] },
+      security_gateway: { unit: 'Learning & Development', data: 'Employee Records', tech: 'LLM', owner: 'Marcus Webb', risk: 'High', age: '6 days ago',
+        findings: [['Employer/Worker Management', 'High'], ['Bias & Fairness', 'Medium'], ['Transparency', 'Low']] }
+    };
     document.getElementById('product').addEventListener('change', function (e) {
-      document.getElementById('crumbUseCase').textContent = e.target.options[e.target.selectedIndex].text;
+      var sel = e.target, c = USE_CASES[sel.value];
+      document.getElementById('crumbUseCase').textContent = sel.options[sel.selectedIndex].text;
+      if (!c) return;
+      document.getElementById('ctxUnit').textContent = c.unit;
+      document.getElementById('ctxData').textContent = c.data;
+      document.getElementById('ctxTech').textContent = c.tech;
+      document.getElementById('ctxOwner').textContent = c.owner;
+      document.getElementById('ctxRisk').textContent = c.risk;
+      document.getElementById('riskUpdated').textContent = 'Last assessed ' + c.age;
+      var ul = document.getElementById('ctxFindings');
+      ul.innerHTML = '';
+      c.findings.forEach(function (f) {
+        var li = document.createElement('li'), name = document.createElement('span'), lvl = document.createElement('b');
+        name.textContent = f[0]; lvl.textContent = f[1];
+        if (f[1] === 'Low') lvl.className = 'low';
+        li.appendChild(name); li.appendChild(lvl); ul.appendChild(li);
+      });
     });
     document.getElementById('provisionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
