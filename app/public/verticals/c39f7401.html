@@ -18,6 +18,9 @@
     a { color: var(--accent); text-decoration: none; }
     button { font: inherit; }
     button:disabled { cursor: not-allowed; opacity: .55; }
+    .btn.busy { opacity: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .spin { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
     /* Header */
     .strip { background: var(--strip); color: var(--nav); font-size: 11px; }
@@ -252,7 +255,7 @@
         { id: 'AF1080', flight: 'TK 1971', departs: '16:40', arrives: '18:55', duration: '4h 15m', cabin: 'Economy', fareFamily: 'EcoFly', fareDelta: 0, seatsLeft: 9 },
         { id: 'BA0309', flight: 'TK 1987', departs: '19:05', arrives: '21:20', duration: '4h 15m', cabin: 'Business', fareFamily: 'BusinessFly', fareDelta: 212, seatsLeft: 2 },
       ];
-      const state = { inFlight: false, changed: null, holds: {} };
+      const state = { inFlight: false, pending: null, changed: null, holds: {} };
       const euro = (n) => '€' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const fmtTime = (iso) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -283,6 +286,7 @@
             ? '<strong>No fare difference</strong> · ticket reissued free of charge'
             : `<strong>+${euro(f.fareDelta)}</strong> fare difference · paid with the card on your booking`;
           const disabled = state.inFlight || state.changed ? 'disabled' : '';
+          const busy = (action) => state.pending && state.pending.id === f.id && state.pending.action === action;
           return `
             <li class="alt ${isChanged ? 'changed' : ''} ${hold ? 'held' : ''}" data-id="${f.id}">
               <div>
@@ -291,8 +295,8 @@
                 <div class="alt-fare">${fare}</div>
               </div>
               <div class="alt-actions">
-                <button type="button" class="btn" data-action="hold" data-id="${f.id}" ${disabled || (hold ? 'disabled' : '')}>${hold ? 'Seat held' : 'Hold seat 15 min'}</button>
-                <button type="button" class="btn primary" data-action="rebook" data-id="${f.id}" ${disabled}>${isChanged ? 'Changed' : 'Change flight'}</button>
+                <button type="button" class="btn ${busy('hold') ? 'busy' : ''}" data-action="hold" data-id="${f.id}" ${disabled || (hold ? 'disabled' : '')}>${busy('hold') ? '<span class="spin" aria-hidden="true"></span>Holding…' : hold ? 'Seat held' : 'Hold seat 15 min'}</button>
+                <button type="button" class="btn primary ${busy('rebook') ? 'busy' : ''}" data-action="rebook" data-id="${f.id}" ${disabled}>${busy('rebook') ? '<span class="spin" aria-hidden="true"></span>Changing…' : isChanged ? 'Changed' : 'Change flight'}</button>
               </div>
             </li>`;
         }).join('');
@@ -307,6 +311,7 @@
       async function act(action, f) {
         if (state.inFlight || state.changed) return;
         state.inFlight = true;
+        state.pending = { id: f.id, action };
         render();
         const row = document.querySelector(`.alt[data-id="${f.id}"]`);
         if (row) row.classList.add('selected');
@@ -359,6 +364,7 @@
           }
         } finally {
           state.inFlight = false;
+          state.pending = null;
           render();
         }
       }
