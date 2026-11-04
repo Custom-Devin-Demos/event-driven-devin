@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Release Gate | Bench Results | BorgWarner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">
+<style>
+  :root { --bw-blue: #00539B; --bw-navy: #002B54; --bw-ink: #1B2A3A; --bw-line: #D5DCE4; --bw-bg: #F3F6F9; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Open Sans', Arial, sans-serif; color: var(--bw-ink); background: var(--bw-bg); }
+  .top { background: var(--bw-navy); color: #fff; display: flex; align-items: center; gap: 24px; padding: 0 24px; height: 60px; }
+  .logo { font-weight: 700; font-size: 20px; letter-spacing: 0.04em; }
+  .logo span { font-weight: 400; opacity: 0.8; font-size: 14px; margin-left: 10px; letter-spacing: 0; }
+  .nav { display: flex; gap: 4px; margin-left: auto; }
+  .nav a { color: #C9D6E3; text-decoration: none; font-size: 14px; padding: 20px 12px; }
+  .nav a.active { color: #fff; box-shadow: inset 0 -3px 0 #4FA3E0; }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 24px 48px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .sub { color: #5B6B7C; margin: 0 0 24px; font-size: 14px; }
+  .card { background: #fff; border: 1px solid var(--bw-line); border-radius: 6px; padding: 22px 24px; margin-bottom: 20px; }
+  .card h2 { font-size: 16px; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.04em; color: #3A4C5E; }
+  form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  select, input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #AEB9C5; border-radius: 4px; font: inherit; background: #fff; }
+  input[readonly] { background: #F3F6F9; }
+  button.cta { height: 48px; padding: 0 28px; background: var(--bw-blue); color: #fff; border: 0; border-radius: 4px; font: 600 15px 'Open Sans', Arial, sans-serif; cursor: pointer; }
+  button.cta:disabled { opacity: 0.6; cursor: wait; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--bw-line); }
+  th { color: #5B6B7C; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+  .GREEN { background: #DFF3E4; color: #17663A; } .AMBER { background: #FFF1D6; color: #8A5A00; } .RED { background: #FBE1E1; color: #A21C1C; }
+  #result:empty { display: none; }
+  .verdict { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+  .verdict .big { font-size: 28px; font-weight: 700; }
+  .metric { font-size: 13px; color: #5B6B7C; } .metric b { display: block; font-size: 18px; color: var(--bw-ink); }
+  .error { background: #FBE1E1; border: 1px solid #E8A9A9; color: #7D1414; padding: 14px 16px; border-radius: 4px; }
+  footer { text-align: center; font-size: 12px; color: #7A8796; padding: 16px; }
+  @media (max-width: 720px) { form { grid-template-columns: 1fr; } .nav { display: none; } .hide-sm { display: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo">BorgWarner<span>Bench Results</span></div>
+  <nav class="nav"><a href="#">Bench Runs</a><a href="#" class="active">Release Gate</a><a href="#">HIL Pass Rate</a><a href="#">Requirements</a></nav>
+</header>
+<main>
+  <h1>Release Gate</h1>
+  <p class="sub">GO/NO-GO for a program's current release candidate, scored from HIL/SIL results, requirement coverage and open defects (TM-PRC-014 rev F).</p>
+  <section class="card">
+    <h2>Evaluate release candidate</h2>
+    <form id="gateForm">
+      <div><label for="program">Program</label>
+        <select id="program" name="program">
+          <option value="INV800" data-sw="INV-SW 3.5.0-rc1" selected>INV800 — 800 V SiC traction inverter</option>
+          <option value="IDM220" data-sw="IDM-SW 2.8.2">IDM220 — Integrated drive module 220 kW</option>
+          <option value="DCDC48" data-sw="DCDC-SW 1.14.0">DCDC48 — 48 V DC/DC converter</option>
+          <option value="OBC11" data-sw="OBC-SW 4.2.1">OBC11 — 11 kW on-board charger</option>
+        </select></div>
+      <div><label for="swVersion">Release candidate</label><input id="swVersion" readonly value="INV-SW 3.5.0-rc1"></div>
+      <button type="submit" class="cta" id="submitBtn">Run release gate</button>
+    </form>
+  </section>
+  <section class="card" id="result" aria-live="polite"></section>
+  <section class="card">
+    <h2>Recent gate decisions</h2>
+    <table>
+      <thead><tr><th>Program</th><th>Release candidate</th><th>Verdict</th><th class="hide-sm">Pass rate</th><th class="hide-sm">Evaluated</th></tr></thead>
+      <tbody>
+        <tr><td>INV800</td><td>INV-SW 3.4.1</td><td><span class="pill AMBER">AMBER</span></td><td class="hide-sm">96.6%</td><td class="hide-sm">2026-10-31 16:12</td></tr>
+        <tr><td>INV800</td><td>INV-SW 3.4.0</td><td><span class="pill GREEN">GREEN</span></td><td class="hide-sm">98.1%</td><td class="hide-sm">2026-10-17 09:40</td></tr>
+        <tr><td>IDM220</td><td>IDM-SW 2.8.1</td><td><span class="pill GREEN">GREEN</span></td><td class="hide-sm">98.4%</td><td class="hide-sm">2026-10-15 14:05</td></tr>
+        <tr><td>DCDC48</td><td>DCDC-SW 1.13.2</td><td><span class="pill RED">RED</span></td><td class="hide-sm">93.0%</td><td class="hide-sm">2026-10-09 11:22</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+<footer>Bench Results Platform · e-Propulsion Test Engineering</footer>
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+  function devinIdentity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+    };
+  }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  (function () {
+    var form = document.getElementById('gateForm');
+    var program = document.getElementById('program');
+    var sw = document.getElementById('swVersion');
+    var btn = document.getElementById('submitBtn');
+    var result = document.getElementById('result');
+    program.addEventListener('change', function () { sw.value = program.selectedOptions[0].getAttribute('data-sw'); });
+    form.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      btn.disabled = true;
+      result.innerHTML = '<p>Evaluating&hellip;</p>';
+      try {
+        var res = await fetch('/api/7b3e91c4/release-gate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ program: program.value }, devinIdentity())),
+        });
+        var d = await res.json().catch(function () { return {}; });
+        if (!res.ok || d.success === false) throw new Error(d.error || 'release gate failed');
+        result.innerHTML = '<h2>Verdict</h2><div class="verdict"><span class="big pill ' + esc(d.status) + '">' + esc(d.status) + '</span>' +
+          '<div class="metric">Release candidate<b>' + esc(d.swVersion) + '</b></div>' +
+          '<div class="metric">Pass rate<b>' + (d.passRate * 100).toFixed(1) + '%</b></div>' +
+          '<div class="metric">HIL coverage<b>' + (d.hilCoverage * 100).toFixed(1) + '%</b></div>' +
+          '<div class="metric">Executed / passed<b>' + d.executed + ' / ' + d.passed + '</b></div></div>' +
+          (d.blockers.length ? '<p><b>Blockers:</b> ' + d.blockers.map(esc).join('; ') + '</p>' : '');
+      } catch (e) {
+        result.innerHTML = '<div class="error">The release gate could not be evaluated. Please try again or contact the Test Data Platform team.</div>';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  })();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -15,6 +15,7 @@ const { addToBag } = require('../services/oncall-verticals/apparel');
 const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
+const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
@@ -833,6 +834,24 @@ router.post('/api/oncall/wheretobuy/retailers', async (req, res) => {
       error: 'Unable to load retailers for this product.',
       errorClass: error.name,
       code: error.code || 'WHERE_TO_BUY_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/releasegate/evaluate — score a program's release candidate
+ */
+router.post('/api/oncall/releasegate/evaluate', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await evaluateReleaseGate({ program: body.program || 'INV800' }));
+  } catch (error) {
+    res.status(error.code === 'PROGRAM_NOT_FOUND' ? 404 : 500).json({
+      success: false,
+      error: 'Release gate evaluation failed.',
+      errorClass: error.name,
+      code: error.code || 'RELEASE_GATE_FAILED',
       requestId: req.requestId,
     });
   }
