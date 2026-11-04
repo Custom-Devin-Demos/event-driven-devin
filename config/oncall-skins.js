@@ -6647,6 +6647,14 @@ const ONCALL_SKINS = {
     supportCenter: 'Ericsson Fintech Platform Support',
     disclaimer: 'NOT ACTUALLY AN ERICSSON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
   },
+  '12b7efa0': {
+    slug: '12b7efa0',
+    company: 'Sixth Street',
+    vertical: 'banking',
+    page: { file: '12b7efa0.html', title: 'Investor Resources | Sixth Street' },
+    oncallOnly: true,
+    disclaimer: 'NOT ACTUALLY A SIXTH STREET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Sixth Street product.',
+  },
   '50124a40': {
     slug: '50124a40',
     company: 'BigPanda',
