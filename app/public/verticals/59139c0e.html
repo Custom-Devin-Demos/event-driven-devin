@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax Withholding Software | Sovos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: rgb(10, 14, 51);
+  --cyan: rgb(0, 188, 255);
+  --link: rgb(0, 120, 214);
+  --lime: rgb(182, 255, 160);
+  --forest: rgb(9, 56, 7);
+  --mist: rgb(225, 236, 246);
+  --ice: rgb(232, 249, 255);
+  --field-border: rgb(209, 213, 219);
+  --heading: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --cdn: 'https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/';
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: var(--body); font-size: 18px; color: #000; background: #fff; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button, input, select { font: inherit; }
+
+/* Header */
+.site-header { background: var(--navy); height: 133px; position: relative; z-index: 5; }
+.util { height: 51px; display: flex; justify-content: flex-end; align-items: center; padding-right: 65px; }
+.util a, .util button { display: inline-flex; align-items: center; gap: 8px; height: 51px; padding: 12px 20px; font: 300 14px/22px var(--body); color: var(--cyan); background: none; border: 0; cursor: pointer; }
+.util a:hover, .util button:hover { background: rgba(0, 188, 255, 0.1); }
+.util svg { width: 20px; height: 20px; flex: none; }
+.mainnav { height: 82px; display: flex; align-items: flex-start; padding: 0 64px; }
+.wordmark { display: flex; align-items: center; width: 144px; height: 44px; margin-top: 32px; }
+.wordmark svg { width: 144px; height: 26px; }
+.navlinks { display: flex; align-items: center; margin-left: auto; height: 51px; margin-top: 36px; }
+.navlinks a { display: inline-flex; align-items: center; height: 51px; padding: 12px 20px; font: 400 18px/27px var(--body); color: #fff; }
+.navlinks .chev { width: 0; }
+.navlinks a.cta { background: var(--cyan); color: var(--navy); margin-left: 0; }
+.burger { display: none; }
+
+/* Breadcrumb */
+.crumbs { height: 107px; display: flex; align-items: flex-start; padding-top: 30px; }
+.wrap { width: 1170px; margin: 0 auto; }
+.crumbs .wrap { display: flex; align-items: center; gap: 0 8px; font: 300 14px/22px var(--body); }
+.crumbs a { color: var(--link); }
+.crumbs svg { width: 6px; height: 10px; }
+.crumbs strong { font-weight: 500; color: var(--navy); }
+
+/* Hero */
+.hero { position: relative; margin-top: -110px; padding-top: 130px; min-height: 1163px; }
+.hero::before { content: ''; position: absolute; inset: 0; background: url('https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/organisms/sovos-overview-hero/images/ptwms-line-ornament.svg') right top no-repeat; z-index: -1; }
+.hero .wrap { position: relative; padding: 0 0 0 80px; }
+.prod-icon { position: absolute; left: 0; top: 12px; width: 60px; height: 60px; border-radius: 10px; background: linear-gradient(135deg, #1aa0ff, #2a5bd7); display: flex; align-items: center; justify-content: center; }
+.prod-icon svg { width: 34px; height: 34px; }
+.hero h1 { font: 700 90px/88px var(--heading); letter-spacing: -0.45px; color: var(--navy); width: 1013px; }
+.hero-grid { display: grid; grid-template-columns: 392px 589px; gap: 32px; margin-top: 59px; }
+.acc-item { padding: 0; }
+.acc-head { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 23px 0 24px; background: none; border: 0; text-align: left; font: 500 24px/32px var(--heading); color: var(--navy); cursor: pointer; }
+.acc-head svg { width: 20px; height: 20px; transition: transform .2s; }
+.acc-item.open .acc-head svg { transform: rotate(180deg); }
+.acc-body { display: none; padding: 31px 0 48px; font: 300 20px/32px var(--body); color: var(--navy); }
+.acc-item.open .acc-body { display: block; }
+.acc-body strong { font-weight: 700; }
+.acc-body ul { list-style: none; display: grid; gap: 18px; font: 300 18px/26px var(--body); }
+.acc-body li { padding-left: 61px; position: relative; }
+.acc-body li::before { content: ''; position: absolute; left: 20px; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--lime); }
+.btn { display: inline-flex; align-items: center; justify-content: center; font: 500 16px/36px var(--heading); color: var(--navy); background: var(--cyan); border: 2px solid var(--cyan); padding: 8px 16px; cursor: pointer; }
+.hero-cta { margin-top: 12px; height: 56px; white-space: nowrap; }
+.hero-img { width: 589px; height: 518px; margin-top: 1px; }
+.hero-img img { width: 589px; height: 518px; object-fit: contain; }
+.img-fallback { background: linear-gradient(135deg, var(--ice), var(--mist)); border-radius: 20px; }
+
+/* Partners */
+.partners { margin: 18px 34px 0; height: 110px; border-radius: 28px; background: var(--lime); display: flex; align-items: center; padding: 0 80px; }
+.partners p { width: 250px; font: 500 16px/22px var(--body); color: var(--navy); flex: none; }
+.logos { display: flex; align-items: center; justify-content: space-between; flex: 1; margin-left: 102px; }
+.logos img { height: auto; }
+.logos .alt { font: 700 22px/26px var(--heading); color: var(--navy); }
+
+/* Key value */
+.kv { margin: 36px 22px 0 23px; background: var(--navy); border-radius: 24px; padding: 70px 80px 80px; color: #fff; position: relative; overflow: hidden; }
+.kv::after { content: ''; position: absolute; right: -240px; top: -260px; width: 760px; height: 760px; border-radius: 50%; border: 1px solid rgba(0, 188, 255, 0.18); box-shadow: 0 0 0 60px rgba(10, 14, 51, 0), 0 0 0 61px rgba(0, 188, 255, 0.12), 0 0 0 120px rgba(10, 14, 51, 0), 0 0 0 121px rgba(0, 188, 255, 0.08); pointer-events: none; }
+.kv h2 { font: 600 60px/65px var(--heading); letter-spacing: -0.3px; width: 950px; margin: 15px auto 0; text-align: center; position: relative; z-index: 1; }
+.kv-card { position: relative; z-index: 1; margin-top: 40px; border-radius: 28px; min-height: 399px; background: linear-gradient(120deg, rgb(10, 52, 46) 0%, rgb(8, 40, 40) 55%, rgb(10, 30, 44) 100%); display: grid; grid-template-columns: 300px 800px; gap: 80px; padding: 58px 40px 40px; }
+.kv-art { display: flex; align-items: center; justify-content: center; }
+.kv-art svg { width: 220px; height: 220px; }
+.kv-card ul { list-style: none; display: grid; gap: 26px; }
+.kv-card li { font: 300 18px/26px var(--body); padding-left: 40px; position: relative; width: 800px; }
+.kv-card li::before { content: ''; position: absolute; left: 22px; top: 11px; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+.kv-card strong { font-weight: 700; }
+.kv-rule { height: 1px; background: rgba(182, 255, 160, 0.3); margin: 15px 0 27px; }
+.kv-tag { font: 600 18px/22px var(--body); color: var(--lime); }
+
+/* Action / form section (replaces the demo request form) */
+.demo { width: 1200px; margin: 68px auto 0; min-height: 554px; display: grid; grid-template-columns: 540px 660px; }
+.demo-left { position: relative; padding: 32px 0 0 66px; margin: 13px 0 0 10px; }
+.demo-left::before { content: ''; position: absolute; left: 0; top: 0; width: 34px; height: 393px; border: 2px solid var(--cyan); border-right: 0; border-radius: 24px 0 0 24px; }
+.eyebrow { font: 700 16px/22px var(--body); text-transform: uppercase; color: var(--navy); width: 464px; }
+.demo-left h2 { font: 600 60px/65px var(--heading); letter-spacing: -0.3px; color: var(--navy); width: 464px; margin-top: 8px; }
+.demo-left p { font: 300 20px/32px var(--body); color: var(--navy); width: 464px; margin-top: 8px; }
+.demo-right { padding: 10px 0 0 60px; }
+#transferForm { display: grid; grid-template-columns: 283px 283px; gap: 31px 23px; }
+.field label { display: block; font: 500 14px/18px var(--body); color: var(--navy); margin-bottom: 8px; }
+.field .ctl { position: relative; }
+.field input, .field select { width: 100%; height: 74px; padding: 24px; border: 1px solid var(--field-border); border-radius: 10px; background: #fff; font: 400 18px/24px var(--body); color: var(--navy); appearance: none; -webkit-appearance: none; }
+.field select { padding-right: 56px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' stroke='%230a0e33' fill='none' stroke-width='1.5'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E") right 12px center/40px 40px no-repeat; text-overflow: ellipsis; }
+.field input:focus, .field select:focus { outline: 2px solid var(--cyan); outline-offset: 0; }
+.field .prefix { position: absolute; left: 24px; top: 25px; font: 400 18px/24px var(--body); color: var(--navy); pointer-events: none; }
+.field .prefix + input { padding-left: 42px; }
+.form-note { grid-column: 1 / -1; font: 400 16px/24px var(--body); color: var(--navy); margin-top: -4px; }
+.form-actions { grid-column: 1 / -1; margin-top: 6px; }
+.btn-submit { height: 50px; padding: 12px 24px; font: 500 16px/22px var(--heading); color: var(--navy); background: #fff; border: 2px solid var(--cyan); cursor: pointer; position: relative; }
+.btn-submit:hover { background: var(--cyan); }
+.btn-submit:disabled { opacity: .7; cursor: progress; }
+.result-box { display: none; grid-column: 1 / -1; margin-top: 24px; padding: 20px 24px; border-radius: 10px; font: 300 16px/24px var(--body); color: var(--navy); }
+.result-box.success, .result-box.error { display: block; }
+.result-box.success { background: rgba(182, 255, 160, 0.45); border: 1px solid rgb(120, 200, 100); }
+.result-box.error { background: rgb(255, 240, 240); border: 1px solid rgb(191, 0, 0); }
+.result-title { font: 600 18px/26px var(--heading); margin-bottom: 4px; }
+
+/* Testimonial */
+.quote { width: 1330px; margin: 101px 0 0 83px; padding-bottom: 72px; }
+.quote h2 { font: 400 44px/55px var(--heading); letter-spacing: -0.2px; color: var(--navy); }
+.quote .who { margin: 30px 0 0 10px; }
+.quote .name { font: 500 20px/28px var(--heading); color: var(--navy); }
+.quote .role { font: 300 16px/22.4px var(--body); color: var(--navy); margin-top: 3px; }
+
+/* Section heading with bracket */
+.bracket-h { position: relative; font: 600 60px/65px var(--heading); letter-spacing: -0.3px; color: var(--navy); }
+.bracket-h::before { content: ''; position: absolute; left: -48px; top: -12px; bottom: -12px; width: 26px; border: 2px solid var(--cyan); border-right: 0; border-radius: 20px 0 0 20px; }
+
+/* Benefits */
+.benefits-h { width: 660px; margin: 136px 0 0 158px; }
+.benefits { background: var(--mist); margin-top: 112px; padding: 80px 64px; }
+.benefits-in { width: 1232px; margin: 0 auto; }
+.group { display: grid; grid-template-columns: 737px 491px; gap: 4px; }
+.group.flip { grid-template-columns: 491px 737px; }
+.group.flip .g-img { order: 2; }
+.g-img { border-radius: 20px; padding: 40px; height: 509px; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.g-img img { width: 657px; height: 429px; object-fit: contain; }
+.g-img.bg1 { background-image: url('https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/benefits-section/benefit-background.webp'), linear-gradient(135deg, #2c8cff, #0a0e33); }
+.g-img.bg2 { background-image: url('https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/benefits-section/green-bg.webp'), linear-gradient(135deg, #b6ffa0, #2f7a3a); }
+.g-img.bg3 { background-image: url('https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/benefits-section/purple-bg.webp'), linear-gradient(135deg, #a58cff, #3b2a8a); }
+.g-text { background: #fff; border-radius: 20px; padding: 30px 40px; min-height: 510px; }
+.g-text h3 { font: 500 32px/40px var(--heading); letter-spacing: -0.5px; color: var(--navy); width: 411px; }
+.g-text p { font: 300 18px/26px var(--body); color: var(--navy); margin-top: 16px; }
+.g-text .more { display: inline-flex; margin-top: 24px; font: 500 16px/36px var(--heading); color: var(--forest); background: var(--lime); border: 2px solid var(--lime); padding: 6px 16px; }
+.icons { display: grid; grid-template-columns: repeat(3, 408px); gap: 4px; margin-top: 4px; }
+.icon-card { background: #fff; border-radius: 20px; padding: 40px; min-height: 224px; display: grid; grid-template-columns: 80px 248px; column-gap: 0; align-content: start; }
+.icon-card .ic { grid-row: span 2; width: 56px; height: 56px; border-radius: 12px; background: var(--ice); display: flex; align-items: center; justify-content: center; }
+.icon-card .ic svg { width: 30px; height: 30px; }
+.icon-card h3 { font: 500 24px/32px var(--heading); color: var(--navy); }
+.icon-card p { font: 300 16px/24px var(--body); color: var(--navy); margin-top: 8px; }
+.group + .icons + .group, .icons + .group { margin-top: 100px; }
+
+/* Related */
+.related { width: 1232px; margin: 0 auto; padding: 176px 0 146px; }
+.related .bracket-h { margin-left: 56px; width: 626px; }
+.cards { display: grid; grid-template-columns: repeat(4, 296px); gap: 16px; margin-top: 92px; }
+.card { background: var(--ice); border-radius: 16px; padding: 30px; min-height: 358px; display: flex; flex-direction: column; }
+.card .k { font: 600 12px/18px var(--body); text-transform: uppercase; color: var(--navy); }
+.card h3 { font: 500 32px/32px var(--heading); letter-spacing: -0.5px; color: var(--navy); margin-top: 22px; }
+.card p { font: 300 16px/24px var(--body); color: var(--navy); margin-top: 4px; }
+.card .go { margin-top: auto; border-top: 2px solid rgba(0, 188, 255, 0.3); padding-top: 8px; display: flex; justify-content: flex-start; gap: 10px; align-items: center; font: 500 18px/36px var(--heading); color: var(--navy); }
+
+/* Banner */
+.banner { background: var(--lime); height: 540px; margin: 8px 0; }
+.banner .in { width: 1200px; margin: 0 auto; height: 540px; display: flex; align-items: center; justify-content: space-between; position: relative; }
+.banner h2 { font: 600 60px/65px var(--heading); letter-spacing: -0.3px; color: var(--forest); width: 634px; }
+.banner .btn { background: var(--forest); border-color: var(--forest); color: var(--lime); margin-top: 24px; padding: 8px 18px; }
+.banner img { width: 480px; height: 320px; object-fit: contain; margin-right: 87px; }
+
+/* Footer */
+.footer { background: var(--navy); color: #fff; padding: 80px 100px 109px; }
+.footer .in { display: grid; grid-template-columns: 420px 1fr; }
+.f-left { padding-right: 20px; }
+.f-left .wordmark { margin: 0; width: 160px; height: 34px; }
+.f-left .wordmark svg { width: 160px; height: 29px; }
+.f-left .tag { font: 500 32px/40px var(--body); width: 300px; margin-top: 45px; }
+.f-left .btn { margin-top: 44px; }
+.social { display: flex; gap: 14px; margin-top: 699px; }
+.social a { width: 24px; height: 24px; border-radius: 50%; background: var(--cyan); display: flex; align-items: center; justify-content: center; font: 700 11px/1 var(--body); color: var(--navy); }
+.f-left .copy { font: 400 12px/18px var(--body); margin-top: 20px; }
+.pills { display: flex; flex-wrap: wrap; gap: 14px 8px; margin-top: 21px; width: 300px; }
+.pills a { font: 300 12px/18px var(--body); color: var(--cyan); background: rgba(0, 188, 255, 0.15); padding: 1px 6px; }
+.f-right { border-left: 1px solid rgba(255, 255, 255, 0.15); padding-left: 17px; padding-top: 20px; }
+.f-cols { display: grid; grid-template-columns: repeat(3, 295px); }
+.f-cols h4 { font: 500 18px/24px var(--body); color: var(--cyan); margin-bottom: 14px; }
+.f-cols a { display: block; font: 400 14px/21px var(--heading); color: rgba(255, 255, 255, 0.7); margin-bottom: 8.5px; }
+.f-group { margin-top: 30px; }
+.f-group > .h { font: 600 24px/36px var(--heading); color: #fff; margin: 0 0 18px -17px; display: block; }
+.f-group .f-cols { margin-top: 0; }
+
+@media (max-width: 1240px) {
+  .wrap, .demo, .benefits-in, .related, .banner .in { width: auto; margin-left: 24px; margin-right: 24px; }
+  .hero h1, .kv h2, .demo-left h2, .demo-left p, .eyebrow { width: auto; }
+  .hero-grid { grid-template-columns: 1fr 1fr; }
+  .hero-img, .hero-img img { width: 100%; height: auto; }
+  .quote { width: auto; margin-left: 24px; margin-right: 24px; }
+  .group, .group.flip { grid-template-columns: 1fr 1fr; }
+  .icons { grid-template-columns: repeat(3, 1fr); }
+  .cards { grid-template-columns: repeat(2, 1fr); }
+  .kv-card { grid-template-columns: 200px 1fr; }
+  .kv-card li { width: auto; }
+}
+
+@media (max-width: 767px) {
+  .site-header { height: 69px; }
+  .util, .navlinks a:not(.cta) { display: none; }
+  .mainnav { height: 69px; padding: 0 16px; }
+  .wordmark { width: 114px; height: 35px; margin-top: 0; }
+  .wordmark svg { width: 114px; height: 21px; }
+  .navlinks { height: 69px; margin-top: 0; }
+  .mainnav { align-items: center; }
+  .crumbs { padding-top: 12px; }
+  .navlinks a.cta { height: 48px; padding: 6px 16px; font: 500 16px/36px var(--heading); }
+  .burger { display: flex; align-items: center; justify-content: center; width: 44px; height: 48px; margin-left: 4px; background: none; border: 0; }
+  .burger svg { width: 28px; height: 28px; }
+  .crumbs { height: auto; padding: 12px 0 0; }
+  .wrap { margin: 0 16px; }
+  .crumbs .wrap { gap: 0 8px; }
+  .hero { margin-top: 0; padding-top: 12px; min-height: 0; }
+  .hero .wrap { padding: 0; }
+  .prod-icon { position: static; width: 60px; height: 60px; margin-bottom: 4px; }
+  .hero h1 { font-size: 50px; line-height: 48px; letter-spacing: -0.25px; width: auto; padding-top: 10px; }
+  .hero-grid { display: flex; flex-direction: column; margin-top: 30px; gap: 0; }
+  .hero-img { order: -1; width: 100%; height: auto; margin-bottom: 20px; }
+  .hero-img img { width: 100%; height: auto; }
+  .acc-head { padding: 22px 0; }
+  .acc-body { padding: 24px 0 48px; }
+  .hero-cta { display: flex; margin: 16px auto 0; height: 50px; }
+  .partners { margin: 40px 34px 0; height: auto; flex-direction: column; padding: 28px 22px; border-radius: 28px; }
+  .partners p { width: 100%; text-align: center; font-size: 16px; }
+  .logos { margin: 24px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 28px 20px; justify-items: center; width: 100%; }
+  .kv { margin: 36px 10px 0; padding: 30px 20px 20px; }
+  .kv h2 { font-size: 36px; line-height: 44px; letter-spacing: -0.18px; width: auto; margin: 15px 20px 0; }
+  .kv-card { grid-template-columns: 1fr; gap: 24px; padding: 30px 20px; }
+  .kv-art svg { width: 140px; height: 140px; }
+  .kv-card li { width: auto; }
+  .demo { width: auto; margin: 64px 10px 0; display: block; }
+  .demo-left { padding: 32px 10px 0 40px; margin: 0; }
+  .demo-left::before { height: 100%; width: 24px; }
+  .eyebrow, .demo-left h2, .demo-left p { width: auto; }
+  .demo-left h2 { font-size: 36px; line-height: 44px; letter-spacing: -0.18px; }
+  .demo-right { padding: 40px 0 0 60px; padding-right: 10px; }
+  #transferForm { grid-template-columns: 1fr; gap: 31px; }
+  .btn-submit { min-height: 50px; }
+  .quote { width: auto; margin: 64px 20px 0; padding-bottom: 40px; }
+  .quote h2 { font-size: 21px; line-height: 30px; }
+  .bracket-h { font-size: 36px; line-height: 44px; letter-spacing: -0.18px; }
+  .bracket-h::before { left: -36px; width: 20px; }
+  .benefits-h { width: auto; margin: 64px 16px 0 56px; }
+  .benefits { margin-top: 60px; padding: 28px 16px; }
+  .benefits-in { width: auto; margin: 0; }
+  .group, .group.flip { grid-template-columns: 1fr; gap: 4px; }
+  .group.flip .g-img { order: 0; }
+  .g-img { height: 248px; padding: 20px; }
+  .g-img img { width: 318px; height: 208px; }
+  .g-text { min-height: 0; padding: 20px; }
+  .g-text h3 { width: auto; font-size: 24px; line-height: 32px; letter-spacing: 0; }
+  .icons { grid-template-columns: 1fr; }
+  .icon-card { grid-template-columns: 1fr; padding: 20px; min-height: 0; }
+  .icon-card .ic { grid-row: auto; margin-bottom: 16px; }
+  .group + .icons + .group, .icons + .group { margin-top: 60px; }
+  .related { width: auto; margin: 0; padding: 64px 50px 40px; }
+  .related .bracket-h { margin-left: 6px; width: auto; }
+  .cards { grid-template-columns: 1fr; margin-top: 48px; }
+  .card { min-height: 310px; }
+  .banner { height: auto; }
+  .banner .in { width: auto; height: auto; flex-direction: column; align-items: flex-start; padding: 56px 16px; margin: 0; }
+  .banner h2 { font-size: 36px; line-height: 44px; width: auto; }
+  .banner img { width: 100%; height: auto; margin: 32px 0 0; }
+  .footer { padding: 56px 16px 40px; }
+  .footer .in { grid-template-columns: 1fr; }
+  .f-left .tag { font-size: 24px; line-height: 32px; width: auto; }
+  .social { margin-top: 40px; gap: 10px; }
+  .social a { width: 44px; height: 44px; }
+  .f-left .copy { margin-top: 20px; }
+  .f-right { border-left: 0; padding-left: 0; margin-top: 48px; }
+  .footer .in { display: flex; flex-direction: column; }
+  .f-left { display: contents; }
+  .f-left .wordmark { order: 0; }
+  .f-right { order: 1; margin-top: 24px; padding-top: 0; }
+  .f-left .tag, .f-left .btn, .social, .f-left .copy, .pills { order: 2; }
+  .f-left .tag { margin-top: 40px; }
+  .f-left .btn { align-self: flex-start; }
+  .f-cols { grid-template-columns: 1fr; }
+  .f-cols h4 { display: flex; justify-content: space-between; align-items: center; min-height: 56px; margin: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.15); cursor: pointer; font-size: 16px; }
+  .f-cols h4::after { content: ''; width: 9px; height: 9px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(45deg); margin: -4px 6px 0 12px; flex: none; }
+  .f-cols > div a { display: none; }
+  .f-cols > div.open a { display: block; }
+  .f-cols > div.open a:first-of-type { margin-top: 12px; }
+  .f-group { margin-top: 16px; }
+  .f-cols[style] { margin-top: 0 !important; }
+  .f-group > .h { margin-left: 0; }
+  .btn { min-height: 44px; }
+  .crumbs .wrap { line-height: 20px; }
+  .f-cols a { margin-bottom: 6px; }
+  .banner .in { text-align: center; }
+  .banner .btn { margin-left: auto; margin-right: auto; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="util">
+    <a href="#">Documentation</a>
+    <a href="#">Support</a>
+    <a href="#">Trust Center</a>
+    <a href="#">Careers</a>
+    <a href="#">Login</a>
+    <button type="button"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="10" cy="10" r="8"/><path d="M2 10h16M10 2c2.5 2.6 2.5 13.4 0 16M10 2c-2.5 2.6-2.5 13.4 0 16"/></svg>North America</button>
+    <button type="button" aria-label="Search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8.5" cy="8.5" r="6"/><path d="M13 13l5 5"/></svg></button>
+  </div>
+  <div class="mainnav">
+    <a class="wordmark" href="#" aria-label="Home">
+      <svg viewBox="0 0 144 26" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="butt">
+        <path d="M22 5.5C20 3 17 2 13.6 2 8.6 2 5 4.2 5 7.4c0 7.2 17.5 3.6 17.5 11.2 0 3.4-3.8 5.6-9 5.6-4 0-7.6-1.4-10-4"/>
+        <circle cx="45" cy="13" r="11"/>
+        <path d="M65 2l10.5 22L86 2"/>
+        <circle cx="106" cy="13" r="11"/>
+        <path d="M142 5.5C140 3 137 2 133.6 2c-5 0-8.6 2.2-8.6 5.4 0 7.2 17.5 3.6 17.5 11.2 0 3.4-3.8 5.6-9 5.6-4 0-7.6-1.4-10-4"/>
+      </svg>
+    </a>
+    <nav class="navlinks">
+      <a href="#">Sovi&reg; AI</a>
+      <a href="#">Platform</a>
+      <a href="#">Products</a>
+      <a href="#">Solutions</a>
+      <a href="#">Resources</a>
+      <a href="#">About</a>
+      <a href="#" class="cta">Book a Call</a>
+      <button class="burger" type="button" aria-label="Menu"><svg viewBox="0 0 28 28" stroke="#fff" stroke-width="2.4"><path d="M3 7h22M3 14h22M3 21h22"/></svg></button>
+    </nav>
+  </div>
+</header>
+
+<section class="crumbs">
+  <div class="wrap">
+    <a href="#">Products</a>
+    <svg viewBox="0 0 6 10" fill="none" stroke="#0a0e33" stroke-width="1.4"><path d="M1 1l4 4-4 4"/></svg>
+    <a href="#">Information Reporting and Withholding Suite</a>
+    <svg viewBox="0 0 6 10" fill="none" stroke="#0a0e33" stroke-width="1.4"><path d="M1 1l4 4-4 4"/></svg>
+    <strong>Tax Withholding Management</strong>
+  </div>
+</section>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="prod-icon"><svg viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="3.2"><path d="M7 9v14l10 6 10-6V9"/><path d="M13 13v7l4 2.4 4-2.4"/></svg></div>
+    <h1>Automate Your Payroll and Non-Wage Tax Withholding with Our Software</h1>
+    <div class="hero-grid">
+      <div>
+        <div class="acc-item open">
+          <button class="acc-head" type="button">Description<svg viewBox="0 0 20 20" fill="none" stroke="#0a0e33" stroke-width="2"><path d="M4 7l6 6 6-6"/></svg></button>
+          <div class="acc-body">Manage tax payments, filing returns and reconciliation through a <strong>single platform</strong>. Ensure <strong>precision and compliance</strong> for all your <strong>tax information reporting</strong> requirements.</div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-head" type="button">Features<svg viewBox="0 0 20 20" fill="none" stroke="#0a0e33" stroke-width="2"><path d="M4 7l6 6 6-6"/></svg></button>
+          <div class="acc-body"><ul><li>Pre-built and customizable payment schedules for streamlining federal, state and local withholding tax payments.</li><li>Deliver filing returns electronically.</li><li>Match tax payments and return filing amounts with corresponding tax forms and source systems.</li></ul></div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-head" type="button">Pricing<svg viewBox="0 0 20 20" fill="none" stroke="#0a0e33" stroke-width="2"><path d="M4 7l6 6 6-6"/></svg></button>
+          <div class="acc-body">Based on the number of transacting EINs and the aggregate of annual tax withholding payments.</div>
+        </div>
+        <a class="btn hero-cta" href="#make-payment">Get Your Demo</a>
+      </div>
+      <div class="hero-img"><img src="https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/organisms/sovos-overview-hero/images/product-hero-img.webp" alt="Tax withholding payments dashboard" onerror="this.parentNode.classList.add('img-fallback');this.remove();"></div>
+    </div>
+  </div>
+</section>
+
+<section class="partners">
+  <p>Trusted by the World's Best Companies Including Half the Fortune 500</p>
+  <div class="logos">
+    <img width="122" height="48" src="https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/logos/nationwide-logo.svg" alt="Nationwide" onerror="this.outerHTML='<span class=&quot;alt&quot;>Nationwide</span>'">
+    <img width="122" height="26" src="https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/logos/microsoft-logo.svg" alt="Microsoft" onerror="this.outerHTML='<span class=&quot;alt&quot;>Microsoft</span>'">
+    <img width="44" height="44" src="https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/logos/home-depot-logo.svg" alt="The Home Depot" onerror="this.outerHTML='<span class=&quot;alt&quot;>The Home Depot</span>'">
+    <img width="104" height="26" src="https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/logos/cvs-logo.svg" alt="CVS" onerror="this.outerHTML='<span class=&quot;alt&quot;>CVS</span>'">
+    <img width="122" height="22" src="https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/logos/philips-logo.svg" alt="Philips" onerror="this.outerHTML='<span class=&quot;alt&quot;>Philips</span>'">
+  </div>
+</section>
+
+<section class="kv">
+  <h2>Gain Efficiency and Reduce Risk in Tax Withholding</h2>
+  <div class="kv-card">
+    <div class="kv-art"><svg viewBox="0 0 220 220" fill="none"><circle cx="110" cy="110" r="96" stroke="rgba(182,255,160,0.35)" stroke-width="2"/><circle cx="110" cy="110" r="66" stroke="rgba(182,255,160,0.6)" stroke-width="2"/><rect x="74" y="70" width="72" height="88" rx="8" fill="rgb(182,255,160)"/><path d="M88 94h44M88 110h44M88 126h28" stroke="rgb(9,56,7)" stroke-width="5" stroke-linecap="round"/><circle cx="146" cy="150" r="20" fill="rgb(0,188,255)"/><path d="M137 150l6 6 12-12" stroke="rgb(10,14,51)" stroke-width="4"/></svg></div>
+    <div>
+      <ul>
+        <li><strong>Simplify complex reporting:</strong> Manage federal, state, and local tax withholding payments and returns without the overwhelm of manual processes.</li>
+        <li><strong>Mitigate audit and penalty risks:</strong> Replace error-prone manual tasks with automated accuracy to ensure timely payments.</li>
+        <li><strong>Ensure data reconciliation:</strong> Automatically reconcile source data with W-2/1099/1042-S information returns for seamless compliance.</li>
+      </ul>
+      <div class="kv-rule"></div>
+      <div class="kv-tag">Sovos Withholding Compliance</div>
+    </div>
+  </div>
+</section>
+
+<section class="demo" id="make-payment">
+  <div class="demo-left">
+    <div class="eyebrow">Withholding Compliance &middot; Payments</div>
+    <h2>Make a Withholding Payment</h2>
+    <p>Remit federal, state and local withholding tax liabilities from your funding account. Payments are delivered electronically and matched to the corresponding return.</p>
+  </div>
+  <div class="demo-right">
+    <form id="transferForm" novalidate>
+      <div class="field">
+        <label for="fromAccount">Funding account</label>
+        <div class="ctl"><select id="fromAccount">
+          <option value="ACCT-1001">Payroll tax account &middot; 1001</option>
+          <option value="ACCT-1002">Operating reserve &middot; 1002</option>
+        </select></div>
+      </div>
+      <div class="field">
+        <label for="toAccount">Taxing authority</label>
+        <div class="ctl"><select id="toAccount">
+          <option value="ACCT-1002">New York &middot; NYS-45 withholding</option>
+          <option value="ACCT-1001">California &middot; DE 88 deposit</option>
+          <option value="ACCT-EXT-001">Federal &middot; Form 945 via EFTPS</option>
+        </select></div>
+      </div>
+      <div class="field">
+        <label for="amount">Liability amount (USD)</label>
+        <div class="ctl"><span class="prefix">$</span><input type="number" id="amount" value="45689.98" min="1" step="0.01" inputmode="decimal" required></div>
+      </div>
+      <div class="field">
+        <label for="accountTier">Delivery method</label>
+        <div class="ctl"><select id="accountTier">
+          <option value="premium">Same-day electronic</option>
+          <option value="standard" selected>ACH credit (NACHA)</option>
+          <option value="basic">ACH debit</option>
+        </select></div>
+      </div>
+      <p class="form-note">Payment frequency: semi-weekly. Due today.</p>
+      <div class="form-actions"><button type="submit" class="btn-submit" id="submitBtn">Make Payment</button></div>
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</section>
+
+<section class="quote">
+  <h2>&ldquo;I really like Sovos for its reliability and automation, which makes managing tax compliance processes much easier... It's also impressive how Sovos helps us stay compliant with constantly changing tax regulations.&rdquo;</h2>
+  <div class="who"><div class="name">Luis Josu&eacute; D.</div><div class="role">Enterprise</div></div>
+</section>
+
+<h2 class="bracket-h benefits-h">Benefits of Automated Tax Withholding</h2>
+<section class="benefits">
+  <div class="benefits-in">
+    <div class="group">
+      <div class="g-img bg1"><img src="https://sovos.com/wp-content/plugins/sovos-design-system/assets/vendor/sovos-design-system/dist/assets/images/benefits-section/pymnts.webp" alt="" onerror="this.remove()"></div>
+      <div class="g-text"><h3>Accurate Payments On Time, Every Time</h3><p>Imagine no longer scrambling to manage payment schedules or worrying about late withholding payments. Sovos Withholding Compliance tracks payment frequencies and automates the payment delivery to the IRS, states and localities. Stay compliant, avoid costly penalties, and free up your team to focus on what truly matters: driving your business forward.</p></div>
+    </div>
+    <div class="icons">
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><path d="M15 4v14M9 12l6 6 6-6M5 22v4h20v-4"/></svg></div><h3>Liability Import</h3><p>Import tax liabilities from any payroll or source system for streamlined processing.</p></div>
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><rect x="4" y="6" width="22" height="20" rx="3"/><path d="M4 12h22M10 3v6M20 3v6"/></svg></div><h3>Payment Schedules</h3><p>Manage standard or customized payment frequencies and thresholds for any jurisdiction.</p></div>
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><path d="M6 11h17l-5-5M24 19H7l5 5"/></svg></div><h3>Credit and Reversal Tracking</h3><p>Track credits and reversals to maintain accurate and compliant payment records.</p></div>
+    </div>
+    <div class="group flip">
+      <div class="g-img bg2"><img src="https://sovos.com/wp-content/uploads/2025/06/ptwms-simplify-your-workload-product-screen@2x.png" alt="" onerror="this.remove()"></div>
+      <div class="g-text"><h3>Simplify your workload</h3><p>Manually managing tax withholding payments and filing forms like 940, 941, 945, and 1042 is time-consuming and prone to errors, leading to costly penalties. Sovos Withholding Compliance automates the remittance and filing process, reducing errors, saving up to 75% of manual effort, and ensuring accuracy. Let your team focus on higher-value work while confidently staying compliant with tax obligations.</p></div>
+    </div>
+    <div class="icons">
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><path d="M4 12L15 5l11 7M6 12v11M12 12v11M18 12v11M24 12v11M3 26h24"/></svg></div><h3>Federal Payments</h3><p>Electronically deliver federal payments via EFTPS.</p></div>
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><path d="M15 27s9-7.5 9-14a9 9 0 10-18 0c0 6.5 9 14 9 14z"/><circle cx="15" cy="13" r="3"/></svg></div><h3>State and Local Payment</h3><p>Deliver state and local ACH payments via NACHA payment network, where accepted.</p></div>
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><path d="M8 3h10l6 6v18H8z"/><path d="M18 3v6h6M12 16h8M12 21h8"/></svg></div><h3>Filing Returns</h3><p>Electronically file 940, 941, 945, 1042 and state and local equivalent forms.</p></div>
+    </div>
+    <div class="group">
+      <div class="g-img bg3"><img src="https://sovos.com/wp-content/uploads/2025/06/ptwms-stay-complian-stay-confident-product-screen@2x.png" alt="" onerror="this.remove()"></div>
+      <div class="g-text"><h3>Stay compliant, and stay confident</h3><p>Sovos Withholding Compliance ensures all tax withholding data is fully reconciled&mdash;from source systems to payments, filing returns, and information returns. It quickly identifies out-of-balance information return records, minimizing the chance for regulators to question payments or return processes. With comprehensive activity tracking and regulator confirmations for audit defense, Sovos provides unmatched accuracy, protection, and confidence in compliance.</p></div>
+    </div>
+    <div class="icons">
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><ellipse cx="15" cy="7" rx="9" ry="3.5"/><path d="M6 7v16c0 2 4 3.5 9 3.5s9-1.5 9-3.5V7M6 15c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/></svg></div><h3>Source System Reconciliation</h3><p>Ensures withheld taxes reported in source systems match amounts remitted and reported.</p></div>
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><rect x="4" y="5" width="10" height="20" rx="2"/><rect x="16" y="5" width="10" height="20" rx="2"/><path d="M7 11h4M19 11h4M7 16h4M19 16h4"/></svg></div><h3>Form-Level Matching</h3><p>Matches payments and return filing amounts with W-2/1099/1042-S reported withholding amounts to identify discrepancies.</p></div>
+      <div class="icon-card"><div class="ic"><svg viewBox="0 0 30 30" fill="none" stroke="#0078d6" stroke-width="2"><path d="M15 3l10 4v8c0 6-4.5 10-10 12-5.5-2-10-6-10-12V7z"/><path d="M10 15l3.5 3.5L20 12"/></svg></div><h3>Audit Trails</h3><p>Tracks all user activities, and payment and return filing confirmations for transparency and audit defense.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="related">
+  <h2 class="bracket-h">Related Sovos Products</h2>
+  <div class="cards">
+    <a class="card" href="#"><span class="k">Sovos Products</span><h3>Withholding Compliance</h3><p>Automates the management of tax withholding payments, filing returns and reconciliation.</p><span class="go">Get Started <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0a0e33" stroke-width="2"><path d="M4 10h12M11 5l5 5-5 5"/></svg></span></a>
+    <a class="card" href="#"><span class="k">Sovos Services</span><h3>Withholding Managed Services</h3><p>Outsource daily administration to improve efficiency, reduce compliance risk, and enhance oversight.</p><span class="go">Get Started <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0a0e33" stroke-width="2"><path d="M4 10h12M11 5l5 5-5 5"/></svg></span></a>
+    <a class="card" href="#"><span class="k">Sovos Products</span><h3>1099 Enterprise</h3><p>Centralize tax withholding and 1099/W-2 data for accurate, form-level reconciliation.</p><span class="go">Get Started <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0a0e33" stroke-width="2"><path d="M4 10h12M11 5l5 5-5 5"/></svg></span></a>
+    <a class="card" href="#"><span class="k">Sovos Products</span><h3>W-8/W-9 Tax Form Management</h3><p>Streamlines the collection, validation, and management of IRS Forms W-8 and W-9.</p><span class="go">Get Started <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0a0e33" stroke-width="2"><path d="M4 10h12M11 5l5 5-5 5"/></svg></span></a>
+  </div>
+</section>
+
+<section class="banner">
+  <div class="in">
+    <div>
+      <h2>See how our solutions scale with your global compliance needs.</h2>
+      <a class="btn" href="#">Request My Demo</a>
+    </div>
+    <img src="https://sovos.com/wp-content/uploads/2025/04/cta-man-talk-to-an-expert@2x.png" alt="" onerror="this.remove()">
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="in">
+    <div class="f-left">
+      <a class="wordmark" href="#" aria-label="Home">
+        <svg viewBox="0 0 144 26" fill="none" stroke="#00bcff" stroke-width="3.6">
+          <path d="M22 5.5C20 3 17 2 13.6 2 8.6 2 5 4.2 5 7.4c0 7.2 17.5 3.6 17.5 11.2 0 3.4-3.8 5.6-9 5.6-4 0-7.6-1.4-10-4"/>
+          <circle cx="45" cy="13" r="11"/>
+          <path d="M65 2l10.5 22L86 2"/>
+          <circle cx="106" cy="13" r="11"/>
+          <path d="M142 5.5C140 3 137 2 133.6 2c-5 0-8.6 2.2-8.6 5.4 0 7.2 17.5 3.6 17.5 11.2 0 3.4-3.8 5.6-9 5.6-4 0-7.6-1.4-10-4"/>
+        </svg>
+      </a>
+      <p class="tag">See for yourself how the Sovos Agentic Tax Compliance Platform can meet your business' unique tax compliance challenges.</p>
+      <a class="btn" href="#">Book a Call</a>
+      <div class="social"><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="LinkedIn">in</a><a href="#" aria-label="X">X</a></div>
+      <p class="copy">&copy; 2026 Sovos Compliance, LLC. All rights reserved.</p>
+      <div class="pills"><a href="#">Privacy Policy</a><a href="#">Modern Slavery Statement</a><a href="#">Terms of Use</a></div>
+    </div>
+    <div class="f-right">
+      <div class="f-cols">
+        <div><h4>Why Sovos?</h4><a href="#">The Compliance Cloud Platform</a><a href="#">Customer Stories</a><a href="#">Latest News &amp; Awards</a><a href="#">Partners</a><a href="#">Connector Marketplace</a></div>
+        <div><h4>Resources</h4><a href="#">Customer Stories</a><a href="#">Blog</a><a href="#">Resource Center</a><a href="#">Events</a><a href="#">Webinars</a></div>
+        <div><h4>About</h4><a href="#">Who We Are</a><a href="#">Leadership</a><a href="#">Social Responsibility</a><a href="#">Press Room</a><a href="#">Careers</a></div>
+      </div>
+      <div class="f-group">
+        <a class="h" href="#">Products</a>
+        <div class="f-cols">
+          <div><h4>Indirect Tax Suite</h4><a href="#">e-Invoicing</a><a href="#">Tax Determination - SUT</a><a href="#">Tax Determination - VAT</a><a href="#">Filing - SUT</a><a href="#">Filing - VAT</a><a href="#">Indirect Tax Suite</a><a href="#">Indirect Tax Suite for SAP</a><a href="#">Analytics</a></div>
+          <div><h4>Information Reporting and Withholding Suite</h4><a href="#">1099 Reporting</a><a href="#">Crypto Reporting</a><a href="#">Tax Withholding</a><a href="#">ACA Reporting</a></div>
+          <div><h4>Specialty Products</h4><a href="#">Unclaimed Property</a><a href="#">Beverage Alcohol Compliance</a><a href="#">Statutory Reporting for Insurance</a></div>
+        </div>
+      </div>
+      <div class="f-group">
+        <a class="h" href="#">Solutions</a>
+        <div class="f-cols">
+          <div><h4>By Tax or Document Type</h4><a href="#">Value-Added Tax (VAT)</a><a href="#">Sales &amp; Use Tax (SUT)</a><a href="#">Insurance Premium Tax (IPT)</a><a href="#">Exemption Certificates</a><a href="#">SAF-T</a><a href="#">Form 1099</a><a href="#">Form 1095</a><a href="#">Tax Withholding</a><a href="#">Peppol</a></div>
+          <div><h4>By Industry</h4><a href="#">Financial Services</a><a href="#">Retail</a><a href="#">Manufacturing</a><a href="#">Digital Services</a><a href="#">New Economies</a><a href="#">Beverage Alcohol</a></div>
+          <div><h4>By Team or Initiative</h4><a href="#">ERP Transformation</a></div>
+        </div>
+        <div class="f-cols" style="margin-top:22px"><div><h4>By Region</h4><a href="#">Australia</a><a href="#">Brazil</a><a href="#">Belgium</a><a href="#">France</a><a href="#">Malaysia</a><a href="#">New Zealand</a><a href="#">Singapore</a><a href="#">Spain</a><a href="#">Turkey</a><a href="#">UAE</a><a href="#">India</a></div></div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.acc-head').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var item = btn.parentNode;
+    var wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.acc-item').forEach(function (i) { i.classList.remove('open'); });
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+document.querySelectorAll('.f-cols h4').forEach(function (h) {
+  h.addEventListener('click', function () { h.parentNode.classList.toggle('open'); });
+});
+
+fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+  if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+  if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+}).catch(function () {});
+
+function optionLabel(id) {
+  var el = document.getElementById(id);
+  return el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
+}
+
+function showResult(kind, title, detail) {
+  var result = document.getElementById('result');
+  result.className = 'result-box ' + kind;
+  result.textContent = '';
+  var t = document.createElement('div');
+  t.className = 'result-title';
+  t.textContent = title;
+  var d = document.createElement('div');
+  d.textContent = detail;
+  result.appendChild(t);
+  result.appendChild(d);
+}
+
+document.getElementById('transferForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  var btn = document.getElementById('submitBtn');
+  var result = document.getElementById('result');
+  var amount = parseFloat(document.getElementById('amount').value);
+  if (!isFinite(amount) || amount <= 0) {
+    showResult('error', 'Enter a liability amount', 'The payment amount must be greater than zero.');
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Submitting payment...';
+  result.className = 'result-box';
+  try {
+    var res = await fetch('/api/banking/transfer', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fromAccount: document.getElementById('fromAccount').value,
+        toAccount: document.getElementById('toAccount').value,
+        amount: amount,
+        accountTier: document.getElementById('accountTier').value,
+        userId: 'usr_alice_chen',
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      }),
+    });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok) {
+      showResult('error', 'Payment not submitted', (data.errorClass ? data.errorClass + ': ' : '') + (data.error || ('HTTP ' + res.status)));
+    } else {
+      var ref = data.transferId ? ' Confirmation ' + String(data.transferId).slice(0, 8).toUpperCase() + '.' : '';
+      showResult('success', 'Payment submitted', 'Remitted to ' + optionLabel('toAccount') + '. $' + data.debitAmount + ' debited from ' + optionLabel('fromAccount') + ' (includes $' + data.fee + ' delivery fee).' + ref);
+    }
+  } catch (err) {
+    showResult('error', 'Network error', err.message);
+  } finally { btn.disabled = false; btn.textContent = 'Make Payment'; }
+});
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>

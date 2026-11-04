@@ -8284,6 +8284,15 @@ const ONCALL_SKINS = {
     supportCenter: 'Mapfre Customer Service',
     disclaimer: 'NOT ACTUALLY A MAPFRE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Mapfre product.',
   },
+  '59139c0e': {
+    slug: '59139c0e',
+    company: 'Sovos',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '59139c0e.html', title: 'Tax Withholding Software | Sovos' },
+    disclaimer: 'NOT ACTUALLY A SOVOS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Sovos product.',
+  },
 };
 
 function getOncallSkin(slug) {
