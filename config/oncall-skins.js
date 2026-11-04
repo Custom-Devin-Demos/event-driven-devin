@@ -8301,7 +8301,7 @@ const ONCALL_SKINS = {
     teamsAlerts: true,
     teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
     alertDestination: 'teams',
-    page: { file: 'a7577aa9.html', title: 'AI Governance Software | Solutions | OneTrust' },
+    page: { file: 'a7577aa9.html', title: 'AI Use Case Workflow | OneTrust' },
     alertCard: {
       title: 'p95 latency trending up \u2014 AI Governance: Run AI risk assessment',
       release: 'ai-governance@2026.11.1',
