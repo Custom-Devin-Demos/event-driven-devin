@@ -18,28 +18,29 @@ const ROUTE = 'POST /api/7019ea46/buy-now';
 const CULPRIT = 'app/services/verticals/7019ea46.js \u2014 priceRetailerOffer';
 
 const IMG_BASE = 'https://www.whiskas.co.uk/cdn-cgi/image/width=410,format=auto,q=90/sites/g/files/fnmzdf10251/files/migrate-product-files/images/';
+const PAGE_BASE = 'https://www.whiskas.co.uk/cat-food/dry-cat-food/';
 const LOGO_BASE = 'https://www.whiskas.co.uk/cdn-cgi/image/format=auto,q=90/sites/g/files/fnmzdf10251/files/upload/images_where_to_buy/';
 
 const CATALOG = [
-  { ean: '5900951355875', slug: 'kitten-2-12-months-with-tuna', name: 'Kitten 2-12 Months with Tuna Dry Kitten Food', image: `${IMG_BASE}l6fgnuydupts3jwzpzmh.png`, lifeStage: 'kitten', age: 'Kitten', subBrand: 'Kitten', packaging: 'Bag', flavour: 'Tuna', packKg: 0.8 },
-  { ean: '5998749128596', slug: '1-adult-with-salmon', name: '1+ Adult with Salmon Dry Cat Food', image: `${IMG_BASE}v8wfv2uost5bxh8a0apo.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Salmon', packKg: 1.9 },
-  { ean: '5998749128619', slug: '1-adult-with-lamb', name: '1+ Adult with Lamb Dry Cat Food', image: `${IMG_BASE}zqiymkw2qbgee2r1q0hv.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Lamb', packKg: 1.9 },
-  { ean: '5998749128602', slug: '1-adult-with-tuna', name: '1+ Adult with Tuna Dry Cat Food', image: `${IMG_BASE}dgarb2bhlhwzekp4urih.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Tuna', packKg: 1.9 },
-  { ean: '5900951355868', slug: 'kitten-2-12-months-with-chicken', name: 'Kitten 2-12 Months with Chicken Dry Kitten Food', image: `${IMG_BASE}qexwtlnqq7iqj0o9jwpv.png`, lifeStage: 'kitten', age: 'Kitten', subBrand: 'Kitten', packaging: 'Box', flavour: 'Chicken', packKg: 0.3 },
-  { ean: '5900951291043', slug: '1-adult-duo-surf-turf', name: '1+ Adult Duo Surf & Turf Dry Cat Food', image: `${IMG_BASE}ys1ovcbcntbf3j49nt3w.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Duo', packaging: 'Bag', flavour: 'Surf & Turf', packKg: 0.8 },
-  { ean: '5900951291036', slug: '1-adult-meaty-combos', name: '1+ Adult Meaty Combos Dry Cat Food', image: `${IMG_BASE}v8rzdinmcvf2xtuf73fe.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Duo', packaging: 'Bag', flavour: 'Meaty Combos', packKg: 0.8 },
-  { ean: '5998749128589', slug: '1-adult-with-chicken', name: '1+ Adult with Chicken Dry Cat Food', image: `${IMG_BASE}q8op6j3km9jkadqnangm.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Chicken', packKg: 1.9 },
-  { ean: '5998749128626', slug: 'senior-7-with-chicken', name: 'Senior 7+ with Chicken Dry Cat Food', image: `${IMG_BASE}dwlshw2wer2zvdltwqdx.png`, lifeStage: 'senior', age: 'Senior 7+', subBrand: 'Core', packaging: 'Bag', flavour: 'Chicken', packKg: 0.8 },
+  { ean: '5900951355875', url: `${PAGE_BASE}classics/whiskas-kitten-2-12-mnths-dry-tuna-cat-food-1-9kg`, slug: 'kitten-2-12-months-with-tuna', name: 'Kitten 2-12 Months with Tuna Dry Kitten Food', image: `${IMG_BASE}l6fgnuydupts3jwzpzmh.png`, lifeStage: 'kitten', age: 'Kitten', subBrand: 'Kitten', packaging: 'Bag', flavour: 'Tuna', packKg: 0.8 },
+  { ean: '5998749128596', url: `${PAGE_BASE}classics/whiskas-cat-dry-salmon-adult-1-9kg-800g`, slug: '1-adult-with-salmon', name: '1+ Adult with Salmon Dry Cat Food', image: `${IMG_BASE}v8wfv2uost5bxh8a0apo.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Salmon', packKg: 1.9 },
+  { ean: '5998749128619', url: `${PAGE_BASE}classics/whiskas-cat-dry-lamb-adult-1-9kg-800g`, slug: '1-adult-with-lamb', name: '1+ Adult with Lamb Dry Cat Food', image: `${IMG_BASE}zqiymkw2qbgee2r1q0hv.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Lamb', packKg: 1.9 },
+  { ean: '5998749128602', url: `${PAGE_BASE}classics/whiskas-cat-dry-tuna-adult-7kg-1-9kg-800g-300g`, slug: '1-adult-with-tuna', name: '1+ Adult with Tuna Dry Cat Food', image: `${IMG_BASE}dgarb2bhlhwzekp4urih.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Tuna', packKg: 1.9 },
+  { ean: '5900951355868', url: `${PAGE_BASE}classics/whiskas-cat-dry-chicken-kitten-2-12-months-7kg-1-9kg-800g-300g`, slug: 'kitten-2-12-months-with-chicken', name: 'Kitten 2-12 Months with Chicken Dry Kitten Food', image: `${IMG_BASE}qexwtlnqq7iqj0o9jwpv.png`, lifeStage: 'kitten', age: 'Kitten', subBrand: 'Kitten', packaging: 'Box', flavour: 'Chicken', packKg: 0.3 },
+  { ean: '5900951291043', url: `${PAGE_BASE}duo-surf-turf/whiskas-duo-surf-turf-adult-7kg-1-9kg-800g`, slug: '1-adult-duo-surf-turf', name: '1+ Adult Duo Surf & Turf Dry Cat Food', image: `${IMG_BASE}ys1ovcbcntbf3j49nt3w.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Duo', packaging: 'Bag', flavour: 'Surf & Turf', packKg: 0.8 },
+  { ean: '5900951291036', url: `${PAGE_BASE}duo-meaty-combos/whiskas-meaty-combos-adult-1-9kg-800g`, slug: '1-adult-meaty-combos', name: '1+ Adult Meaty Combos Dry Cat Food', image: `${IMG_BASE}v8rzdinmcvf2xtuf73fe.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Duo', packaging: 'Bag', flavour: 'Meaty Combos', packKg: 0.8 },
+  { ean: '5998749128589', url: `${PAGE_BASE}classics/whiskas-cat-dry-chicken-adult-7kg-1-9kg-800g-300g`, slug: '1-adult-with-chicken', name: '1+ Adult with Chicken Dry Cat Food', image: `${IMG_BASE}q8op6j3km9jkadqnangm.png`, lifeStage: 'adult', age: 'Adult 1+', subBrand: 'Core', packaging: 'Bag', flavour: 'Chicken', packKg: 1.9 },
+  { ean: '5998749128626', url: `${PAGE_BASE}classics/whiskas-cat-dry-chicken-senior-7-1-9kg-800g`, slug: 'senior-7-with-chicken', name: 'Senior 7+ with Chicken Dry Cat Food', image: `${IMG_BASE}dwlshw2wer2zvdltwqdx.png`, lifeStage: 'senior', age: 'Senior 7+', subBrand: 'Core', packaging: 'Bag', flavour: 'Chicken', packKg: 0.8 },
 ];
 
 const RETAILERS = [
-  { id: 'tesco', name: 'Tesco', logo: `${LOGO_BASE}uk-buy-now-logo_0006_Layer%202_0.jpg`, url: 'https://www.tesco.com/groceries/en-GB/search?query=whiskas', multiplier: 1.0, stock: 'In stock' },
-  { id: 'asda', name: 'ASDA', logo: `${LOGO_BASE}uk-buy-now-logo_0004_ASDA%20Logo.jpg`, url: 'https://groceries.asda.com/search/whiskas', multiplier: 0.96, stock: 'In stock' },
-  { id: 'morrisons', name: 'Morrisons', logo: `${LOGO_BASE}uk-buy-now-logo_0002_Morrisons-logo-500x281.jpg`, url: 'https://groceries.morrisons.com/search?entry=whiskas', multiplier: 1.04, stock: 'In stock' },
-  { id: 'sainsburys', name: "Sainsbury's", logo: `${LOGO_BASE}uk-buy-now-logo_0003_indir.jpg`, url: 'https://www.sainsburys.co.uk/gol-ui/SearchResults/whiskas', multiplier: 1.02, stock: 'Low stock' },
-  { id: 'petsathome', name: 'Pets at Home', logo: `${LOGO_BASE}uk-buy-now-logo_0005_PETS.L.jpg`, url: 'https://www.petsathome.com/search?q=whiskas', multiplier: 1.08, stock: 'In stock' },
-  { id: 'amazon', name: 'Amazon', logo: `${LOGO_BASE}uk-buy-now-logo_0001_AMAZON.CO_.UK-LOGO-e1667578902171-300x83.jpg`, url: 'https://www.amazon.co.uk/s?k=whiskas+dry+cat+food', multiplier: 0.93, stock: 'In stock' },
-  { id: 'ocado', name: 'Ocado', logo: `${LOGO_BASE}uk-buy-now-logo_0000_ocado-logo.jpg`, url: 'https://www.ocado.com/search?entry=whiskas', multiplier: 1.05, stock: 'In stock' },
+  { id: 'tesco', name: 'Tesco', logo: `${LOGO_BASE}uk-buy-now-logo_0006_Layer%202_0.jpg`, search: 'https://www.tesco.com/groceries/en-GB/search?query={q}', multiplier: 1.0, stock: 'In stock' },
+  { id: 'asda', name: 'ASDA', logo: `${LOGO_BASE}uk-buy-now-logo_0004_ASDA%20Logo.jpg`, search: 'https://groceries.asda.com/search/{q}', multiplier: 0.96, stock: 'In stock' },
+  { id: 'morrisons', name: 'Morrisons', logo: `${LOGO_BASE}uk-buy-now-logo_0002_Morrisons-logo-500x281.jpg`, search: 'https://groceries.morrisons.com/search?entry={q}', multiplier: 1.04, stock: 'In stock' },
+  { id: 'sainsburys', name: "Sainsbury's", logo: `${LOGO_BASE}uk-buy-now-logo_0003_indir.jpg`, search: 'https://www.sainsburys.co.uk/gol-ui/SearchResults/{q}', multiplier: 1.02, stock: 'Low stock' },
+  { id: 'petsathome', name: 'Pets at Home', logo: `${LOGO_BASE}uk-buy-now-logo_0005_PETS.L.jpg`, search: 'https://www.petsathome.com/search?q={q}', multiplier: 1.08, stock: 'In stock' },
+  { id: 'amazon', name: 'Amazon', logo: `${LOGO_BASE}uk-buy-now-logo_0001_AMAZON.CO_.UK-LOGO-e1667578902171-300x83.jpg`, search: 'https://www.amazon.co.uk/s?k={q}', multiplier: 0.93, stock: 'In stock' },
+  { id: 'ocado', name: 'Ocado', logo: `${LOGO_BASE}uk-buy-now-logo_0000_ocado-logo.jpg`, search: 'https://www.ocado.com/search?entry={q}', multiplier: 1.05, stock: 'In stock' },
 ];
 
 // Recommended retail price bands by life stage (GBP per kg) and the promo applied this period.
@@ -94,6 +95,10 @@ function money(n) {
   return Math.round(n * 100) / 100;
 }
 
+function packLabel(product) {
+  return product.packKg >= 1 ? `${product.packKg}kg` : `${Math.round(product.packKg * 1000)}g`;
+}
+
 function priceRetailerOffer(product, retailer) {
   const band = LIFE_STAGE_PRICING[product.lifeStage];
   const rrp = band.rrpPerKg * product.packKg;
@@ -103,7 +108,7 @@ function priceRetailerOffer(product, retailer) {
     retailerId: retailer.id,
     retailer: retailer.name,
     logo: retailer.logo,
-    url: `${retailer.url}${retailer.url.includes('?') ? '&' : '?'}ean=${product.ean}`,
+    url: retailer.search.replace('{q}', encodeURIComponent(`Whiskas ${product.name} ${packLabel(product)}`)),
     stock: retailer.stock,
     price: money(price),
     wasPrice: band.promo ? money(shelf) : null,

@@ -18,6 +18,7 @@ describe('Whiskas Dry Cat Food — Buy Now (7019ea46)', () => {
     expect(svc.CATALOG.map((p) => p.lifeStage).sort()).toEqual(['adult', 'adult', 'adult', 'adult', 'adult', 'adult', 'kitten', 'kitten', 'senior']);
     expect(svc.RETAILERS.map((r) => r.name)).toContain('Tesco');
     svc.CATALOG.forEach((p) => expect(p.image).toMatch(/^https:\/\/www\.whiskas\.co\.uk\/cdn-cgi\/image\//));
+    svc.CATALOG.forEach((p) => expect(p.url).toMatch(/^https:\/\/www\.whiskas\.co\.uk\/cat-food\/dry-cat-food\//));
   });
 
   test('kitten recipe returns seven priced retailer offers, cheapest first, with the Kitten Club promo', async () => {
@@ -37,7 +38,7 @@ describe('Whiskas Dry Cat Food — Buy Now (7019ea46)', () => {
     const tesco = res.offers.find((o) => o.retailer === 'Tesco');
     expect(tesco.price).toBeCloseTo(4.2 * 1.9, 2);
     expect(tesco.promo).toBeNull();
-    expect(tesco.url).toContain('ean=5998749128589');
+    expect(tesco.url).toBe(`https://www.tesco.com/groceries/en-GB/search?query=${encodeURIComponent('Whiskas 1+ Adult with Chicken Dry Cat Food 1.9kg')}`);
   });
 
   test('missing or unknown EAN is a 400 ValidationError and does not alert', async () => {
