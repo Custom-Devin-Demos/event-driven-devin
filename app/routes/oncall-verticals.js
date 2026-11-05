@@ -17,6 +17,7 @@ const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
+const { quoteRates } = require('../services/oncall-verticals/shippingrates');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
@@ -894,6 +895,23 @@ router.post('/api/oncall/releasegate/evaluate', async (req, res) => {
       error: 'Release gate evaluation failed.',
       errorClass: error.name,
       code: error.code || 'RELEASE_GATE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/shippingrates/rates — quote FedEx list rates per service
+ */
+router.post('/api/oncall/shippingrates/rates', async (req, res) => {
+  try {
+    res.json(await quoteRates(req.body || {}));
+  } catch (error) {
+    res.status(error.code === 'INVALID_SHIPMENT' ? 400 : 500).json({
+      success: false,
+      error: error.code === 'INVALID_SHIPMENT' ? error.message : 'Rates are unavailable right now.',
+      errorClass: error.name,
+      code: error.code || 'RATE_QUOTE_FAILED',
       requestId: req.requestId,
     });
   }
