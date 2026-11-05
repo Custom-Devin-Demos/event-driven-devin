@@ -1468,6 +1468,16 @@ function responderNotes(skin) {
   return config.promptAppendix.trim() || null;
 }
 
+/**
+ * Triage notes for a Teams-only alert: no app-side session runs, so the Teams
+ * responder gets the skin's promptAppendix on the card whether or not it is auto.
+ */
+function teamsOnlyNotes(skin) {
+  const config = skin && skin.devinSession;
+  if (!config || typeof config.promptAppendix !== 'string') return null;
+  return config.promptAppendix.trim() || null;
+}
+
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin }) {
 
   const card = resolveAlertCard(scenario, skin);
@@ -1700,7 +1710,7 @@ function validEmail(email) {
  * Mirror of the Slack alert card for Teams. Delivery is best-effort: a failed
  * Teams post is logged and never blocks the Slack card.
  */
-async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail }) {
+async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail, notes }) {
   const demoPath = demoPagePath(scenario, skin);
   const t = oncallStrings(skin, scenario);
   const teamsCard = buildTeamsAlertCard({
@@ -1723,6 +1733,7 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
       `**${t.owner}:** ${ownerRotation(card.owner)}`,
       demoPath ? `**${t.affectedPage}:** ${DEMO_BASE_URL()}${demoPath}` : null,
       `Repo: ${REPO_URL}`,
+      ...(notes ? notes.split('\n').filter((line) => line.trim()) : []),
     ],
     actions: [
       t.viewDatadog ? { title: t.viewDatadog, url: DD_URL() } : null,
@@ -1871,6 +1882,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const teamsDelivery = teamsWebhookUrl
     ? postTeamsAlert(teamsWebhookUrl, scenario, skin, {
       card, brand, runRef, events, firstSeen, triggeredByEmail: validEmail(options.devinEmail),
+      notes: slackReady ? null : teamsOnlyNotes(skin),
     })
     : Promise.resolve(null);
   let ts = null;

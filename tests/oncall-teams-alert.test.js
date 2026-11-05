@@ -266,6 +266,27 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(result.sessionUrl).toBeUndefined();
   });
 
+  test('FedEx Shipping Rates (1960590a) Teams-only card carries its triage instructions', async () => {
+    setEnv({ slack: true, teams: true });
+    const fedex = getOncallSkin('1960590a');
+    const result = await postOncallAlert('shippingrates', { runRef: 'run-fedex', skin: fedex, destination: 'teams' });
+    expect(result).toMatchObject({ ok: true, teams: true });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(createDevinSession).not.toHaveBeenCalled();
+    const text = JSON.stringify(teamsCard().body);
+    expect(text).toContain('cc @Marcus Bell (shipping-rates-oncall)');
+    expect(text).toContain('Show rates');
+  });
+
+  test('a Teams copy next to a Slack alert does not repeat the auto-session prompt', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    const fedex = getOncallSkin('1960590a');
+    await postOncallAlert('shippingrates', { runRef: 'run-fedex-both', skin: { ...fedex, alertDestination: undefined } });
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(teamsCard().body)).not.toContain('Marcus Bell');
+  });
+
   test('skins without teamsAlerts stay Slack-only even with a Teams webhook', async () => {
     setEnv({ slack: true, teams: true });
     const skin = getOncallSkin('4b663efb');
