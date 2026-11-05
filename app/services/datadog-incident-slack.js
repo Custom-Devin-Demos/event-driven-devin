@@ -7,6 +7,7 @@ const USER_ID_RE = /^U[A-Z0-9]{8,31}$/;
 
 // Datadog creates incident channels asynchronously, after its declaration API returns.
 function queueIncidentChannelInvites({ publicId, userIds } = {}) {
+  if (typeof publicId === 'string' && /^[1-9][0-9]*$/.test(publicId)) publicId = Number(publicId);
   const users = Array.isArray(userIds) ? [...new Set(userIds.filter((id) => typeof id === 'string' && USER_ID_RE.test(id)))] : [];
   if (!Number.isSafeInteger(publicId) || publicId <= 0 || !users.length) return false;
   const token = process.env.INCIDENT_LAB_SLACK_BOT_TOKEN || process.env.SLACK_ONCALL_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;

@@ -239,6 +239,12 @@ describe('State Street dual on-call experience', () => {
 });
 
 describe('State Street settlement incident lifecycle', () => {
+  test('passes a numeric-string Datadog public ID to the asynchronous invitation helper', async () => {
+    declareDatadogIncident.mockResolvedValueOnce({ id: 'dd-string-id', publicId: '211' });
+    const service = freshSettlementService();
+    expect((await service.releaseSettlementBatch({ batchId: 'USD-SET-042' })).body.incident).toMatchObject({ status: 'declared', publicId: '211' });
+    expect(queueIncidentChannelInvites).toHaveBeenCalledWith({ publicId: '211', userIds: ['U0BQZBHCNMA'] });
+  });
   test('deduplicates concurrent and repeated releases for five minutes', async () => {
     const { releaseSettlementBatch } = freshSettlementService();
     const release = () => releaseSettlementBatch({ batchId: 'USD-SET-042' });

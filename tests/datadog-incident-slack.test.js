@@ -24,9 +24,9 @@ afterEach(() => {
 });
 
 describe('Datadog incident channel participants', () => {
-  test('waits for Datadog channel creation, joins, then invites only valid configured users', async () => {
+  test.each([211, '211'])('waits for Datadog channel creation with public id %j, joins, then invites only valid configured users', async (publicId) => {
     findChannelByNameFragment.mockResolvedValueOnce(null);
-    expect(queueIncidentChannelInvites({ publicId: 211, userIds: [USER, USER, '<!channel>'] })).toBe(true);
+    expect(queueIncidentChannelInvites({ publicId, userIds: [USER, USER, '<!channel>'] })).toBe(true);
     await jest.advanceTimersByTimeAsync(0);
     expect(inviteToChannel).not.toHaveBeenCalled();
     await jest.advanceTimersByTimeAsync(CHANNEL_RETRY_MS);
@@ -77,6 +77,11 @@ describe('Datadog incident channel participants', () => {
     process.env.SLACK_ONCALL_BOT_TOKEN = 'test-bot';
     expect(queueIncidentChannelInvites({ publicId: '../211', userIds: [USER] })).toBe(false);
     expect(queueIncidentChannelInvites({ publicId: 211, userIds: ['<!channel>'] })).toBe(false);
+    expect(findChannelByNameFragment).not.toHaveBeenCalled();
+  });
+
+  test.each(['0', '0211', '2.11', '2e2', ' 211', '211 ', '9007199254740992', {}, null])('rejects noncanonical or unsafe public id %j', (publicId) => {
+    expect(queueIncidentChannelInvites({ publicId, userIds: [USER] })).toBe(false);
     expect(findChannelByNameFragment).not.toHaveBeenCalled();
   });
 });
