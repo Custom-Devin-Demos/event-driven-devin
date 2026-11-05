@@ -14,6 +14,7 @@ const {
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 const { normalizeAlertDestination } = require('../services/alert-destination');
+const { releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
 const { isTeamsWebhookUrl } = require('../services/teams');
 const {
   FLEET,
@@ -621,6 +622,16 @@ router.get('/oncall/:vertical', (req, res, next) => {
   if (!scenario) return next();
 
   serveOncallScenarioPage(scenario, res, next);
+});
+
+router.post('/api/oncall/statestreet/settlement-batches/release', oncallCap('trigger'), async (req, res) => {
+  try {
+    const result = await releaseSettlementBatch(req.body || {});
+    res.status(result.statusCode).json(result.body);
+  } catch (error) {
+    logger.error('State Street batch release failed', { error: error.message });
+    res.status(500).json({ success: false, error: 'Unable to release the settlement batch.' });
+  }
 });
 
 /**
