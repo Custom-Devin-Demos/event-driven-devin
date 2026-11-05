@@ -7,6 +7,7 @@ const { provisionLicense } = require('../services/oncall-verticals/hightech');
 const { processClaim } = require('../services/oncall-verticals/insurance');
 const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { runCompletion } = require('../services/oncall-verticals/inference');
+const streamtv = require('../services/oncall-verticals/streamtv');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { submitOrder } = require('../services/oncall-verticals/vaccines');
@@ -1262,6 +1263,50 @@ router.post('/api/oncall/nftcheckout/fulfillment', async (req, res) => {
       error: invalid ? error.message : 'We could not prepare your transaction. Please try again.',
       requestId: req.requestId,
     });
+  }
+});
+
+/**
+ * streamtv-home-api — the StreamTV TV home screen (skin 6217a32d) calls these
+ * directly. Resume points come from the watch-progress service.
+ */
+function sendHomeApiError(res, req, error) {
+  const status = error.status || 500;
+  res.status(status).json({
+    error: error.code || 'HOME_API_ERROR',
+    message: status >= 500 ? 'Something went wrong. Try again.' : error.message,
+    requestId: req.requestId,
+  });
+}
+
+router.get('/api/home/rows', async (req, res) => {
+  const profileId = String(req.query.profileId || 'p-maya');
+  try {
+    res.json(await streamtv.getHomeRows(profileId));
+  } catch (error) {
+    sendHomeApiError(res, req, error);
+  }
+});
+
+router.get('/api/home/continue-watching', async (req, res) => {
+  const profileId = String(req.query.profileId || '');
+  if (!profileId) {
+    return res.status(400).json({ error: 'PROFILE_ID_REQUIRED', message: 'profileId is required', requestId: req.requestId });
+  }
+  try {
+    res.set('Cache-Control', 'private, no-store');
+    res.json(await streamtv.getContinueWatching(profileId));
+  } catch (error) {
+    sendHomeApiError(res, req, error);
+  }
+});
+
+router.post('/api/playback/start', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await streamtv.startPlayback({ profileId: body.profileId, titleId: body.titleId, row: body.row }));
+  } catch (error) {
+    sendHomeApiError(res, req, error);
   }
 });
 

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | StreamTV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tv-bg: #19002D;
+      --tv-bg-deep: #0F001C;
+      --tv-panel: #24083F;
+      --tv-panel-raised: #2E1152;
+      --tv-purple: #6F2DBD;
+      --tv-purple-bright: #904FF7;
+      --tv-purple-deep: #5407AA;
+      --tv-text: #FFFFFF;
+      --tv-text-dim: rgba(255, 255, 255, 0.64);
+      --tv-text-faint: rgba(255, 255, 255, 0.38);
+      --tv-focus: #FFFFFF;
+      --tv-danger: #FF5C6C;
+      --tile-w: 248px;
+      --tile-h: 140px;
+      --nav-w: 264px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 85% -10%, #3A0F6E 0%, var(--tv-bg) 45%, var(--tv-bg-deep) 100%);
+      color: var(--tv-text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    button { font: inherit; }
+
+    .shell { display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr); min-height: 100vh; }
+
+    /* ---------- Left nav ---------- */
+    .nav {
+      background: linear-gradient(180deg, var(--tv-panel) 0%, var(--tv-bg-deep) 100%);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 28px 18px 24px;
+      display: flex; flex-direction: column; gap: 10px;
+      position: sticky; top: 0; height: 100vh;
+    }
+    .wordmark { display: flex; align-items: center; gap: 12px; padding: 4px 10px 22px; }
+    .wordmark .mark {
+      width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--tv-purple-bright), var(--tv-purple-deep));
+      font-weight: 700; font-size: 22px; letter-spacing: -0.5px;
+      box-shadow: 0 6px 18px rgba(144, 79, 247, 0.35);
+    }
+    .wordmark .name { font-weight: 700; font-size: 22px; letter-spacing: -0.3px; }
+    .wordmark .name span { color: var(--tv-purple-bright); }
+    .nav-item {
+      display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 0 16px;
+      border-radius: 12px; color: var(--tv-text-dim); font-size: 18px; font-weight: 500;
+      cursor: pointer; border: 3px solid transparent; transition: background .12s, color .12s, transform .12s;
+      user-select: none;
+    }
+    .nav-item svg { width: 22px; height: 22px; flex: 0 0 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-item.active { color: var(--tv-text); background: rgba(255, 255, 255, 0.06); }
+    .nav-item.focused { color: var(--tv-text); background: var(--tv-purple); border-color: var(--tv-focus); transform: translateX(4px); }
+    .nav-group { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+    .nav-group .label { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--tv-text-faint); padding: 6px 16px 8px; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+      font-size: 14px; font-weight: 700; color: #140024; flex: 0 0 30px;
+    }
+    .nav-item .check { margin-left: auto; font-size: 13px; color: var(--tv-text-faint); }
+
+    /* ---------- Main ---------- */
+    .main { padding: 24px 0 40px 44px; min-width: 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 44px 10px 0; }
+    .greeting { font-size: 26px; font-weight: 600; letter-spacing: -0.3px; }
+    .greeting small { display: block; font-size: 14px; font-weight: 400; color: var(--tv-text-dim); margin-top: 4px; }
+    .status-chips { display: flex; align-items: center; gap: 16px; color: var(--tv-text-dim); font-size: 15px; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); }
+    .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #5EBB6C; }
+    .clock { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--tv-text); font-size: 18px; }
+
+    .row { margin-top: 26px; min-width: 0; }
+    .row-head { display: flex; align-items: baseline; gap: 14px; padding-right: 44px; }
+    .row-title { font-size: 21px; font-weight: 600; letter-spacing: -0.2px; margin: 0 0 12px; }
+    .row-status { font-size: 14px; color: var(--tv-text-dim); display: inline-flex; align-items: center; gap: 8px; }
+    .row-status.error { color: var(--tv-danger); }
+    .rail {
+      display: flex; gap: 18px; padding: 14px 44px 18px 8px; margin-left: -8px;
+      overflow-x: auto; overflow-y: visible; scroll-behavior: smooth; scrollbar-width: none;
+      scroll-padding-left: 8px;
+    }
+    .rail::-webkit-scrollbar { display: none; }
+    .tile {
+      flex: 0 0 var(--tile-w); width: var(--tile-w); cursor: pointer; border-radius: 12px; outline: none;
+      transition: transform .14s ease; position: relative; user-select: none;
+    }
+    .tile .art {
+      height: var(--tile-h); border-radius: 12px; position: relative; overflow: hidden;
+      border: 3px solid transparent; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+      display: flex; flex-direction: column; justify-content: flex-end; padding: 14px;
+    }
+    .tile .art::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.55) 100%);
+    }
+    .tile .art-title { position: relative; font-weight: 700; font-size: 17px; line-height: 1.2; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); }
+    .tile .badge {
+      position: absolute; top: 10px; left: 10px; font-size: 10px; letter-spacing: 1.2px; font-weight: 700;
+      padding: 4px 7px; border-radius: 5px; background: rgba(0, 0, 0, 0.5); color: #fff;
+    }
+    .tile .badge.live { background: #D9304F; }
+    .tile .badge.live::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #fff; margin-right: 6px; vertical-align: 1px; }
+    .tile .meta { margin-top: 10px; padding: 0 2px; }
+    .tile .meta .t { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile .meta .s { font-size: 13px; color: var(--tv-text-dim); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile .progress { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255, 255, 255, 0.25); }
+    .tile .progress > i { display: block; height: 100%; background: var(--tv-purple-bright); }
+    .tile.focused { transform: scale(1.07); z-index: 2; }
+    .tile.focused .art { border-color: var(--tv-focus); box-shadow: 0 0 0 5px rgba(144, 79, 247, 0.55), 0 14px 34px rgba(0, 0, 0, 0.5); }
+    .tile .overlay {
+      position: absolute; inset: 0; height: var(--tile-h); border-radius: 12px; display: none;
+      place-items: center; text-align: center; padding: 14px; background: rgba(15, 0, 28, 0.86); font-size: 14px; font-weight: 600;
+    }
+    .tile.busy .overlay, .tile.failed .overlay { display: grid; }
+    .tile.failed .overlay { color: var(--tv-danger); }
+    .tile.failed .overlay small { display: block; color: var(--tv-text-dim); font-weight: 400; margin-top: 6px; font-size: 12px; }
+
+    .tile.skeleton { pointer-events: none; }
+    .tile.skeleton .art { background: linear-gradient(90deg, #2A0F4A 0%, #3A1A62 40%, #2A0F4A 80%); background-size: 300% 100%; animation: shimmer 1.4s infinite linear; }
+    .tile.skeleton .meta .t, .tile.skeleton .meta .s { background: rgba(255, 255, 255, 0.08); color: transparent; border-radius: 4px; }
+    @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+    .tile.retry .art { background: var(--tv-panel-raised); border-style: dashed; border-color: rgba(255, 255, 255, 0.25); justify-content: center; align-items: center; text-align: center; }
+    .tile.retry .art::before { display: none; }
+    .tile.retry .art .art-title { font-size: 16px; }
+    .tile.retry .art .hint { position: relative; font-size: 12px; color: var(--tv-text-dim); margin-top: 6px; font-weight: 500; }
+
+    .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25); border-top-color: #fff; animation: spin .8s linear infinite; display: inline-block; }
+    .spinner.lg { width: 34px; height: 34px; border-width: 3px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hint-bar { margin-top: 34px; padding-right: 44px; color: var(--tv-text-faint); font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; }
+    .hint-bar kbd { font: inherit; font-weight: 600; color: var(--tv-text-dim); background: rgba(255, 255, 255, 0.08); border-radius: 5px; padding: 2px 7px; }
+
+    .footer {
+      grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      padding: 16px 44px; border-top: 1px solid rgba(255, 255, 255, 0.08); color: var(--tv-text-faint); font-size: 13px;
+      background: var(--tv-bg-deep);
+    }
+
+    /* ---------- Player overlay ---------- */
+    .player { position: fixed; inset: 0; z-index: 60; display: none; background: #000; color: #fff; }
+    .player.open { display: block; }
+    .player .scene { position: absolute; inset: 0; opacity: .75; }
+    .player .hud { position: absolute; left: 0; right: 0; bottom: 0; padding: 36px 56px 44px; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.85) 100%); }
+    .player .hud h2 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.4px; }
+    .player .hud p { margin: 0 0 18px; color: var(--tv-text-dim); font-size: 16px; }
+    .player .bar { height: 6px; background: rgba(255,255,255,.25); border-radius: 3px; overflow: hidden; }
+    .player .bar > i { display: block; height: 100%; width: 0; background: var(--tv-purple-bright); transition: width 4s linear; }
+    .player .times { display: flex; justify-content: space-between; font-size: 13px; color: var(--tv-text-dim); margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .player .back { position: absolute; top: 28px; left: 56px; color: var(--tv-text-dim); font-size: 14px; }
+
+    @media (max-width: 1100px) { :root { --nav-w: 220px; --tile-w: 210px; --tile-h: 118px; } .main { padding-left: 28px; } }
+    @media (max-width: 760px) {
+      :root { --tile-w: 156px; --tile-h: 88px; }
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .nav { position: static; height: auto; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 12px 14px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); scrollbar-width: none; }
+      .nav::-webkit-scrollbar { display: none; }
+      .wordmark { padding: 0 8px 0 0; }
+      .wordmark .name { display: none; }
+      .nav-item { min-height: 44px; padding: 0 12px; font-size: 15px; white-space: nowrap; }
+      .nav-item svg { width: 18px; height: 18px; flex-basis: 18px; }
+      .nav-group { margin-top: 0; padding-top: 0; border-top: 0; display: flex; gap: 6px; }
+      .nav-group .label { display: none; }
+      .nav-item .check { display: none; }
+      .main { padding: 14px 0 24px 16px; }
+      .topbar { padding-right: 16px; flex-wrap: wrap; gap: 10px; }
+      .greeting { font-size: 20px; }
+      .status-chips .chip:first-child { display: none; }
+      .row-title { font-size: 17px; }
+      .rail { gap: 12px; padding-right: 16px; }
+      .tile .art { padding: 10px; }
+      .tile .art-title { font-size: 13px; }
+      .tile .meta .t { font-size: 13px; }
+      .tile .meta .s { font-size: 12px; }
+      .hint-bar { display: none; }
+      .footer { padding: 14px 16px; }
+      .player .hud { padding: 20px 18px 28px; }
+      .player .hud h2 { font-size: 22px; }
+      .player .back { left: 18px; top: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="nav" id="nav" aria-label="Main">
+      <div class="wordmark"><div class="mark" aria-hidden="true">S</div><div class="name">Stream<span>TV</span></div></div>
+      <div class="nav-item active" data-nav="home" role="button" tabindex="-1">
+        <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg><span>Home</span>
+      </div>
+      <div class="nav-item" data-nav="live-tv" role="button" tabindex="-1">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg><span>Live TV</span>
+      </div>
+      <div class="nav-item" data-nav="search" role="button" tabindex="-1">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Search</span>
+      </div>
+      <div class="nav-item" data-nav="channel-store" role="button" tabindex="-1">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg><span>Channel Store</span>
+      </div>
+      <div class="nav-item" data-nav="what-to-watch" role="button" tabindex="-1">
+        <svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7Z"/></svg><span>What to Watch</span>
+      </div>
+      <div class="nav-item" data-nav="settings" role="button" tabindex="-1">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span>Settings</span>
+      </div>
+      <div class="nav-group" id="profileGroup">
+        <div class="label">Profiles</div>
+      </div>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="topbar">
+        <div class="greeting" id="greeting">Home<small>Loading your home screen…</small></div>
+        <div class="status-chips">
+          <span class="chip"><span class="dot"></span>Living Room TV</span>
+          <span class="clock" id="clock">--:--</span>
+        </div>
+      </div>
+      <div id="rows"></div>
+      <div class="hint-bar"><span><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> Move</span><span><kbd>Enter</kbd> Select</span><span><kbd>Esc</kbd> Back</span></div>
+    </main>
+
+    <footer class="footer">
+      <span>Demo environment – mock data</span>
+      <span>StreamTV OS 14.2 · home screen served by streamtv-home-api</span>
+    </footer>
+  </div>
+
+  <div class="player" id="player" role="dialog" aria-modal="true" aria-label="Now playing">
+    <div class="scene" id="playerScene"></div>
+    <div class="back">Press Esc to return to Home</div>
+    <div class="hud">
+      <h2 id="playerTitle">Title</h2>
+      <p id="playerSub">Resuming</p>
+      <div class="bar"><i id="playerBar"></i></div>
+      <div class="times"><span id="playerPos">0:00</span><span id="playerDur">0:00</span></div>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var ROW_ORDER = ['continue-watching', 'trending', 'live-tv', 'because-you-watched', 'new-releases'];
+      var state = {
+        profileId: localStorage.getItem('streamtv.profileId') || 'p-maya',
+        profiles: [],
+        rows: [],
+        focus: { area: 'rows', row: 0, col: 0, nav: 0 },
+        cols: {},
+        cwState: 'loading',
+        cwRequest: 0,
+      };
+      var rowsEl = document.getElementById('rows');
+      var navEl = document.getElementById('nav');
+
+      // ---------- helpers ----------
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined) n.textContent = text;
+        return n;
+      }
+      function artStyle(art) { return 'background: linear-gradient(135deg, ' + art[0] + ', ' + art[1] + ')'; }
+      function kindLabel(item) { return item.kind === 'live' ? 'LIVE' : item.kind === 'series' ? 'SERIES' : 'MOVIE'; }
+      function subtitle(item) {
+        if (item.kind === 'live') return 'Ch ' + item.channelNumber + ' · ' + item.channelName;
+        var parts = [];
+        if (item.episodeLabel) parts.push(item.episodeLabel);
+        else parts.push(item.year);
+        if (item.rating) parts.push(item.rating);
+        if (item.durationLabel) parts.push(item.durationLabel);
+        return parts.join(' · ');
+      }
+      function tickClock() {
+        var d = new Date();
+        var h = d.getHours(); var m = d.getMinutes();
+        document.getElementById('clock').textContent = ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + (h < 12 ? ' AM' : ' PM');
+      }
+      tickClock(); setInterval(tickClock, 30000);
+
+      // ---------- rendering ----------
+      function renderTile(item, rowId) {
+        var t = el('div', 'tile');
+        t.setAttribute('role', 'button');
+        t.setAttribute('tabindex', '-1');
+        t.dataset.titleId = item.titleId;
+        t.dataset.row = rowId;
+        var art = el('div', 'art');
+        art.setAttribute('style', artStyle(item.art));
+        var badge = el('span', 'badge' + (item.kind === 'live' ? ' live' : ''), kindLabel(item));
+        art.appendChild(badge);
+        art.appendChild(el('div', 'art-title', item.title));
+        if (typeof item.progressPct === 'number') {
+          var p = el('div', 'progress'); var i = el('i'); i.style.width = item.progressPct + '%'; p.appendChild(i); art.appendChild(p);
+        }
+        t.appendChild(art);
+        var meta = el('div', 'meta');
+        meta.appendChild(el('div', 't', item.title));
+        meta.appendChild(el('div', 's', subtitle(item)));
+        t.appendChild(meta);
+        var overlay = el('div', 'overlay');
+        t.appendChild(overlay);
+        t.setAttribute('aria-label', item.title + ', ' + subtitle(item));
+        return t;
+      }
+
+      function renderRow(row) {
+        var section = el('section', 'row');
+        section.dataset.rowId = row.id;
+        var head = el('div', 'row-head');
+        head.appendChild(el('h2', 'row-title', row.title));
+        var status = el('span', 'row-status'); status.id = 'status-' + row.id;
+        head.appendChild(status);
+        section.appendChild(head);
+        var rail = el('div', 'rail');
+        rail.setAttribute('role', 'list');
+        section.appendChild(rail);
+        fillRail(rail, row);
+        return section;
+      }
+
+      function fillRail(rail, row) {
+        rail.innerHTML = '';
+        (row.items || []).forEach(function (item) { rail.appendChild(renderTile(item, row.id)); });
+      }
+
+      function skeletonRail(rail) {
+        rail.innerHTML = '';
+        for (var i = 0; i < 6; i++) {
+          var t = el('div', 'tile skeleton');
+          t.appendChild(el('div', 'art'));
+          var meta = el('div', 'meta'); meta.appendChild(el('div', 't', 'Loading')); meta.appendChild(el('div', 's', 'Loading'));
+          t.appendChild(meta);
+          rail.appendChild(t);
+        }
+      }
+
+      function retryRail(rail) {
+        rail.innerHTML = '';
+        var t = el('div', 'tile retry');
+        t.setAttribute('role', 'button'); t.setAttribute('tabindex', '-1');
+        t.dataset.action = 'retry-cw'; t.dataset.row = 'continue-watching';
+        var art = el('div', 'art');
+        art.appendChild(el('div', 'art-title', 'Something went wrong. Try again.'));
+        art.appendChild(el('div', 'hint', 'Press Enter to retry'));
+        t.appendChild(art);
+        var meta = el('div', 'meta'); meta.appendChild(el('div', 't', 'Continue Watching')); meta.appendChild(el('div', 's', 'Could not load your shows'));
+        t.appendChild(meta);
+        rail.appendChild(t);
+      }
+
+      function setStatus(rowId, text, kind) {
+        var s = document.getElementById('status-' + rowId);
+        if (!s) return;
+        s.className = 'row-status' + (kind ? ' ' + kind : '');
+        s.innerHTML = '';
+        if (kind === 'loading') s.appendChild(el('span', 'spinner'));
+        s.appendChild(document.createTextNode(text || ''));
+      }
+
+      function renderProfiles() {
+        var group = document.getElementById('profileGroup');
+        Array.prototype.slice.call(group.querySelectorAll('.nav-item')).forEach(function (n) { n.remove(); });
+        state.profiles.forEach(function (p) {
+          var n = el('div', 'nav-item' + (p.id === state.profileId ? ' active' : ''));
+          n.setAttribute('role', 'button'); n.setAttribute('tabindex', '-1');
+          n.dataset.profile = p.id;
+          var av = el('span', 'avatar', p.avatar); av.style.background = p.color;
+          n.appendChild(av);
+          n.appendChild(el('span', '', p.name));
+          if (p.id === state.profileId) n.appendChild(el('span', 'check', 'Current'));
+          group.appendChild(n);
+        });
+      }
+
+      function navItems() { return Array.prototype.slice.call(navEl.querySelectorAll('.nav-item')); }
+      function rowSections() { return Array.prototype.slice.call(rowsEl.querySelectorAll('.row')); }
+      function tilesIn(section) { return Array.prototype.slice.call(section.querySelectorAll('.tile:not(.skeleton)')); }
+
+      // ---------- focus model ----------
+      function clearFocus() {
+        Array.prototype.slice.call(document.querySelectorAll('.focused')).forEach(function (n) { n.classList.remove('focused'); });
+      }
+      function applyFocus() {
+        clearFocus();
+        if (state.focus.area === 'nav') {
+          var items = navItems();
+          state.focus.nav = Math.max(0, Math.min(items.length - 1, state.focus.nav));
+          var n = items[state.focus.nav];
+          if (n) { n.classList.add('focused'); n.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+          return;
+        }
+        var sections = rowSections();
+        if (!sections.length) return;
+        state.focus.row = Math.max(0, Math.min(sections.length - 1, state.focus.row));
+        var section = sections[state.focus.row];
+        var tiles = tilesIn(section);
+        if (!tiles.length) return;
+        var col = state.cols[section.dataset.rowId] || 0;
+        col = Math.max(0, Math.min(tiles.length - 1, col));
+        state.cols[section.dataset.rowId] = col;
+        state.focus.col = col;
+        var tile = tiles[col];
+        tile.classList.add('focused');
+        tile.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        var rect = section.getBoundingClientRect();
+        if (rect.top < 80 || rect.bottom > window.innerHeight - 40) section.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+      function focusedTile() { return rowsEl.querySelector('.tile.focused'); }
+
+      function move(dx, dy) {
+        if (state.focus.area === 'nav') {
+          if (dy) state.focus.nav += dy;
+          if (dx > 0) { state.focus.area = 'rows'; }
+          return applyFocus();
+        }
+        if (dy) { state.focus.row += dy; return applyFocus(); }
+        var section = rowSections()[state.focus.row];
+        if (!section) return;
+        var rowId = section.dataset.rowId;
+        var col = (state.cols[rowId] || 0) + dx;
+        if (col < 0) { state.focus.area = 'nav'; return applyFocus(); }
+        state.cols[rowId] = Math.min(tilesIn(section).length - 1, col);
+        applyFocus();
+      }
+
+      // ---------- data ----------
+      function devinIdentity() {
+        return {
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+      }
+
+      function loadHome() {
+        state.cwState = 'loading';
+        document.getElementById('greeting').innerHTML = 'Home<small>Loading your home screen…</small>';
+        fetch('/api/home/rows?profileId=' + encodeURIComponent(state.profileId))
+          .then(function (r) { if (!r.ok) throw new Error('rows ' + r.status); return r.json(); })
+          .then(function (data) {
+            state.profiles = data.profiles;
+            renderProfiles();
+            var hour = new Date().getHours();
+            var word = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+            document.getElementById('greeting').innerHTML = word + ', ' + data.profile.name + '<small>Pick up where you left off</small>';
+            state.rows = data.rows.slice().sort(function (a, b) { return ROW_ORDER.indexOf(a.id) - ROW_ORDER.indexOf(b.id); });
+            rowsEl.innerHTML = '';
+            state.rows.forEach(function (row) {
+              var section = renderRow(row);
+              rowsEl.appendChild(section);
+              if (row.deferred) {
+                skeletonRail(section.querySelector('.rail'));
+                loadContinueWatching(row.href);
+              }
+            });
+            state.focus = { area: 'rows', row: 0, col: 0, nav: 0 };
+            state.cols = {};
+            applyFocus();
+          })
+          .catch(function () {
+            rowsEl.innerHTML = '';
+            var p = el('p', 'row-status error', 'Something went wrong. Try again.');
+            rowsEl.appendChild(p);
+          });
+      }
+
+      function loadContinueWatching(href) {
+        var section = rowsEl.querySelector('.row[data-row-id="continue-watching"]');
+        if (!section) return;
+        var rail = section.querySelector('.rail');
+        var requestId = ++state.cwRequest;
+        skeletonRail(rail);
+        setStatus('continue-watching', 'Loading your shows…', 'loading');
+        var slow = setTimeout(function () { if (requestId === state.cwRequest) setStatus('continue-watching', 'Still loading…', 'loading'); }, 3000);
+        fetch(href || '/api/home/continue-watching?profileId=' + encodeURIComponent(state.profileId))
+          .then(function (r) { if (!r.ok) throw new Error('continue-watching ' + r.status); return r.json(); })
+          .then(function (data) {
+            if (requestId !== state.cwRequest) return;
+            clearTimeout(slow);
+            fillRail(rail, data.row);
+            setStatus('continue-watching', data.row.items.length ? '' : 'Nothing in progress yet');
+            state.cwState = 'ready';
+            if (state.focus.area === 'rows' && state.focus.row === 0) applyFocus();
+          })
+          .catch(function () {
+            if (requestId !== state.cwRequest) return;
+            clearTimeout(slow);
+            retryRail(rail);
+            setStatus('continue-watching', 'Something went wrong. Try again.', 'error');
+            state.cwState = 'error';
+            if (state.focus.area === 'rows' && state.focus.row === 0) applyFocus();
+          });
+      }
+
+      function switchProfile(profileId) {
+        if (profileId === state.profileId) { state.focus = { area: 'rows', row: 0, col: 0, nav: 0 }; return applyFocus(); }
+        state.profileId = profileId;
+        localStorage.setItem('streamtv.profileId', profileId);
+        loadHome();
+      }
+
+      // ---------- playback ----------
+      var player = document.getElementById('player');
+      var playerTimer = null;
+      function openPlayer(result, item) {
+        document.getElementById('playerTitle').textContent = result.title;
+        document.getElementById('playerSub').textContent = result.resumeLabel + (item && item.subtitle ? ' · ' + item.subtitle : '');
+        document.getElementById('playerScene').setAttribute('style', item && item.art ? artStyle(item.art) : (item && item.artStyle) || '');
+        var pos = result.resumeFromSec || 0;
+        document.getElementById('playerPos').textContent = clock(pos);
+        document.getElementById('playerDur').textContent = item && item.durationLabel ? item.durationLabel : '';
+        var bar = document.getElementById('playerBar');
+        bar.style.transition = 'none'; bar.style.width = (item && item.progressPct ? item.progressPct : 0) + '%';
+        player.classList.add('open');
+        requestAnimationFrame(function () { bar.style.transition = 'width 6s linear'; bar.style.width = Math.min(100, (item && item.progressPct ? item.progressPct : 0) + 4) + '%'; });
+        clearTimeout(playerTimer);
+        playerTimer = setTimeout(closePlayer, 6500);
+      }
+      function closePlayer() { clearTimeout(playerTimer); player.classList.remove('open'); applyFocus(); }
+      function clock(sec) {
+        var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+        var mm = (m < 10 && h ? '0' : '') + m, ss = (s < 10 ? '0' : '') + s;
+        return h ? h + ':' + mm + ':' + ss : m + ':' + ss;
+      }
+
+      function startPlayback(tile) {
+        if (tile.classList.contains('busy')) return;
+        var rowId = tile.dataset.row;
+        var row = state.rows.filter(function (r) { return r.id === rowId; })[0];
+        var item = null;
+        if (row && row.items) item = row.items.filter(function (i) { return i.titleId === tile.dataset.titleId; })[0];
+        if (!item) {
+          var artEl = tile.querySelector('.art');
+          item = { titleId: tile.dataset.titleId, title: tile.querySelector('.art-title').textContent, subtitle: tile.querySelector('.meta .s').textContent, art: null };
+          if (artEl) item.artStyle = artEl.getAttribute('style');
+        } else {
+          item.subtitle = subtitle(item);
+        }
+        tile.classList.remove('failed');
+        tile.classList.add('busy');
+        var overlay = tile.querySelector('.overlay');
+        overlay.innerHTML = '';
+        overlay.appendChild(el('span', 'spinner lg'));
+        var body = Object.assign({ profileId: state.profileId, titleId: tile.dataset.titleId, row: rowId }, devinIdentity());
+        fetch('/api/playback/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function (r) { if (!r.ok) throw new Error('playback ' + r.status); return r.json(); })
+          .then(function (result) {
+            tile.classList.remove('busy');
+            openPlayer(result, item);
+          })
+          .catch(function () {
+            tile.classList.remove('busy');
+            tile.classList.add('failed');
+            overlay.innerHTML = '';
+            overlay.appendChild(document.createTextNode('Something went wrong. Try again.'));
+            overlay.appendChild(el('small', '', 'Press Enter to retry'));
+          });
+      }
+
+      // ---------- activation ----------
+      function activate() {
+        if (player.classList.contains('open')) return closePlayer();
+        if (state.focus.area === 'nav') {
+          var n = navItems()[state.focus.nav];
+          if (!n) return;
+          if (n.dataset.profile) return switchProfile(n.dataset.profile);
+          navItems().forEach(function (x) { if (x.dataset.nav) x.classList.toggle('active', x === n); });
+          var target = n.dataset.nav === 'live-tv' ? 'live-tv' : 'continue-watching';
+          var idx = rowSections().map(function (s) { return s.dataset.rowId; }).indexOf(target);
+          state.focus = { area: 'rows', row: idx < 0 ? 0 : idx, col: 0, nav: state.focus.nav };
+          return applyFocus();
+        }
+        var tile = focusedTile();
+        if (!tile) return;
+        if (tile.dataset.action === 'retry-cw') return loadContinueWatching();
+        startPlayback(tile);
+      }
+
+      document.addEventListener('keydown', function (e) {
+        var k = e.key;
+        if (k === 'Escape' || k === 'Backspace') {
+          if (player.classList.contains('open')) { e.preventDefault(); closePlayer(); }
+          else if (state.focus.area === 'rows') { e.preventDefault(); state.focus.area = 'nav'; applyFocus(); }
+          return;
+        }
+        if (k === 'ArrowLeft') { e.preventDefault(); move(-1, 0); }
+        else if (k === 'ArrowRight') { e.preventDefault(); move(1, 0); }
+        else if (k === 'ArrowUp') { e.preventDefault(); move(0, -1); }
+        else if (k === 'ArrowDown') { e.preventDefault(); move(0, 1); }
+        else if (k === 'Enter' || k === ' ') { e.preventDefault(); activate(); }
+      });
+
+      document.addEventListener('click', function (e) {
+        if (player.classList.contains('open')) return closePlayer();
+        var nav = e.target.closest('.nav-item');
+        if (nav) {
+          state.focus.area = 'nav';
+          state.focus.nav = navItems().indexOf(nav);
+          applyFocus();
+          return activate();
+        }
+        var tile = e.target.closest('.tile');
+        if (tile && !tile.classList.contains('skeleton')) {
+          var section = tile.closest('.row');
+          state.focus.area = 'rows';
+          state.focus.row = rowSections().indexOf(section);
+          state.cols[section.dataset.rowId] = tilesIn(section).indexOf(tile);
+          applyFocus();
+          activate();
+        }
+      });
+
+      loadHome();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

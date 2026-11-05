@@ -8719,6 +8719,28 @@ const ONCALL_SKINS = {
     supportCenter: 'Dun & Bradstreet Customer Service',
     disclaimer: 'NOT ACTUALLY A DUN & BRADSTREET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dun & Bradstreet or D&B Finance Analytics product.',
   },
+  '6217a32d': {
+    slug: '6217a32d',
+    company: 'Roku',
+    brandMark: 'S',
+    vertical: 'streamtv',
+    oncallOnly: true,
+    paths: ['/streamtv'],
+    alertDestination: 'slack',
+    page: { file: '6217a32d.html', title: 'Home | StreamTV' },
+    devinSession: {
+      promptAppendix: 'Expected from the responder: root cause with the culprit commit (use git log / git blame on streamtv-home-api), a fix, a regression test that guards the latency budget, a PR with before/after p95 and the test output, and a reply in this thread. Keep the summary short and in plain English; it is shown on a TV screen.',
+    },
+    theme: {
+      '--accent': '#6F2DBD',
+      '--ink': '#1A0A2E',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#19002D',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'StreamTV Support',
+    disclaimer: 'NOT ACTUALLY A ROKU SITE — internal demo only, not affiliated with, endorsed by, or a real Roku product. StreamTV is a mock service with mock data.',
+  },
 };
 
 function getOncallSkin(slug) {
