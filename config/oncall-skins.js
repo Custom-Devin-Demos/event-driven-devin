@@ -8460,6 +8460,37 @@ const ONCALL_SKINS = {
     supportCenter: 'Emirates NBD Customer Care',
     disclaimer: 'NOT ACTUALLY AN EMIRATES NBD SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Emirates NBD or ENBD X product.',
   },
+  '6b43089d': {
+    slug: '6b43089d',
+    company: 'Turkish Airlines',
+    brandMark: 'T',
+    vertical: 'rebooking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '6b43089d.html', title: 'Flight selection | Turkish Airlines' },
+    alertCard: {
+      title: 'Book a flight: 504 timeouts on Continue (POST /api/oncall/rebooking/rebook)',
+      service: 'flight-booking-api',
+      release: 'flight-booking@5.2.0',
+      team: 'flight-booking-oncall',
+      metricQuery: 'p95:demo.rebooking.rebook.latency{route:/api/oncall/rebooking/rebook}',
+      metricValue: '8.0s (504 on every Continue from Flight selection)',
+      threshold: '> 2s',
+      baseline: '~640ms (7-day p95)',
+      symptom: 'Continue on Flight selection hangs ~8s and fails with 504 Gateway Timeout for every flight and fare (EcoFly, ExtraFly, PrimeFly, Business). Search results and fare prices load normally. Onset coincides with the flight-booking 5.2.0 release.',
+      impact: 'Customers booking Istanbul\u2013London on turkishairlines.com cannot get past Flight selection; every Continue waits about 8 seconds and fails, so bookings are abandoned or move to the Call Center.',
+    },
+    theme: {
+      '--accent': '#E81932',
+      '--ink': '#232B38',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#232B38',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Turkish Airlines Call Center',
+    supportCenterSub: 'Flight booking',
+    disclaimer: 'NOT ACTUALLY A TURKISH AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Turkish Airlines product.',
+  },
 };
 
 function getOncallSkin(slug) {

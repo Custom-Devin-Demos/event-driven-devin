@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight selection | Turkish Airlines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #E81932; --accent-dark: #C8102E; --ink: #232B38; --surface: #FFFFFF; --chrome-bg: #232B38; --chrome-text: #FFFFFF;
+      --strip: #181C23; --text: #1B1F27; --muted: #647281; --line: #DDE2E8; --soft: #F4F5F8; --nav: #C3CBD7;
+      --ok: #13784A; --ok-bg: #E3F4EB; --danger-bg: #FDECEE;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--soft); color: var(--text); font: 16px/1.5 'Nunito Sans', 'museoSans', 'Segoe UI', Arial, sans-serif; }
+    a { color: var(--accent); text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    .spin { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Header */
+    .strip { background: var(--strip); color: var(--nav); font-size: 11px; }
+    .strip-in { height: 28px; display: flex; justify-content: flex-end; align-items: center; }
+    .strip a { color: var(--nav); padding: 0 10px; border-left: 1px solid #3A4352; line-height: 12px; }
+    .topbar { background: var(--chrome-bg); color: var(--chrome-text); }
+    .topbar-in { height: 62px; display: flex; align-items: center; gap: 20px; }
+    .brand { display: flex; align-items: center; min-height: 44px; gap: 10px; color: #fff; font-weight: 800; font-size: 18px; letter-spacing: .02em; white-space: nowrap; }
+    .brand svg { width: 30px; height: 30px; flex: none; }
+    .nav { margin-left: auto; display: flex; align-items: center; }
+    .nav a { color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .02em; padding: 0 14px; border-left: 1px solid #3A4352; line-height: 14px; }
+    .nav a:first-child { border-left: 0; }
+    .signin { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-left: 14px; border: 1px solid #8792A2; border-radius: 20px; padding: 0 14px; color: #fff; font-size: 12px; font-weight: 800; }
+    .signin small { display: block; font-size: 10px; color: var(--nav); font-weight: 400; line-height: 1.1; }
+    /* Search summary */
+    .search { background: #2E3848; color: #fff; }
+    .search-in { display: flex; align-items: center; gap: 12px 28px; padding: 14px 0; flex-wrap: wrap; }
+    .search .od { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; }
+    .search .od small { display: block; font-size: 12px; color: var(--nav); font-weight: 400; line-height: 1.2; }
+    .search .od .arr { color: var(--nav); font-weight: 300; }
+    .search .meta { display: flex; gap: 6px 22px; flex-wrap: wrap; font-size: 14px; color: #E4E8EE; }
+    .search .meta b { color: #fff; }
+    .edit { margin-left: auto; min-height: 44px; padding: 0 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,.6); background: transparent; color: #fff; font-weight: 700; font-size: 14px; }
+    /* Steps */
+    .steps { background: #fff; border-bottom: 1px solid var(--line); }
+    .steps ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 0; overflow-x: auto; }
+    .steps li { display: flex; align-items: center; gap: 8px; padding: 14px 20px 12px 0; margin-right: 20px; font-size: 14px; color: var(--muted); font-weight: 700; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .steps li .n { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #A9B3C0; display: grid; place-items: center; font-size: 12px; }
+    .steps li.on { color: var(--ink); border-bottom-color: var(--accent); }
+    .steps li.on .n { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .steps li.done { color: var(--ok); }
+    .steps li.done .n { background: var(--ok); border-color: var(--ok); color: #fff; }
+    /* Layout */
+    main { padding: 24px 0 56px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+    h1 { margin: 0 0 4px; font-size: 24px; font-weight: 700; color: var(--ink); }
+    .sub { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+    /* Date ribbon */
+    .dates { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #fff; border: 1px solid var(--line); border-radius: 4px; margin-bottom: 16px; overflow: hidden; }
+    .date { min-height: 64px; border: 0; border-left: 1px solid var(--line); background: #fff; color: var(--ink); padding: 8px 6px; text-align: center; font-size: 13px; line-height: 1.3; }
+    .date:first-child { border-left: 0; }
+    .date b { display: block; font-size: 15px; }
+    .date span { color: var(--muted); }
+    .date.on { background: var(--ink); color: #fff; box-shadow: inset 0 -3px 0 var(--accent); }
+    .date.on span { color: var(--nav); }
+    /* Flights */
+    .legend { display: grid; grid-template-columns: minmax(0, 1fr) 150px 150px; gap: 10px; padding: 0 0 8px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .legend span:not(:first-child) { text-align: center; }
+    .flights { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+    .flight { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 1px 3px rgba(35,43,56,.06); }
+    .flight.picked { border-color: var(--ink); box-shadow: 0 0 0 2px rgba(35,43,56,.12); }
+    .frow { display: grid; grid-template-columns: minmax(0, 1fr) 150px 150px; gap: 10px; align-items: stretch; padding: 14px; }
+    .times { display: flex; align-items: center; gap: 14px; font-variant-numeric: tabular-nums; }
+    .times .pt b { display: block; font-size: 22px; color: var(--ink); font-weight: 700; line-height: 1.1; }
+    .times .pt span { font-size: 13px; color: var(--muted); }
+    .times .line { flex: 1; min-width: 40px; border-top: 1px dashed #A9B3C0; position: relative; text-align: center; }
+    .times .line em { position: relative; top: -11px; background: var(--surface); padding: 0 8px; font-style: normal; font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .finfo { margin-top: 8px; font-size: 13px; color: var(--muted); }
+    .finfo b { color: var(--ink); }
+    .cabin { min-height: 64px; border: 1px solid var(--line); border-radius: 4px; background: #FAFBFC; color: var(--ink); padding: 8px; text-align: center; line-height: 1.25; }
+    .cabin small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; }
+    .cabin b { display: block; font-size: 18px; }
+    .cabin em { display: block; font-style: normal; font-size: 11px; color: var(--accent-dark); font-weight: 700; }
+    .cabin:hover:not(:disabled) { border-color: #AEB8C6; }
+    .cabin.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .cabin.on small { color: var(--nav); }
+    .cabin.on em { color: #FFB3BD; }
+    .fares { border-top: 1px solid var(--line); padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 12px; background: #FAFBFC; }
+    .fare { border: 1px solid var(--line); border-radius: 4px; background: #fff; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .fare.on { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232,25,50,.15); }
+    .fare h3 { margin: 0; font-size: 16px; color: var(--ink); }
+    .fare ul { margin: 0; padding: 0 0 0 18px; font-size: 13px; color: var(--muted); flex: 1; }
+    .fare .price { font-size: 20px; font-weight: 800; color: var(--ink); }
+    .fare .price small { font-size: 12px; font-weight: 400; color: var(--muted); }
+    .pick { min-height: 44px; border-radius: 4px; border: 1px solid var(--accent); background: #fff; color: var(--accent); font-weight: 700; font-size: 14px; }
+    .fare.on .pick { background: var(--accent); color: #fff; }
+    /* Summary */
+    .summary { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 1px 3px rgba(35,43,56,.06); position: sticky; top: 16px; }
+    .summary h2 { margin: 0; padding: 14px 16px; font-size: 17px; color: var(--ink); border-bottom: 1px solid var(--line); }
+    .sbody { padding: 14px 16px 16px; font-size: 14px; }
+    .sline { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+    .sline span { color: var(--muted); }
+    .sline b { color: var(--ink); text-align: right; }
+    .stotal { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
+    .stotal span { font-weight: 700; color: var(--ink); }
+    .stotal b { font-size: 24px; color: var(--ink); }
+    .empty { color: var(--muted); margin: 0; }
+    .cta { width: 100%; min-height: 48px; margin-top: 14px; border: 0; border-radius: 4px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .cta:hover:not(:disabled) { background: var(--accent-dark); }
+    .cta:disabled { opacity: .55; }
+    .cta.busy:disabled { opacity: 1; }
+    .note { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+    .result-box { display: none; margin-top: 12px; padding: 12px 14px; border-radius: 4px; font-size: 14px; }
+    .result-box.success { display: block; background: var(--ok-bg); border-left: 4px solid var(--ok); color: #0E4A2F; }
+    .result-box.notice { display: block; background: var(--danger-bg); border-left: 4px solid var(--accent); color: #4A2027; }
+    .cabin:focus-visible, .pick:focus-visible, .cta:focus-visible, .date:focus-visible, .edit:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .contact { position: fixed; right: 0; top: 46%; z-index: 40; background: #1F4E79; color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); padding: 14px 10px; font-size: 13px; font-weight: 700; border-radius: 0 4px 4px 0; min-width: 44px; }
+    footer { background: var(--strip); color: #fff; padding: 22px 0; font-size: 12px; }
+    footer .container { display: flex; justify-content: center; gap: 28px 64px; flex-wrap: wrap; }
+    footer a, footer span { color: #fff; display: inline-flex; align-items: center; min-height: 44px; }
+    @media (max-width: 960px) {
+      .nav a { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .summary { position: static; }
+    }
+    @media (max-width: 640px) {
+      .strip-in a:not(:last-child) { display: none; }
+      .strip-in { height: 44px; }
+      .strip a { display: inline-flex; align-items: center; min-height: 44px; }
+      .brand { font-size: 15px; }
+      .signin small { display: none; }
+      .search .od { font-size: 17px; }
+      .edit { margin-left: 0; }
+      .dates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .dates .date:nth-child(1), .dates .date:nth-child(5) { display: none; }
+      .dates .date:nth-child(2) { border-left: 0; }
+      .legend { display: none; }
+      .frow { grid-template-columns: 1fr 1fr; }
+      .frow .fmain { grid-column: 1 / -1; }
+      h1 { font-size: 21px; }
+      .contact { display: none; }
+      footer .container { gap: 14px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="strip"><div class="container strip-in"><a href="#">Turkish Airlines Holidays</a><a href="#">Corporate Club</a><a href="#">Search</a><a href="#">EN-INT</a></div></div>
+  <header class="topbar">
+    <div class="container topbar-in">
+      <a class="brand" href="#" aria-label="Home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#E81932"/><path d="M9 11.5h14v3h-5.4V24h-3.2v-9.5H9z" fill="#fff"/></svg>
+        TURKISH AIRLINES
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#">BOOK&amp;MANAGE</a><a href="#">EXPERIENCE</a><a href="#">DEALS</a><a href="#">DESTINATIONS</a><a href="#">MILES&amp;SMILES</a><a href="#">HELP</a>
+      </nav>
+      <a class="signin" href="#"><span>SIGN IN<small>or sign up</small></span></a>
+    </div>
+  </header>
+
+  <section class="search" aria-label="Your search">
+    <div class="container search-in">
+      <div class="od"><span><small>From</small>Istanbul (IST)</span><span class="arr" aria-hidden="true">→</span><span><small>To</small>London (LHR)</span></div>
+      <div class="meta"><span><b>Fri 20 Nov 2026</b></span><span>One way</span><span>1 Adult</span></div>
+      <button type="button" class="edit">Edit search</button>
+    </div>
+  </section>
+
+  <nav class="steps" aria-label="Booking steps">
+    <div class="container">
+      <ol id="steps">
+        <li class="on" id="step1"><span class="n">1</span>Flight selection</li>
+        <li id="step2"><span class="n">2</span>Passenger information</li>
+        <li><span class="n">3</span>Extra services</li>
+        <li><span class="n">4</span>Payment</li>
+      </ol>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container layout">
+      <section aria-labelledby="selHead">
+        <h1 id="selHead">Select your departure flight</h1>
+        <p class="sub">Istanbul (IST) → London Heathrow (LHR) · prices are per passenger, including taxes and fees</p>
+        <div class="dates" role="group" aria-label="Departure date">
+          <button type="button" class="date"><b>Wed 18 Nov</b><span>€209</span></button>
+          <button type="button" class="date"><b>Thu 19 Nov</b><span>€199</span></button>
+          <button type="button" class="date on" aria-pressed="true"><b>Fri 20 Nov</b><span>€189</span></button>
+          <button type="button" class="date"><b>Sat 21 Nov</b><span>€229</span></button>
+          <button type="button" class="date"><b>Sun 22 Nov</b><span>€249</span></button>
+        </div>
+        <div class="legend" aria-hidden="true"><span>Flight</span><span>Economy</span><span>Business</span></div>
+        <ul class="flights" id="flights" aria-label="Available flights"></ul>
+      </section>
+
+      <aside>
+        <form class="summary" id="bookingForm" aria-labelledby="sumHead" novalidate>
+          <h2 id="sumHead">Your selection</h2>
+          <div class="sbody">
+            <div id="summary"></div>
+            <button type="submit" class="cta" id="submitBtn" disabled>Continue</button>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <p class="note">You can review baggage and seat options in the next steps. Payment is taken at the end of your booking.</p>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </main>
+
+  <a class="contact" href="#">Contact Us</a>
+
+  <footer><div class="container"><a href="#">Accessibility</a><a href="#">Privacy &amp; Cookies Policy</a><a href="#">Legal Notice</a><a href="#">Passenger Rights</a><span>Turkish Airlines Copyright © 1996 - 2026</span></div></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const FARES = {
+        economy: [
+          { key: 'ecofly', name: 'EcoFly', perks: ['1 × 20 kg checked baggage', 'Seat selection for a fee', 'Changes for a fee', 'Non-refundable'] },
+          { key: 'extrafly', name: 'ExtraFly', perks: ['1 × 25 kg checked baggage', 'Free standard seat selection', 'Free changes (fare difference applies)', 'Refundable for a fee'] },
+          { key: 'primefly', name: 'PrimeFly', perks: ['1 × 30 kg checked baggage', 'Free seat selection', 'Free changes (fare difference applies)', 'Free refund'] },
+        ],
+        business: [
+          { key: 'business', name: 'Business', perks: ['2 × 32 kg checked baggage', 'Lounge access', 'Priority check-in and boarding', 'Free changes (fare difference applies)'] },
+        ],
+      };
+      // id is the flight's key in the booking service; everything else is display.
+      const FLIGHTS = [
+        { id: 'AF1280', flight: 'TK 1979', departs: '07:35', arrives: '09:50', aircraft: 'Airbus A321neo', seatsLeft: 4, prices: { ecofly: 189, extrafly: 239, primefly: 319, business: 749 } },
+        { id: 'BA0303', flight: 'TK 1983', departs: '11:50', arrives: '14:05', aircraft: 'Boeing 777-300ER', seatsLeft: 7, prices: { ecofly: 209, extrafly: 259, primefly: 339, business: 789 } },
+        { id: 'AF1080', flight: 'TK 1971', departs: '16:40', arrives: '18:55', aircraft: 'Airbus A330-300', seatsLeft: 9, prices: { ecofly: 199, extrafly: 249, primefly: 329, business: 769 } },
+        { id: 'BA0309', flight: 'TK 1987', departs: '19:05', arrives: '21:20', aircraft: 'Boeing 787-9', seatsLeft: 2, prices: { ecofly: 229, extrafly: 279, primefly: 359, business: 829 } },
+      ];
+      const state = { open: null, selected: null, inFlight: false, confirmed: false };
+      const euro = (n) => '€' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const locked = () => state.inFlight || state.confirmed;
+      const fareOf = (key) => FARES.economy.concat(FARES.business).find((f) => f.key === key);
+      const cabinOf = (key) => (key === 'business' ? 'Business' : 'Economy');
+
+      function renderFlights() {
+        $('flights').innerHTML = FLIGHTS.map((f) => {
+          const sel = state.selected && state.selected.flightId === f.id ? state.selected : null;
+          const open = state.open && state.open.flightId === f.id ? state.open.cabin : null;
+          const dis = locked() ? 'disabled' : '';
+          const cabinBtn = (cabin, from) => `
+            <button type="button" class="cabin ${open === cabin ? 'on' : ''}" data-flight="${f.id}" data-cabin="${cabin}" aria-expanded="${open === cabin}" ${dis}>
+              <small>${cabin === 'business' ? 'Business' : 'Economy'}</small><b>${euro(from)}</b>${cabin === 'economy' && f.seatsLeft <= 4 ? `<em>${f.seatsLeft} seats left</em>` : ''}
+            </button>`;
+          const fares = open ? `
+            <div class="fares">${FARES[open].map((fare) => {
+              const on = sel && sel.fareKey === fare.key;
+              return `
+              <div class="fare ${on ? 'on' : ''}">
+                <h3>${fare.name}</h3>
+                <ul>${fare.perks.map((p) => `<li>${p}</li>`).join('')}</ul>
+                <div class="price">${euro(f.prices[fare.key])} <small>per passenger</small></div>
+                <button type="button" class="pick" data-flight="${f.id}" data-fare="${fare.key}" aria-pressed="${on}" ${dis}>${on ? 'Selected' : 'Select'}</button>
+              </div>`;
+            }).join('')}</div>` : '';
+          return `
+            <li class="flight ${sel ? 'picked' : ''}">
+              <div class="frow">
+                <div class="fmain">
+                  <div class="times">
+                    <div class="pt"><b>${f.departs}</b><span>IST</span></div>
+                    <div class="line"><em>4h 15m · Direct</em></div>
+                    <div class="pt"><b>${f.arrives}</b><span>LHR</span></div>
+                  </div>
+                  <div class="finfo"><b>${f.flight}</b> · ${f.aircraft} · Operated by Turkish Airlines</div>
+                </div>
+                ${cabinBtn('economy', f.prices.ecofly)}
+                ${cabinBtn('business', f.prices.business)}
+              </div>
+              ${fares}
+            </li>`;
+        }).join('');
+      }
+
+      function renderSummary() {
+        const sel = state.selected;
+        const btn = $('submitBtn');
+        if (!sel) {
+          $('summary').innerHTML = '<p class="empty">Choose a flight and a fare to see your total.</p>';
+        } else {
+          const f = FLIGHTS.find((x) => x.id === sel.flightId);
+          const fare = fareOf(sel.fareKey);
+          const price = f.prices[sel.fareKey];
+          $('summary').innerHTML = `
+            <div class="sline"><span>Flight</span><b>${esc(f.flight)} · Fri 20 Nov</b></div>
+            <div class="sline"><span>Route</span><b>IST ${esc(f.departs)} → LHR ${esc(f.arrives)}</b></div>
+            <div class="sline"><span>Cabin</span><b>${cabinOf(sel.fareKey)} · ${esc(fare.name)}</b></div>
+            <div class="sline"><span>Passengers</span><b>1 Adult</b></div>
+            <div class="stotal"><span>Total price</span><b>${euro(price)}</b></div>`;
+        }
+        btn.disabled = !sel || locked();
+        btn.classList.toggle('busy', state.inFlight);
+        btn.innerHTML = state.inFlight ? '<span class="spin" aria-hidden="true"></span>Confirming your flight…' : state.confirmed ? 'Flight confirmed' : 'Continue';
+      }
+
+      function render() { renderFlights(); renderSummary(); }
+
+      function clearResult() {
+        $('result').className = 'result-box';
+        $('result').textContent = '';
+      }
+
+      $('flights').addEventListener('click', (event) => {
+        if (locked()) return;
+        const cabin = event.target.closest('button.cabin');
+        if (cabin) {
+          const same = state.open && state.open.flightId === cabin.dataset.flight && state.open.cabin === cabin.dataset.cabin;
+          state.open = same ? null : { flightId: cabin.dataset.flight, cabin: cabin.dataset.cabin };
+          render();
+          return;
+        }
+        const pick = event.target.closest('button.pick');
+        if (pick) {
+          state.selected = { flightId: pick.dataset.flight, fareKey: pick.dataset.fare };
+          clearResult();
+          render();
+        }
+      });
+
+      $('bookingForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!state.selected || locked()) return;
+        const f = FLIGHTS.find((x) => x.id === state.selected.flightId);
+        const fare = fareOf(state.selected.fareKey);
+        state.inFlight = true;
+        clearResult();
+        render();
+        const result = $('result');
+        try {
+          const response = await fetch('/api/egencia/rebook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alternativeId: f.id, action: 'rebook' }),
+          });
+          let data = null;
+          try { data = await response.json(); } catch (_e) { data = null; }
+          if (!response.ok || !data || !data.success) {
+            const err = new Error('We could not confirm your flight.');
+            err.status = response.status;
+            throw err;
+          }
+          state.confirmed = true;
+          $('step1').className = 'done';
+          $('step2').className = 'on';
+          result.className = 'result-box success';
+          result.innerHTML = `<strong>Your flight is confirmed.</strong> ${esc(f.flight)}, ${cabinOf(state.selected.fareKey)} ${esc(fare.name)}, ${euro(f.prices[state.selected.fareKey])}. Next, enter passenger information.`;
+        } catch (error) {
+          result.className = 'result-box notice';
+          result.innerHTML = error.status === 504
+            ? `<strong>We couldn't confirm your flight right now.</strong> Nothing has been booked or charged. Please try again in a few minutes, or contact the Turkish Airlines Call Center to book ${esc(f.flight)}.`
+            : '<strong>We couldn\'t confirm your flight.</strong> Nothing has been booked or charged. Please try again.';
+        } finally {
+          state.inFlight = false;
+          render();
+        }
+      });
+
+      render();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
