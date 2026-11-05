@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Checkout | Wonder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --forest: #044123; --deep: #00271A; --leaf: #12934A; --cream: #FCF7ED; --mint: #E6F1DD; --butter: #FFEECD; --line: #E7DFCF; --muted: #6E6763; --accent: var(--forest); --ink: #231F20; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Outfit, Arial, sans-serif; font-size: 16px; color: var(--ink); background: var(--cream); -webkit-font-smoothing: antialiased; }
+    a { color: var(--forest); }
+    .serif { font-family: Fraunces, Georgia, serif; font-weight: 400; }
+    .promo { background: var(--butter); text-align: center; font-size: 14px; font-weight: 500; padding: 9px 16px; color: var(--ink); }
+    .promo b { letter-spacing: .06em; }
+    .top { display: flex; align-items: center; gap: 32px; padding: 14px 40px; background: var(--cream); border-bottom: 1px solid var(--line); }
+    .wordmark { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 32px; letter-spacing: -1px; color: var(--forest); text-decoration: none; line-height: 1; min-height: 44px; display: inline-flex; align-items: center; }
+    .top nav { display: flex; gap: 28px; flex: 1; justify-content: flex-end; }
+    .top nav a { color: var(--ink); text-decoration: none; font-weight: 500; font-size: 17px; min-height: 44px; display: inline-flex; align-items: center; }
+    .acct { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 500; font-size: 15px; color: var(--ink); }
+    .acct .av { width: 36px; height: 36px; border-radius: 50%; background: var(--forest); color: #fff; display: grid; place-items: center; font-weight: 600; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 28px; border-radius: 5px; border: 0; background: var(--forest); color: #fff; font: 500 18px Outfit, Arial, sans-serif; cursor: pointer; text-decoration: none; }
+    .btn:hover { background: var(--deep); }
+    .btn:disabled { opacity: .65; cursor: progress; }
+    .btn.ghost { background: #fff; color: var(--forest); box-shadow: inset 0 0 0 1.5px var(--forest); }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--leaf); outline-offset: 2px; }
+    .head { max-width: 1200px; margin: 0 auto; padding: 32px 24px 0; }
+    .eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--forest); margin: 0 0 8px; }
+    .head h1 { font-family: Fraunces, Georgia, serif; font-weight: 400; font-size: 46px; line-height: 1.1; margin: 0; color: var(--ink); }
+    .head p { margin: 10px 0 0; font-size: 17px; color: var(--muted); }
+    main { max-width: 1200px; margin: 24px auto 64px; padding: 0 24px; display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 28px; align-items: start; }
+    .card { background: #fff; border-radius: 12px; padding: 28px; border: 1px solid var(--line); }
+    .card + .card { margin-top: 20px; }
+    h2 { font-family: Fraunces, Georgia, serif; font-weight: 400; font-size: 28px; margin: 0 0 4px; color: var(--ink); }
+    .sub { margin: 0 0 18px; font-size: 15px; color: var(--muted); }
+    .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--mint); color: var(--forest); font-size: 13px; font-weight: 600; border-radius: 999px; padding: 4px 12px; margin-bottom: 16px; }
+    .item { display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+    .item:first-of-type { border-top: 0; }
+    .thumb { width: 88px; height: 72px; border-radius: 8px; overflow: hidden; background: var(--mint); display: grid; place-items: center; color: var(--forest); font: 600 12px Outfit, sans-serif; text-align: center; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .item .rest { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--leaf); margin: 0 0 2px; }
+    .item h3 { margin: 0 0 2px; font-size: 17px; font-weight: 600; }
+    .item p.price { margin: 0; font-size: 14px; color: var(--muted); }
+    .qty { display: flex; align-items: center; gap: 6px; }
+    .qty button { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--forest); background: #fff; color: var(--forest); font-size: 20px; font-weight: 600; cursor: pointer; }
+    .qty button:disabled { opacity: .35; cursor: not-allowed; }
+    .qty output { min-width: 26px; text-align: center; font-weight: 600; font-size: 17px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 48px; border: 1px solid #CFC6B5; border-radius: 5px; padding: 0 14px; font: 400 16px Outfit, Arial, sans-serif; color: var(--ink); background: #fff; }
+    .field input[readonly] { background: var(--cream); font-weight: 600; }
+    .help { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .summary { position: sticky; top: 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 26px; }
+    .summary h2 { font-size: 24px; }
+    .summary dl { margin: 14px 0 18px; display: grid; grid-template-columns: 1fr auto; gap: 10px 0; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; font-weight: 600; }
+    .summary dd.free { color: var(--leaf); }
+    .summary .total { border-top: 1px solid var(--line); padding-top: 12px; font-size: 18px; color: var(--ink); }
+    .summary .actions { display: grid; gap: 10px; }
+    .summary .actions .btn { width: 100%; }
+    .eta { display: flex; gap: 10px; align-items: center; background: var(--mint); border-radius: 8px; padding: 12px 14px; font-size: 14px; margin-top: 4px; }
+    .eta b { color: var(--forest); }
+    .wallet { font-size: 13px; color: var(--muted); margin: 14px 0 0; padding: 12px; background: var(--cream); border-radius: 8px; }
+    .wallet div { display: flex; justify-content: space-between; margin: 3px 0; }
+    .wallet b { color: var(--ink); }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--forest); }
+    .stopwatch.done .sw-value { color: #B3261E; }
+    .status { font-size: 13px; color: var(--muted); margin: 10px 0 0; text-align: center; }
+    .result-box { display: none; margin-top: 14px; border-radius: 8px; padding: 14px 16px; font-size: 15px; line-height: 1.45; }
+    .result-box.success { display: block; background: var(--mint); color: var(--forest); }
+    .result-box.notice { display: block; background: #FBE9E7; color: #8C1D18; }
+    footer { background: var(--deep); color: #fff; padding: 48px 40px 0; font-size: 14px; overflow: hidden; }
+    footer .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; }
+    footer h4 { margin: 0 0 12px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    footer a { display: flex; align-items: center; min-height: 44px; color: rgba(255,255,255,.85); text-decoration: none; }
+    footer .legal { max-width: 1200px; margin: 32px auto 0; font-size: 12px; color: rgba(255,255,255,.7); text-align: right; }
+    footer .giant { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: clamp(96px, 22vw, 320px); line-height: .8; letter-spacing: -6px; color: rgba(255,255,255,.06); text-align: center; margin: 24px 0 -24px; user-select: none; }
+    @media (max-width: 960px) { main { grid-template-columns: minmax(0, 1fr); } .summary { position: static; } .top nav { display: none; } .acct { margin-left: auto; } }
+    @media (max-width: 600px) {
+      .top, footer { padding-left: 16px; padding-right: 16px; }
+      .acct .nm { display: none; }
+      .head h1 { font-size: 34px; }
+      .card, .summary { padding: 18px; }
+      .item { grid-template-columns: 64px minmax(0, 1fr); }
+      .thumb { width: 64px; height: 56px; }
+      .item .qty { grid-column: 1 / -1; justify-content: flex-end; }
+      .row2 { grid-template-columns: 1fr; }
+      footer .cols { grid-template-columns: 1fr 1fr; }
+      footer .giant { letter-spacing: -3px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="promo"><b>ALL YOUR CRAVINGS. $0 DELIVERY FEES.</b></div>
+  <header class="top">
+    <a class="wordmark" href="#" aria-label="Wonder home">wonder</a>
+    <nav aria-label="Main"><a href="#">Restaurants</a><a href="#">Locations</a><a href="#">Wonder+</a><a href="#">Gift Cards</a></nav>
+    <span class="acct"><span class="av" aria-hidden="true">J</span><span class="nm">Jordan</span></span>
+  </header>
+
+  <section class="head">
+    <p class="eyebrow">Checkout</p>
+    <h1>Review your order</h1>
+    <p>Dishes from every restaurant in your bag are made to order and delivered together.</p>
+  </section>
+
+  <form id="transferForm" novalidate>
+  <main>
+    <div>
+      <section class="card" aria-labelledby="bagTitle">
+        <h2 id="bagTitle">Your bag</h2>
+        <p class="sub">4 restaurants &middot; one delivery</p>
+        <span class="chip">Mix &amp; match &middot; $0 delivery fee</span>
+        <div class="item" data-price="38.95">
+          <div class="thumb"><img alt="" loading="lazy" src="https://wonder-image.wonder.com/image/320x272%5E/restaurant/69fc5d28-67f7-4c77-85e4-4b116846bc0a.webp?original_image_key=restaurant/69fc5d28-67f7-4c77-85e4-4b116846bc0a.jpg" onerror="this.remove()"></div>
+          <div><p class="rest">Bobby Flay Steak</p><h3>Filet Mignon Steak Frites</h3><p class="price">$38.95</p></div>
+          <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Filet Mignon Steak Frites">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one Filet Mignon Steak Frites">+</button></div>
+        </div>
+        <div class="item" data-price="17.95">
+          <div class="thumb"><img alt="" loading="lazy" src="https://wonder-image.wonder.com/image/320x272%5E/restaurant/01a0ce8d-433c-7e6e-a3ec-028aab5a22bf.webp?original_image_key=restaurant/01a0ce8d-433c-7e6e-a3ec-028aab5a22bf.jpg" onerror="this.remove()"></div>
+          <div><p class="rest">Alanza Pizza</p><h3>Margherita Pizza</h3><p class="price">$17.95</p></div>
+          <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Margherita Pizza">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one Margherita Pizza">+</button></div>
+        </div>
+        <div class="item" data-price="19.95">
+          <div class="thumb"><img alt="" loading="lazy" src="https://wonder-image.wonder.com/image/320x272%5E/restaurant/47b05e8c-4d44-4d40-a14a-806ea5e686d1.webp?original_image_key=restaurant/47b05e8c-4d44-4d40-a14a-806ea5e686d1.jpg" onerror="this.remove()"></div>
+          <div><p class="rest">Dabba Indian Kitchen</p><h3>Chicken Tikka Masala</h3><p class="price">$19.95</p></div>
+          <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Chicken Tikka Masala">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one Chicken Tikka Masala">+</button></div>
+        </div>
+        <div class="item" data-price="16.95">
+          <div class="thumb"><img alt="" loading="lazy" src="https://wonder-image.wonder.com/image/320x272%5E/restaurant/6ac6198b-d7d4-4516-8c2a-4bdf26e130a9.webp?original_image_key=restaurant/6ac6198b-d7d4-4516-8c2a-4bdf26e130a9.jpg" onerror="this.remove()"></div>
+          <div><p class="rest">El Diez Mexican Bowls</p><h3>Carne Asada Bowl</h3><p class="price">$16.95</p></div>
+          <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Carne Asada Bowl">&minus;</button><output>2</output><button type="button" data-step="1" aria-label="Add one Carne Asada Bowl">+</button></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="payTitle">
+        <h2 id="payTitle">Delivery and payment</h2>
+        <p class="sub">Your order goes to the kitchen as soon as payment goes through.</p>
+        <div class="row2">
+          <div class="field">
+            <label for="toAccount">Deliver to</label>
+            <select id="toAccount">
+              <option value="">Choose an address</option>
+              <option value="ADDR-UWS-0412" data-name="Home &middot; 245 W 72nd St" data-number="Apt 4B, New York, NY 10023 &middot; from Wonder Upper West Side" selected>Home &middot; 245 W 72nd St</option>
+              <option value="ADDR-CHE-1170" data-name="Work &middot; 111 8th Ave" data-number="Floor 11, New York, NY 10011 &middot; from Wonder Chelsea">Work &middot; 111 8th Ave</option>
+              <option value="ADDR-HOB-0088" data-name="Mom &middot; 88 Washington St" data-number="Hoboken, NJ 07030 &middot; from Wonder Hoboken">Mom &middot; 88 Washington St</option>
+            </select>
+            <div class="help" id="toHelp"></div>
+          </div>
+          <div class="field">
+            <label for="fromAccount">Payment</label>
+            <select id="fromAccount">
+              <option value="WGC-3390" data-name="Wonder Gift Card" data-number="Gift card" data-balance="50.00">Wonder Gift Card</option>
+              <option value="VISA-4417" data-name="Visa ending 4417" data-number="Credit card" data-balance="2500.00" selected>Visa ending 4417</option>
+              <option value="AMEX-1008" data-name="Amex ending 1008" data-number="Credit card" data-balance="5000.00">Amex ending 1008</option>
+            </select>
+            <div class="help" id="fromHelp"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="amount">Food subtotal (USD)</label>
+          <input type="number" id="amount" inputmode="decimal" readonly aria-describedby="amountHelp">
+          <div class="help" id="amountHelp"></div>
+        </div>
+        <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard" selected>standard</option></select>
+      </section>
+    </div>
+
+    <aside class="summary" aria-labelledby="sumTitle">
+      <h2 id="sumTitle">Order summary</h2>
+      <dl>
+        <dt>Items</dt><dd id="sumItems">&mdash;</dd>
+        <dt>Deliver to</dt><dd id="sumTo">&mdash;</dd>
+        <dt>Payment</dt><dd id="sumFrom">&mdash;</dd>
+        <dt>Subtotal</dt><dd id="sumAmount">&mdash;</dd>
+        <dt>Delivery fee</dt><dd class="free">$0.00</dd>
+        <dt>Service fee</dt><dd id="sumFee">&mdash;</dd>
+        <dt class="total">Total</dt><dd class="total" id="sumTotal">&mdash;</dd>
+      </dl>
+      <div class="actions">
+        <button type="submit" class="btn" id="submitBtn">Place order</button>
+        <button type="reset" class="btn ghost" id="cancelBtn">Start over</button>
+      </div>
+      <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to place order</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+      <p class="status" id="paymentStatus">Sample bag and payment methods. No real payment is made.</p>
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      <div class="eta"><span>Estimated delivery</span><b>30&ndash;40 min</b></div>
+      <div class="wallet" aria-label="Payment method balances">
+        <div><span>Wonder Gift Card balance</span><b data-balance-for="WGC-3390"></b></div>
+        <div><span>Visa ending 4417 available</span><b data-balance-for="VISA-4417"></b></div>
+        <div><span>Amex ending 1008 available</span><b data-balance-for="AMEX-1008"></b></div>
+      </div>
+    </aside>
+  </main>
+  </form>
+
+  <footer>
+    <div class="cols">
+      <div><h4>About us</h4><a href="#">Our Restaurants</a><a href="#">Wonder+</a><a href="#">Wonder Corporate Ordering</a><a href="#">Careers</a><a href="#">Gift Cards</a></div>
+      <div><h4>Support &amp; services</h4><a href="#">Get Help</a><a href="#">Terms &amp; Conditions</a><a href="#">Privacy Policy</a></div>
+      <div><h4>Locations</h4><a href="#">Upper West Side</a><a href="#">Chelsea</a><a href="#">Park Slope</a><a href="#">Hoboken</a><a href="#">Westfield</a></div>
+      <div><h4>Get the Wonder app</h4><a href="#">App Store</a><a href="#">Google Play</a></div>
+    </div>
+    <div class="legal">&copy; 2026 Wonder demo page. Sample dishes, addresses and prices.</div>
+    <div class="giant" aria-hidden="true">wonder</div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const button = $('submitBtn'); const cancelBtn = $('cancelBtn');
+      const result = $('result'); const status = $('paymentStatus');
+      const fromAccount = $('fromAccount'); const toAccount = $('toAccount'); const amountInput = $('amount'); const accountTier = $('accountTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const items = Array.from(document.querySelectorAll('.item'));
+      const START_QTY = items.map((t) => Number(t.querySelector('output').textContent));
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 }; const MAX_QTY = 10;
+      const IDLE_STATUS = 'Sample bag and payment methods. No real payment is made.';
+      const START_BAL = {}; Array.from(fromAccount.options).forEach((o) => { START_BAL[o.value] = Number(o.dataset.balance) || 0; });
+      const balances = Object.assign({}, START_BAL);
+      const START_FROM = fromAccount.value; const START_TO = toAccount.value;
+      const IDLE = 'Place order';
+      let pending = false; let ticker = null;
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (s) => s.options[s.selectedIndex];
+      const feeCents = (c) => Math.round(Math.max(FEE.rate * c, FEE.flat * 100));
+      const qtyOf = (t) => Number(t.querySelector('output').textContent) || 0;
+      function subtotalCents() { return items.reduce((sum, t) => sum + Math.round(Number(t.dataset.price) * 100) * qtyOf(t), 0); }
+      function itemCount() { return items.reduce((n, t) => n + qtyOf(t), 0); }
+      function renderBalances() { document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); }); }
+      function render() {
+        const cents = subtotalCents(); const fee = cents > 0 ? feeCents(cents) : 0;
+        amountInput.value = (cents / 100).toFixed(2);
+        accountTier.value = 'standard';
+        items.forEach((t) => { const q = qtyOf(t); const [minus, plus] = t.querySelectorAll('button'); minus.disabled = pending || q <= 0; plus.disabled = pending || q >= MAX_QTY; });
+        const from = selected(fromAccount); const to = toAccount.value ? selected(toAccount) : null;
+        set('fromHelp', `${from.dataset.number} \u00b7 Available ${money.format(balances[fromAccount.value] || 0)}`);
+        set('toHelp', to ? to.dataset.number : 'Choose where we should deliver.');
+        set('amountHelp', `Delivery is free. Service fee ${cents > 0 ? money.format(fee / 100) : '\u2014'} is added at payment.`);
+        set('sumItems', String(itemCount()));
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumFrom', from.dataset.name);
+        set('sumAmount', cents > 0 ? money.format(cents / 100) : '\u2014');
+        set('sumFee', cents > 0 ? money.format(fee / 100) : '\u2014');
+        set('sumTotal', cents > 0 ? money.format((cents + fee) / 100) : '\u2014');
+      }
+      function clearResult() { result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s'; }
+      function notice(msg, focusEl) { result.className = 'result-box notice'; result.textContent = msg; if (focusEl) focusEl.focus(); }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      items.forEach((t) => t.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+        if (pending) return;
+        const out = t.querySelector('output');
+        out.textContent = String(Math.min(MAX_QTY, Math.max(0, qtyOf(t) + Number(b.dataset.step))));
+        clearResult(); render();
+      })));
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      const markStale = () => { if (!pending) clearResult(); };
+      form.addEventListener('input', markStale); form.addEventListener('change', markStale);
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => {
+          items.forEach((t, i) => { t.querySelector('output').textContent = String(START_QTY[i]); });
+          fromAccount.value = START_FROM; toAccount.value = START_TO; accountTier.value = 'standard';
+          Object.assign(balances, START_BAL);
+          clearResult(); status.textContent = IDLE_STATUS;
+          renderBalances(); render();
+        });
+      });
+      renderBalances(); render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const cents = subtotalCents();
+        if (!toAccount.value) { notice('Choose a delivery address.', toAccount); return; }
+        if (cents < 100) { notice('Add at least one dish to your bag.', items[0].querySelector('button[data-step="1"]')); return; }
+        if (cents + feeCents(cents) > Math.round((balances[fromAccount.value] || 0) * 100)) { notice(`${selected(fromAccount).dataset.name} doesn\u2019t cover the total. Choose another payment method.`, fromAccount); return; }
+        const devin = { devinUserId: '', devinOrgId: '', devinEmail: '' };
+        try { devin.devinUserId = localStorage.getItem('devinUserId') || ''; devin.devinOrgId = localStorage.getItem('devinOrgId') || ''; devin.devinEmail = localStorage.getItem('devinEmail') || ''; } catch (_e) {}
+        pending = true;
+        [button, cancelBtn, fromAccount, toAccount].forEach((el) => { el.disabled = true; });
+        render();
+        button.textContent = 'Placing order\u2026';
+        status.textContent = 'Sending your order to the kitchen\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        const fromId = fromAccount.value; const fromName = selected(fromAccount).dataset.name; const toName = selected(toAccount).dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value),
+              accountTier: accountTier.value,
+              devinUserId: devin.devinUserId,
+              devinOrgId: devin.devinOrgId,
+              devinEmail: devin.devinEmail,
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick(); stopTimer(true);
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = `This order was already placed at ${at} (order ${data.receipt.receiptId}). You haven\u2019t been charged again.`;
+            status.textContent = IDLE_STATUS;
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          renderBalances();
+          result.className = 'result-box success';
+          result.textContent = `Order placed at ${at}. ${money.format(debited)} charged to ${fromName} (subtotal ${money.format(paid)}, service fee ${money.format(Math.max(debited - paid, 0))}, delivery $0.00). Delivering to ${toName}. Order ${data.receipt.receiptId}.`;
+          status.textContent = 'Your order is confirmed. Track it in the Wonder app.';
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok
+            ? 'We couldn\u2019t place your order and you haven\u2019t been charged. Please try again in a few minutes.'
+            : 'We couldn\u2019t confirm your order. Check your email for a confirmation before trying again so you aren\u2019t charged twice.';
+          status.textContent = IDLE_STATUS;
+        } finally {
+          pending = false;
+          [button, cancelBtn, fromAccount, toAccount].forEach((el) => { el.disabled = false; });
+          button.textContent = IDLE;
+          render();
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
