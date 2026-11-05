@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage booking | Turkish Airlines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #E81932; --accent-dark: #C8102E; --ink: #232B38; --surface: #FFFFFF; --chrome-bg: #232B38; --chrome-text: #FFFFFF;
+      --strip: #181C23; --text: #1B1F27; --muted: #647281; --line: #DDE2E8; --soft: #F4F6F8; --nav: #C3CBD7;
+      --ok: #13784A; --ok-bg: #E3F4EB; --warn: #8A5A00; --warn-bg: #FFF4D6; --danger-bg: #FDECEE;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--soft); color: var(--text); font: 16px/1.5 'Nunito Sans', 'museoSans', 'Segoe UI', Arial, sans-serif; }
+    a { color: var(--accent); text-decoration: none; }
+    button { font: inherit; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    .btn.busy { opacity: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .spin { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    /* Header */
+    .strip { background: var(--strip); color: var(--nav); font-size: 11px; }
+    .strip-in { height: 28px; display: flex; justify-content: flex-end; align-items: center; gap: 0; }
+    .strip a { color: var(--nav); padding: 0 10px; border-left: 1px solid #3A4352; line-height: 12px; }
+    .topbar { background: var(--chrome-bg); color: var(--chrome-text); }
+    .topbar-in { height: 62px; display: flex; align-items: center; gap: 20px; }
+    .brand { display: flex; align-items: center; min-height: 44px; gap: 10px; color: #fff; font-weight: 800; font-size: 18px; letter-spacing: .02em; white-space: nowrap; }
+    .brand svg { width: 30px; height: 30px; flex: none; }
+    .nav { margin-left: auto; display: flex; align-items: center; }
+    .nav a { color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .02em; padding: 0 14px; border-left: 1px solid #3A4352; line-height: 14px; }
+    .nav a:first-child { border-left: 0; }
+    .member { display: flex; align-items: center; gap: 8px; margin-left: 14px; border: 1px solid #8792A2; border-radius: 4px; padding: 4px 10px; color: #fff; }
+    .member b { display: block; font-size: 11px; font-weight: 800; line-height: 1.2; }
+    .member small { display: block; font-size: 10px; color: var(--nav); line-height: 1.2; }
+    .member .av { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; font-size: 11px; font-weight: 800; }
+    /* Hero */
+    .hero { position: relative; overflow: hidden; background: linear-gradient(160deg, #2B3A52 0%, #4C6584 55%, #8AA0B8 100%); }
+    .hero img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(24,28,35,.25) 0%, rgba(24,28,35,.55) 100%); }
+    .hero-in { position: relative; z-index: 1; padding: 40px 0 44px; }
+    .panel { background: rgba(35,43,56,.72); border-radius: 4px; padding: 14px 18px 18px; max-width: 900px; margin: 0 auto; }
+    .tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tab { min-height: 44px; padding: 0 16px; border-radius: 4px; border: 1px solid rgba(255,255,255,.35); background: rgba(35,43,56,.25); color: #fff; font-weight: 300; font-size: 15px; display: inline-flex; align-items: center; }
+    .tab.on { background: var(--accent); border-color: var(--accent); }
+    .found { display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; }
+    .field { background: #fff; border-radius: 2px; padding: 8px 12px; min-height: 46px; }
+    .field small { display: block; font-size: 11px; color: var(--muted); font-weight: 700; }
+    .field b { font-size: 16px; color: var(--ink); letter-spacing: .03em; }
+    .go { min-width: 98px; min-height: 46px; border: 0; border-radius: 2px; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; }
+    .hero-note { margin-top: 10px; color: #fff; font-size: 13px; font-weight: 700; }
+    /* Booking */
+    main { padding: 28px 0 56px; }
+    .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .crumbs span { color: var(--ink); font-weight: 700; }
+    h1 { margin: 0 0 4px; font-size: 28px; font-weight: 700; color: var(--ink); }
+    .sub { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+    .sub b { color: var(--ink); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 1px 3px rgba(35,43,56,.06); }
+    .card + .card { margin-top: 18px; }
+    .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .card-head h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--ink); }
+    .card-body { padding: 16px 20px 20px; }
+    .chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 3px; font-size: 13px; font-weight: 700; white-space: nowrap; background: var(--ok-bg); color: var(--ok); }
+    .chip.danger { background: var(--danger-bg); color: var(--accent-dark); }
+    .chip.pending { background: #E7ECF3; color: var(--ink); }
+    .chip.warn { background: var(--warn-bg); color: var(--warn); }
+    .chip.pill { border-radius: 999px; font-size: 12px; padding: 2px 10px; }
+    .banner { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 4px; background: var(--danger-bg); border-left: 4px solid var(--accent); margin-bottom: 14px; }
+    .banner .i { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 800; flex: none; }
+    .banner strong { display: block; color: var(--accent-dark); }
+    .banner p { margin: 2px 0 0; font-size: 14px; color: #4A2027; }
+    .seg { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 4px; background: #FAFBFC; }
+    .seg .fl { font-weight: 800; color: var(--ink); }
+    .seg .fl small, .muted { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+    .route { display: flex; align-items: center; gap: 14px; font-variant-numeric: tabular-nums; }
+    .route .pt b { display: block; font-size: 22px; color: var(--ink); font-weight: 700; line-height: 1.1; }
+    .route .pt span { font-size: 13px; color: var(--muted); }
+    .route .line { flex: 1; min-width: 40px; border-top: 1px dashed #A9B3C0; position: relative; text-align: center; }
+    .route .line em { position: relative; top: -11px; background: #FAFBFC; padding: 0 8px; font-style: normal; font-size: 12px; color: var(--muted); }
+    .strike b { text-decoration: line-through; color: var(--muted) !important; }
+    .pax { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 12px; margin-top: 14px; font-size: 14px; }
+    .pax div small { display: block; color: var(--muted); font-size: 12px; }
+    .pax div b { color: var(--ink); }
+    .hint { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .alts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .alt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 4px; background: #fff; transition: border-color .15s, box-shadow .15s; }
+    .alt:hover { border-color: #AEB8C6; }
+    .alt.selected { border-color: var(--ink); box-shadow: 0 0 0 2px rgba(35,43,56,.12); }
+    .alt.held { border-color: #8BC4A3; }
+    .alt.changed { border-color: var(--ok); background: #F3FBF6; }
+    .alt-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .alt-top .fn { font-weight: 800; color: var(--ink); }
+    .alt-top .cab { color: var(--muted); font-size: 14px; }
+    .alt-times { margin-top: 4px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+    .alt-times b { font-size: 19px; color: var(--ink); font-weight: 700; }
+    .alt-times span { color: var(--muted); font-size: 13px; }
+    .alt-fare { margin-top: 4px; font-size: 14px; color: var(--muted); }
+    .alt-fare strong { color: var(--ink); }
+    .alt-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn { min-height: 44px; padding: 0 18px; border-radius: 4px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font-weight: 700; font-size: 15px; cursor: pointer; white-space: nowrap; }
+    .btn:hover:not(:disabled) { background: var(--soft); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 132px; }
+    .btn.primary:hover:not(:disabled) { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn:focus-visible, .go:focus-visible, .tab:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .status { min-height: 21px; margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 12px; padding: 12px 14px; border-radius: 4px; font-size: 14px; }
+    .result-box.success { display: block; background: var(--ok-bg); border-left: 4px solid var(--ok); color: #0E4A2F; }
+    .result-box.notice { display: block; background: var(--danger-bg); border-left: 4px solid var(--accent); color: #4A2027; }
+    .extras { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 12px; }
+    .extra { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink); font-weight: 700; font-size: 15px; min-height: 56px; }
+    .extra svg { width: 26px; height: 26px; flex: none; }
+    .contact { position: fixed; right: 0; top: 46%; z-index: 40; background: #1F4E79; color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); padding: 14px 10px; font-size: 13px; font-weight: 700; border-radius: 0 4px 4px 0; min-width: 44px; }
+    footer { background: var(--strip); color: #fff; padding: 22px 0; font-size: 12px; }
+    footer .container { display: flex; justify-content: center; gap: 28px 64px; flex-wrap: wrap; }
+    footer a, footer span { color: #fff; display: inline-flex; align-items: center; min-height: 44px; }
+    @media (max-width: 900px) {
+      .nav a { display: none; }
+      .found { grid-template-columns: 1fr; }
+      .seg { grid-template-columns: 1fr; gap: 10px; }
+    }
+    @media (max-width: 600px) {
+      .strip-in a:not(:last-child) { display: none; }
+      .strip-in { height: 44px; }
+      .strip a { display: inline-flex; align-items: center; min-height: 44px; }
+      .brand { font-size: 15px; }
+      .member small { display: none; }
+      .hero-in { padding: 20px 0 24px; }
+      .panel { padding: 12px; }
+      .tab { font-size: 13px; padding: 0 10px; }
+      h1 { font-size: 23px; }
+      .card-head, .card-body { padding-left: 14px; padding-right: 14px; }
+      .alt { grid-template-columns: 1fr; }
+      .alt-actions { justify-content: stretch; }
+      .alt-actions .btn { flex: 1 1 auto; }
+      .contact { display: none; }
+      footer .container { gap: 14px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="strip"><div class="container strip-in"><a href="#">Turkish Airlines Holidays</a><a href="#">Corporate Club</a><a href="#">Search</a><a href="#">EN-INT</a></div></div>
+  <header class="topbar">
+    <div class="container topbar-in">
+      <a class="brand" href="#" aria-label="Home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#E81932"/><path d="M9 11.5h14v3h-5.4V24h-3.2v-9.5H9z" fill="#fff"/></svg>
+        TURKISH AIRLINES
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#">BOOK&amp;MANAGE</a><a href="#">EXPERIENCE</a><a href="#">DEALS</a><a href="#">DESTINATIONS</a><a href="#">MILES&amp;SMILES</a><a href="#">HELP</a>
+      </nav>
+      <div class="member"><div class="av" aria-hidden="true">EK</div><div><b>ELIF KAYA</b><small>Miles&amp;Smiles Classic</small></div></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <img class="bg" src="https://cdn.turkishairlines.com/m/7fe750a912a95faa/original/500x250_galata.webp" alt="" onerror="this.remove()">
+    <div class="container hero-in">
+      <div class="panel">
+        <div class="tabs" role="tablist" aria-label="Booking tools">
+          <span class="tab" role="tab" aria-selected="false">Book a flight</span>
+          <span class="tab on" role="tab" aria-selected="true">Check-in / Manage booking</span>
+          <span class="tab" role="tab" aria-selected="false">Flight status</span>
+        </div>
+        <div class="found">
+          <div class="field"><small>Ticket number or reservation code (PNR)</small><b id="pnrRef">TK7Q4M</b></div>
+          <div class="field"><small>Passenger surname</small><b>KAYA</b></div>
+          <button type="button" class="go" aria-label="Reservation found">&#10003;</button>
+        </div>
+        <div class="hero-note">Reservation found. Your booking details are below.</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="container">
+      <div class="crumbs">Book&amp;Manage › <span>Manage booking</span></div>
+      <h1>Istanbul → London</h1>
+      <p class="sub">Reservation code <b>TK7Q4M</b> · Fri 16 Oct 2026 · 1 passenger · One way</p>
+
+      <section class="card" aria-labelledby="flightHead">
+        <div class="card-head"><h2 id="flightHead">Your flight</h2><span class="chip danger" id="stageChip">Action needed</span></div>
+        <div class="card-body">
+          <div class="banner" role="alert" id="disruptionBanner">
+            <div class="i" aria-hidden="true">!</div>
+            <div>
+              <strong>Your flight TK 1979 has been cancelled</strong>
+              <p>We're sorry for the disruption. Choose a new flight below. Moving to another Economy flight on the same day is free of charge, and your seat and baggage allowance move with you.</p>
+            </div>
+          </div>
+          <div class="seg" id="originalSeg" aria-label="Cancelled flight">
+            <div class="fl">TK 1979<small>Economy · EcoFly</small></div>
+            <div class="route strike">
+              <div class="pt"><b>07:35</b><span>IST · Istanbul</span></div>
+              <div class="line"><em>4h 15m · Direct</em></div>
+              <div class="pt"><b>09:50</b><span>LHR · London Heathrow</span></div>
+            </div>
+            <span class="chip danger" id="segChip">Cancelled</span>
+          </div>
+          <div class="pax">
+            <div><small>Passenger</small><b>Ms Elif Kaya</b></div>
+            <div><small>Miles&amp;Smiles</small><b>TK 284 617 093</b></div>
+            <div><small>Baggage</small><b>1 × 20 kg checked</b></div>
+            <div><small>Seat</small><b id="seatRef">23A (window)</b></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="altHead">
+        <div class="card-head"><h2 id="altHead">Choose a new flight</h2><span class="muted">Fri 16 Oct 2026 · IST → LHR</span></div>
+        <div class="card-body">
+          <p class="hint">Changing your flight reissues your ticket under the same reservation code. Hold a seat to keep it for 15 minutes while you decide.</p>
+          <ul class="alts" id="alts" aria-label="Available flights"></ul>
+          <div class="status" id="changeStatus" aria-live="polite">Select a flight to change or hold a seat.</div>
+          <div class="result-box" id="result" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="extrasHead">
+        <div class="card-head"><h2 id="extrasHead">Add to your trip</h2></div>
+        <div class="card-body extras">
+          <a class="extra" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#E81932" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20v-6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6M8 12V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6M5 20h14"/></svg>Seat selection</a>
+          <a class="extra" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#E81932" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="13" rx="2"/><path d="M9 7V4h6v3M9 20v1M15 20v1"/></svg>Extra baggage</a>
+          <a class="extra" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#E81932" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg>Book a hotel</a>
+          <a class="extra" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#E81932" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/></svg>Travel insurance</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <a class="contact" href="#">Contact Us</a>
+
+  <footer><div class="container"><a href="#">Accessibility</a><a href="#">Privacy &amp; Cookies Policy</a><a href="#">Legal Notice</a><a href="#">Passenger Rights</a><span>Turkish Airlines Copyright © 1996 - 2026</span></div></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const PNR = 'TK7Q4M';
+      // id is the flight's key in the change-flight service; everything else is display.
+      const FLIGHTS = [
+        { id: 'AF1280', flight: 'TK 1983', departs: '11:50', arrives: '14:05', duration: '4h 15m', cabin: 'Economy', fareFamily: 'EcoFly', fareDelta: 0, seatsLeft: 4 },
+        { id: 'BA0303', flight: 'TK 1985', departs: '13:20', arrives: '15:35', duration: '4h 15m', cabin: 'Economy', fareFamily: 'ExtraFly', fareDelta: 46, seatsLeft: 7 },
+        { id: 'AF1080', flight: 'TK 1971', departs: '16:40', arrives: '18:55', duration: '4h 15m', cabin: 'Economy', fareFamily: 'EcoFly', fareDelta: 0, seatsLeft: 9 },
+        { id: 'BA0309', flight: 'TK 1987', departs: '19:05', arrives: '21:20', duration: '4h 15m', cabin: 'Business', fareFamily: 'BusinessFly', fareDelta: 212, seatsLeft: 2 },
+      ];
+      const state = { inFlight: false, pending: null, changed: null, holds: {} };
+      const euro = (n) => '€' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const fmtTime = (iso) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      let holdTimer = null;
+
+      function pruneExpiredHolds() {
+        const now = Date.now();
+        let next = Infinity;
+        for (const [id, hold] of Object.entries(state.holds)) {
+          const expires = new Date(hold.expiresAt).getTime();
+          if (!(expires > now)) delete state.holds[id];
+          else next = Math.min(next, expires);
+        }
+        clearTimeout(holdTimer);
+        holdTimer = next === Infinity ? null : setTimeout(render, Math.min(next - now + 250, 2147483647));
+      }
+
+      function render() {
+        pruneExpiredHolds();
+        $('alts').innerHTML = FLIGHTS.map((f) => {
+          const hold = state.holds[f.id];
+          const isChanged = state.changed && state.changed.id === f.id;
+          const stateChip = isChanged
+            ? '<span class="chip pill">Your new flight</span>'
+            : hold ? `<span class="chip pending pill">Seat held until ${fmtTime(hold.expiresAt)}</span>` : '';
+          const freeChip = f.fareDelta === 0 ? '<span class="chip pill">Free change</span>' : '';
+          const fare = f.fareDelta === 0
+            ? '<strong>No fare difference</strong> · ticket reissued free of charge'
+            : `<strong>+${euro(f.fareDelta)}</strong> fare difference · paid with the card on your booking`;
+          const disabled = state.inFlight || state.changed ? 'disabled' : '';
+          const busy = (action) => state.pending && state.pending.id === f.id && state.pending.action === action;
+          return `
+            <li class="alt ${isChanged ? 'changed' : ''} ${hold ? 'held' : ''}" data-id="${f.id}">
+              <div>
+                <div class="alt-top"><span class="fn">${f.flight}</span><span class="cab">${f.cabin} · ${f.fareFamily}</span>${freeChip}${stateChip}</div>
+                <div class="alt-times"><b>${f.departs}</b><span>IST</span><span>→</span><b>${f.arrives}</b><span>LHR</span><span>· ${f.duration} · Direct · ${f.seatsLeft} seats left</span></div>
+                <div class="alt-fare">${fare}</div>
+              </div>
+              <div class="alt-actions">
+                <button type="button" class="btn ${busy('hold') ? 'busy' : ''}" data-action="hold" data-id="${f.id}" ${disabled || (hold ? 'disabled' : '')}>${busy('hold') ? '<span class="spin" aria-hidden="true"></span>Holding…' : hold ? 'Seat held' : 'Hold seat 15 min'}</button>
+                <button type="button" class="btn primary ${busy('rebook') ? 'busy' : ''}" data-action="rebook" data-id="${f.id}" ${disabled}>${busy('rebook') ? '<span class="spin" aria-hidden="true"></span>Changing…' : isChanged ? 'Changed' : 'Change flight'}</button>
+              </div>
+            </li>`;
+        }).join('');
+      }
+
+      function setStage(text, cls) {
+        const chip = $('stageChip');
+        chip.textContent = text;
+        chip.className = 'chip ' + cls;
+      }
+
+      async function act(action, f) {
+        if (state.inFlight || state.changed) return;
+        state.inFlight = true;
+        state.pending = { id: f.id, action };
+        render();
+        const row = document.querySelector(`.alt[data-id="${f.id}"]`);
+        if (row) row.classList.add('selected');
+        const status = $('changeStatus');
+        const result = $('result');
+        result.className = 'result-box';
+        result.textContent = '';
+        if (action === 'rebook') {
+          setStage('Changing flight…', 'pending');
+          status.textContent = `Changing your flight to ${f.flight} and reissuing your ticket…`;
+        } else {
+          status.textContent = `Holding a seat on ${f.flight}…`;
+        }
+        try {
+          const response = await fetch('/api/egencia/rebook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alternativeId: f.id, action }),
+          });
+          let data = null;
+          try { data = await response.json(); } catch (_e) { data = null; }
+          if (!response.ok || !data || !data.success) {
+            const err = new Error('We could not complete your request.');
+            err.status = response.status;
+            throw err;
+          }
+          if (action === 'hold') {
+            state.holds[f.id] = { expiresAt: data.expiresAt };
+            setStage('Seat held', 'pending');
+            status.textContent = `Seat held on ${f.flight} for ${data.holdMinutes} minutes (until ${fmtTime(data.expiresAt)}). Change your flight before then to keep it.`;
+          } else {
+            state.changed = f;
+            setStage('Flight changed', 'ok');
+            $('disruptionBanner').style.display = 'none';
+            $('segChip').textContent = 'Replaced';
+            result.className = 'result-box success';
+            result.innerHTML = `<strong>Your flight has been changed to ${esc(f.flight)}.</strong> Departs Istanbul (IST) ${esc(f.departs)}, arrives London Heathrow (LHR) ${esc(f.arrives)}. Your reservation code stays <b>${PNR}</b>${data.fareDelta > 0 ? ` · ${euro(data.fareDelta)} fare difference charged to the card on your booking` : ' · no fare difference'}. Your updated e-ticket has been sent by email.`;
+            status.textContent = 'Ticket reissued.';
+          }
+        } catch (error) {
+          if (action === 'rebook') {
+            setStage('Change not completed', 'danger');
+            result.className = 'result-box notice';
+            result.innerHTML = error.status === 504
+              ? `<strong>We couldn't change your flight right now.</strong> Your original booking <b>${PNR}</b> is unchanged and nothing has been charged. Please try again in a few minutes, or contact the Turkish Airlines Call Center and we will move you to ${esc(f.flight)}.`
+              : `<strong>We couldn't change your flight.</strong> Your original booking <b>${PNR}</b> is unchanged. Please try again.`;
+            status.textContent = 'Flight not changed.';
+          } else {
+            status.textContent = `We couldn't hold a seat on ${f.flight}. Please try again.`;
+          }
+        } finally {
+          state.inFlight = false;
+          state.pending = null;
+          render();
+        }
+      }
+
+      $('alts').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+        const f = FLIGHTS.find((x) => x.id === button.dataset.id);
+        if (f) act(button.dataset.action, f);
+      });
+
+      render();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
