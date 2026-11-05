@@ -95,6 +95,31 @@
  */
 
 const ONCALL_SKINS = {
+  '9440f502': {
+    slug: '9440f502',
+    company: 'State Street',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/statestreet-oncall'],
+    alertDestination: 'slack',
+    page: { file: '9440f502.html', title: 'State Street — Client Banking Portal' },
+    theme: {
+      '--accent': '#2b3f8c',
+      '--ink': '#1f2430',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1b2a5e',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'State Street Global Client Services',
+    alertCard: {
+      title: 'p95 latency — Client Banking Portal cash transfers',
+      release: 'client-banking@2026.11.1',
+      baseline: '~280ms (7-day p95, before client-banking@2026.11.1)',
+      symptom: 'Individual cash transfers take ~9s to confirm but still complete successfully. No settlement outage or elevated error rate.',
+      impact: 'Institutional clients wait on the transfer confirmation screen and may retry an instruction.',
+    },
+    disclaimer: 'NOT ACTUALLY A STATE STREET SITE — internal demo only, not affiliated with, endorsed by, or a real State Street product.',
+  },
   '49315f87': {
     slug: '49315f87',
     company: 'Lumistry',
