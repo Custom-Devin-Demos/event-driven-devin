@@ -15,7 +15,7 @@ const COMMAND_INDEX = COMMANDS.reduce((index, command) => {
 }, {});
 
 function resolveCommand(commandId) {
-  return COMMAND_INDEX[commandId] || null;
+  return Object.hasOwn(COMMAND_INDEX, commandId) ? COMMAND_INDEX[commandId] : null;
 }
 
 function basePayload(command, vehicle) {

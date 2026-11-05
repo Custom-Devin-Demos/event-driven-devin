@@ -29,6 +29,7 @@ const VEHICLE = {
 const ACTIVITY = [];
 let resetEpoch = 0;
 let inFlight = 0;
+let degradedBy = null;
 
 function syncVehicle(commandId) {
   if (commandId === 'lock') VEHICLE.doors = 'locked';
@@ -38,9 +39,8 @@ function syncVehicle(commandId) {
 }
 
 function platformStatus() {
-  const lastFailure = ACTIVITY.find((entry) => entry.status === 'failed');
-  if (lastFailure) {
-    return { state: 'degraded', text: 'Remote services degraded', detail: `${lastFailure.label} failing for owners` };
+  if (degradedBy) {
+    return { state: 'degraded', text: 'Remote services degraded', detail: `${degradedBy} failing for owners` };
   }
   return { state: 'ok', text: 'Remote services operational', detail: 'all commands available' };
 }
@@ -112,6 +112,7 @@ async function dispatchRemoteCommand(data) {
     });
 
     if (epoch === resetEpoch) {
+      degradedBy = label;
       record({
         requestId,
         commandId,
@@ -179,6 +180,7 @@ function resetGarage() {
   resetEpoch += 1;
   const cleared = ACTIVITY.length;
   ACTIVITY.length = 0;
+  degradedBy = null;
   VEHICLE.doors = 'locked';
   VEHICLE.engine = 'off';
   VEHICLE.lastSync = null;
