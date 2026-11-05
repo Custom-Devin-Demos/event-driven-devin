@@ -224,6 +224,23 @@ function buildAlertBlocks(alertData, options = {}) {
     });
   }
 
+  if (alertData.newRelic) {
+    const nr = alertData.newRelic;
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `:rotating_light: *APM signal — New Relic*\n${nr.condition} · policy \`${nr.policy}\``,
+      },
+      fields: [
+        { type: 'mrkdwn', text: `*App:*\n${nr.appName}` },
+        { type: 'mrkdwn', text: `*Error rate:*\n${nr.errorRate} (${nr.throughput})` },
+        { type: 'mrkdwn', text: `*Apdex:*\n${nr.apdex}` },
+        { type: 'mrkdwn', text: `*Transactions affected:*\n${nr.affectedTransactions}` },
+      ],
+    });
+  }
+
   // Action buttons
   const actions = [];
   if (alertData.issueUrl) {
@@ -243,6 +260,13 @@ function buildAlertBlocks(alertData, options = {}) {
       type: 'button',
       text: { type: 'plain_text', text: ':movie_camera: View session replay in Quantum Metric', emoji: true },
       url: alertData.quantumMetric.replayUrl,
+    });
+  }
+  if (alertData.newRelic && alertData.newRelic.incidentUrl) {
+    actions.push({
+      type: 'button',
+      text: { type: 'plain_text', text: ':rotating_light: View incident in New Relic', emoji: true },
+      url: alertData.newRelic.incidentUrl,
     });
   }
   if (actions.length > 0) {
