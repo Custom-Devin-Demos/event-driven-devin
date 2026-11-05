@@ -14,7 +14,7 @@ const {
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 const { normalizeAlertDestination } = require('../services/alert-destination');
-const { releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
+const { BATCH: STATESTREET_BATCH, releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
 const { isTeamsWebhookUrl } = require('../services/teams');
 const {
   FLEET,
@@ -79,6 +79,7 @@ for (const skin of Object.values(ONCALL_SKINS)) {
  */
 const ONCALL_HOURLY_CAPS = {
   trigger: 50,
+  settlement: 50,
   alert: 50,
   infra: 50,
   config: 120,
@@ -624,7 +625,12 @@ router.get('/oncall/:vertical', (req, res, next) => {
   serveOncallScenarioPage(scenario, res, next);
 });
 
-router.post('/api/oncall/statestreet/settlement-batches/release', oncallCap('trigger'), async (req, res) => {
+router.post('/api/oncall/statestreet/settlement-batches/release', (req, res, next) => {
+  if (!req.body || req.body.batchId !== STATESTREET_BATCH.id) {
+    return res.status(400).json({ success: false, code: 'INVALID_BATCH', error: 'Choose an available settlement batch.' });
+  }
+  next();
+}, oncallCap('settlement'), async (req, res) => {
   try {
     const result = await releaseSettlementBatch(req.body || {});
     res.status(result.statusCode).json(result.body);

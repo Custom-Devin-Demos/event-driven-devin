@@ -74,6 +74,7 @@ describe('State Street dual on-call experience', () => {
       expect(html).toContain('var skinAlertDestination = "slack"');
       expect(html).toContain('Release settlement batch');
       expect(html).not.toContain('← All Demos');
+      expect(html).not.toContain('&larr; All Demos');
       for (const script of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
         expect(() => new vm.Script(script[1])).not.toThrow();
       }
@@ -144,6 +145,36 @@ describe('State Street dual on-call experience', () => {
     expect(Sentry.captureException).toHaveBeenCalled();
     expect(postMessage).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
+  });
+
+  test('a full transfer-alert quota cannot block a settlement release from the same IP', async () => {
+    const headers = { 'Content-Type': 'application/json', 'X-Forwarded-For': '192.0.2.44' };
+    for (let count = 0; count < 50; count++) {
+      const response = await fetch(`${baseUrl}/api/oncall/trigger/banking`, {
+        method: 'POST', headers, body: JSON.stringify({ unique: false, skin: SLUG }),
+      });
+      expect(response.status).toBe(200);
+    }
+    const capped = await fetch(`${baseUrl}/api/oncall/trigger/banking`, {
+      method: 'POST', headers, body: JSON.stringify({ unique: false, skin: SLUG }),
+    });
+    expect(capped.status).toBe(429);
+    const batch = await fetch(baseUrl + API, {
+      method: 'POST', headers, body: JSON.stringify({ batchId: 'USD-SET-042' }),
+    });
+    expect(batch.status).toBe(503);
+    expect((await batch.json()).incident.status).toBe('declared');
+  });
+
+  test('invalid batches consume no quota, while valid batch mutations still have a separate limit', async () => {
+    const headers = { 'Content-Type': 'application/json', 'X-Forwarded-For': '192.0.2.55' };
+    const release = (batchId) => fetch(baseUrl + API, { method: 'POST', headers, body: JSON.stringify({ batchId }) });
+    for (let count = 0; count < 55; count++) expect((await release('unknown')).status).toBe(400);
+    for (let count = 0; count < 50; count++) expect((await release('USD-SET-042')).status).toBe(503);
+    const capped = await release('USD-SET-042');
+    expect(capped.status).toBe(429);
+    expect(Number(capped.headers.get('Retry-After'))).toBeGreaterThan(0);
+    expect((await release('unknown')).status).toBe(400);
   });
 });
 
