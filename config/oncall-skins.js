@@ -3193,6 +3193,17 @@ const ONCALL_SKINS = {
     supportCenter: 'FOCAL Support',
     disclaimer: 'NOT ACTUALLY A FOCAL BY MOZN SITE — internal demo only, not affiliated with, endorsed by, or a real MOZN or FOCAL product.',
   },
+  'c211bf96': {
+    slug: 'c211bf96',
+    company: 'Mitratech',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: {
+      file: 'c211bf96.html',
+      title: '#1 Enterprise Legal Management Software Built for Complex, Global Legal Teams',
+    },
+    disclaimer: 'NOT ACTUALLY A MITRATECH SITE — internal demo only, not affiliated with, endorsed by, or a real Mitratech product.',
+  },
   '8284d802': {
     slug: '8284d802',
     company: 'WTW',
