@@ -49,6 +49,25 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  statestreet: {
+    vertical: 'statestreet',
+    page: '9440f502.html',
+    apiPath: '/api/banking/transfer',
+    oncallApiPath: '/api/oncall/statestreet/transfers',
+    owner: 'Client Cash Platform On-Call',
+    brand: 'State Street',
+    service: 'statestreet-cash-transfer-api',
+    endpoint: 'POST /api/oncall/statestreet/transfers',
+    monitor: 'p95 latency — State Street cash-position transfer confirmation',
+    metricQuery: 'p95:trace.statestreet.cash_transfer.submit.duration{service:statestreet-cash-transfer-api}',
+    metricValue: '8.8s',
+    threshold: '> 1.5s',
+    baseline: '~280ms (7-day p95)',
+    release: 'client-banking@2026.11.1',
+    symptom: 'Cash-position checks delay individual transfer confirmations for about 9 seconds. Transfers still complete successfully; the settlement-batch service is a separate incident.',
+    impact: 'Institutional clients wait for cash-transfer confirmations and may resubmit instructions.',
+    unlisted: true,
+  },
   refillqueue: {
     vertical: 'refillqueue',
     page: '49315f87.html',

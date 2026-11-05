@@ -98,10 +98,22 @@ const ONCALL_SKINS = {
   '9440f502': {
     slug: '9440f502',
     company: 'State Street',
-    vertical: 'banking',
+    vertical: 'statestreet',
     oncallOnly: true,
     paths: ['/statestreet-oncall'],
     alertDestination: 'slack',
+    onCallSlackMemberId: 'U0BQZBHCNMA',
+    incidentInviteUserIds: ['U0BQZBHCNMA'],
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Investigate the State Street cash-transfer confirmation latency from its own service telemetry. This is separate from the generic banking compliance-screening incident and the State Street settlement-batch outage; do not combine those investigations.',
+        'Reproduce only locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Do not submit the live page, and give testing agents the same restriction.',
+        'Measure the same transfer before and after the fix. Preserve account validation, funding-lot coverage, available-balance checks, fees and receipt fields; do not hide the issue by removing ledger data or shortening upstream delays.',
+        'Add a latency regression test, record the before/after transfer, and post findings and the PR link in this alert thread. Do not merge or deploy.',
+      ].join('\n'),
+    },
     page: { file: '9440f502.html', title: 'State Street — Client Banking Portal' },
     theme: {
       '--accent': '#2b3f8c',
@@ -112,7 +124,9 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'State Street Global Client Services',
     alertCard: {
-      title: 'p95 latency — Client Banking Portal cash transfers',
+      title: 'p95 latency — State Street cash-position transfer confirmation',
+      service: 'statestreet-cash-transfer-api',
+      team: 'client-cash-platform-oncall',
       release: 'client-banking@2026.11.1',
       baseline: '~280ms (7-day p95, before client-banking@2026.11.1)',
       symptom: 'Individual cash transfers take ~9s to confirm but still complete successfully. No settlement outage or elevated error rate.',
