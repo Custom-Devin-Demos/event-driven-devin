@@ -24,13 +24,13 @@ What happens on that click:
 
 - The page posts to `/api/1960590a/rates`; the on-call shim reroutes it to `POST /api/oncall/shippingrates/rates`, which returns HTTP 500 immediately (latency is normal).
 - The page shows FedEx's generic red **"We're sorry, rates are unavailable right now."** message under the button.
-- The shim posts `/api/oncall/trigger/shippingrates` (only when `destinationCountry` is `CA`), which posts the "5xx rate — Shipping Rates: Show rates" alert to Slack `#oncall-alerts` and starts the Devin responder session. Devin is told to use "FedEx", "Shipping Rates" and "Show rates" and to cc the fictional on-call engineer as plain text: `cc @Marcus Bell (shipping-rates-oncall)`.
+- The shim posts `/api/oncall/trigger/shippingrates` (only when `destinationCountry` is `CA`), which posts the "5xx rate — Shipping Rates: Show rates" alert card to the On-Call Microsoft Teams channel (`ONCALL_TEAMS_WEBHOOK_URL`; the skin sets `alertDestination: 'teams'`, so the hub picker is ignored). The Devin Teams responder on that channel investigates and replies in the alert's thread. If the Teams webhook is not configured, the alert falls back to Slack `#oncall-alerts` and the app starts a Devin session that is told to use "FedEx", "Shipping Rates" and "Show rates" and to cc the fictional on-call engineer as plain text: `cc @Marcus Bell (shipping-rates-oncall)`.
 
 ## How to present it
 
 1. Open `/fedex`. This is fedex.com's rate calculator, already filled in for Memphis → Toronto.
 2. Show a working quote first: change **To** to `Austin, TX 78701, United States` and click **Show rates**. The page lists First Overnight, Priority Overnight, Standard Overnight, 2Day AM, 2Day, Express Saver and Ground. `Mexico City, CDMX 06600, Mexico` returns International Priority and International Economy.
-3. Change **To** back to `Toronto, ON M5V 2T6, Canada` and click **Show rates**. The error appears instantly; switch to Slack and the Devin session.
+3. Change **To** back to `Toronto, ON M5V 2T6, Canada` and click **Show rates**. The error appears instantly; switch to the On-Call Teams channel and the Devin responder's thread.
 
 The expected fix is adding the `CA` zone (and guarding unknown destinations with a clear 4xx), plus a regression test for a US → Canada quote.
 
@@ -45,4 +45,4 @@ The expected fix is adding the `CA` zone (and guarding unknown destinations with
 
 ## Local testing without real alerts
 
-Start with no credentials (`env -i PATH="$PATH" HOME="$HOME" NODE_ENV=development PORT=3100 DD_TRACE_ENABLED=false node app/server.js`), leave `SLACK_ONCALL_ALERTS_CHANNEL_ID` unset, and abort browser requests to `/api/oncall/trigger/**`. Never fire the alert on devindemos.com while setting up.
+Start with no credentials (`env -i PATH="$PATH" HOME="$HOME" NODE_ENV=development PORT=3100 DD_TRACE_ENABLED=false node app/server.js`), leave `ONCALL_TEAMS_WEBHOOK_URL` and `SLACK_ONCALL_ALERTS_CHANNEL_ID` unset, and abort browser requests to `/api/oncall/trigger/**`. Never fire the alert on devindemos.com while setting up.
