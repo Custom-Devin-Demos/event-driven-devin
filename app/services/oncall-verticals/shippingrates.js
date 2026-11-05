@@ -92,7 +92,7 @@ function normalizeAddress(addr, role) {
 
 function normalizePackages(packages) {
   const list = Array.isArray(packages) && packages.length ? packages : [{}];
-  const packageCount = list.reduce((sum, pkg) => sum + (parseInt(pkg.count, 10) || 1), 0);
+  const packageCount = list.reduce((sum, pkg) => sum + Math.max(parseInt(pkg.count, 10) || 1, 1), 0);
   if (packageCount > MAX_PACKAGES) throw invalid(`A quote can include at most ${MAX_PACKAGES} packages`);
   return list.map((pkg) => {
     const count = Math.max(parseInt(pkg.count, 10) || 1, 1);
