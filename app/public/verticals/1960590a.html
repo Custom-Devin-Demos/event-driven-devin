@@ -1085,6 +1085,8 @@
     errorBox.hidden = true;
     var shipper = parseAddress(fromInput.value);
     var recipient = parseAddress(toInput.value);
+    var weightUnits = document.querySelector('select[data-e2e-id="selectMeasurement"]').value === 'METRIC' ? 'KG' : 'LB';
+    var dimUnits = document.querySelector('select[data-e2e-id="selectMetric"]').value === 'METRIC' ? 'CM' : 'IN';
     var dims = ['form-field-5', 'form-field-6', 'form-field-7'].map(function (id) { return Number($(id).value) || 0; });
     var body = {
       shipper: shipper,
@@ -1094,8 +1096,8 @@
       packaging: $('form-field-2').value,
       packages: [{
         count: Number($('package-details__quantity-0').value) || 1,
-        weight: { value: Number($('form-field-4').value) || 0, units: 'LB' },
-        dimensions: { length: dims[0], width: dims[1], height: dims[2], units: 'IN' },
+        weight: { value: Number($('form-field-4').value) || 0, units: weightUnits },
+        dimensions: { length: dims[0], width: dims[1], height: dims[2], units: dimUnits },
       }],
       shipDate: shipDate.value,
     };
