@@ -6573,6 +6573,42 @@ const ONCALL_SKINS = {
     supportCenter: 'Home Depot Customer Service',
     disclaimer: 'NOT ACTUALLY A HOME DEPOT SITE — internal demo only, not affiliated with, endorsed by, or a real product of The Home Depot.',
   },
+  '3a206b9a': {
+    slug: '3a206b9a',
+    company: 'Equifax',
+    brandMark: 'E',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/equifax-oncall', '/equifax-anz-oncall'],
+    // Slack-routed: the #oncall-alerts responder triages the card, so no
+    // devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
+    // Only new-application (comprehensive) enquiries degrade; account reviews
+    // (premium) are the healthy path and post nothing.
+    triggerWhen: { accountTier: 'standard' },
+    page: { file: '3a206b9a.html', title: 'New consumer credit enquiry | Equifax Business Portal' },
+    alertCard: {
+      title: 'p95 latency \u2014 Consumer credit enquiry (comprehensive)',
+      service: 'consumer-enquiry-api',
+      release: 'enquiry-gateway@2026.11.1',
+      team: 'anz-bureau-platform',
+      metricQuery: 'p95:trace.express.request.duration{service:consumer-enquiry-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.4s',
+      threshold: '> 2s',
+      baseline: '~400ms (7-day p95, before enquiry-gateway@2026.11.1)',
+      symptom: 'New-application credit enquiries hang ~9s before the credit report and score are returned. Error rate is normal \u2014 reports come back. Account-review enquiries are unaffected.',
+      impact: 'Lenders and brokers in AU/NZ wait ~9 seconds per new credit application; origination systems with 5s timeouts resubmit, risking duplicate enquiries on consumers\u2019 credit files.',
+    },
+    theme: {
+      '--accent': '#A6192E',
+      '--ink': '#1F2937',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0B2341',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Equifax Support',
+    disclaimer: 'NOT ACTUALLY AN EQUIFAX SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Equifax product.',
+  },
   'd97ac514': {
     slug: 'd97ac514',
     company: 'Bank of America',
