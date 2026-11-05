@@ -6592,7 +6592,7 @@ const ONCALL_SKINS = {
       service: 'consumer-enquiry-api',
       release: 'enquiry-gateway@2026.11.1',
       team: 'anz-bureau-platform',
-      metricQuery: 'p95:trace.express.request.duration{service:consumer-enquiry-api,resource:POST /api/oncall/banking/transfer}',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
       metricValue: '9.4s',
       threshold: '> 2s',
       baseline: '~400ms (7-day p95, before enquiry-gateway@2026.11.1)',

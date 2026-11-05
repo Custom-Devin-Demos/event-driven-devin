@@ -125,10 +125,10 @@
           <div class="field">
             <label for="creditType">Credit type</label>
             <select id="creditType">
-              <option selected>Home loan</option>
-              <option>Personal loan</option>
-              <option>Credit card</option>
-              <option>Car loan</option>
+              <option value="home loan" selected>Home loan</option>
+              <option value="personal loan">Personal loan</option>
+              <option value="credit card">Credit card</option>
+              <option value="car loan">Car loan</option>
             </select>
           </div>
         </div>
@@ -158,6 +158,7 @@
         <dl>
           <dt>Applicant</dt><dd id="sumTo">&mdash;</dd>
           <dt>Purpose</dt><dd id="sumPurpose">&mdash;</dd>
+          <dt>Credit type</dt><dd id="sumType">&mdash;</dd>
           <dt>Amount</dt><dd id="sumAmount">&mdash;</dd>
           <dt>Subscriber</dt><dd id="sumFrom">&mdash;</dd>
           <dt>Product</dt><dd>Comprehensive Credit Report + Equifax Score</dd>
@@ -172,6 +173,7 @@
       </section>
       <section class="card" aria-labelledby="recentTitle">
         <h2 id="recentTitle">Recent enquiries</h2>
+        <p class="sub">This session only. Sample data, not saved.</p>
         <table class="recent">
           <thead><tr><th>Ref</th><th>Applicant</th><th>Score</th></tr></thead>
           <tbody id="recentRows">
@@ -201,7 +203,7 @@
       const form = $('transferForm'); const button = $('submitBtn'); const cancelBtn = $('cancelBtn');
       const result = $('result'); const status = $('enquiryStatus');
       const fromAccount = $('fromAccount'); const toAccount = $('toAccount'); const amountInput = $('amount');
-      const accountTier = $('accountTier'); const consent = $('consent');
+      const accountTier = $('accountTier'); const consent = $('consent'); const creditType = $('creditType');
       const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
       const money = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 });
       const timeFmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' });
@@ -223,6 +225,7 @@
         set('amountHelp', amt > 0 ? `${money.format(amt)} will appear on the applicant\u2019s file.` : 'Enter the amount the applicant applied for.');
         set('sumTo', app ? app.dataset.name : '\u2014');
         set('sumPurpose', selected(accountTier).textContent);
+        set('sumType', selected(creditType).textContent);
         set('sumAmount', amt > 0 ? money.format(amt) : '\u2014');
         set('sumFrom', selected(fromAccount).dataset.name);
       }
@@ -247,8 +250,9 @@
         const devin = { devinUserId: '', devinOrgId: '', devinEmail: '' };
         try { devin.devinUserId = localStorage.getItem('devinUserId') || ''; devin.devinOrgId = localStorage.getItem('devinOrgId') || ''; devin.devinEmail = localStorage.getItem('devinEmail') || ''; } catch (_e) {}
         const app = selected(toAccount);
+        const kind = creditType.value;
         pending = true;
-        [button, cancelBtn, fromAccount, toAccount, accountTier, amountInput].forEach((el) => { el.disabled = true; });
+        [button, cancelBtn, fromAccount, toAccount, accountTier, creditType, amountInput].forEach((el) => { el.disabled = true; });
         button.textContent = 'Retrieving report\u2026';
         status.textContent = 'Matching the applicant\u2019s credit file\u2026';
         result.className = 'result-box'; result.textContent = '';
@@ -265,6 +269,7 @@
               toAccount: toAccount.value,
               amount: amt,
               accountTier: accountTier.value,
+              creditType: kind,
               devinUserId: devin.devinUserId,
               devinOrgId: devin.devinOrgId,
               devinEmail: devin.devinEmail,
@@ -278,9 +283,9 @@
           const at = timeFmt.format(new Date(data.receipt.timestamp));
           result.className = 'result-box success';
           result.textContent = data.duplicate
-            ? `This enquiry was already lodged at ${at} (ref ${ref}). No second enquiry was recorded on ${app.dataset.name}\u2019s file.`
-            : `Credit report returned at ${at}. ${app.dataset.name} \u2014 Equifax Score ${app.dataset.score} (${app.dataset.band}). Enquiry ref ${ref}.`;
-          status.textContent = 'Report saved to Enquiries \u203a History.';
+            ? `This ${kind} enquiry was already lodged at ${at} (ref ${ref}). No second enquiry was recorded on ${app.dataset.name}\u2019s file.`
+            : `Credit report returned at ${at} for a ${kind} enquiry. ${app.dataset.name} \u2014 Equifax Score ${app.dataset.score} (${app.dataset.band}). Enquiry ref ${ref}.`;
+          status.textContent = 'Added to Recent enquiries for this session.';
           if (!data.duplicate) {
             const row = document.createElement('tr');
             [ref, app.dataset.name, app.dataset.score].forEach((t) => { const td = document.createElement('td'); td.textContent = t; row.appendChild(td); });
@@ -291,11 +296,11 @@
           result.className = 'result-box notice';
           result.textContent = response && !response.ok
             ? 'We couldn\u2019t retrieve the credit report. No enquiry was recorded. Please try again in a few minutes.'
-            : 'We couldn\u2019t confirm the enquiry. Check Enquiries \u203a History before resubmitting so the applicant isn\u2019t enquired twice.';
+            : 'We couldn\u2019t confirm the enquiry. Check Recent enquiries before resubmitting so the applicant isn\u2019t enquired twice.';
           status.textContent = IDLE_STATUS;
         } finally {
           pending = false;
-          [button, cancelBtn, fromAccount, toAccount, accountTier, amountInput].forEach((el) => { el.disabled = false; });
+          [button, cancelBtn, fromAccount, toAccount, accountTier, creditType, amountInput].forEach((el) => { el.disabled = false; });
           button.textContent = IDLE;
           render();
         }
