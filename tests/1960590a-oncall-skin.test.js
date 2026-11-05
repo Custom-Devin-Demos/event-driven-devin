@@ -51,10 +51,9 @@ function quote(recipient, extra = {}) {
 }
 
 describe('1960590a FedEx Shipping Rates on-call skin', () => {
-  test('is a native, unlisted shippingrates skin alerting to Slack without report or incident surfaces', () => {
+  test('is a native, unlisted shippingrates skin alerting to Teams without report or incident surfaces', () => {
     const skin = getOncallSkin('1960590a');
-    expect(skin).toMatchObject({ vertical: 'shippingrates', oncallOnly: true, alertDestination: 'slack', page: { file: '1960590a.html', title: TITLE } });
-    expect(skin.teamsAlerts).toBeUndefined();
+    expect(skin).toMatchObject({ vertical: 'shippingrates', oncallOnly: true, teamsAlerts: true, alertDestination: 'teams', page: { file: '1960590a.html', title: TITLE } });
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
     expect(skin.disclaimer).toBe('NOT ACTUALLY A FEDEX SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real FedEx product.');

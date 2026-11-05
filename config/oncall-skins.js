@@ -5101,7 +5101,8 @@ const ONCALL_SKINS = {
     brandMark: 'F',
     vertical: 'shippingrates',
     oncallOnly: true,
-    alertDestination: 'slack',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     paths: ['/fedex', '/fedex-rates'],
     devinSession: {
       auto: true,
