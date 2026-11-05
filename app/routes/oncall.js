@@ -15,6 +15,7 @@ const {
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 const { normalizeAlertDestination } = require('../services/alert-destination');
 const { BATCH: STATESTREET_BATCH, releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
+const { BATCH: REGIONS_BILLS, submitBillPayments } = require('../services/oncall-verticals/regions');
 const { isTeamsWebhookUrl } = require('../services/teams');
 const {
   FLEET,
@@ -80,6 +81,7 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 const ONCALL_HOURLY_CAPS = {
   trigger: 50,
   settlement: 50,
+  regionsBillPay: 50,
   alert: 50,
   infra: 50,
   config: 120,
@@ -637,6 +639,21 @@ router.post('/api/oncall/statestreet/settlement-batches/release', (req, res, nex
   } catch (error) {
     logger.error('State Street batch release failed', { error: error.message });
     res.status(500).json({ success: false, error: 'Unable to release the settlement batch.' });
+  }
+});
+
+router.post('/api/oncall/regions/bill-pay/submit', (req, res, next) => {
+  if (!req.body || req.body.batchId !== REGIONS_BILLS.id) {
+    return res.status(400).json({ success: false, code: 'INVALID_BATCH', error: 'Choose your scheduled bill payments.' });
+  }
+  next();
+}, oncallCap('regionsBillPay'), async (req, res) => {
+  try {
+    const result = await submitBillPayments(req.body || {});
+    res.status(result.statusCode).json(result.body);
+  } catch (error) {
+    logger.error('Regions Bank bill payment failed', { error: error.message });
+    res.status(500).json({ success: false, error: 'Unable to submit bill payments.' });
   }
 });
 

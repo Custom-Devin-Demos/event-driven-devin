@@ -49,6 +49,25 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  regions: {
+    vertical: 'regions',
+    page: '5e57909d.html',
+    apiPath: '/api/banking/transfer',
+    oncallApiPath: '/api/oncall/regions/transfers',
+    owner: 'Consumer Banking Platform On-Call',
+    brand: 'Regions Bank',
+    service: 'regions-cash-transfer-api',
+    endpoint: 'POST /api/oncall/regions/transfers',
+    monitor: 'p95 latency — Regions Bank consumer account transfer confirmation',
+    metricQuery: 'p95:trace.regions.cash_transfer.submit.duration{service:regions-cash-transfer-api}',
+    metricValue: '8.8s',
+    threshold: '> 1.5s',
+    baseline: '~280ms (7-day p95)',
+    release: 'consumer-banking@2026.11.1',
+    symptom: 'Account-balance checks delay individual transfer confirmations for about 9 seconds. Transfers still complete successfully; the bill-pay service is a separate incident.',
+    impact: 'Customers wait for account-transfer confirmations and may resubmit instructions.',
+    unlisted: true,
+  },
   statestreet: {
     vertical: 'statestreet',
     page: '9440f502.html',

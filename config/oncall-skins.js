@@ -95,6 +95,45 @@
  */
 
 const ONCALL_SKINS = {
+  '5e57909d': {
+    slug: '5e57909d',
+    company: 'Regions Bank',
+    vertical: 'regions',
+    oncallOnly: true,
+    paths: ['/regions-oncall'],
+    alertDestination: 'slack',
+    onCallSlackMemberId: 'U0BQZBHCNMA',
+    incidentInviteUserIds: ['U0BQZBHCNMA'],
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Investigate the Regions Bank account-transfer confirmation latency from its own service telemetry. This is separate from the generic banking compliance-screening incident and the Regions Bank bill-pay outage; do not combine those investigations.',
+        'Reproduce only locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Do not submit the live page, and give testing agents the same restriction.',
+        'Measure the same transfer before and after the fix. Preserve account validation, balance-partition coverage, available-balance checks, zero-fee own-account transfers and receipt fields; do not hide the issue by removing ledger data or shortening upstream delays.',
+        'Add a latency regression test, record the before/after transfer, and post findings and the PR link in this alert thread. Do not merge or deploy.',
+      ].join('\n'),
+    },
+    page: { file: '5e57909d.html', title: 'Regions Bank — Online Banking' },
+    theme: {
+      '--accent': '#356e20',
+      '--ink': '#1f2430',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#24521b',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Regions Bank Customer Care',
+    alertCard: {
+      title: 'p95 latency — Regions Bank consumer account transfer confirmation',
+      service: 'regions-cash-transfer-api',
+      team: 'consumer-banking-platform-oncall',
+      release: 'consumer-banking@2026.11.1',
+      baseline: '~280ms (7-day p95, before consumer-banking@2026.11.1)',
+      symptom: 'Individual cash transfers take ~9s to confirm but still complete successfully. No bill-pay outage or elevated error rate.',
+      impact: 'Customers wait on the transfer confirmation screen and may retry an instruction.',
+    },
+    disclaimer: 'NOT ACTUALLY A REGIONS BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Regions Bank product.',
+  },
   '9440f502': {
     slug: '9440f502',
     company: 'State Street',
