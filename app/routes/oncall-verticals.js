@@ -1,6 +1,7 @@
 const express = require('express');
 const { processTransfer } = require('../services/oncall-verticals/banking');
 const { processCashTransfer } = require('../services/oncall-verticals/statestreet-transfers');
+const { ACCOUNTS: REGIONS_ACCOUNTS, processCashTransfer: processRegionsTransfer } = require('../services/oncall-verticals/regions-transfers');
 const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
 const { processClaim } = require('../services/oncall-verticals/insurance');
@@ -47,6 +48,26 @@ const { prepareFulfillment, listCollection } = require('../services/oncall-verti
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
+
+router.get('/api/oncall/regions/accounts', (_req, res) => {
+  res.json({
+    client: { entity: 'Alex Morgan', clientId: 'RG-DEMO-042' },
+    accounts: Object.values(REGIONS_ACCOUNTS),
+    defaultFromAccount: 'CHK-1234', defaultToAccount: 'SAV-2345',
+  });
+});
+
+router.post('/api/oncall/regions/transfers', async (req, res) => {
+  try {
+    res.json(await processRegionsTransfer(req.body));
+  } catch (error) {
+    logger.error('Regions Bank cash transfer failed', { code: error.code, error: error.message });
+    res.status(error.code === 'INVALID_TRANSFER' ? 400 : 500).json({
+      success: false, code: error.code || 'CASH_TRANSFER_FAILED',
+      error: error.code === 'INVALID_TRANSFER' ? error.message : 'Unable to complete the cash transfer.',
+    });
+  }
+});
 
 router.post('/api/oncall/statestreet/transfers', async (req, res) => {
   try {
