@@ -2,6 +2,14 @@
  * Fee estimation and disclosure text for a new account application.
  */
 
+const { FEE_SCHEDULES } = require('./549ee872-catalog');
+
+function scheduleFor(offering) {
+  const schedule = FEE_SCHEDULES[offering.feeSchedule];
+  if (!schedule) throw new Error(`Unknown fee schedule '${offering.feeSchedule}' for offering ${offering.code}`);
+  return schedule;
+}
+
 function tierFor(schedule, balance) {
   return schedule.tiers.find((tier) => balance <= tier.upTo);
 }
@@ -15,7 +23,7 @@ function annualAdvisoryFee(balance, bps) {
  */
 function estimateCosts(offering, funding) {
   const balance = Math.max(funding.initialDeposit, offering.minimumDeposit);
-  const tier = tierFor(offering.feeSchedule, balance);
+  const tier = tierFor(scheduleFor(offering), balance);
   return {
     expectedBalance: balance,
     accountFee: tier.accountFee,
@@ -29,7 +37,7 @@ function estimateCosts(offering, funding) {
  * Disclosure lines shown on the application summary.
  */
 function buildDisclosures(offering) {
-  const tiers = offering.feeSchedule.tiers;
+  const { tiers } = scheduleFor(offering);
   const lines = [];
   if (tiers.every((t) => t.accountFee === 0)) lines.push('No account fees or minimums to open a retail account.');
   if (tiers.every((t) => t.commissionPerTrade === 0)) lines.push('$0 commission for online US stock, ETF, and option trades.');
@@ -44,4 +52,4 @@ function buildDisclosures(offering) {
   return lines;
 }
 
-module.exports = { estimateCosts, buildDisclosures, tierFor, annualAdvisoryFee };
+module.exports = { estimateCosts, buildDisclosures, scheduleFor, tierFor, annualAdvisoryFee };
