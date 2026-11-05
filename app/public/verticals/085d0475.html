@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Business Credit Report | D&amp;B Finance Analytics</title>
+    <link rel="icon" href="data:," />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent: #005172;
+        --ink: #000000;
+        --surface: #ffffff;
+        --chrome-bg: #002737;
+        --chrome-text: #ffffff;
+        --nav: #00435f;
+        --teal: #3095b4;
+        --muted: #4b5a63;
+        --rule: #d6e0e4;
+        --tint: #f2f8f9;
+        --good: #1e7b4f;
+        --warn: #b45f06;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--surface);
+        font:
+          16px/1.5 "Nunito Sans",
+          "Avenir Next",
+          Arial,
+          sans-serif;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .utility {
+        background: var(--nav);
+        color: #fff;
+        font-size: 14px;
+      }
+      .utility-inner {
+        display: flex;
+        max-width: 1440px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+      .utility nav,
+      .utility .utility-links {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+      .utility a {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        padding: 0 12px;
+      }
+      .utility .product-tab {
+        background: color-mix(in srgb, #fff 18%, transparent);
+        font-weight: 700;
+      }
+      .header {
+        border-bottom: 1px solid var(--rule);
+        background: var(--surface);
+      }
+      .header-inner {
+        display: flex;
+        max-width: 1440px;
+        min-height: 80px;
+        align-items: center;
+        gap: 40px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+      .brand {
+        display: inline-flex;
+        min-height: 48px;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand-mark {
+        display: inline-flex;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .brand-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+      }
+      .brand-name {
+        color: var(--accent);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .brand-product {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .primary-nav {
+        display: flex;
+        flex: 1 1 auto;
+        gap: 28px;
+      }
+      .primary-nav a {
+        display: inline-flex;
+        min-height: 47px;
+        align-items: center;
+        border-bottom: 3px solid transparent;
+        color: var(--nav);
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .primary-nav a.active {
+        border-bottom-color: var(--teal);
+      }
+      .user-chip {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 10px;
+        color: var(--nav);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .user-chip span:first-child {
+        display: inline-flex;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--tint);
+        border: 1px solid var(--rule);
+        font-weight: 800;
+      }
+      .announce {
+        background: var(--teal);
+        color: #fff;
+        font-size: 14px;
+        text-align: center;
+        padding: 9px 16px;
+      }
+      .hero {
+        border-radius: 0 0 50% 50% / 0 0 40px 40px;
+        padding: 36px 32px 56px;
+        background: var(--tint);
+      }
+      .hero-inner {
+        max-width: 1376px;
+        margin: 0 auto;
+      }
+      .crumbs {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .crumbs a {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 44px;
+        font-weight: 300;
+        line-height: 1.15;
+      }
+      .hero p {
+        max-width: 760px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 18px;
+      }
+      .wrap {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 36px 32px 64px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+        gap: 28px;
+        align-items: start;
+      }
+      .card {
+        border: 1px solid var(--rule);
+        border-radius: 16px;
+        padding: 28px;
+        background: var(--surface);
+        box-shadow: 0 2px 10px rgba(0, 39, 55, 0.06);
+      }
+      .card + .card {
+        margin-top: 24px;
+      }
+      .card h2 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        font-weight: 300;
+        line-height: 1.3;
+      }
+      .card .lead {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .search-row {
+        display: flex;
+        gap: 12px;
+      }
+      .search-row input {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .field {
+        margin-bottom: 18px;
+      }
+      .field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .field select,
+      .field input,
+      .search-row input {
+        width: 100%;
+        height: 50px;
+        border: 1px solid #8a9aa2;
+        border-radius: 8px;
+        padding: 0 14px;
+        color: var(--ink);
+        background: var(--surface);
+        font: inherit;
+        font-size: 16px;
+      }
+      .field select:focus,
+      .field input:focus,
+      .search-row input:focus {
+        outline: 3px solid color-mix(in srgb, var(--accent) 30%, transparent);
+        border-color: var(--accent);
+      }
+      .field small {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 18px;
+      }
+      .amount-wrap {
+        position: relative;
+      }
+      .amount-wrap span {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .amount-wrap input {
+        padding-left: 30px;
+      }
+      .btn,
+      .btn-outline {
+        display: inline-flex;
+        min-height: 52px;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--accent);
+        border-radius: 30px;
+        padding: 0 32px;
+        font: inherit;
+        font-size: 17px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn {
+        background: var(--accent);
+        color: #fff;
+      }
+      .btn:hover {
+        background: var(--nav);
+        border-color: var(--nav);
+      }
+      .btn:disabled {
+        opacity: 0.7;
+        cursor: progress;
+      }
+      .btn-outline {
+        background: var(--surface);
+        color: var(--accent);
+      }
+      .results {
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .results button {
+        display: flex;
+        width: 100%;
+        min-height: 56px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 0 8px;
+        border: 1px solid var(--rule);
+        border-radius: 10px;
+        padding: 10px 14px;
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .results button[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: var(--tint);
+        box-shadow: inset 4px 0 0 var(--accent);
+      }
+      .results .co {
+        font-weight: 700;
+      }
+      .results .meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .results .duns {
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .empty {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .report-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .report-head h3 {
+        margin: 0 0 4px;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .report-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .pill {
+        display: inline-flex;
+        align-self: flex-start;
+        border-radius: 20px;
+        padding: 4px 12px;
+        background: var(--tint);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .scores {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      .score {
+        border: 1px solid var(--rule);
+        border-radius: 12px;
+        padding: 14px;
+        background: var(--tint);
+      }
+      .score .label {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .score .value {
+        display: block;
+        margin: 4px 0 2px;
+        color: var(--nav);
+        font-size: 30px;
+        font-weight: 300;
+        line-height: 1.1;
+      }
+      .score .note {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .divider {
+        margin: 6px 0 20px;
+        border: 0;
+        border-top: 1px solid var(--rule);
+      }
+      .form-title {
+        margin: 0 0 14px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      .result-box {
+        display: none;
+        margin-top: 18px;
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-size: 15px;
+      }
+      .result-box.success {
+        display: block;
+        border: 1px solid color-mix(in srgb, var(--good) 40%, transparent);
+        background: color-mix(in srgb, var(--good) 8%, #fff);
+      }
+      .result-box.refer {
+        display: block;
+        border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+        background: color-mix(in srgb, var(--warn) 8%, #fff);
+      }
+      .result-box.error {
+        display: block;
+        border: 1px solid #c4314b;
+        background: #fdf1f3;
+      }
+      .result-box strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .side h2 {
+        font-size: 22px;
+      }
+      .facts {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .facts li {
+        padding: 12px 0;
+        border-top: 1px solid var(--rule);
+        font-size: 15px;
+      }
+      .facts li:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .facts b {
+        display: block;
+        color: var(--nav);
+      }
+      .activity {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 14px;
+      }
+      .activity li {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 0;
+        border-top: 1px solid var(--rule);
+      }
+      .activity li:first-child {
+        border-top: 0;
+      }
+      .activity span:last-child {
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .footer {
+        padding: 48px 32px 40px;
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+      }
+      .footer-inner {
+        max-width: 1376px;
+        margin: 0 auto;
+      }
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr;
+        gap: 32px;
+      }
+      .footer .foot-brand {
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .footer p {
+        max-width: 320px;
+        color: color-mix(in srgb, #fff 80%, transparent);
+        font-size: 14px;
+      }
+      .footer h2 {
+        margin: 0 0 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid color-mix(in srgb, #fff 25%, transparent);
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .footer ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .footer li a {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        font-size: 14px;
+      }
+      .legal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 22px;
+        margin-top: 36px;
+        padding-top: 18px;
+        border-top: 1px solid color-mix(in srgb, #fff 25%, transparent);
+        font-size: 13px;
+      }
+      .legal a {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+      }
+      .footer .disclaimer {
+        max-width: none;
+        margin: 14px 0 0;
+        font-size: 12px;
+      }
+      @media (max-width: 1080px) {
+        .primary-nav {
+          display: none;
+        }
+        .header-inner {
+          justify-content: space-between;
+          gap: 16px;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .scores {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .footer-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 600px) {
+        .utility-inner,
+        .header-inner {
+          padding: 0 16px;
+        }
+        .utility .optional,
+        .user-chip .optional {
+          display: none;
+        }
+        .brand-name {
+          font-size: 20px;
+        }
+        .crumbs a {
+          display: inline-flex;
+          align-items: center;
+          min-height: 44px;
+        }
+        .hero {
+          padding: 26px 16px 44px;
+        }
+        .hero h1 {
+          font-size: 32px;
+        }
+        .hero p {
+          font-size: 16px;
+        }
+        .wrap {
+          padding: 26px 16px 44px;
+        }
+        .card {
+          padding: 20px 16px;
+        }
+        .search-row {
+          flex-direction: column;
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .score .value {
+          font-size: 26px;
+        }
+        .actions .btn,
+        .actions .btn-outline {
+          width: 100%;
+        }
+        .footer {
+          padding: 36px 16px 120px;
+        }
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="utility">
+      <div class="utility-inner">
+        <nav aria-label="Products">
+          <a class="product-tab" href="#" aria-current="page">D&amp;B Finance Analytics</a>
+          <a class="optional" href="#">D&amp;B Credit Intelligence</a>
+        </nav>
+        <div class="utility-links">
+          <a class="optional" href="#">D&#8209;U&#8209;N&#8209;S Number</a>
+          <a class="optional" href="#">Service Center</a>
+          <a href="#">Log Out</a>
+        </div>
+      </div>
+    </div>
+    <header class="header">
+      <div class="header-inner">
+        <a class="brand" href="#" aria-label="Dun &amp; Bradstreet Finance Analytics home">
+          <span class="brand-mark" aria-hidden="true">D</span>
+          <span class="brand-text">
+            <span class="brand-name">dun &amp; bradstreet</span>
+            <span class="brand-product">Finance Analytics</span>
+          </span>
+        </a>
+        <nav class="primary-nav" aria-label="Main">
+          <a href="#">Dashboard</a>
+          <a class="active" href="#" aria-current="page">Company Search</a>
+          <a href="#">Portfolio</a>
+          <a href="#">Credit Applications</a>
+          <a href="#">Alerts</a>
+        </nav>
+        <a class="user-chip" href="#">
+          <span aria-hidden="true">JM</span>
+          <span class="optional">Jordan Miller, Credit Analyst</span>
+        </a>
+      </div>
+    </header>
+    <div class="announce">Portfolio alerts refresh every morning. Review new D&amp;B Rating changes in Alerts.</div>
+    <section class="hero">
+      <div class="hero-inner">
+        <p class="crumbs"><a href="#">Company Search</a> / Business Credit Report</p>
+        <h1>Business Credit Report</h1>
+        <p>
+          Look up a company by name or D&#8209;U&#8209;N&#8209;S Number, review its
+          payment and risk scores, and get a credit decision against your credit policy.
+        </p>
+      </div>
+    </section>
+    <main class="wrap">
+      <div class="layout">
+        <div>
+          <section class="card" aria-labelledby="searchHeading">
+            <h2 id="searchHeading">Find a company</h2>
+            <p class="lead">Search by business name or 9-digit D&#8209;U&#8209;N&#8209;S Number.</p>
+            <form id="searchForm" role="search">
+              <div class="search-row">
+                <label class="visually-hidden" for="companySearch" style="position:absolute;left:-9999px">Company name or D-U-N-S Number</label>
+                <input id="companySearch" type="search" placeholder="Company name or D-U-N-S Number" autocomplete="off" />
+                <button class="btn-outline" type="submit">Search</button>
+              </div>
+            </form>
+            <ul class="results" id="results" aria-label="Search results"></ul>
+            <p class="empty" id="emptyResults" hidden>No companies match that search. Check the spelling or D&#8209;U&#8209;N&#8209;S Number.</p>
+          </section>
+
+          <section class="card" aria-labelledby="reportHeading">
+            <h2 id="reportHeading" style="position:absolute;left:-9999px">Business Credit Report</h2>
+            <div class="report-head">
+              <div>
+                <h3 id="coName"></h3>
+                <p id="coMeta"></p>
+              </div>
+              <span class="pill" id="coRating"></span>
+            </div>
+            <div class="scores">
+              <div class="score">
+                <span class="label">PAYDEX&reg;</span>
+                <span class="value" id="scPaydex"></span>
+                <span class="note" id="scPaydexNote"></span>
+              </div>
+              <div class="score">
+                <span class="label">Delinquency Predictor</span>
+                <span class="value" id="scDelinq"></span>
+                <span class="note">Class (1 = lowest risk)</span>
+              </div>
+              <div class="score">
+                <span class="label">Failure Score</span>
+                <span class="value" id="scFailure"></span>
+                <span class="note">Class (1 = lowest risk)</span>
+              </div>
+              <div class="score">
+                <span class="label">Recommended limit</span>
+                <span class="value" id="scLimit"></span>
+                <span class="note">D&amp;B credit limit recommendation</span>
+              </div>
+            </div>
+            <hr class="divider" />
+            <h3 class="form-title">Credit decision</h3>
+            <form id="transferForm">
+              <div class="grid-2">
+                <div class="field">
+                  <label for="toAccount">Company</label>
+                  <select id="toAccount"></select>
+                </div>
+                <div class="field">
+                  <label for="fromAccount">Credit portfolio</label>
+                  <select id="fromAccount">
+                    <option value="PF-NA-COMM">North America Commercial</option>
+                    <option value="PF-NA-DIST">Distribution &amp; Wholesale</option>
+                    <option value="PF-EU-TRADE">Europe Trade Credit</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="amount">Requested credit amount</label>
+                  <div class="amount-wrap">
+                    <span aria-hidden="true">$</span>
+                    <input id="amount" type="number" min="1" step="1" value="75000" required />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="accountTier">Request type</label>
+                  <select id="accountTier">
+                    <option value="standard" selected>New account – full credit review</option>
+                    <option value="premium">Existing customer – limit review</option>
+                  </select>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn" id="submitBtn" type="submit">Get credit decision</button>
+                <button class="btn-outline" id="resetBtn" type="button">Clear</button>
+              </div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+        </div>
+        <aside class="side">
+          <section class="card">
+            <h2>About these scores</h2>
+            <ul class="facts">
+              <li><b>PAYDEX</b>Dollar-weighted payment performance from trade experiences, from 1 to 100. 80 means bills are paid on terms.</li>
+              <li><b>Delinquency Predictor</b>Likelihood the business pays in a severely delinquent manner over the next 12 months.</li>
+              <li><b>Failure Score</b>Likelihood the business ceases operations or seeks legal relief from creditors over the next 12 months.</li>
+              <li><b>Recommended limit</b>A conservative and an aggressive limit based on peer and trade data. Decisions above it are referred for review.</li>
+            </ul>
+          </section>
+          <section class="card">
+            <h2>Recent decisions</h2>
+            <ul class="activity">
+              <li><span>Summit Packaging Corp.</span><span>Approved · Today</span></li>
+              <li><span>Westbrook Electrical Supply</span><span>Referred · Yesterday</span></li>
+              <li><span>Grandview Paper Products</span><span>Approved · Mon</span></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-grid">
+          <section>
+            <div class="foot-brand">dun &amp; bradstreet</div>
+            <p>Business decisioning data and analytics for finance, risk, compliance and sales teams.</p>
+          </section>
+          <section>
+            <h2>Finance Analytics</h2>
+            <ul>
+              <li><a href="#">Company Search</a></li>
+              <li><a href="#">Portfolio</a></li>
+              <li><a href="#">Credit Applications</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2>Support</h2>
+            <ul>
+              <li><a href="#">Customer Service</a></li>
+              <li><a href="#">Update Company Information</a></li>
+              <li><a href="#">Contact Us</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2>Company</h2>
+            <ul>
+              <li><a href="#">Our Company</a></li>
+              <li><a href="#">Trust Center</a></li>
+              <li><a href="#">Newsroom</a></li>
+            </ul>
+          </section>
+        </div>
+        <div class="legal">
+          <a href="#">Your Privacy Choices</a>
+          <a href="#">Policies &amp; Codes of Conduct</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Cookie Preferences</a>
+          <a href="#">Accessibility</a>
+        </div>
+        <p class="disclaimer">
+          NOT ACTUALLY A DUN &amp; BRADSTREET SITE — internal demo only, not affiliated
+          with, endorsed by, or a real Dun &amp; Bradstreet or D&amp;B Finance Analytics product.
+        </p>
+      </div>
+    </footer>
+    <script>
+      /* Ensure locked-mode config is in localStorage for direct navigation */
+      (function () {
+        if (
+          localStorage.getItem("devinOrgId") &&
+          localStorage.getItem("devinUserId")
+        )
+          return;
+        fetch("/api/config")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId)
+              localStorage.setItem("devinOrgId", cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId)
+              localStorage.setItem("devinUserId", cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
+
+      const COMPANIES = [
+        { duns: "079421856", name: "Harbor Point Logistics LLC", city: "Savannah, GA", industry: "Freight transportation arrangement", rating: "4A2", paydex: 80, delinq: 2, failure: 1, limit: 120000 },
+        { duns: "134870625", name: "Meridian Foods Inc.", city: "Columbus, OH", industry: "Packaged food manufacturing", rating: "5A3", paydex: 72, delinq: 3, failure: 2, limit: 60000 },
+        { duns: "601538274", name: "Cobalt Ridge Manufacturing Co.", city: "Grand Rapids, MI", industry: "Industrial machinery manufacturing", rating: "3A1", paydex: 84, delinq: 1, failure: 1, limit: 95000 },
+        { duns: "958203417", name: "Lakeshore Medical Supply Inc.", city: "Milwaukee, WI", industry: "Medical equipment wholesale", rating: "2A4", paydex: 61, delinq: 4, failure: 3, limit: 25000 },
+      ];
+      const fmtDuns = function (d) {
+        return d.slice(0, 2) + "-" + d.slice(2, 5) + "-" + d.slice(5);
+      };
+      const usd = function (v) {
+        return "$" + Number(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
+      };
+      const paydexNote = function (p) {
+        if (p >= 80) return "Pays on terms";
+        if (p >= 70) return "Pays up to 15 days late";
+        if (p >= 50) return "Pays 15–30 days late";
+        return "Pays more than 30 days late";
+      };
+
+      const searchForm = document.getElementById("searchForm"),
+        searchInput = document.getElementById("companySearch"),
+        resultsEl = document.getElementById("results"),
+        emptyEl = document.getElementById("emptyResults"),
+        f = document.getElementById("transferForm"),
+        from = document.getElementById("fromAccount"),
+        to = document.getElementById("toAccount"),
+        amount = document.getElementById("amount"),
+        tier = document.getElementById("accountTier"),
+        b = document.getElementById("submitBtn"),
+        r = document.getElementById("result");
+      const BUTTON_LABEL = "Get credit decision";
+      let busy = false;
+
+      to.replaceChildren(
+        ...COMPANIES.map(function (c) {
+          return new Option(c.name + " · " + fmtDuns(c.duns), c.duns);
+        })
+      );
+
+      function selected() {
+        return COMPANIES.find(function (c) {
+          return c.duns === to.value;
+        });
+      }
+      function clearResult() {
+        r.className = "result-box";
+        r.replaceChildren();
+      }
+      function renderReport() {
+        const c = selected();
+        if (!busy) b.disabled = !c;
+        if (!c) {
+          document.getElementById("coName").textContent = "No company selected";
+          document.getElementById("coMeta").textContent =
+            "Search by business name or D-U-N-S Number, then select a company.";
+          document.getElementById("coRating").textContent = "D&B Rating —";
+          ["scPaydex", "scDelinq", "scFailure", "scLimit"].forEach(function (id) {
+            document.getElementById(id).textContent = "—";
+          });
+          document.getElementById("scPaydexNote").textContent = "";
+          return;
+        }
+        document.getElementById("coName").textContent = c.name;
+        document.getElementById("coMeta").textContent =
+          "D-U-N-S " + fmtDuns(c.duns) + " · " + c.city + " · " + c.industry;
+        document.getElementById("coRating").textContent = "D&B Rating " + c.rating;
+        document.getElementById("scPaydex").textContent = c.paydex;
+        document.getElementById("scPaydexNote").textContent = paydexNote(c.paydex);
+        document.getElementById("scDelinq").textContent = c.delinq;
+        document.getElementById("scFailure").textContent = c.failure;
+        document.getElementById("scLimit").textContent = usd(c.limit);
+        Array.prototype.forEach.call(resultsEl.querySelectorAll("button"), function (btn) {
+          btn.setAttribute("aria-pressed", String(btn.dataset.duns === c.duns));
+        });
+      }
+      function renderResults(list) {
+        resultsEl.replaceChildren(
+          ...list.map(function (c) {
+            const li = document.createElement("li");
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.dataset.duns = c.duns;
+            btn.setAttribute("aria-pressed", String(c.duns === to.value));
+            const left = document.createElement("span");
+            const name = document.createElement("span");
+            name.className = "co";
+            name.textContent = c.name;
+            const meta = document.createElement("span");
+            meta.className = "meta";
+            meta.textContent = " " + c.city;
+            left.append(name, document.createElement("br"), meta);
+            const duns = document.createElement("span");
+            duns.className = "duns";
+            duns.textContent = "D-U-N-S " + fmtDuns(c.duns);
+            btn.append(left, duns);
+            btn.addEventListener("click", function () {
+              to.value = c.duns;
+              clearResult();
+              renderReport();
+            });
+            li.append(btn);
+            return li;
+          })
+        );
+        emptyEl.hidden = list.length > 0;
+      }
+      searchForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const q = searchInput.value.trim().toLowerCase();
+        const digits = q.replace(/[^0-9]/g, "");
+        const list = COMPANIES.filter(function (c) {
+          if (!q) return true;
+          if (digits.length >= 3 && c.duns.indexOf(digits) !== -1) return true;
+          return c.name.toLowerCase().indexOf(q) !== -1;
+        });
+        if (list.length) {
+          to.value = list[0].duns;
+        } else {
+          to.selectedIndex = -1;
+        }
+        renderResults(list);
+        clearResult();
+        renderReport();
+      });
+      to.addEventListener("change", function () {
+        clearResult();
+        renderReport();
+      });
+      [from, amount, tier].forEach(function (el) {
+        el.addEventListener("input", clearResult);
+        el.addEventListener("change", clearResult);
+      });
+      document.getElementById("resetBtn").addEventListener("click", function () {
+        f.reset();
+        to.value = COMPANIES[0].duns;
+        searchInput.value = "";
+        renderResults(COMPANIES);
+        clearResult();
+        renderReport();
+      });
+      renderResults(COMPANIES);
+      renderReport();
+
+      f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const c = selected();
+        const requested = Math.round(Number(amount.value));
+        if (!c) {
+          r.className = "result-box error";
+          r.textContent = "Select a company to get a credit decision.";
+          return;
+        }
+        if (!(requested > 0)) {
+          r.className = "result-box error";
+          r.textContent = "Enter a requested credit amount greater than $0.";
+          return;
+        }
+        const isLimitReview = tier.value === "premium";
+        busy = true;
+        b.disabled = true;
+        b.textContent = "Getting decision…";
+        clearResult();
+        try {
+          const res = await fetch("/api/banking/transfer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fromAccount: from.value,
+              toAccount: to.value,
+              amount: parseFloat(Number(amount.value).toFixed(2)),
+              accountTier: tier.value,
+              devinUserId: localStorage.getItem("devinUserId") || "",
+              devinOrgId: localStorage.getItem("devinOrgId") || "",
+              devinEmail: localStorage.getItem("devinEmail") || "",
+            }),
+          });
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (_) {}
+          if (!res.ok || !data.success) {
+            r.className = "result-box error";
+            r.textContent =
+              "We couldn't get a credit decision right now. No decision has been recorded. Please try again in a few minutes.";
+            return;
+          }
+          const approved = requested <= c.limit;
+          const ref = String(data.transferId || "").slice(0, 8).toUpperCase();
+          const title = document.createElement("strong");
+          const body = document.createElement("span");
+          if (approved) {
+            r.className = "result-box success";
+            title.textContent = (isLimitReview ? "Limit approved: " : "Approved: ") + usd(requested) + " on Net 30 terms";
+            body.textContent =
+              c.name + " is within the D&B recommended limit of " + usd(c.limit) +
+              " (PAYDEX " + c.paydex + ", Failure Score class " + c.failure + ")." +
+              (ref ? " Decision ID " + ref + "." : "");
+          } else {
+            r.className = "result-box refer";
+            title.textContent = "Referred for review: " + usd(requested) + " exceeds the recommended limit";
+            body.textContent =
+              "The D&B recommended limit for " + c.name + " is " + usd(c.limit) +
+              ". The request has been sent to the credit manager queue." +
+              (ref ? " Decision ID " + ref + "." : "");
+          }
+          r.replaceChildren(title, body);
+        } catch (_) {
+          r.className = "result-box error";
+          r.textContent =
+            "We couldn't confirm this credit decision. It may still have been recorded, so check the account's decision history before submitting it again.";
+        } finally {
+          busy = false;
+          b.disabled = !selected();
+          b.textContent = BUTTON_LABEL;
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>

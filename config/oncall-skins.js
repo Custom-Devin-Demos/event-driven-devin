@@ -8683,6 +8683,42 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A SLACK SITE — internal demo only, not affiliated with, endorsed by, or a real Slack product.',
   },
+  '085d0475': {
+    slug: '085d0475',
+    company: 'Dun & Bradstreet',
+    brandMark: 'D',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/dnb'],
+    // Slack-routed: the #oncall-alerts responder triages the card, so no
+    // devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
+    // Only new-account decisions (standard) degrade; existing-customer limit
+    // reviews (premium) are the healthy path and post nothing.
+    triggerWhen: { accountTier: 'standard' },
+    page: { file: '085d0475.html', title: 'Business Credit Report | D&B Finance Analytics' },
+    alertCard: {
+      title: 'p95 latency \u2014 Get credit decision (new account)',
+      service: 'credit-decision-api',
+      release: 'credit-decisioning@2026.11.2',
+      team: 'credit-decisioning-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.2s',
+      threshold: '> 2s',
+      baseline: '~450ms (7-day p95, before credit-decisioning@2026.11.2)',
+      symptom: 'Get credit decision on the Business Credit Report hangs ~9s before the decision is returned for new-account requests. Error rate is normal \u2014 decisions come back. Existing-customer limit reviews are unaffected.',
+      impact: 'Credit analysts wait ~9 seconds per new-account credit decision; order-to-cash queues back up and some analysts resubmit the same request.',
+    },
+    theme: {
+      '--accent': '#005172',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002737',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Dun & Bradstreet Customer Service',
+    disclaimer: 'NOT ACTUALLY A DUN & BRADSTREET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dun & Bradstreet or D&B Finance Analytics product.',
+  },
 };
 
 function getOncallSkin(slug) {
