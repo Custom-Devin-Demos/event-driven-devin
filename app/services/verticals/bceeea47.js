@@ -7,7 +7,6 @@ const { TARGETS, resolveTarget, slaMinutes, revocationSteps } = require('./bceee
 
 const SERVICE = 'bceeea47-api';
 const ROUTE = '/api/bceeea47/revocations/run';
-const SLACK_MEMBER_ID = 'U0BDHHQUM24';
 
 const REGIONS = [
   { id: 'AMER', name: 'Americas' },
@@ -17,19 +16,20 @@ const REGIONS = [
 ];
 
 const QUEUE = [
-  { id: 'LVR-24117', name: 'D. Okafor', role: 'Plant controls engineer (contractor)', employer: 'Contractor', region: 'AMER', tier: 'privileged', systems: ['sso', 'ad', 'vpn', 'm365', 'ot-jumphost'], hrEventAt: '2026-11-04T14:05:00Z' },
-  { id: 'LVR-24118', name: 'M. Lindqvist', role: 'Service advisor', employer: 'Dealer', region: 'EMEA', tier: 'standard', systems: ['sso', 'dealer-portal'], hrEventAt: '2026-11-04T14:12:00Z' },
-  { id: 'LVR-24119', name: 'R. Patel', role: 'Network operations analyst', employer: 'Associate', region: 'AMER', tier: 'privileged', systems: ['sso', 'ad', 'vpn', 'm365', 'ot-jumphost', 'scm'], hrEventAt: '2026-11-04T14:20:00Z' },
-  { id: 'LVR-24120', name: 'A. Nakamura', role: 'Supplier quality associate', employer: 'Associate', region: 'JP', tier: 'standard', systems: ['sso', 'ad', 'm365'], hrEventAt: '2026-11-04T14:31:00Z' },
-  { id: 'LVR-24121', name: 'S. Mbeki', role: 'Parts specialist', employer: 'Dealer', region: 'APAC', tier: 'standard', systems: ['sso', 'dealer-portal'], hrEventAt: '2026-11-04T14:44:00Z' },
-  { id: 'LVR-24122', name: 'J. Romero', role: 'Infrastructure engineer (contractor)', employer: 'Contractor', region: 'AMER', tier: 'privileged', systems: ['sso', 'ad', 'vpn', 'ot-jumphost', 'scm'], hrEventAt: '2026-11-04T14:50:00Z' },
-  { id: 'LVR-24123', name: 'L. Fischer', role: 'Marketing coordinator', employer: 'Associate', region: 'EMEA', tier: 'standard', systems: ['sso', 'ad', 'm365'], hrEventAt: '2026-11-04T15:02:00Z' },
+  { id: 'LVR-24117', name: 'D. Okafor', role: 'Plant controls engineer (contractor)', employer: 'Contractor', region: 'AMER', tier: 'privileged', systems: ['sso', 'ad', 'vpn', 'm365', 'ot-jumphost'], minutesAgo: 44 },
+  { id: 'LVR-24118', name: 'M. Lindqvist', role: 'Service advisor', employer: 'Dealer', region: 'EMEA', tier: 'standard', systems: ['sso', 'dealer-portal'], minutesAgo: 88 },
+  { id: 'LVR-24119', name: 'R. Patel', role: 'Network operations analyst', employer: 'Associate', region: 'AMER', tier: 'privileged', systems: ['sso', 'ad', 'vpn', 'm365', 'ot-jumphost', 'scm'], minutesAgo: 37 },
+  { id: 'LVR-24120', name: 'A. Nakamura', role: 'Supplier quality associate', employer: 'Associate', region: 'JP', tier: 'standard', systems: ['sso', 'ad', 'm365'], minutesAgo: 71 },
+  { id: 'LVR-24121', name: 'S. Mbeki', role: 'Parts specialist', employer: 'Dealer', region: 'APAC', tier: 'standard', systems: ['sso', 'dealer-portal'], minutesAgo: 59 },
+  { id: 'LVR-24122', name: 'J. Romero', role: 'Infrastructure engineer (contractor)', employer: 'Contractor', region: 'AMER', tier: 'privileged', systems: ['sso', 'ad', 'vpn', 'ot-jumphost', 'scm'], minutesAgo: 21 },
+  { id: 'LVR-24123', name: 'L. Fischer', role: 'Marketing coordinator', employer: 'Associate', region: 'EMEA', tier: 'standard', systems: ['sso', 'ad', 'm365'], minutesAgo: 12 },
 ];
 
 const COMPLETED_TODAY = 9;
 const BATCHES = [];
 let resetEpoch = 0;
-let running = false;
+let inFlight = 0;
+let queueAnchor = Date.now();
 
 function planFor(leaver) {
   return leaver.systems.flatMap((systemId) => {
@@ -56,13 +56,18 @@ function summarize(results) {
   return { steps: results.length, byTarget };
 }
 
+function hrEventFor(leaver) {
+  return queueAnchor - leaver.minutesAgo * 60000;
+}
+
 function deadlineFor(leaver) {
-  return new Date(new Date(leaver.hrEventAt).getTime() + slaMinutes(leaver.tier) * 60000).toISOString();
+  return new Date(hrEventFor(leaver) + slaMinutes(leaver.tier) * 60000).toISOString();
 }
 
 function queueView() {
   return QUEUE.map((leaver) => ({
     ...leaver,
+    hrEventAt: new Date(hrEventFor(leaver)).toISOString(),
     deadline: deadlineFor(leaver),
     targets: leaver.systems.map((id) => (resolveTarget(id) || { name: id }).name),
   }));
@@ -111,7 +116,7 @@ async function runRevocationBatch(data) {
   const epoch = resetEpoch;
   const requestId = uuidv4();
   const batchId = `RVB-${requestId.slice(0, 8).toUpperCase()}`;
-  running = true;
+  inFlight += 1;
 
   logger.info('Running leaver revocation batch', { requestId, batchId, leavers: QUEUE.length, service: SERVICE });
 
@@ -178,7 +183,6 @@ async function runRevocationBatch(data) {
       devinOrgId: data.devinOrgId,
       service: SERVICE,
       verticalLabel: 'Identity Access Operations — Leaver Revocation',
-      slackMemberId: SLACK_MEMBER_ID,
       skipVulnerablePr: true,
       tags: [
         { key: 'route', value: ROUTE },
@@ -209,15 +213,16 @@ async function runRevocationBatch(data) {
 
     throw error;
   } finally {
-    running = false;
+    inFlight -= 1;
   }
 }
 
 function resetRevocations() {
-  if (running) {
+  if (inFlight > 0) {
     return { success: false, reason: 'A revocation batch is in flight; retry once it finishes.', status: currentStatus() };
   }
   resetEpoch += 1;
+  queueAnchor = Date.now();
   const cleared = BATCHES.length;
   BATCHES.length = 0;
   logger.info('Demo state reset', { cleared, service: SERVICE });
