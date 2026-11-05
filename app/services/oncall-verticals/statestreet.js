@@ -3,6 +3,8 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { declareDatadogIncident } = require('../datadog-incidents');
+const { queueIncidentChannelInvites } = require('../datadog-incident-slack');
+const { getOncallSkin } = require('../../../config/oncall-skins');
 
 const SERVICE = 'statestreet-settlement-api';
 const ROUTE = '/api/oncall/statestreet/settlement-batches/release';
@@ -47,6 +49,10 @@ async function settlementIncident(triggeredBy) {
       });
       if (!incident) return { status: 'unavailable', runRef };
       openIncident = { status: 'declared', ...incident, runRef, declaredAt: Date.now() };
+      queueIncidentChannelInvites({
+        publicId: incident.publicId,
+        userIds: getOncallSkin('9440f502').incidentInviteUserIds,
+      });
       logger.info('State Street settlement incident declared', { service: SERVICE, ...openIncident });
       return openIncident;
     } catch (error) {

@@ -1,7 +1,7 @@
 /* global afterAll, beforeAll, beforeEach, describe, expect, jest, test, fetch */
 jest.mock('../app/telemetry/logger', () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }));
 jest.mock('../app/telemetry/sentry', () => ({ Sentry: { captureException: jest.fn() }, initSentry: jest.fn() }));
-jest.mock('../app/telemetry/datadog', () => ({ incrementMetric: jest.fn(), recordTiming: jest.fn() }));
+jest.mock('../app/telemetry/datadog', () => ({ tracer: { trace: jest.fn((_name, _options, fn) => fn()) }, incrementMetric: jest.fn(), recordTiming: jest.fn() }));
 jest.mock('../app/services/slack', () => ({
   ownerRotation: jest.requireActual('../app/services/slack').ownerRotation,
   postMessage: jest.fn().mockResolvedValue('1700000000.000100'),
@@ -11,6 +11,7 @@ jest.mock('../app/services/slack', () => ({
 jest.mock('../app/services/devin-api', () => ({ createDevinSession: jest.fn() }));
 jest.mock('../app/services/sonar-pr-trigger', () => ({ scheduleVulnerablePR: jest.fn() }));
 jest.mock('../app/services/datadog-incidents', () => ({ declareDatadogIncident: jest.fn() }));
+jest.mock('../app/services/datadog-incident-slack', () => ({ queueIncidentChannelInvites: jest.fn() }));
 
 process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
 process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
@@ -21,12 +22,13 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { declareDatadogIncident } = require('../app/services/datadog-incidents');
-const { postMessage } = require('../app/services/slack');
+const { queueIncidentChannelInvites } = require('../app/services/datadog-incident-slack');
+const { postMessage, postThreadReply } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
-const { incrementMetric } = require('../app/telemetry/datadog');
+const { tracer, incrementMetric } = require('../app/telemetry/datadog');
 const { Sentry } = require('../app/telemetry/sentry');
 const { getOncallSkin } = require('../config/oncall-skins');
-const { postOncallAlert } = require('../app/services/oncall');
+const { postOncallAlert, resetSkinAlertMemory } = require('../app/services/oncall');
 const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 const SLUG = '9440f502';
@@ -38,6 +40,7 @@ beforeAll((done) => {
   const app = express();
   app.use(express.json());
   app.use(require('../app/routes/oncall'));
+  app.use(require('../app/routes/oncall-verticals'));
   app.use(require('../app/routes/verticals/4da81799'));
   server = http.createServer(app).listen(0, () => {
     baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -53,6 +56,8 @@ afterAll(async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  resetSkinAlertMemory();
+  createDevinSession.mockResolvedValue({ sessionId: 'ss-transfer-session', url: 'https://app.devin.ai/sessions/ss-transfer-session' });
   declareDatadogIncident.mockReset().mockResolvedValue({ id: 'incident-test', publicId: 211 });
 });
 
@@ -70,7 +75,7 @@ describe('State Street dual on-call experience', () => {
       const html = await response.text();
       expect(html).toContain('<title>State Street — Client Banking Portal</title>');
       expect(html).toContain('NOT ACTUALLY A STATE STREET SITE');
-      expect(html).toContain('const oncallApiPath = "/api/oncall/banking/transfer"');
+      expect(html).toContain('const oncallApiPath = "/api/oncall/statestreet/transfers"');
       expect(html).toContain('var skinAlertDestination = "slack"');
       expect(html).toContain('Release settlement batch');
       expect(html).not.toContain('← All Demos');
@@ -103,16 +108,69 @@ describe('State Street dual on-call experience', () => {
     expect(html).toContain('incident.status === \'declared\'');
   });
 
-  test('the regular slow-transfer alert never declares an incident or bypasses the Slack responder', async () => {
+  test('a distinct cash-transfer alert immediately starts an investigation and replies with its session link, without declaring an incident', async () => {
     const skin = getOncallSkin(SLUG);
     expect(skin.datadogIncident).toBeUndefined();
-    const response = await postOncallAlert('banking', { skin, runRef: 'ss-transfer-test' });
+    const response = await postOncallAlert('statestreet', { skin, runRef: 'ss-transfer-test' });
     expect(response.ok).toBe(true);
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(postMessage.mock.calls[0][2]).toContain('State Street');
     expect(postMessage.mock.calls[0][2]).not.toContain('Apex');
+    expect(postMessage.mock.calls[0][2]).toContain('statestreet-cash-transfer-api');
+    expect(postMessage.mock.calls[0][2]).toContain('POST /api/oncall/statestreet/transfers');
+    expect(postMessage.mock.calls[0][2]).not.toContain('POST /api/oncall/banking/transfer');
     expect(declareDatadogIncident).not.toHaveBeenCalled();
-    expect(createDevinSession).not.toHaveBeenCalled();
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
+    expect(createDevinSession.mock.calls[0][0]).toContain('statestreet-cash-transfer-api');
+    expect(postThreadReply).toHaveBeenCalledWith('xoxb-test', 'C0TEST', '1700000000.000100',
+      expect.stringContaining(response.sessionUrl), expect.any(Array));
+    expect(response.sessionUrl).toBe('https://app.devin.ai/sessions/ss-transfer-session');
+  });
+
+  test('a prior United alert cannot claim the State Street investigation, while State Street repeats reuse their own link', async () => {
+    await postOncallAlert('banking', { skin: getOncallSkin('ddfc5af1') });
+    const first = await postOncallAlert('statestreet', { skin: getOncallSkin(SLUG) });
+    const repeat = await postOncallAlert('statestreet', { skin: getOncallSkin(SLUG) });
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(first.sessionUrl).toBe('https://app.devin.ai/sessions/ss-transfer-session');
+    expect(repeat).toMatchObject({ grouped: true, sessionUrl: first.sessionUrl });
+    expect(postThreadReply).toHaveBeenCalledTimes(2);
+    expect(postMessage.mock.calls[0][2]).toContain('POST /api/oncall/banking/transfer');
+    expect(postMessage.mock.calls[1][2]).toContain('POST /api/oncall/statestreet/transfers');
+  });
+
+  test('the dedicated transfer endpoint runs the State Street ledger path and returns the original successful receipt shape', async () => {
+    const started = Date.now();
+    const response = await fetch(`${baseUrl}/api/oncall/statestreet/transfers`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromAccount: 'LIQ-PLUS-4417', toAccount: 'CUS-2345', amount: 250000 }),
+    });
+    expect(response.status).toBe(200);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(8500);
+    expect((await response.json()).receipt).toMatchObject({
+      from: 'LIQ-PLUS-4417', to: 'CUS-2345', amount: 250000, fee: '250.00', totalDebit: '250250.00',
+    });
+    expect(tracer.trace.mock.calls.filter(([name]) => name === 'statestreet.ledger.balance')).toHaveLength(16);
+    expect(tracer.trace).toHaveBeenCalledWith('statestreet.cash_transfer.submit',
+      expect.objectContaining({ service: 'statestreet-cash-transfer-api' }), expect.any(Function));
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(declareDatadogIncident).not.toHaveBeenCalled();
+  }, 15000);
+
+  test.each([
+    {}, { fromAccount: 'constructor', toAccount: 'CUS-2345', amount: 1 },
+    { fromAccount: 'LIQ-PLUS-4417', toAccount: 'constructor', amount: 1 },
+    { fromAccount: 'LIQ-PLUS-4417', toAccount: 'LIQ-PLUS-4417', amount: 1 },
+    { fromAccount: 'LIQ-PLUS-4417', toAccount: 'CUS-2345', amount: 0.001 },
+    { fromAccount: 'LIQ-PLUS-4417', toAccount: 'CUS-2345', amount: 2423254.9 },
+  ])('invalid cash transfer %j is rejected before ledger work', async (body) => {
+    const response = await fetch(`${baseUrl}/api/oncall/statestreet/transfers`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).code).toBe('INVALID_TRANSFER');
+    expect(tracer.trace).not.toHaveBeenCalled();
   });
 
   test('rejects unknown batches without alerts, incidents or failure telemetry', async () => {
@@ -125,6 +183,7 @@ describe('State Street dual on-call experience', () => {
     expect(declareDatadogIncident).not.toHaveBeenCalled();
     expect(postMessage).not.toHaveBeenCalled();
     expect(incrementMetric).not.toHaveBeenCalled();
+    expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
   });
 
   test('batch release returns a real 503, records outage telemetry and declares only a SEV-1 incident', async () => {
@@ -145,6 +204,7 @@ describe('State Street dual on-call experience', () => {
     expect(Sentry.captureException).toHaveBeenCalled();
     expect(postMessage).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
+    expect(queueIncidentChannelInvites).toHaveBeenCalledWith({ publicId: 211, userIds: ['U0BQZBHCNMA'] });
   });
 
   test('a full transfer-alert quota cannot block a settlement release from the same IP', async () => {
