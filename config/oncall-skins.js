@@ -5095,7 +5095,41 @@ const ONCALL_SKINS = {
       impact: 'Test leads cannot release-gate the INV800 release candidate; the program release review is blocked.',
     },
     disclaimer: 'NOT ACTUALLY A BORGWARNER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BorgWarner product.',
+  },  '1960590a': {
+    slug: '1960590a',
+    company: 'FedEx',
+    brandMark: 'F',
+    vertical: 'shippingrates',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/fedex', '/fedex-rates'],
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the FedEx Calculate Shipping Rates page linked above (Shipping Rates). Its Show rates button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 Shipping Rates: Show rates", release rating-web@2026.11.1, owner team shipping-rates-oncall: Show rates for US \u2192 Canada fails immediately with HTTP 500 while domestic and Mexico quotes on the same page work.',
+        'Use "FedEx", "Shipping Rates" and "Show rates" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Marcus Bell (shipping-rates-oncall)". Marcus Bell is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: '1960590a.html', title: 'Calculate Shipping Rates | FedEx' },
+    theme: {
+      '--accent': '#4D148C',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#4D148C',
+      '--chrome-text': '#FFFFFF',
+      '--cta': '#FF6200',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 Shipping Rates: Show rates',
+      release: 'rating-web@2026.11.1',
+      team: 'shipping-rates-oncall',
+      symptom: 'Show rates for US \u2192 Canada (Memphis, TN \u2192 Toronto, ON) fails immediately with HTTP 500; no rates are shown. Domestic (Memphis \u2192 Austin, TX) and Mexico quotes work. Latency is normal.',
+      impact: "Customers can't quote or ship to Canada from fedex.com; the Show rates button errors on the rating page.",
+    },
+    disclaimer: 'NOT ACTUALLY A FEDEX SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real FedEx product.',
   },
+
   '2993853c': {
     slug: '2993853c',
     company: 'Dolby OptiView',
