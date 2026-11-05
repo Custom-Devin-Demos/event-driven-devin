@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>project-acme (Channel) - Acme Inc - Slack</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --aubergine: #4A154B;
+      --aubergine-search: rgba(255, 255, 255, 0.2);
+      --rail-hover: rgba(255, 255, 255, 0.24);
+      --sidebar-bg: #F1EBF0;
+      --sidebar-text: #5E4B5E;
+      --sidebar-active: #8F5196;
+      --badge: #7C3085;
+      --ink: #1D1C1D;
+      --ink-muted: #616061;
+      --line: #DDDDDD;
+      --line-soft: rgba(29, 28, 29, 0.13);
+      --input-border: rgba(29, 28, 29, 0.3);
+      --link: #1264A3;
+      --focus: #1D9BD1;
+      --green: #007A5A;
+      --green-hover: #148567;
+      --danger: #E01E5A;
+      --font: 'Slack-Lato', 'Lato', 'appleLogo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.46668;
+      color: var(--ink);
+      background: var(--aubergine);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    svg { display: block; }
+
+    /* ---------- window top bar ---------- */
+    .topbar {
+      flex: none;
+      height: 40px;
+      display: grid;
+      grid-template-columns: 1fr minmax(0, 732px) 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px;
+      background: var(--aubergine);
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .history { display: flex; justify-content: flex-end; gap: 4px; }
+    .icon-btn {
+      width: 28px; height: 28px;
+      border: 0; border-radius: 6px;
+      background: transparent;
+      color: inherit;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--rail-hover); color: #fff; }
+    .search {
+      height: 26px;
+      border-radius: 6px;
+      background: var(--aubergine-search);
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 13px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+    .help { display: flex; justify-content: flex-end; }
+
+    /* ---------- client ---------- */
+    .client {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      padding: 0 4px 4px 0;
+    }
+    .rail {
+      flex: none;
+      width: 70px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 0 14px;
+      color: #fff;
+    }
+    .ws-icon {
+      position: relative;
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #F6D6FF 0%, #E5B2F6 100%);
+      color: var(--aubergine);
+      font-weight: 900; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.0);
+    }
+    .rail-item {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      margin-bottom: 12px;
+      font-size: 11px; font-weight: 700; color: #fff;
+      text-decoration: none;
+    }
+    .rail-item .rail-ico {
+      position: relative;
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .rail-item:hover .rail-ico, .rail-item.active .rail-ico { background: var(--rail-hover); }
+    .rail-badge {
+      position: absolute; top: -5px; right: -6px;
+      min-width: 18px; height: 18px; padding: 0 5px;
+      border-radius: 9px; background: #fff; color: var(--aubergine);
+      font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+      box-shadow: 0 0 0 2px var(--aubergine);
+    }
+    .rail-spacer { flex: 1; }
+    .rail-plus {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.86); color: var(--aubergine);
+      border: 0; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px; cursor: pointer;
+    }
+    .me {
+      position: relative;
+      width: 36px; height: 36px; border-radius: 8px;
+      background: #2BAC76; color: #fff; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .me::after {
+      content: ''; position: absolute; right: -3px; bottom: -3px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #2BAC76; box-shadow: 0 0 0 3px var(--aubergine);
+    }
+
+    .workspace {
+      flex: 1; min-width: 0;
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+    }
+
+    /* ---------- sidebar ---------- */
+    .sidebar {
+      flex: none;
+      width: 260px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex; flex-direction: column;
+      border-right: 1px solid rgba(29, 28, 29, 0.08);
+    }
+    .sb-head {
+      height: 49px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 8px 0 16px;
+    }
+    .ws-name {
+      border: 0; background: transparent; padding: 3px 8px; margin-left: -8px;
+      border-radius: 6px;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 18px; font-weight: 900; color: var(--ink); cursor: pointer;
+    }
+    .ws-name:hover { background: rgba(29, 28, 29, 0.06); }
+    .sb-actions { display: flex; gap: 4px; color: var(--sidebar-text); }
+    .sb-actions .icon-btn:hover { background: rgba(29, 28, 29, 0.08); color: var(--ink); }
+    .sb-scroll { flex: 1; overflow-y: auto; padding: 4px 0 12px; }
+    .sb-row {
+      display: flex; align-items: center; gap: 8px;
+      height: 28px; margin: 0 8px; padding: 0 10px 0 12px;
+      border-radius: 6px;
+      color: var(--sidebar-text);
+      font-size: 15px;
+      text-decoration: none;
+      white-space: nowrap; overflow: hidden;
+      cursor: pointer;
+    }
+    .sb-row:hover { background: rgba(29, 28, 29, 0.06); }
+    .sb-row .sb-ico { flex: none; width: 18px; display: flex; justify-content: center; opacity: 0.85; }
+    .sb-row .sb-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .sb-row.unread { color: var(--ink); font-weight: 900; }
+    .sb-row.active { background: var(--sidebar-active); color: #fff; font-weight: 400; }
+    .sb-row.active .sb-ico { opacity: 1; }
+    .sb-count {
+      flex: none; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px;
+      background: var(--badge); color: #fff; font-size: 12px; font-weight: 700; line-height: 18px; text-align: center;
+    }
+    .sb-section {
+      display: flex; align-items: center; gap: 6px;
+      height: 28px; margin: 12px 8px 0; padding: 0 12px;
+      font-size: 15px; color: var(--sidebar-text);
+    }
+    .sb-av {
+      flex: none; width: 20px; height: 20px; border-radius: 4px;
+      color: #fff; font-size: 11px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sb-add .sb-ico {
+      width: 20px; height: 20px; border-radius: 4px; background: rgba(29, 28, 29, 0.08);
+      align-items: center;
+    }
+
+    /* ---------- channel view ---------- */
+    .channel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .ch-head {
+      flex: none;
+      height: 49px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 0 16px 0 20px;
+    }
+    .ch-title {
+      border: 0; background: transparent; padding: 3px 8px; margin-left: -8px; border-radius: 6px;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 18px; font-weight: 900; color: var(--ink); cursor: pointer;
+      white-space: nowrap;
+    }
+    .ch-title:hover { background: rgba(29, 28, 29, 0.06); }
+    .ch-tools { display: flex; align-items: center; gap: 8px; }
+    .pill {
+      height: 28px; padding: 0 8px 0 4px;
+      border: 1px solid var(--line-soft); border-radius: 6px;
+      background: #fff; color: var(--ink-muted);
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 700;
+    }
+    .faces { display: flex; }
+    .faces span {
+      width: 20px; height: 20px; border-radius: 4px; margin-left: -4px;
+      box-shadow: 0 0 0 2px #fff; color: #fff; font-size: 10px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .faces span:first-child { margin-left: 0; }
+    .huddle {
+      height: 28px; border: 1px solid var(--line-soft); border-radius: 6px; background: #fff;
+      display: inline-flex; align-items: stretch; color: var(--ink-muted);
+    }
+    .huddle span { display: flex; align-items: center; padding: 0 6px; }
+    .huddle span + span { border-left: 1px solid var(--line-soft); padding: 0 4px; }
+    .ch-tools .icon-btn { color: var(--ink-muted); }
+    .ch-tools .icon-btn:hover { background: rgba(29, 28, 29, 0.06); color: var(--ink); }
+    .tabs {
+      flex: none;
+      display: flex; align-items: flex-end; gap: 4px;
+      height: 38px; padding: 0 20px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .tab {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 38px; padding: 0 8px;
+      font-size: 13px; font-weight: 700; color: var(--ink-muted);
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active { color: var(--ink); border-bottom-color: var(--sidebar-active); }
+    .tab-plus { height: 38px; display: flex; align-items: center; padding: 0 8px; color: var(--ink-muted); }
+
+    .messages { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 0 12px; }
+    .day {
+      position: relative; text-align: center; margin: 12px 0 4px;
+    }
+    .day::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--line-soft); }
+    .day span {
+      position: relative; display: inline-block; padding: 0 16px; height: 28px; line-height: 26px;
+      border: 1px solid var(--line-soft); border-radius: 24px; background: #fff;
+      font-size: 13px; font-weight: 700;
+    }
+    .msg { display: flex; gap: 8px; padding: 8px 20px; }
+    .msg:hover { background: #F8F8F8; }
+    .avatar {
+      flex: none; width: 36px; height: 36px; border-radius: 8px;
+      color: #fff; font-weight: 900; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .msg-body { min-width: 0; }
+    .msg-meta { display: flex; align-items: baseline; gap: 8px; }
+    .msg-name { font-weight: 900; }
+    .msg-time { font-size: 12px; color: var(--ink-muted); }
+    .msg-text { margin: 0; }
+    .mention { color: var(--link); background: rgba(29, 155, 209, 0.1); border-radius: 3px; padding: 0 2px; }
+    .app-tag {
+      font-size: 10px; font-weight: 700; color: var(--ink-muted); background: rgba(29,28,29,0.06);
+      border-radius: 2px; padding: 1px 3px; letter-spacing: 0.3px;
+    }
+    .attachment {
+      display: inline-flex; align-items: center; gap: 12px;
+      margin-top: 6px; padding: 12px 16px 12px 12px;
+      border: 1px solid var(--line-soft); border-radius: 12px; background: #fff;
+    }
+    .att-ico { width: 40px; height: 40px; border-radius: 8px; background: #E8912D; display: flex; align-items: center; justify-content: center; color: #fff; }
+    .att-title { font-weight: 900; }
+    .att-sub { font-size: 13px; color: var(--ink-muted); }
+    .reactions { display: flex; gap: 4px; margin-top: 6px; }
+    .reaction {
+      height: 24px; padding: 0 8px; border-radius: 12px;
+      background: rgba(29, 28, 29, 0.04); box-shadow: inset 0 0 0 1px rgba(29,28,29,0.06);
+      display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--ink-muted);
+    }
+    .reaction.mine { background: rgba(29, 155, 209, 0.1); box-shadow: inset 0 0 0 1px #1D9BD1; color: var(--link); }
+    .replies { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; }
+    .replies .faces span { width: 24px; height: 24px; margin-left: 0; margin-right: 4px; box-shadow: none; }
+    .replies a { color: var(--link); font-weight: 700; text-decoration: none; }
+
+    .composer-wrap { flex: none; padding: 0 20px 20px; }
+    .composer { border: 1px solid var(--input-border); border-radius: 8px; background: #fff; }
+    .composer-fmt { display: flex; gap: 2px; padding: 4px 6px; background: #F8F8F8; border-radius: 8px 8px 0 0; color: #ABABAD; }
+    .composer-fmt span { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+    .composer-input { padding: 9px 12px; color: #868686; min-height: 22px; }
+    .composer-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 6px; color: var(--ink-muted); }
+    .composer-bar .left { display: flex; align-items: center; gap: 2px; }
+    .composer-bar .round { width: 28px; height: 28px; border-radius: 50%; background: rgba(29,28,29,0.06); display: flex; align-items: center; justify-content: center; }
+    .composer-bar .ico { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+    .send { display: inline-flex; height: 28px; border-radius: 4px; color: #ABABAD; align-items: center; }
+    .send span { padding: 0 6px; display: flex; align-items: center; }
+    .send span + span { border-left: 1px solid rgba(29,28,29,0.13); padding: 0 4px; }
+
+    /* ---------- workspace menu ---------- */
+    .ws-menu {
+      position: absolute; top: 88px; left: 86px; z-index: 40;
+      width: 300px; padding: 12px 0;
+      background: #fff; border-radius: 8px;
+      box-shadow: 0 0 0 1px rgba(29,28,29,0.13), 0 4px 12px rgba(0,0,0,0.12);
+      display: none;
+    }
+    .ws-menu.open { display: block; }
+    .ws-menu .wm-head { display: flex; gap: 12px; align-items: center; padding: 4px 24px 12px; border-bottom: 1px solid var(--line-soft); }
+    .ws-menu .wm-head .ws-icon { margin: 0; }
+    .ws-menu .wm-name { font-weight: 900; }
+    .ws-menu .wm-url { font-size: 13px; color: var(--ink-muted); }
+    .ws-menu button {
+      display: block; width: 100%; border: 0; background: transparent; text-align: left;
+      padding: 0 24px; height: 28px; font-size: 15px; color: var(--ink); cursor: pointer;
+    }
+    .ws-menu button:hover { background: var(--link); color: #fff; }
+    .ws-menu hr { border: 0; border-top: 1px solid var(--line-soft); margin: 8px 0; }
+
+    /* ---------- invite modal ---------- */
+    .overlay {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(0, 0, 0, 0.6);
+      display: none; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      width: 520px; max-width: 100%;
+      max-height: calc(100vh - 48px); overflow-y: auto;
+      background: #fff; border-radius: 8px;
+      box-shadow: 0 0 0 1px rgba(29,28,29,0.13), 0 18px 48px rgba(0, 0, 0, 0.35);
+    }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 20px 12px 28px;
+    }
+    .modal-head h2 { margin: 0; font-size: 22px; line-height: 1.36364; font-weight: 900; }
+    .modal-close {
+      width: 36px; height: 36px; border: 0; border-radius: 6px; background: transparent;
+      color: var(--ink-muted); display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .modal-close:hover { background: rgba(29, 28, 29, 0.06); color: var(--ink); }
+    .modal-body { padding: 0 28px 4px; }
+    .field { margin-bottom: 18px; }
+    .field-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-weight: 700; font-size: 15px; }
+    .field-label a { font-weight: 400; color: var(--link); text-decoration: none; font-size: 15px; }
+    .field-label a:hover { text-decoration: underline; }
+    .chips {
+      display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+      min-height: 88px; padding: 6px 8px; align-content: flex-start;
+      border: 1px solid var(--input-border); border-radius: 4px; background: #fff;
+      cursor: text;
+    }
+    .chips:focus-within { border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus), 0 0 0 5px rgba(29, 155, 209, 0.3); }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 26px; padding: 0 4px 0 4px; border-radius: 4px;
+      background: rgba(29, 155, 209, 0.1); color: var(--link); font-size: 14px; font-weight: 700;
+    }
+    .chip .chip-av { width: 18px; height: 18px; border-radius: 3px; background: #ABABAD; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+    .chip button {
+      position: relative; width: 18px; height: 18px; border: 0; padding: 0; background: transparent; color: inherit;
+      display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px;
+    }
+    .chip button::before { content: ''; position: absolute; inset: -13px -13px; }
+    .chip button:hover { background: rgba(18, 100, 163, 0.15); }
+    .chips input {
+      flex: 1; min-width: 140px; height: 26px; border: 0; outline: 0; padding: 0 4px; font-size: 15px; color: var(--ink); background: transparent;
+    }
+    .hint { margin: 6px 0 0; font-size: 13px; color: var(--ink-muted); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .select-wrap { position: relative; }
+    .select-wrap select {
+      width: 100%; height: 44px; padding: 0 36px 0 12px;
+      border: 1px solid var(--input-border); border-radius: 4px; background: #fff;
+      font-size: 15px; color: var(--ink);
+      -webkit-appearance: none; appearance: none; cursor: pointer;
+    }
+    .select-wrap select:focus { outline: 0; border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus), 0 0 0 5px rgba(29, 155, 209, 0.3); }
+    .select-wrap svg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--ink-muted); }
+    .billing-note {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 12px 14px; border-radius: 8px; background: #F8F8F8;
+      font-size: 13px; color: var(--ink-muted); line-height: 1.38463;
+    }
+    .billing-note svg { flex: none; margin-top: 1px; color: var(--ink-muted); }
+    .billing-note strong { color: var(--ink); }
+    .modal-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 20px 28px 24px;
+    }
+    .copy-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 0; background: transparent; padding: 0; color: var(--link); font-size: 15px; cursor: pointer;
+    }
+    .copy-link:hover { text-decoration: underline; }
+    .btn-primary {
+      min-width: 80px; height: 36px; padding: 0 12px 1px;
+      border: 0; border-radius: 4px;
+      background: var(--green); color: #fff;
+      font-size: 15px; font-weight: 900;
+      box-shadow: none; cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--green-hover); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+    .btn-primary:disabled { background: #DDDDDD; color: rgba(29, 28, 29, 0.75); box-shadow: none; cursor: default; }
+    .result-box { display: none; margin: 0 28px 4px; padding: 12px 14px; border-radius: 8px; font-size: 15px; }
+    .result-box.success { display: block; background: #E3F5EE; border: 1px solid rgba(0, 122, 90, 0.3); }
+    .result-box.error { display: block; background: #FCE8EE; border: 1px solid rgba(224, 30, 90, 0.35); }
+    .result-title { font-weight: 900; margin-bottom: 2px; }
+    .result-detail { font-size: 13px; color: var(--ink-muted); }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 1100px) {
+      .huddle, .pill .faces { display: none; }
+    }
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+    }
+    @media (max-width: 600px) {
+      .topbar { grid-template-columns: auto 1fr auto; padding: 0 8px; gap: 8px; height: 44px; }
+      .history .icon-btn:not(:last-child) { display: none; }
+      .search { height: 32px; }
+      .client { padding: 0; }
+      .rail { display: none; }
+      .workspace { border-radius: 0; box-shadow: none; }
+      .ch-head { padding: 0 8px 0 16px; }
+      .pill { display: none; }
+      .ch-tools .icon-btn { width: 44px; height: 44px; }
+      .tabs { padding: 0 12px; overflow: hidden; }
+      .msg { padding: 8px 16px; }
+      .composer-wrap { padding: 0 12px 12px; }
+      .composer-fmt { display: none; }
+      .overlay { padding: 0; align-items: flex-end; }
+      .modal { border-radius: 12px 12px 0 0; max-height: calc(100vh - 56px); }
+      .modal-head { padding: 16px 12px 8px 20px; }
+      .modal-head h2 { font-size: 20px; }
+      .modal-close { width: 44px; height: 44px; }
+      .modal-body { padding: 0 20px 4px; }
+      .row2 { grid-template-columns: 1fr; gap: 0; }
+      .row2 .field { margin-bottom: 18px; }
+      .chips input { height: 32px; }
+      .modal-foot { padding: 16px 20px 96px; }
+      .copy-link { min-height: 44px; }
+      .btn-primary { height: 44px; min-width: 112px; }
+      .result-box { margin: 0 20px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="history">
+      <button class="icon-btn" type="button" aria-label="Back"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10H4M9 5l-5 5 5 5"/></svg></button>
+      <button class="icon-btn" type="button" aria-label="Forward" style="opacity:.5"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M11 5l5 5-5 5"/></svg></button>
+      <button class="icon-btn" type="button" aria-label="History"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 2"/></svg></button>
+    </div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4 4"/></svg>
+      <span>Search Acme Inc</span>
+    </div>
+    <div class="help">
+      <button class="icon-btn" type="button" aria-label="Help"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.4v.4"/><circle cx="10" cy="14.2" r=".6" fill="currentColor"/></svg></button>
+    </div>
+  </header>
+
+  <div class="client">
+    <nav class="rail" aria-label="Primary">
+      <div class="ws-icon" title="Acme Inc">A</div>
+      <a class="rail-item active" href="#"><span class="rail-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2.2 2.6 8.1a1 1 0 0 0-.4.8V16a1.8 1.8 0 0 0 1.8 1.8h12a1.8 1.8 0 0 0 1.8-1.8V8.9a1 1 0 0 0-.4-.8L10 2.2Zm0 9.3a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"/></svg></span>Home</a>
+      <a class="rail-item" href="#"><span class="rail-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7.5 15.5a5 5 0 1 1 4.2-2.3l.6 2.3-2.3-.6a5 5 0 0 1-2.5.6Z"/><path d="M10.6 5.3a5 5 0 0 1 6.4 6.9l.5 2-2-.5"/></svg><span class="rail-badge">2</span></span>DMs</a>
+      <a class="rail-item" href="#"><span class="rail-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 13.5V9a5 5 0 0 1 10 0v4.5l1.5 1.5h-13L5 13.5Z"/><path d="M8.3 17a1.9 1.9 0 0 0 3.4 0" stroke-linecap="round"/></svg><span class="rail-badge">6</span></span>Activity</a>
+      <a class="rail-item" href="#"><span class="rail-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5.5 3h9v14L10 13.6 5.5 17V3Z"/></svg></span>Later</a>
+      <a class="rail-item" href="#"><span class="rail-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><circle cx="4.5" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="15.5" cy="10" r="1.6"/></svg></span>More</a>
+      <div class="rail-spacer"></div>
+      <button class="rail-plus" type="button" aria-label="Create new"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></button>
+      <div class="me" title="Jordan Lee">J</div>
+    </nav>
+
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Channels">
+        <div class="sb-head">
+          <button class="ws-name" type="button" id="wsNameBtn">Acme Inc <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 5 5 5-5"/></svg></button>
+          <div class="sb-actions">
+            <button class="icon-btn" type="button" aria-label="Filter"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h14M6 10h8M8.5 15h3"/></svg></button>
+            <button class="icon-btn" type="button" aria-label="New message"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13.5 3.5l3 3L8 15l-4 1 1-4 8.5-8.5Z"/></svg></button>
+          </div>
+        </div>
+        <div class="sb-scroll">
+          <a class="sb-row" href="#"><span class="sb-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h9"/></svg></span><span class="sb-label">Threads</span></a>
+          <a class="sb-row" href="#"><span class="sb-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M10 16.5a6.5 6.5 0 1 0-5.6-3.2L3.5 16.5l3.2-.9a6.5 6.5 0 0 0 3.3.9Z"/><path d="M7 9h6M7 11.5h4" stroke-linecap="round"/></svg></span><span class="sb-label">Huddles</span></a>
+          <a class="sb-row" href="#"><span class="sb-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 10 17 3l-4 14-3-6-7-1Z"/></svg></span><span class="sb-label">Drafts &amp; sent</span></a>
+
+          <div class="sb-section"><svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path d="M4 7h12l-6 7z"/></svg>Channels</div>
+          <a class="sb-row" href="#"><span class="sb-ico">#</span><span class="sb-label">announcements</span></a>
+          <a class="sb-row unread" href="#"><span class="sb-ico">#</span><span class="sb-label">design-crit</span><span class="sb-count">1</span></a>
+          <a class="sb-row" href="#"><span class="sb-ico">#</span><span class="sb-label">eng-platform</span></a>
+          <a class="sb-row" href="#"><span class="sb-ico">#</span><span class="sb-label">general</span></a>
+          <a class="sb-row active" href="#"><span class="sb-ico">#</span><span class="sb-label">project-acme</span></a>
+          <a class="sb-row unread" href="#"><span class="sb-ico">#</span><span class="sb-label">sales-team</span></a>
+          <a class="sb-row" href="#"><span class="sb-ico">#</span><span class="sb-label">social</span></a>
+
+          <div class="sb-section"><svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path d="M4 7h12l-6 7z"/></svg>Direct messages</div>
+          <a class="sb-row unread" href="#"><span class="sb-av" style="background:#E8912D">L</span><span class="sb-label">Lisa Dawson</span><span class="sb-count">2</span></a>
+          <a class="sb-row" href="#"><span class="sb-av" style="background:#36C5F0">M</span><span class="sb-label">Matt Brewer</span></a>
+          <a class="sb-row" href="#"><span class="sb-av" style="background:#2EB67D">S</span><span class="sb-label">Sara Parras</span></a>
+          <a class="sb-row" href="#"><span class="sb-av" style="background:#2BAC76">J</span><span class="sb-label">Jordan Lee <span style="opacity:.7">you</span></span></a>
+          <a class="sb-row sb-add" href="#" id="addCoworkers"><span class="sb-ico"><svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></span><span class="sb-label">Invite people</span></a>
+
+          <div class="sb-section"><svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path d="M4 7h12l-6 7z"/></svg>Apps</div>
+          <a class="sb-row" href="#"><span class="sb-av" style="background:#4A154B">W</span><span class="sb-label">Workflow Builder</span></a>
+        </div>
+      </aside>
+
+      <main class="channel">
+        <div class="ch-head">
+          <button class="ch-title" type="button"># project-acme <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 5 5 5-5"/></svg></button>
+          <div class="ch-tools">
+            <span class="pill"><span class="faces"><span style="background:#36C5F0">M</span><span style="background:#E8912D">L</span><span style="background:#2EB67D">S</span></span>17</span>
+            <span class="huddle"><span><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 13v-2.5a6.5 6.5 0 0 1 13 0V13"/><rect x="3" y="11.5" width="3.5" height="5" rx="1.2"/><rect x="13.5" y="11.5" width="3.5" height="5" rx="1.2"/></svg></span><span><svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 5 5 5-5"/></svg></span></span>
+            <button class="icon-btn" type="button" id="headerInvite" aria-label="Invite people" title="Invite people"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="7" r="3.2"/><path d="M2.5 16.5a5.5 5.5 0 0 1 11 0"/><path d="M15.5 6.5v5M13 9h5"/></svg></button>
+            <button class="icon-btn" type="button" aria-label="More actions"><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="4.5" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="10" cy="15.5" r="1.6"/></svg></button>
+          </div>
+        </div>
+        <div class="tabs">
+          <span class="tab active"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M10 16.5a6.5 6.5 0 1 0-5.6-3.2L3.5 16.5l3.2-.9a6.5 6.5 0 0 0 3.3.9Z"/></svg>Messages</span>
+          <span class="tab"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4H8l1.5 2h6A1.5 1.5 0 0 1 17 7.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5v-9Z"/></svg>Files</span>
+          <span class="tab-plus"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></span>
+        </div>
+
+        <div class="messages">
+          <div class="day"><span>Today</span></div>
+          <div class="msg">
+            <div class="avatar" style="background:#36C5F0">M</div>
+            <div class="msg-body">
+              <div class="msg-meta"><span class="msg-name">Matt Brewer</span><span class="msg-time">9:41 AM</span></div>
+              <p class="msg-text">Here is a look at our team's priorities for the year:</p>
+              <div class="attachment">
+                <div class="att-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="3" width="12" height="14" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg></div>
+                <div><div class="att-title">Sales team goals</div><div class="att-sub">Canvas · FY26</div></div>
+              </div>
+              <div class="reactions"><span class="reaction mine">👏 4</span><span class="reaction">🙌 2</span></div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="avatar" style="background:#4A154B">W</div>
+            <div class="msg-body">
+              <div class="msg-meta"><span class="msg-name">Weekly team check-in</span> <span class="app-tag">WORKFLOW</span><span class="msg-time">10:00 AM</span></div>
+              <p class="msg-text">Please post your weekly update in thread 🧵</p>
+              <div class="replies"><span class="faces"><span style="background:#E8912D">L</span><span style="background:#2EB67D">S</span><span style="background:#ECB22E">H</span></span><a href="#">3 replies</a><span class="msg-time">Last reply today at 10:24 AM</span></div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="avatar" style="background:#E8912D">L</div>
+            <div class="msg-body">
+              <div class="msg-meta"><span class="msg-name">Lisa Dawson</span><span class="msg-time">10:32 AM</span></div>
+              <p class="msg-text">The new support hires start Monday. <span class="mention">@Jordan Lee</span> can you get them into the workspace before then?</p>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="avatar" style="background:#2BAC76">J</div>
+            <div class="msg-body">
+              <div class="msg-meta"><span class="msg-name">Jordan Lee</span><span class="msg-time">10:35 AM</span></div>
+              <p class="msg-text">On it — sending the invites now.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="composer-wrap">
+          <div class="composer">
+            <div class="composer-fmt"><span>B</span><span style="font-style:italic">I</span><span style="text-decoration:line-through">S</span><span>🔗</span><span>≡</span><span>&lt;/&gt;</span></div>
+            <div class="composer-input">Message #project-acme</div>
+            <div class="composer-bar">
+              <div class="left">
+                <span class="round"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></span>
+                <span class="ico" style="font-weight:700;text-decoration:underline">Aa</span>
+                <span class="ico">☺</span>
+                <span class="ico">@</span>
+              </div>
+              <span class="send"><span><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M2.5 3.2 17.5 10l-15 6.8 2.2-6.8-2.2-6.8Zm2.9 7.4-1.3 4 10-4.6H5.4Z"/></svg></span><span><svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 5 5 5-5"/></svg></span></span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="ws-menu" id="wsMenu" role="menu">
+    <div class="wm-head"><div class="ws-icon">A</div><div><div class="wm-name">Acme Inc</div><div class="wm-url">acme-inc.slack.com</div></div></div>
+    <div style="padding:8px 0 0">
+      <button type="button" id="menuInvite">Invite people to Acme Inc</button>
+      <hr>
+      <button type="button">Preferences</button>
+      <button type="button">Tools &amp; settings</button>
+      <hr>
+      <button type="button">Sign out of Acme Inc</button>
+    </div>
+  </div>
+
+  <div class="overlay open" id="inviteOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="inviteTitle">
+      <div class="modal-head">
+        <h2 id="inviteTitle">Invite people to Acme Inc</h2>
+        <button class="modal-close" type="button" id="inviteClose" aria-label="Close"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg></button>
+      </div>
+      <form id="provisionForm" autocomplete="off" novalidate>
+        <div class="modal-body">
+          <div class="field">
+            <div class="field-label"><label for="inviteEmail">To:</label><a href="#">Add from Google Workspace</a></div>
+            <div class="chips" id="chips">
+              <input id="inviteEmail" type="email" placeholder="name@acme.com" aria-label="Add email address">
+            </div>
+            <input type="hidden" id="seats" value="6">
+            <p class="hint" id="seatHint">6 people · press Enter or comma after each address</p>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <div class="field-label"><label for="product">Add to workspace</label></div>
+              <div class="select-wrap">
+                <select id="product">
+                  <option value="enterprise_suite">Acme Inc</option>
+                  <option value="devops_platform">Acme Engineering</option>
+                  <option value="analytics_cloud">Acme Sales</option>
+                  <option value="security_gateway">Acme Support</option>
+                </select>
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 5 5 5-5"/></svg>
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-label"><label for="planTier">Bill seats to</label></div>
+              <div class="select-wrap">
+                <select id="planTier">
+                  <option value="business">Business+</option>
+                  <option value="enterprise">Enterprise Grid</option>
+                  <option value="starter">Pro</option>
+                </select>
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 5 5 5-5"/></svg>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" id="region" value="us-east">
+          <div class="billing-note">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 9v5"/><circle cx="10" cy="6.2" r=".7" fill="currentColor"/></svg>
+            <span>New members are added as <strong>full members</strong>. Each person who joins takes a paid seat on your plan, prorated for the rest of this billing period.</span>
+          </div>
+        </div>
+        <div class="result-box" id="result" role="status" aria-live="polite"><div class="result-title"></div><div class="result-detail"></div></div>
+        <div class="modal-foot">
+          <button class="copy-link" type="button"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2l-.9.9"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2.6 2.6a3 3 0 0 0 4.2 4.2l.9-.9"/></svg>Copy invite link</button>
+          <button class="btn-primary" type="submit" id="submitBtn">Send</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var overlay = document.getElementById('inviteOverlay');
+      var menu = document.getElementById('wsMenu');
+      function openInvite(e) { if (e) e.preventDefault(); menu.classList.remove('open'); overlay.classList.add('open'); }
+      document.getElementById('inviteClose').addEventListener('click', function () { overlay.classList.remove('open'); });
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.classList.remove('open'); });
+      document.getElementById('addCoworkers').addEventListener('click', openInvite);
+      document.getElementById('menuInvite').addEventListener('click', openInvite);
+      document.getElementById('headerInvite').addEventListener('click', openInvite);
+      document.getElementById('wsNameBtn').addEventListener('click', function (e) { e.stopPropagation(); menu.classList.toggle('open'); });
+      document.addEventListener('click', function (e) { if (!menu.contains(e.target)) menu.classList.remove('open'); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { overlay.classList.remove('open'); menu.classList.remove('open'); } });
+
+      var chips = document.getElementById('chips');
+      var input = document.getElementById('inviteEmail');
+      var seats = document.getElementById('seats');
+      var hint = document.getElementById('seatHint');
+      var EMAIL = /^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/;
+      function emails() { return Array.prototype.map.call(chips.querySelectorAll('.chip'), function (c) { return c.dataset.email; }); }
+      function sync() {
+        var n = emails().length;
+        seats.value = String(n);
+        hint.textContent = n === 1 ? '1 person · press Enter or comma after each address' : n + ' people · press Enter or comma after each address';
+      }
+      function addChip(value) {
+        var v = String(value || '').trim().replace(/,$/, '');
+        if (!EMAIL.test(v) || emails().indexOf(v) !== -1) return false;
+        var chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.dataset.email = v;
+        var av = document.createElement('span');
+        av.className = 'chip-av';
+        av.textContent = v.charAt(0).toUpperCase();
+        var label = document.createElement('span');
+        label.textContent = v;
+        var rm = document.createElement('button');
+        rm.type = 'button';
+        rm.setAttribute('aria-label', 'Remove ' + v);
+        rm.innerHTML = '<svg width="10" height="10" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>';
+        rm.addEventListener('click', function () { chip.remove(); sync(); input.focus(); });
+        chip.appendChild(av); chip.appendChild(label); chip.appendChild(rm);
+        chips.insertBefore(chip, input);
+        sync();
+        return true;
+      }
+      ['priya.raman@acme.com', 'devon.ortiz@acme.com', 'hana.kim@acme.com', 'marcus.bell@acme.com', 'elena.rossi@acme.com', 'tom.okafor@acme.com'].forEach(addChip);
+      chips.addEventListener('click', function (e) { if (e.target === chips) input.focus(); });
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+          if (input.value.trim()) { e.preventDefault(); if (addChip(input.value)) input.value = ''; }
+          else if (e.key === 'Enter') { e.preventDefault(); }
+        } else if (e.key === 'Backspace' && !input.value) {
+          var last = chips.querySelector('.chip:last-of-type');
+          if (last) { last.remove(); sync(); }
+        }
+      });
+      input.addEventListener('blur', function () { if (addChip(input.value)) input.value = ''; });
+    })();
+
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const titleEl = result.querySelector('.result-title');
+      const detailEl = result.querySelector('.result-detail');
+      const productSelect = document.getElementById('product');
+      const planSelect = document.getElementById('planTier');
+      const workspaceLabel = productSelect.options[productSelect.selectedIndex].textContent;
+      const planLabel = planSelect.options[planSelect.selectedIndex].textContent;
+      const pending = document.getElementById('inviteEmail');
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        titleEl.textContent = title;
+        detailEl.textContent = detail;
+      }
+      if (pending.value.trim()) pending.dispatchEvent(new Event('blur'));
+      if (pending.value.trim()) {
+        show('error', 'Check the email address', pending.value.trim() + ' isn\u2019t a valid email address. Fix or remove it, then send again.');
+        pending.focus();
+        return;
+      }
+      const seatCount = parseInt(document.getElementById('seats').value, 10);
+      if (!Number.isFinite(seatCount) || seatCount < 1) {
+        show('error', 'Add at least one email address', 'Enter the email address of each person you want to invite.');
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Sending…';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: productSelect.value,
+            planName: planSelect.value,
+            seats: seatCount,
+            billingCycle: 'annual',
+            region: document.getElementById('region').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          show('error', 'Invitations not sent', (data && data.error) ? String(data.error) : 'Something went wrong. Try again.');
+        } else {
+          const n = data.seatsAdded || seatCount;
+          show('success', n === 1 ? 'Invitation sent' : n + ' invitations sent', n + (n === 1 ? ' seat' : ' seats') + ' added to ' + workspaceLabel + ' on ' + planLabel + (data.annualCost ? ' — $' + Number(data.annualCost).toLocaleString('en-US') + '/yr' : ''));
+        }
+      } catch (err) {
+        show('error', 'Network error', err && err.message ? String(err.message) : 'Check your connection and try again.');
+      } finally { btn.disabled = false; btn.textContent = 'Send'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

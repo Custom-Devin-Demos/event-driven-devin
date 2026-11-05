@@ -8625,6 +8625,17 @@ const ONCALL_SKINS = {
     supportCenter: 'Tuali Support',
     disclaimer: 'NOT ACTUALLY A TUALI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tuali or Arca Continental product.',
   },
+  '47b8d443': {
+    slug: '47b8d443',
+    company: 'Slack',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: {
+      file: '47b8d443.html',
+      title: 'project-acme (Channel) - Acme Inc - Slack',
+    },
+    disclaimer: 'NOT ACTUALLY A SLACK SITE — internal demo only, not affiliated with, endorsed by, or a real Slack product.',
+  },
 };
 
 function getOncallSkin(slug) {
