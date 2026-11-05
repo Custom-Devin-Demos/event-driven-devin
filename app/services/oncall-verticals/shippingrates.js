@@ -6,7 +6,9 @@ const { Sentry } = require('../../telemetry/sentry');
 const ROUTE = '/api/oncall/shippingrates/rates';
 const ORIGIN_TIME_ZONE = 'America/Chicago';
 const DIM_DIVISOR = 139;
-const MAX_PACKAGES = 25;
+const MAX_PACKAGES = 300;
+const LB_PER_KG = 2.20462;
+const CM_PER_IN = 2.54;
 const MAX_WEIGHT_LB = 150;
 
 /**
@@ -90,14 +92,18 @@ function normalizeAddress(addr, role) {
 
 function normalizePackages(packages) {
   const list = Array.isArray(packages) && packages.length ? packages : [{}];
-  return list.slice(0, MAX_PACKAGES).map((pkg) => {
-    const count = Math.min(Math.max(parseInt(pkg.count, 10) || 1, 1), MAX_PACKAGES);
-    const weight = toPositiveNumber(pkg.weight && pkg.weight.value);
+  const packageCount = list.reduce((sum, pkg) => sum + (parseInt(pkg.count, 10) || 1), 0);
+  if (packageCount > MAX_PACKAGES) throw invalid(`A quote can include at most ${MAX_PACKAGES} packages`);
+  return list.map((pkg) => {
+    const count = Math.max(parseInt(pkg.count, 10) || 1, 1);
+    const weightFactor = String(pkg.weight && pkg.weight.units).toUpperCase() === 'KG' ? LB_PER_KG : 1;
+    const weight = toPositiveNumber(pkg.weight && pkg.weight.value) * weightFactor;
     if (!weight || weight > MAX_WEIGHT_LB) throw invalid('Package weight must be between 1 and 150 lb');
     const dims = pkg.dimensions || {};
-    const length = toPositiveNumber(dims.length);
-    const width = toPositiveNumber(dims.width);
-    const height = toPositiveNumber(dims.height);
+    const dimFactor = String(dims.units).toUpperCase() === 'CM' ? 1 / CM_PER_IN : 1;
+    const length = toPositiveNumber(dims.length) * dimFactor;
+    const width = toPositiveNumber(dims.width) * dimFactor;
+    const height = toPositiveNumber(dims.height) * dimFactor;
     const dimWeight = length && width && height ? Math.ceil((length * width * height) / DIM_DIVISOR) : 0;
     return { count, weight, billableWeight: Math.max(Math.ceil(weight), dimWeight) };
   });

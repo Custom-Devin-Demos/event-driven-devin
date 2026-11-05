@@ -130,6 +130,22 @@ describe('1960590a FedEx Shipping Rates on-call skin', () => {
     expect(data.rates.map((r) => r.serviceType)).toEqual(['INTERNATIONAL_PRIORITY', 'INTERNATIONAL_ECONOMY']);
   });
 
+  test('metric packages are converted to pounds and inches before pricing', async () => {
+    const austin = { city: 'Austin', postalCode: '78701', countryCode: 'US' };
+    const [imperial, metric] = await Promise.all([
+      quote(austin).then((r) => r.json()),
+      quote(austin, { packages: [{ count: 1, weight: { value: 2.268, units: 'KG' }, dimensions: { length: 30.48, width: 25.4, height: 20.32, units: 'CM' } }] }).then((r) => r.json()),
+    ]);
+    expect(metric.billableWeight).toBe(imperial.billableWeight);
+    expect(metric.rates.map((r) => r.amount)).toEqual(imperial.rates.map((r) => r.amount));
+  });
+
+  test('more packages than a quote allows returns 400 instead of pricing fewer', async () => {
+    const res = await quote({ city: 'Austin', postalCode: '78701', countryCode: 'US' }, { packages: [{ ...PACKAGES[0], count: 301 }] });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ code: 'INVALID_SHIPMENT' });
+  });
+
   test('invalid package weight returns 400', async () => {
     const res = await quote({ city: 'Austin', postalCode: '78701', countryCode: 'US' }, { packages: [{ weight: { value: 0 } }] });
     expect(res.status).toBe(400);
