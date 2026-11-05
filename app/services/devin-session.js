@@ -101,6 +101,28 @@ function quantumMetricFooter(qm) {
   return `Quantum Metric: ${qm.event}; ${qm.affectedSessions} sessions (${qm.window}), ${qm.rageClicks} rage clicks on "${qm.rageClickTarget}", conversion ${qm.conversionDrop}, ${qm.revenueAtRisk} at risk; replay ${qm.sessionId} ${qm.replayUrl}`;
 }
 
+/**
+ * Verticals monitored by New Relic APM pass `alertData.newRelic` (the hardcoded
+ * incident signal the service attaches to the alert); it is rendered as an extra
+ * fact block on the Teams card, a section on the Slack card and an "APM signal"
+ * line in the Devin prompt. "New Relic" is named verbatim in the Teams message.
+ */
+function newRelicFields(nr) {
+  return [
+    ['APM signal', `New Relic — ${nr.condition}`],
+    ['New Relic policy', nr.policy],
+    ['New Relic app', nr.appName],
+    ['Error rate / throughput', `${nr.errorRate} · ${nr.throughput} · Apdex ${nr.apdex}`],
+    ['Transactions affected', nr.affectedTransactions],
+    ['New Relic trace', nr.traceId, { mono: true }],
+  ];
+}
+
+/** Teams responders only read top-level TextBlocks, so the New Relic signal is repeated in the footer. */
+function newRelicFooter(nr) {
+  return `New Relic: incident ${nr.incidentId} on ${nr.appName}; ${nr.condition}; error rate ${nr.errorRate}, ${nr.throughput}, Apdex ${nr.apdex}, ${nr.affectedTransactions} transactions affected; trace ${nr.traceId} ${nr.traceUrl}; incident ${nr.incidentUrl}`;
+}
+
 function buildTeamsAlertCardForAlert(alertData) {
   if (alertData.cloudwatch) return buildTeamsCloudWatchCardForAlert(alertData);
   const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
@@ -121,6 +143,7 @@ function buildTeamsAlertCardForAlert(alertData) {
       },
       { code: { label: t.message, text: alertData.errorValue } },
       alertData.quantumMetric ? { fields: quantumMetricFields(alertData.quantumMetric) } : null,
+      alertData.newRelic ? { fields: newRelicFields(alertData.newRelic) } : null,
       // Teams-only alerts start no app-created session, so the responder reads the
       // service-owned remediation directive from the card instead of a prompt.
       // Directives written for Slack mention an alert thread that does not exist here.
@@ -146,6 +169,7 @@ function buildTeamsAlertCardForAlert(alertData) {
       { title: t.viewSentry, url: alertData.issueUrl },
       { title: t.viewDatadog, url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
       alertData.quantumMetric ? { title: 'View session replay in Quantum Metric', url: alertData.quantumMetric.replayUrl } : null,
+      alertData.newRelic ? { title: 'View incident in New Relic', url: alertData.newRelic.incidentUrl } : null,
     ].filter(Boolean),
     // Teams hands responders only top-level TextBlocks, not ColumnSet contents,
     // so the facts the investigation needs are repeated in the footer.
@@ -154,6 +178,7 @@ function buildTeamsAlertCardForAlert(alertData) {
       alertData.culprit ? `${t.location}: ${alertData.culprit}` : null,
       alertData.errorType ? `${t.type}: ${alertData.errorType}` : null,
       alertData.quantumMetric ? quantumMetricFooter(alertData.quantumMetric) : null,
+      alertData.newRelic ? newRelicFooter(alertData.newRelic) : null,
       new Date().toISOString(),
     ].filter(Boolean).join(' | '),
   });
@@ -221,6 +246,14 @@ function buildPrompt(alertData) {
       `*Experience signal:* Quantum Metric — ${qm.event}; ${qm.affectedSessions} sessions affected in the ${qm.window}, ${qm.rageClicks} rage clicks on "${qm.rageClickTarget}", conversion ${qm.conversionDrop}, ${qm.revenueAtRisk} revenue at risk`,
       qm.segment ? `*Quantum Metric segment:* ${qm.segment}` : null,
       qm.replayUrl ? `*Quantum Metric session replay:* ${qm.replayUrl} (session ${qm.sessionId})` : null,
+    );
+  }
+  if (alertData.newRelic) {
+    const nr = alertData.newRelic;
+    lines.push(
+      `*APM signal:* New Relic — incident ${nr.incidentId} on ${nr.appName}; policy "${nr.policy}", condition "${nr.condition}"; error rate ${nr.errorRate}, throughput ${nr.throughput}, Apdex ${nr.apdex}, ${nr.affectedTransactions} transactions affected`,
+      nr.incidentUrl ? `*New Relic incident:* ${nr.incidentUrl}` : null,
+      nr.traceUrl ? `*New Relic distributed trace:* ${nr.traceUrl} (trace ${nr.traceId})` : null,
     );
   }
 
