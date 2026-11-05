@@ -24,12 +24,11 @@ const {
 } = require('./streamtv-catalog');
 
 const SERVICE = 'streamtv-home-api';
-const RELEASE = 'streamtv-home-api@2026.11.2';
+const RELEASE = 'streamtv-home-api@2026.11.3';
 
 // Gateway deadline for home-screen requests; the TV client gives up at 10s.
 const DEADLINE_MS = 8500;
 const CONTINUE_WATCHING_LIMIT = 12;
-const CONTINUE_WATCHING_TTL_MS = 30 * 1000;
 
 const ROUTES = {
   rows: 'GET /api/home/rows',
@@ -162,19 +161,26 @@ function liveTile(channel) {
 // Continue Watching
 // ---------------------------------------------------------------------------
 
-// Per-profile cache: the row is read on every home-screen open and only
-// changes when the profile watches something, so a short TTL is plenty.
-const continueWatchingCache = new Map();
+function remainingLabel(record) {
+  const remaining = Math.max(0, record.durationSec - record.positionSec);
+  return `${formatDuration(remaining)} left`;
+}
 
 async function buildContinueWatching(profileId) {
   const recent = await progress.listRecentlyWatched(profileId);
-  const items = recent
-    .filter((entry) => !entry.completed)
-    .slice(0, CONTINUE_WATCHING_LIMIT)
-    .map((entry) => tile(TITLE_BY_ID.get(entry.titleId), {
+  const items = [];
+  for (const entry of recent) {
+    const record = await progress.getProgress(profileId, entry.titleId);
+    if (!record || record.completed) continue;
+    items.push(tile(TITLE_BY_ID.get(entry.titleId), {
       episodeLabel: episodeLabel(entry),
       lastWatchedAt: entry.lastWatchedAt,
+      progressPct: Math.round((record.positionSec / record.durationSec) * 100),
+      remainingLabel: remainingLabel(record),
+      resumeFromSec: record.positionSec,
     }));
+  }
+  items.splice(CONTINUE_WATCHING_LIMIT);
   return {
     profileId,
     row: { id: 'continue-watching', title: 'Continue Watching', items },
@@ -184,15 +190,7 @@ async function buildContinueWatching(profileId) {
 
 function getContinueWatching(profileId) {
   requireProfile(profileId);
-  return serve(ROUTES.continueWatching, { profileId }, async () => {
-    const cached = continueWatchingCache.get(profileId);
-    if (cached && cached.expiresAt > Date.now()) {
-      return { ...cached.value, cache: 'hit' };
-    }
-    const value = await buildContinueWatching(profileId);
-    continueWatchingCache.set(profileId, { value, expiresAt: Date.now() + CONTINUE_WATCHING_TTL_MS });
-    return { ...value, cache: 'miss' };
-  });
+  return serve(ROUTES.continueWatching, { profileId }, () => buildContinueWatching(profileId));
 }
 
 // ---------------------------------------------------------------------------
@@ -253,8 +251,10 @@ function startPlayback(payload) {
   return serve(ROUTES.playbackStart, { profileId, titleId, row }, async () => {
     let resumeFromSec = 0;
     if (row === 'continue-watching' && title) {
-      const record = await progress.getProgress(profileId, titleId);
-      if (record && !record.completed) resumeFromSec = record.positionSec;
+      // Resume from the same point the tile shows.
+      const { row: continueWatching } = await buildContinueWatching(profileId);
+      const item = continueWatching.items.find((i) => i.titleId === titleId);
+      if (item) resumeFromSec = item.resumeFromSec;
     }
     const playbackId = `pb_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
     return {
@@ -273,7 +273,6 @@ function startPlayback(payload) {
 }
 
 function resetForTests() {
-  continueWatchingCache.clear();
   latencyWindows.clear();
 }
 

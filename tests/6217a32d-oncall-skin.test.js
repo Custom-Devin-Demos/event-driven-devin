@@ -134,7 +134,12 @@ describe('6217a32d TV home screen On-Call skin', () => {
       expect(body.row.title).toBe('Continue Watching');
       expect(body.row.items.length).toBeGreaterThan(0);
       expect(body.row.items.length).toBeLessThanOrEqual(12);
-      body.row.items.forEach((item) => expect(item).toMatchObject({ titleId: expect.stringMatching(/^t\d{3}$/), title: expect.any(String) }));
+      body.row.items.forEach((item) => {
+        expect(item).toMatchObject({ titleId: expect.stringMatching(/^t\d{3}$/), title: expect.any(String) });
+        expect(item.progressPct).toBeGreaterThan(0);
+        expect(item.progressPct).toBeLessThan(95);
+        expect(item.remainingLabel).toMatch(/left$/);
+      });
     }
     const missing = await fetch(`${baseUrl}/api/home/continue-watching`);
     expect(missing.status).toBe(400);
