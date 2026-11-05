@@ -8565,6 +8565,37 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Flight booking',
     disclaimer: 'NOT ACTUALLY A TURKISH AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Turkish Airlines product.',
   },
+  '6ebb95d6': {
+    slug: '6ebb95d6',
+    company: 'Tuali',
+    brandMark: 't',
+    vertical: 'vaccines',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '6ebb95d6.html', title: 'Place order | Tuali' },
+    alertCard: {
+      title: 'Place order failing with 504 \u2014 Tuali store orders',
+      service: 'store-orders-api',
+      endpointLabel: 'POST /api/oncall/vaccines/order',
+      release: 'tuali-orders@4.18.0',
+      team: 'store-orders-oncall',
+      metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/vaccines/order,http.status_code:504}',
+      metricValue: '504 on ~100% of Place order submissions',
+      threshold: '> 5% error rate',
+      baseline: '<0.3% (7-day)',
+      symptom: 'Place order hangs ~8s and then fails with 504 Gateway Timeout for every product, case quantity and delivery option. The catalog, prices and the My order summary load normally.',
+      impact: 'Store owners restocking through Tuali cannot place orders; every submission waits about 8 seconds and fails, so orders fall back to the route sales rep or are not placed. Tuali Support is reporting rising contact volume.',
+    },
+    theme: {
+      '--accent': '#F80516',
+      '--ink': '#111111',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#F80516',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Tuali Support',
+    disclaimer: 'NOT ACTUALLY A TUALI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tuali or Arca Continental product.',
+  },
 };
 
 function getOncallSkin(slug) {

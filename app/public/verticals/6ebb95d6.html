@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Place order | Tuali</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #F80516;
+      --ink: #111111;
+      --surface: #FFFFFF;
+      --chrome-bg: #F80516;
+      --chrome-text: #FFFFFF;
+      --chrome-end: #FE6802;
+      --paper: #F0F0EF;
+      --rule: color-mix(in srgb, var(--ink) 12%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 62%, var(--surface));
+      --accent-soft: color-mix(in srgb, var(--accent) 7%, var(--surface));
+      --accent-ink: color-mix(in srgb, var(--accent) 80%, var(--ink));
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.55;
+      color: var(--ink);
+      background: var(--surface);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-ink); text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+    .skip { position: absolute; left: -9999px; }
+    .skip:focus { left: 16px; top: 8px; background: var(--surface); padding: 8px 12px; z-index: 10; }
+
+    .site-header { background: linear-gradient(90deg, var(--chrome-bg) 0%, var(--chrome-end) 100%); color: var(--chrome-text); }
+    .site-header .wrap { display: flex; align-items: center; gap: 28px; min-height: 88px; }
+    .brand { display: inline-flex; align-items: center; color: var(--chrome-text); font-size: 40px; font-weight: 900; letter-spacing: -0.04em; line-height: 1; min-height: 44px; }
+    .brand .tick { position: relative; display: inline-block; }
+    .brand .tick::after { content: ''; position: absolute; left: 50%; top: -6px; width: 9px; height: 9px; border-radius: 50%; background: currentColor; transform: translateX(-50%); }
+    .main-nav { display: flex; gap: 6px; margin-left: auto; }
+    .main-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--chrome-text); font-weight: 700; font-size: 15px; border-bottom: 3px solid transparent; }
+    .main-nav a[aria-current] { border-bottom-color: var(--chrome-text); }
+    .acct { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 4px 16px 4px 6px; border-radius: 100px; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 700; line-height: 1.2; }
+    .acct .av { width: 36px; height: 36px; border-radius: 50%; background: var(--paper); display: grid; place-items: center; font-weight: 800; color: var(--accent); }
+    .acct small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+    .cart-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; min-width: 48px; border: 2px solid var(--chrome-text); border-radius: 100px; color: var(--chrome-text); }
+
+    .hero { background: var(--paper); }
+    .hero .wrap { padding-top: 36px; padding-bottom: 32px; }
+    .crumbs { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+    .crumbs span[aria-current] { color: var(--ink); font-weight: 700; }
+    .hero h1 { font-size: 48px; line-height: 1.1; font-weight: 800; margin: 0 0 10px; letter-spacing: -0.02em; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p { margin: 0; max-width: 720px; font-size: 18px; font-weight: 500; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 14px; border-radius: 100px; background: var(--surface); font-size: 14px; font-weight: 700; }
+    .chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    main { padding: 36px 0 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 32px; align-items: start; }
+    .panel { border-radius: 28px; background: var(--surface); border: 1px solid var(--rule); margin-bottom: 24px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; gap: 12px; padding: 20px 28px 0; }
+    .step { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; font-size: 16px; display: grid; place-items: center; }
+    .panel-head h2 { margin: 0; font-size: 22px; font-weight: 800; line-height: 1.3; }
+    .panel-body { padding: 18px 28px 28px; }
+
+    .product { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 20px; align-items: center; margin-bottom: 22px; }
+    .thumb { width: 120px; height: 120px; border-radius: 60px; display: grid; place-items: center; }
+    .thumb svg { width: 48px; height: 88px; }
+    .product h3 { margin: 0 0 4px; font-size: 21px; font-weight: 800; line-height: 1.25; }
+    .product .pack { margin: 0 0 8px; color: var(--muted); font-size: 15px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; margin: 0; }
+    .meta dt { color: var(--muted); display: inline; font-weight: 500; }
+    .meta dd { display: inline; margin: 0 0 0 4px; font-weight: 700; }
+
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .fields .full { grid-column: 1 / -1; }
+    label.f { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .hint { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+    select, input[type="number"] {
+      width: 100%; height: 50px; border: 1.5px solid color-mix(in srgb, var(--ink) 22%, var(--surface)); border-radius: 14px;
+      padding: 0 16px; background: var(--surface); font-weight: 600; font-size: 16px;
+    }
+    select { appearance: none; padding-right: 42px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23F80516' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    select:focus, input:focus { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 30%, transparent); outline-offset: 0; }
+    .stepper { display: flex; align-items: stretch; height: 50px; border: 1.5px solid color-mix(in srgb, var(--ink) 22%, var(--surface)); border-radius: 100px; overflow: hidden; }
+    .stepper button { flex: none; width: 52px; border: 0; background: var(--paper); font-size: 22px; font-weight: 700; color: var(--accent); cursor: pointer; }
+    .stepper input { border: 0; border-radius: 0; height: 100%; text-align: center; -moz-appearance: textfield; }
+    .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .delivery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; border: 0; }
+    .delivery legend { font-size: 14px; font-weight: 700; margin-bottom: 6px; padding: 0; }
+    .opt { display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid var(--rule); border-radius: 18px; padding: 14px 16px; cursor: pointer; min-height: 44px; }
+    .opt input { margin: 3px 0 0; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+    .opt strong { display: block; font-weight: 800; }
+    .opt span { font-size: 13px; color: var(--muted); }
+    .opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .ship-addr { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+
+    .summary { position: sticky; top: 16px; }
+    .summary .panel { background: var(--paper); border-color: transparent; }
+    .line-item { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--rule); margin-bottom: 10px; }
+    .mini { width: 56px; height: 56px; border-radius: 28px; display: grid; place-items: center; }
+    .mini svg { width: 22px; height: 40px; }
+    .line-item strong { display: block; font-weight: 800; line-height: 1.3; }
+    .line-item span { display: block; font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .rows { margin: 0; }
+    .rows div { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 15px; }
+    .rows dt { color: var(--muted); }
+    .rows dd { margin: 0; font-weight: 700; text-align: right; }
+    .rows .free { color: #1E7A43; }
+    .total { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--rule); margin-top: 8px; padding-top: 14px; }
+    .total label { font-size: 18px; font-weight: 800; }
+    .total .amt { display: inline-flex; align-items: center; font-size: 24px; font-weight: 800; }
+    .total input { width: 9ch; height: 44px; border: 0; padding: 0 0 0 2px; text-align: left; font-size: 24px; font-weight: 800; background: transparent; }
+    .submit-btn { width: 100%; min-height: 56px; margin-top: 18px; border: 0; border-radius: 100px; background: var(--accent); color: #fff; font-size: 18px; font-weight: 800; cursor: pointer; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 88%, var(--ink)); }
+    .submit-btn:disabled { cursor: progress; background: color-mix(in srgb, var(--accent) 55%, var(--surface)); }
+    .order-status { font-size: 14px; color: var(--muted); margin: 12px 0 0; text-align: center; }
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+    .result-box.success { display: block; background: #EAF6EE; border: 1px solid #A9D8B8; color: #14532D; }
+    .result-box.notice { display: block; background: var(--surface); border: 1.5px solid var(--accent); color: var(--ink); }
+    .gana { margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--surface); font-size: 14px; }
+    .gana strong { color: var(--chrome-end); font-weight: 800; }
+
+    footer { background: linear-gradient(90deg, var(--chrome-bg) 0%, var(--chrome-end) 54%); color: var(--chrome-text); padding: 40px 0 44px; font-size: 15px; border-radius: 40px 40px 0 0; }
+    footer .brand { font-size: 34px; }
+    .foot-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 32px; }
+    .foot-grid p { margin: 12px 0 0; max-width: 560px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 0 24px; margin-top: 12px; }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--chrome-text); font-weight: 700; }
+    .fine { margin-top: 20px; font-size: 13px; opacity: 0.85; }
+
+    @media (max-width: 1080px) {
+      .main-nav { display: none; }
+      .acct { margin-left: auto; }
+      .layout { grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
+    }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .summary { position: static; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .site-header .wrap { gap: 10px; min-height: 72px; }
+      .brand { font-size: 32px; }
+      .acct .who { display: none; }
+      .acct { padding: 4px; }
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      main { padding-top: 24px; }
+      .panel { border-radius: 22px; }
+      .panel-head, .panel-body { padding-left: 18px; padding-right: 18px; }
+      .product { grid-template-columns: 88px minmax(0, 1fr); gap: 14px; }
+      .thumb { width: 88px; height: 88px; }
+      .thumb svg { width: 36px; height: 66px; }
+      .product h3 { font-size: 18px; }
+      .fields, .delivery, .foot-grid { grid-template-columns: minmax(0, 1fr); }
+      footer { border-radius: 28px 28px 0 0; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <span class="brand" aria-label="Tuali">t<span class="tick">u</span>ali</span>
+      <nav class="main-nav" aria-label="Main">
+        <a href="#main" aria-current="page">Place order</a>
+        <a href="#main">Catalog</a>
+        <a href="#main">My orders</a>
+        <a href="#main">Gana con Tuali</a>
+      </nav>
+      <span class="acct" aria-label="Signed in as Abarrotes La Esperanza">
+        <span class="av" aria-hidden="true">LE</span>
+        <span class="who">Abarrotes La Esperanza<small>Customer 0412 7781 &middot; Monterrey</small></span>
+      </span>
+      <a class="cart-pill" href="#summary" aria-label="Go to my order">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.5l2.2 11h10.6L20.5 7H7" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="9.5" cy="19.5" r="1.6" fill="#fff"/><circle cx="17" cy="19.5" r="1.6" fill="#fff"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><span>Home</span><span aria-hidden="true">/</span><span aria-current="page">Place order</span></nav>
+      <h1>Restock your <em>store</em></h1>
+      <p>Order Arca Continental products for your store. Pick a product, set how many cases you need, and choose when it should be delivered.</p>
+      <div class="chips" aria-hidden="true">
+        <span class="chip"><i style="background:#F80516"></i>Your best sellers</span>
+        <span class="chip"><i style="background:#FE6802"></i>Wholesale prices</span>
+        <span class="chip"><i style="background:#B4DF86"></i>Earn Gana points on every order</span>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <div class="wrap">
+      <form id="transferForm" class="layout" novalidate>
+        <div>
+          <section class="panel" aria-labelledby="h-product">
+            <div class="panel-head"><span class="step">1</span><h2 id="h-product">Product</h2></div>
+            <div class="panel-body">
+              <div class="product">
+                <div class="thumb" id="productThumb"></div>
+                <div>
+                  <h3 id="productName"></h3>
+                  <p class="pack" id="productPack"></p>
+                  <dl class="meta">
+                    <div><dt>SKU:</dt><dd id="productSku"></dd></div>
+                    <div><dt>Price per case:</dt><dd id="productPrice"></dd></div>
+                  </dl>
+                </div>
+              </div>
+              <div class="fields">
+                <div class="full">
+                  <label class="f" for="productSelect">Product</label>
+                  <select id="productSelect"></select>
+                </div>
+                <div>
+                  <label class="f" for="orderQty">Cases</label>
+                  <div class="stepper">
+                    <button type="button" id="qtyDown" aria-label="Fewer cases">&minus;</button>
+                    <input type="number" id="orderQty" min="1" max="50" step="1" value="6" inputmode="numeric" aria-describedby="unitsHint">
+                    <button type="button" id="qtyUp" aria-label="More cases">+</button>
+                  </div>
+                  <span class="hint" id="unitsHint"></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="h-account">
+            <div class="panel-head"><span class="step">2</span><h2 id="h-account">Account</h2></div>
+            <div class="panel-body">
+              <div class="fields">
+                <div>
+                  <label class="f" for="fromAccount">Customer number</label>
+                  <select id="fromAccount">
+                    <option value="ACCT-1004">0412 7781 &middot; Abarrotes La Esperanza</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="f" for="accountTier">Price list</label>
+                  <select id="accountTier">
+                    <option value="standard" selected>Traditional store</option>
+                    <option value="premium">Volume customer (6% off)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="h-ship">
+            <div class="panel-head"><span class="step">3</span><h2 id="h-ship">Delivery</h2></div>
+            <div class="panel-body">
+              <div class="fields">
+                <div class="full">
+                  <label class="f" for="toAccount">Deliver to</label>
+                  <select id="toAccount">
+                    <option value="ACCT-2101" data-name="Abarrotes La Esperanza" data-addr="Av. Ruiz Cortines 2417, Col. Moderna, Monterrey, N.L. 64530">Abarrotes La Esperanza &middot; Col. Moderna</option>
+                    <option value="ACCT-2102" data-name="Abarrotes La Esperanza 2" data-addr="Calle Washington 815 Pte., Centro, Monterrey, N.L. 64000">Abarrotes La Esperanza 2 &middot; Centro</option>
+                  </select>
+                  <p class="ship-addr" id="shipAddr"></p>
+                </div>
+                <fieldset class="delivery full">
+                  <legend>When</legend>
+                  <label class="opt"><input type="radio" name="delivery" value="standard" checked><span><strong>Next route visit</strong><span>With your regular delivery truck. No delivery fee.</span></span></label>
+                  <label class="opt"><input type="radio" name="delivery" value="nextday"><span><strong>Tomorrow</strong><span>Extra delivery before 2 p.m. MX$35.00</span></span></label>
+                </fieldset>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="summary" id="summary">
+          <section class="panel" aria-labelledby="h-summary">
+            <div class="panel-head"><h2 id="h-summary">My order</h2></div>
+            <div class="panel-body">
+              <div class="line-item">
+                <div class="mini" id="summaryThumb"></div>
+                <div>
+                  <strong id="summaryName"></strong>
+                  <span id="summaryPack"></span>
+                  <span id="summaryQty"></span>
+                </div>
+              </div>
+              <dl class="rows">
+                <div><dt>Price per case</dt><dd id="unitPrice"></dd></div>
+                <div><dt>Subtotal</dt><dd id="subtotal"></dd></div>
+                <div><dt>Delivery</dt><dd id="shipping"></dd></div>
+                <div><dt>Deliver to</dt><dd id="summaryShip"></dd></div>
+              </dl>
+              <div class="total">
+                <label for="amount">Total</label>
+                <span class="amt">MX$<input type="number" id="amount" step="0.01" min="0" readonly></span>
+              </div>
+              <button type="submit" id="submitBtn" class="submit-btn">Place order</button>
+              <p class="order-status" id="orderStatus">Review your order before placing it.</p>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+              <div class="gana"><strong>Gana con Tuali.</strong> Earn points on every order and redeem them for rewards.</div>
+            </div>
+          </section>
+        </aside>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap foot-grid">
+      <div>
+        <span class="brand" aria-hidden="true">t<span class="tick">u</span>ali</span>
+        <p>Tuali, the digital ally for your business. Order from Arca Continental, get promotions and earn points.</p>
+      </div>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="#main">About us</a>
+        <a href="#main">Products</a>
+        <a href="#main">Contact</a>
+        <a href="#main">Blog</a>
+      </nav>
+    </div>
+    <div class="wrap fine">Demo ordering experience. Prices and products are illustrative.</div>
+  </footer>
+
+  <script>
+    (function () {
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const PRODUCTS = [
+      { id: 'coca-600', ndc: '5816084952', name: 'Coca-Cola 600 ml', pack: 'PET bottle, 24 per case', units: 24, price: 396.00, sku: '100245', color: '#F80516' },
+      { id: 'coca-sa-600', ndc: '5816084811', name: 'Coca-Cola Sin Az\u00facar 600 ml', pack: 'PET bottle, 24 per case', units: 24, price: 396.00, sku: '100318', color: '#111111' },
+      { id: 'coca-25r', ndc: '5816084252', name: 'Coca-Cola 2.5 L Retornable', pack: 'Returnable bottle, 8 per case', units: 8, price: 284.00, sku: '100562', color: '#B5040F' },
+      { id: 'sprite-600', ndc: '5816082152', name: 'Sprite 600 ml', pack: 'PET bottle, 24 per case', units: 24, price: 336.00, sku: '110204', color: '#00A651' },
+      { id: 'topochico-600', ndc: '5816082111', name: 'Topo Chico Agua Mineral 600 ml', pack: 'Glass bottle, 24 per case', units: 24, price: 432.00, sku: '130087', color: '#E2A400' },
+      { id: 'ciel-1l', ndc: '5816082652', name: 'Ciel Agua Purificada 1 L', pack: 'PET bottle, 12 per case', units: 12, price: 138.00, sku: '140311', color: '#0077C8' },
+    ];
+    const TIER_FACTOR = { premium: 0.94, standard: 1 };
+    const NEXT_DAY_FEE = 35;
+    const DEFAULTS = { product: 'coca-600', qty: 6 };
+
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('orderStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const accountTier = document.getElementById('accountTier');
+    const amountInput = document.getElementById('amount');
+    const productSelect = document.getElementById('productSelect');
+    const qtyInput = document.getElementById('orderQty');
+    const mxn = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MXN', currencyDisplay: 'symbol' });
+    const money = (n) => 'MX$' + mxn.format(n).replace(/^[^0-9]+/, '');
+    const idleStatus = 'Review your order before placing it.';
+
+    function round2(n) { return Math.round(n * 100) / 100; }
+    function currentProduct() { return PRODUCTS.find((p) => p.id === productSelect.value) || PRODUCTS[0]; }
+    function currentQty() {
+      const q = Math.round(Number(qtyInput.value));
+      return Number.isFinite(q) ? Math.min(50, Math.max(1, q)) : 1;
+    }
+    function deliveryValue() { const el = form.querySelector('input[name="delivery"]:checked'); return el ? el.value : 'standard'; }
+
+    function bottle(container, p) {
+      container.style.background = 'color-mix(in srgb, ' + p.color + ' 12%, #fff)';
+      container.innerHTML = '<svg viewBox="0 0 24 44" aria-hidden="true"><path d="M9 1h6v5c0 2 4 5 4 10v24a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V16c0-5 4-8 4-10z" fill="' + p.color + '"/><rect x="5" y="22" width="14" height="8" fill="#fff" opacity=".85"/></svg>';
+    }
+
+    PRODUCTS.forEach((p) => productSelect.add(new Option(p.name + ' \u00b7 ' + p.units + ' per case', p.id)));
+
+    function renderSummary() {
+      const p = currentProduct();
+      const qty = currentQty();
+      const unit = round2(p.price * (TIER_FACTOR[accountTier.value] || 1));
+      const subtotal = round2(unit * qty);
+      const shipping = deliveryValue() === 'nextday' ? NEXT_DAY_FEE : 0;
+      const total = round2(subtotal + shipping);
+      const ship = toAccount.options[toAccount.selectedIndex];
+
+      document.getElementById('productName').textContent = p.name;
+      document.getElementById('productPack').textContent = p.pack;
+      document.getElementById('productSku').textContent = p.sku;
+      document.getElementById('productPrice').textContent = money(unit);
+      document.getElementById('unitsHint').textContent = qty * p.units + ' bottles';
+      document.getElementById('summaryName').textContent = p.name;
+      document.getElementById('summaryPack').textContent = 'SKU ' + p.sku + ' \u00b7 ' + p.pack;
+      document.getElementById('summaryQty').textContent = qty + (qty === 1 ? ' case' : ' cases') + ' (' + qty * p.units + ' bottles)';
+      document.getElementById('unitPrice').textContent = money(unit);
+      document.getElementById('subtotal').textContent = money(subtotal);
+      const shippingEl = document.getElementById('shipping');
+      shippingEl.textContent = shipping ? 'Tomorrow \u00b7 ' + money(shipping) : 'Free';
+      shippingEl.className = shipping ? '' : 'free';
+      document.getElementById('summaryShip').textContent = ship.dataset.name;
+      document.getElementById('shipAddr').textContent = ship.dataset.addr;
+      bottle(document.getElementById('productThumb'), p);
+      bottle(document.getElementById('summaryThumb'), p);
+      amountInput.value = total.toFixed(2);
+      amountInput.style.width = (amountInput.value.length + 0.4) + 'ch';
+    }
+
+    function clearResult() {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = idleStatus;
+    }
+    function onChange() {
+      if (!button.disabled) clearResult();
+      renderSummary();
+    }
+
+    [productSelect, fromAccount, toAccount, accountTier].forEach((el) => el.addEventListener('change', onChange));
+    form.querySelectorAll('input[name="delivery"]').forEach((el) => el.addEventListener('change', onChange));
+    qtyInput.addEventListener('input', onChange);
+    qtyInput.addEventListener('blur', () => { qtyInput.value = currentQty(); renderSummary(); });
+    document.getElementById('qtyDown').addEventListener('click', () => { qtyInput.value = Math.max(1, currentQty() - 1); onChange(); });
+    document.getElementById('qtyUp').addEventListener('click', () => { qtyInput.value = Math.min(50, currentQty() + 1); onChange(); });
+
+    function applyDefaults() {
+      productSelect.value = DEFAULTS.product;
+      qtyInput.value = DEFAULTS.qty;
+      renderSummary();
+    }
+    form.addEventListener('reset', () => {
+      clearResult();
+      setTimeout(applyDefaults, 0);
+    });
+    applyDefaults();
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      qtyInput.value = currentQty();
+      renderSummary();
+      const p = currentProduct();
+      const qty = currentQty();
+      const ship = toAccount.options[toAccount.selectedIndex];
+      const orderTotal = money(parseFloat(amountInput.value));
+      const locked = Array.from(form.elements).filter((el) => !el.disabled);
+      locked.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Placing order\u2026';
+      status.textContent = 'Sending your order\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/vaccines/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ndc: p.ndc,
+            quantity: qty,
+            practiceAccount: fromAccount.value,
+            shipTo: toAccount.value,
+            accountTier: accountTier.value,
+            delivery: deliveryValue(),
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.orderId) {
+          const err = new Error('Order could not be placed.');
+          err.status = response.status;
+          err.requestId = data.requestId;
+          throw err;
+        }
+        result.className = 'result-box success';
+        result.textContent = 'Order ' + data.orderId + ' is placed: ' + qty + (qty === 1 ? ' case' : ' cases') + ' of ' + p.name
+          + ' to ' + ship.dataset.name + '. Total ' + orderTotal + '.';
+        status.textContent = 'Order placed.';
+      } catch (error) {
+        result.className = 'result-box notice';
+        result.textContent = 'We couldn\u2019t place your order'
+          + (error.status ? ' (error ' + error.status + ')' : '') + '. Your cases were not ordered. Please try again in a few minutes. '
+          + 'If the problem continues, contact Tuali Support'
+          + (error.requestId ? ' and share reference ' + error.requestId : '') + '.';
+        status.textContent = 'Order not placed.';
+      } finally {
+        locked.forEach((el) => { el.disabled = false; });
+        button.textContent = 'Place order';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
