@@ -45,7 +45,7 @@ const TITLE = 'Line 3 \u00b7 Line Control | LineWorks MES';
 describe('cb88054b LineWorks MES Line Control on-call skin', () => {
   test('is a native, unlisted linecontrol skin without report or incident surfaces', () => {
     const skin = getOncallSkin('cb88054b');
-    expect(skin).toMatchObject({ vertical: 'linecontrol', oncallOnly: true, alertDestination: 'slack', page: { file: 'cb88054b.html', title: TITLE } });
+    expect(skin).toMatchObject({ vertical: 'linecontrol', oncallOnly: true, alertDestination: 'teams', teamsAlerts: true, page: { file: 'cb88054b.html', title: TITLE } });
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
     expect(skin.disclaimer).toMatch(/^NOT A REAL MANUFACTURER/);

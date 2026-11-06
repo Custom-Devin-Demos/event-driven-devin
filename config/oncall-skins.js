@@ -5193,7 +5193,8 @@ const ONCALL_SKINS = {
     brandMark: 'H',
     vertical: 'linecontrol',
     oncallOnly: true,
-    alertDestination: 'slack',
+    alertDestination: 'teams',
+    teamsAlerts: true,
     paths: ['/line-control', '/mes-line', '/manufacturing-line'],
     devinSession: {
       auto: true,
@@ -5205,11 +5206,11 @@ const ONCALL_SKINS = {
     },
     page: { file: 'cb88054b.html', title: 'Line 3 \u00b7 Line Control | LineWorks MES' },
     theme: {
-      '--accent': '#1F6FEB',
-      '--ink': '#E6EDF3',
-      '--surface': '#111A24',
-      '--chrome-bg': '#0B1219',
-      '--chrome-text': '#E6EDF3',
+      '--accent': '#0A66C2',
+      '--ink': '#1D2939',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#14315C',
+      '--chrome-text': '#FFFFFF',
     },
     alertCard: {
       title: '5xx rate \u2014 Line 3: Changeover & start',
