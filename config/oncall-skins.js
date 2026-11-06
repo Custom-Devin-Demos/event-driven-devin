@@ -5222,6 +5222,40 @@ const ONCALL_SKINS = {
     disclaimer: 'NOT ACTUALLY A FEDEX SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real FedEx product.',
   },
 
+  '82f029ca': {
+    slug: '82f029ca',
+    company: 'MyBoeingFleet',
+    brandMark: 'B',
+    vertical: 'fleetsearch',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/myboeingfleet', '/mbf-search'],
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Boeing Global Services MyBoeingFleet page linked above. Its header search ("Search keyword, term or part #") posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 MyBoeingFleet Search: part number search", release fleet-search@2026.11.2, owner team fleet-search-oncall: searching part number 414T4110-12 fails immediately with HTTP 500 while keyword searches (e.g. "airplane health") and other part numbers (e.g. 65C27561-6) work.',
+        'Use "MyBoeingFleet", "Search" and "part number" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Dana Whitfield (fleet-search-oncall)". Dana Whitfield is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: '82f029ca.html', title: 'MyBoeingFleet - Fleet management, technical docs & support' },
+    theme: {
+      '--accent': '#0033A1',
+      '--ink': '#253746',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0A2240',
+      '--chrome-text': '#FFFFFF',
+      '--cta': '#009BDF',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 MyBoeingFleet Search: part number search',
+      release: 'fleet-search@2026.11.2',
+      team: 'fleet-search-oncall',
+      symptom: 'Searching MyBoeingFleet for part number 414T4110-12 fails immediately with HTTP 500; no results are shown. Keyword searches ("airplane health") and other part numbers (65C27561-6) work. Latency is normal.',
+      impact: "Operators and MROs can't look up 414T4110-12 or its interchangeable alternates from MyBoeingFleet; the search page shows \"Search is unavailable right now.\"",
+    },
+    disclaimer: 'NOT ACTUALLY A BOEING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Boeing or MyBoeingFleet product.',
+  },
   '2993853c': {
     slug: '2993853c',
     company: 'Dolby OptiView',

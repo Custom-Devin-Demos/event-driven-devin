@@ -20,6 +20,7 @@ const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
 const { quoteRates } = require('../services/oncall-verticals/shippingrates');
+const { searchFleet } = require('../services/oncall-verticals/fleetsearch');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
@@ -934,6 +935,25 @@ router.post('/api/oncall/shippingrates/rates', async (req, res) => {
       error: error.code === 'INVALID_SHIPMENT' ? error.message : 'Rates are unavailable right now.',
       errorClass: error.name,
       code: error.code || 'RATE_QUOTE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/fleetsearch/search — MyBoeingFleet header search
+ * (keywords, terms and part numbers)
+ */
+router.post('/api/oncall/fleetsearch/search', async (req, res) => {
+  try {
+    res.json(await searchFleet(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_QUERY';
+    res.status(invalid ? 400 : 500).json({
+      success: false,
+      error: invalid ? error.message : 'Search is unavailable right now. Please try again later.',
+      errorClass: error.name,
+      code: error.code || 'FLEET_SEARCH_FAILED',
       requestId: req.requestId,
     });
   }
