@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operating · Accounts | Rho</title>
+  <link rel="icon" href="/verticals/947c7934/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/verticals/947c7934/apple-icon.png">
+  <link rel="preload" href="https://www.rho.co/_next/static/media/8c1b2f96aa728e6c-s.p.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face { font-family: neueMontreal; src: url(https://www.rho.co/_next/static/media/8c1b2f96aa728e6c-s.p.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+    @font-face { font-family: neueMontreal; src: url(https://www.rho.co/_next/static/media/d589a554d6b47d7b-s.p.woff2) format('woff2'); font-weight: 500; font-display: swap; }
+    @font-face { font-family: neueMontreal; src: url(https://www.rho.co/_next/static/media/8e88963e9628de49-s.p.woff2) format('woff2'); font-weight: 600; font-display: swap; }
+    @font-face { font-family: basier; src: url(https://www.rho.co/_next/static/media/2c4b26bfe9518dcf-s.p.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+    @font-face { font-family: basier; src: url(https://www.rho.co/_next/static/media/4bf21277cc1e4e2a-s.p.woff2) format('woff2'); font-weight: 500; font-display: swap; }
+    @font-face { font-family: 'DM Mono'; src: url(https://www.rho.co/_next/static/media/0e96d314a90a6138-s.p.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+
+    :root {
+      --ink: #0f0f10;
+      --ink-2: #3d4040;
+      --muted: #6b7070;
+      --line: #e4e8e8;
+      --line-2: #eef1f1;
+      --bg: #f5f8f8;
+      --card: #ffffff;
+      --mint: #6af3d9;
+      --mint-2: #39efcd;
+      --teal: #009e8a;
+      --teal-ink: #00594e;
+      --amber-bg: #fdf3dc;
+      --amber: #8a5a00;
+      --blue-bg: #e7efff;
+      --blue: #2c4fb5;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: basier, neueMontreal, -apple-system, 'Segoe UI', Arial, sans-serif; color: var(--ink); background: var(--bg); font-size: 14px; -webkit-font-smoothing: antialiased; }
+    button, input, select { font: inherit; color: inherit; }
+    .mono { font-family: 'DM Mono', ui-monospace, Menlo, monospace; }
+
+    .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+    /* Sidebar */
+    .side { background: #fff; border-right: 1px solid var(--line); padding: 20px 14px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 18px; }
+    .brand svg { width: 52px; height: 24px; color: var(--ink); }
+    .org { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; cursor: pointer; }
+    .org .av { width: 26px; height: 26px; border-radius: 7px; background: var(--ink); color: var(--mint); display: grid; place-items: center; font-family: neueMontreal; font-weight: 600; font-size: 12px; }
+    .org b { font-family: neueMontreal; font-weight: 500; font-size: 13px; display: block; }
+    .org small { color: var(--muted); font-size: 11px; }
+    .nav-label { font-size: 11px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; padding: 14px 10px 6px; font-family: 'DM Mono', monospace; }
+    .nav a { display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-size: 14px; }
+    .nav a svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.6; flex: none; }
+    .nav a:hover { background: var(--bg); }
+    .nav a.active { background: var(--bg); color: var(--ink); font-weight: 500; }
+    .nav .sub { padding-left: 39px; font-size: 13px; color: var(--muted); }
+    .nav .sub.active { color: var(--ink); background: transparent; font-weight: 500; }
+    .nav .sub .bal { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+    .side-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; }
+
+    /* Topbar */
+    .main { min-width: 0; }
+    .top { height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 32px; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+    .search-global { flex: 1; max-width: 460px; display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 8px 12px; color: var(--muted); }
+    .search-global svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .search-global kbd { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 11px; border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; background: #fff; }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .icon-btn { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; cursor: pointer; color: var(--ink-2); }
+    .icon-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .user { width: 34px; height: 34px; border-radius: 50%; background: #dfe7e6; display: grid; place-items: center; font-family: neueMontreal; font-weight: 500; font-size: 13px; }
+
+    .content { padding: 26px 32px 48px; max-width: 1440px; }
+    .crumbs { color: var(--muted); font-size: 13px; display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .crumbs a { color: var(--muted); text-decoration: none; }
+    .head { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    .head h1 { font-family: neueMontreal, basier, sans-serif; font-weight: 500; font-size: 34px; letter-spacing: -0.01em; line-height: 1.1; }
+    .head .meta { color: var(--muted); font-size: 13px; margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+    .head .meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+    .head-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 9px; border: 1px solid var(--line); background: #fff; cursor: pointer; font-weight: 500; font-size: 14px; white-space: nowrap; }
+    .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .btn:hover { border-color: #cfd5d5; }
+    .btn-mint { background: var(--mint); border-color: var(--mint); color: var(--ink); }
+    .btn-mint:hover { background: var(--mint-2); border-color: var(--mint-2); }
+    .btn-dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn[disabled] { opacity: .6; cursor: progress; }
+
+    /* Balance cards */
+    .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 26px; }
+    .card { background: #f3f6f6; border: 1px solid #dfe5e5; border-radius: 12px; padding: 18px 22px 20px; min-width: 0; min-height: 112px; }
+    .card .lbl { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .card .lbl svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .card .val { font-family: neueMontreal, basier, sans-serif; font-weight: 600; font-size: 24px; letter-spacing: -0.01em; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .card .chg { margin-top: 8px; font-size: 12px; color: var(--teal-ink); display: flex; align-items: center; gap: 6px; }
+    .card .chg .arr { width: 16px; height: 16px; border-radius: 50%; background: #d4f5ec; display: grid; place-items: center; }
+    .card .chg .arr svg { width: 10px; height: 10px; stroke: var(--teal-ink); fill: none; stroke-width: 2.4; }
+    .card .chg.neutral { color: var(--muted); }
+
+    /* Banner */
+    .banner { display: none; align-items: flex-start; gap: 14px; background: #ecfdf8; border: 1px solid #b6f2e4; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
+    .banner.show { display: flex; }
+    .banner .ok { width: 28px; height: 28px; border-radius: 50%; background: var(--teal); display: grid; place-items: center; flex: none; }
+    .banner .ok svg { width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 2.5; }
+    .banner b { font-family: neueMontreal; font-weight: 500; font-size: 15px; display: block; }
+    .banner p { color: var(--ink-2); font-size: 13px; margin-top: 3px; }
+    .banner .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .banner .chips span { background: #fff; border: 1px solid #c8efe6; border-radius: 999px; padding: 3px 9px; font-size: 12px; display: inline-flex; gap: 5px; align-items: center; }
+    .banner .chips span::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+    .banner .x { margin-left: auto; background: none; border: 0; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; }
+
+    /* Transactions */
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .tabs { display: flex; gap: 2px; background: var(--bg); padding: 3px; border-radius: 9px; margin-right: 6px; }
+    .tabs button { border: 0; background: none; padding: 6px 12px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 13px; }
+    .tabs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(15,15,16,.08); font-weight: 500; }
+    .tool { height: 34px; padding: 0 12px; font-size: 13px; }
+    .tsearch { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 9px; padding: 0 10px; height: 34px; min-width: 220px; color: var(--muted); }
+    .tsearch svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .tsearch input { border: 0; outline: 0; width: 100%; font-size: 13px; background: transparent; }
+    .ph-right { margin-left: auto; display: flex; gap: 8px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th { text-align: left; font-weight: 400; font-size: 12px; color: var(--muted); padding: 11px 14px; border-bottom: 1px solid var(--line); background: #fbfcfc; white-space: nowrap; }
+    td { padding: 13px 14px; border-bottom: 1px solid var(--line-2); font-size: 13.5px; vertical-align: middle; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: #fafcfc; }
+    tr.fresh td { animation: fresh 2.4s ease-out; }
+    @keyframes fresh { from { background: #e3fcf6; } to { background: transparent; } }
+    .cb { width: 16px; height: 16px; border: 1.5px solid #c4cbcb; border-radius: 4px; display: inline-block; vertical-align: middle; }
+    .amt { font-size: 13.5px; text-align: right; font-variant-numeric: tabular-nums; }
+    
+    th.amt { font-family: inherit; }
+    .party b { font-weight: 500; display: block; }
+    .party small { color: var(--muted); font-size: 13px; display: block; margin-top: 1px; }
+    .att svg { width: 16px; height: 16px; stroke: var(--ink-2); fill: none; stroke-width: 1.7; }
+    .type { font-size: 13.5px; color: var(--ink); }
+    .party.bank { display: flex; align-items: center; gap: 10px; }
+    .party .bk { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 7px; display: grid; place-items: center; flex: none; background: #fff; }
+    .party .bk svg { width: 15px; height: 15px; stroke: var(--ink-2); fill: none; stroke-width: 1.6; }
+    .party b { font-weight: 400; }
+    .status { display: inline-flex; align-items: center; font-size: 13px; padding: 3px 8px; border-radius: 6px; }
+    .s-settled { background: #ddf5e7; color: #15532f; }
+    .s-pending { background: #fdf0b8; color: #6b4b00; }
+    .s-scheduled { background: #dfe4fb; color: #2a3a8f; }
+    .table-foot { display: flex; justify-content: space-between; padding: 12px 16px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
+
+    /* Drawer */
+    .scrim { position: fixed; inset: 0; background: rgba(15,15,16,.28); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20; }
+    .scrim.open { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw); background: #fff; z-index: 21; transform: translateX(100%); transition: transform .25s ease; display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(15,15,16,.12); }
+    .drawer.open { transform: none; }
+    .dr-head { padding: 22px 26px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; }
+    .dr-head h2 { font-family: neueMontreal; font-weight: 500; font-size: 22px; }
+    .dr-head p { color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .dr-body { padding: 20px 26px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+    .field label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 7px; font-weight: 500; }
+    .field select, .field input { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 9px; padding: 0 12px; background: #fff; font-size: 14px; outline: 0; }
+    .field select:focus, .field input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,158,138,.12); }
+    .field .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .rails { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .rail { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; text-align: left; background: #fff; }
+    .rail b { display: block; font-weight: 500; font-size: 13px; }
+    .rail small { color: var(--muted); font-size: 11.5px; }
+    .rail.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .batch { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .batch-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #fbfcfc; border-bottom: 1px solid var(--line); }
+    .batch-head b { font-weight: 500; }
+    .batch-head span { font-family: 'DM Mono', monospace; font-size: 13px; }
+    .vendors { max-height: 260px; overflow-y: auto; }
+    .vendor { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line-2); font-size: 13px; }
+    .vendor:last-child { border-bottom: 0; }
+    .vendor .vi { width: 24px; height: 24px; border-radius: 6px; background: var(--bg); display: grid; place-items: center; font-size: 11px; font-weight: 500; color: var(--ink-2); flex: none; }
+    .vendor .vm { color: var(--muted); font-size: 12px; }
+    .vendor .va { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 12.5px; }
+    .vendor .vs { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #cdd3d3; flex: none; }
+    .vendor.checking .vs { border-color: var(--teal); border-top-color: transparent; animation: spin .8s linear infinite; }
+    .vendor.cleared .vs { background: var(--teal); border-color: var(--teal); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .summary { background: var(--bg); border-radius: 10px; padding: 14px; display: grid; gap: 8px; font-size: 13px; }
+    .summary div { display: flex; justify-content: space-between; }
+    .summary span:last-child { font-family: 'DM Mono', monospace; }
+    .dr-foot { border-top: 1px solid var(--line); padding: 16px 26px; display: flex; gap: 10px; align-items: center; }
+    .dr-foot .btn-mint { margin-left: auto; min-width: 170px; justify-content: center; }
+    .progress { display: none; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-2); }
+    .progress.show { display: flex; }
+    .progress .sp { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--teal); border-top-color: transparent; animation: spin .8s linear infinite; }
+    .hidden { display: none !important; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 20px); background: var(--ink); color: #fff; padding: 13px 18px; border-radius: 10px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: all .2s; z-index: 30; display: flex; gap: 10px; align-items: center; max-width: 560px; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast .err { width: 20px; height: 20px; border-radius: 50%; background: #f04438; display: grid; place-items: center; font-weight: 700; font-size: 12px; flex: none; }
+    .toast small { color: #a9b0b0; display: block; font-family: 'DM Mono', monospace; font-size: 11px; margin-top: 2px; }
+
+    .demo-note { color: var(--muted); font-size: 11.5px; margin-top: 18px; }
+
+    @media (max-width: 1240px) {
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .content { padding: 20px 16px 40px; }
+      .top { padding: 0 16px; }
+      .head-actions { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg viewBox="0 0 63 29" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Rho"><path d="M9.29356 15.3106H4.24093V27.4132H0V0.265083H9.47321C16.3275 0.265083 19.2323 1.93377 19.2323 7.80801C19.2323 12.0659 16.305 14.0016 13.4044 14.7609L20.0084 27.4132H15.2107L9.29356 15.3106ZM10.5006 14.3177C13.9275 14.3177 14.9918 11.5751 14.9918 7.78761C14.9918 4.00016 13.9275 1.25702 9.47321 1.25702H4.24093V14.3177H10.5006Z" fill="currentColor"/><path d="M40.8743 15.4524V27.4114H36.6507V14.7636C36.6507 11.4142 36.1361 9.15872 32.4402 9.15872C28.7667 9.15872 26.218 12.6903 26.218 15.3194V27.4132H21.9953V0.265083H26.2161V12.4122C27.4507 9.79977 30.2222 7.71067 33.7992 7.71067C39.1068 7.71067 40.8743 10.7824 40.8743 15.4524Z" fill="currentColor"/><path d="M52.3743 28.0765C47.0896 28.0765 42.5263 24.5153 42.5263 17.8938C42.5263 11.2724 47.0901 7.71066 52.3738 7.71066C57.6575 7.71066 62.2222 11.2719 62.2222 17.8938C62.2222 24.5157 57.6585 28.0765 52.3743 28.0765ZM52.3743 8.52599C47.6444 8.52599 47.0232 11.5431 47.0232 17.8938C47.0232 24.2446 47.6444 27.2612 52.3743 27.2612C57.1041 27.2612 57.7258 24.2441 57.7258 17.8938C57.7258 11.5435 57.1045 8.52599 52.3743 8.52599Z" fill="currentColor"/></svg>
+    </div>
+    <div class="org"><div class="av">AC</div><div><b>Acme Corporation</b><small>Admin</small></div></div>
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="#" class="active"><svg viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4.7-9v9m4.6-9v9M19 9v9M3 20h18M12 3 3 8h18z"/></svg>Banking</a>
+      <a href="#" class="sub active">Operating <span class="bal" id="nav-op">$4.93M</span></a>
+      <a href="#" class="sub">Payroll Checking <span class="bal">••5678</span></a>
+      <a href="#" class="sub">Treasury <span class="bal">••9021</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg>Cards</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg>Expenses</a>
+      <a href="#" id="nav-billpay"><svg viewBox="0 0 24 24"><path d="M4 7h16v10H4zM4 11h16M8 15h2"/><path d="M17 3l3 3-3 3"/></svg>Bill Pay</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2z M9 9h6M9 13h6"/></svg>Invoicing</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg>Treasury</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="m9 12 2 2 4-4M5 4h14v16H5z"/></svg>Approvals</a>
+      <div class="nav-label">Finance ops</div>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Accounting</a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>People</a>
+    </nav>
+    <div class="side-foot nav">
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <div class="search-global"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search transactions, vendors, cards<kbd>⌘K</kbd></div>
+      <div class="top-right">
+        <button class="icon-btn" aria-label="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.4M12 17h.01"/></svg></button>
+        <button class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></button>
+        <div class="user">JM</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="crumbs"><a href="#">Banking</a><span>/</span><span>Operating</span></div>
+      <div class="head">
+        <div>
+          <h1 id="acct-name">Operating</h1>
+          <div class="meta"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7"><path d="M4 17c3 0 4-10 8-10s5 6 8 6M17 10l3 3-3 3"/></svg>Auto transfer rules: <a href="#" style="color:var(--ink);font-weight:500;text-decoration:underline;text-underline-offset:3px">Manage</a><span class="dot"></span><span id="acct-type">Checking</span> <span id="acct-mask">•••• 1234</span></div>
+        </div>
+        <div class="head-actions">
+          <button class="icon-btn" aria-label="Account settings" style="width:38px;height:38px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
+          <button class="btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>Account Details</button>
+          <button class="btn btn-mint" id="move-funds-btn">Move Funds <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+        </div>
+      </div>
+
+      <section class="banner" id="success" role="status" aria-live="polite">
+        <div class="ok"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg></div>
+        <div>
+          <b id="success-title">Payment submitted</b>
+          <p id="success-copy"></p>
+          <div class="chips" id="success-chips"></div>
+        </div>
+        <button class="x" id="success-close" aria-label="Dismiss">×</button>
+      </section>
+
+      <section class="cards">
+        <div class="card"><div class="lbl">Available balance <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div><div class="val" id="bal-available">—</div><div class="chg"><span class="arr"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span><span id="chg-available">—</span></div></div>
+        <div class="card"><div class="lbl">Current balance <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div><div class="val" id="bal-current">—</div><div class="chg"><span class="arr"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span><span id="chg-current">—</span></div></div>
+        <div class="card"><div class="lbl">Pending out <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div><div class="val" id="bal-out">—</div><div class="chg neutral" id="out-count">—</div></div>
+        <div class="card"><div class="lbl">Pending in <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div><div class="val" id="bal-in">—</div><div class="chg neutral" id="in-count">—</div></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="tabs"><button class="on">Transactions</button><button>Statements</button><button>Recurring</button></div>
+          <button class="btn tool"><svg viewBox="0 0 24 24"><path d="M4 5h4v14H4zM10 5h4v14h-4zM16 5h4v14h-4z"/></svg>Columns</button>
+          <button class="btn tool"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 8v6l-4-2v-4z"/></svg>Filter</button>
+          <label class="tsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="tx-search" placeholder="Search" aria-label="Search transactions"></label>
+          <div class="ph-right"><button class="btn tool"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Export</button></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th style="width:36px"><span class="cb"></span></th><th style="color:var(--ink)">↓&#8203;↑ Created Date</th><th class="amt">Amount</th><th>Sender</th><th>Recipient</th><th style="width:36px"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#7a8181;fill:none;stroke-width:1.7"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.3 3.3 0 0 1 4.7 4.7L10.2 17a1.7 1.7 0 0 1-2.4-2.4L15.5 7"/></svg></th><th>Type</th><th>Status</th></tr></thead>
+            <tbody id="tx-body"><tr><td colspan="8" style="color:var(--muted)">Loading transactions…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="table-foot"><span id="tx-count">—</span><span>Rows per page: 25</span></div>
+      </section>
+      <p class="demo-note">Demo environment for illustration. Not affiliated with or endorsed by Rho Technologies. Rho is a fintech company, not a bank; banking services in this demo are simulated.</p>
+    </main>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="drawer-title">
+  <div class="dr-head">
+    <div><h2 id="drawer-title">Move Funds</h2><p>From Operating ••1234</p></div>
+    <button class="icon-btn" id="drawer-close" style="margin-left:auto" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <form class="dr-body" id="pay-form" novalidate>
+    <div class="field">
+      <label>Payment method</label>
+      <div class="rails" id="rails">
+        <button type="button" class="rail on" data-type="bill_pay_batch"><b>Bill Pay</b><small>Vendor batch</small></button>
+        <button type="button" class="rail" data-type="wire_us"><b>Wire</b><small>US domestic</small></button>
+        <button type="button" class="rail" data-type="wire_intl"><b>Int'l wire</b><small>SWIFT</small></button>
+        <button type="button" class="rail" data-type="ach_us"><b>ACH</b><small>Next day</small></button>
+        <button type="button" class="rail" data-type="book_transfer"><b>Transfer</b><small>Between accounts</small></button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="from-account">From</label>
+      <select id="from-account"><option value="op-1234">Operating · Checking ••1234</option></select>
+    </div>
+
+    <div id="batch-section">
+      <div class="field" style="margin-bottom:12px">
+        <label for="batch-id">Bill Pay batch</label>
+        <select id="batch-id"></select>
+        <div class="hint">Each vendor is screened (OFAC, account verification) before release.</div>
+      </div>
+      <div class="batch">
+        <div class="batch-head"><b id="batch-name">—</b><span id="batch-total">—</span></div>
+        <div class="vendors" id="vendors"></div>
+      </div>
+    </div>
+
+    <div id="single-section" class="hidden">
+      <div class="field" style="margin-bottom:14px">
+        <label for="payee-id" id="payee-label">Recipient</label>
+        <select id="payee-id"></select>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label for="amount">Amount (USD)</label>
+        <input id="amount" inputmode="decimal" value="25,000.00" class="mono">
+      </div>
+      <div class="field">
+        <label for="memo">Memo</label>
+        <input id="memo" placeholder="Optional" value="">
+      </div>
+    </div>
+
+    <div class="summary" id="summary"></div>
+  </form>
+  <div class="dr-foot">
+    <div class="progress" id="loading"><span class="sp"></span><span id="loading-copy">Screening payees…</span></div>
+    <button class="btn" id="cancel-btn" type="button">Cancel</button>
+    <button class="btn btn-mint" id="submit-btn" type="submit" form="pay-form">Send payment</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="alert"><span class="err">!</span><div><span id="toast-copy">Something went wrong</span><small id="toast-code"></small></div></div>
+
+<script>
+  /* global document, localStorage, fetch, setInterval, clearInterval, setTimeout, clearTimeout */
+  var identityReady = fetch('/api/config')
+    .then(function (r) { return r.json(); })
+    .then(function (config) {
+      if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+      if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+    })
+    .catch(function () {});
+
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { data: null, type: 'bill_pay_batch', transactions: [] };
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var TYPE_LABELS = { bill_pay_batch: 'Bill Pay', wire_us: 'Wire-US', wire_intl: 'Wire-INTL', ach_us: 'ACH-US', book_transfer: 'Book Transfer' };
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function money(cents, opts) {
+    var neg = cents < 0; var abs = Math.abs(cents);
+    var s = (abs / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var sign = opts && opts.signed ? (neg ? '- ' : '+ ') : (neg ? '-' : '');
+    return sign + '$' + s;
+  }
+  function bigMoney(cents) {
+    return esc(money(cents));
+  }
+  function fmtDate(iso) { var d = new Date(iso); return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear(); }
+  function party(p) {
+    if (!p) return '';
+    var sub = p.mask ? p.accountType + ' •••• ' + p.mask : (p.accountType === 'Bill Pay' ? p.name : [p.accountType, p.detail].filter(Boolean).join(' · '));
+    var name = p.accountType === 'Bill Pay' ? 'Bill Pay' : p.name;
+    return '<div><b>' + esc(name) + '</b><small>' + esc(sub) + '</small></div>';
+  }
+  function statusPill(s) { return '<span class="status s-' + esc(String(s).toLowerCase()) + '">' + esc(s) + '</span>'; }
+  var BANK = '<svg viewBox="0 0 24 24"><path d="M3 9h18M5 9v9m4.7-9v9m4.6-9v9M19 9v9M3 20h18M12 3 3 8h18z"/></svg>';
+  var UPLOAD = '<svg viewBox="0 0 24 24"><path d="M12 16V5m0 0-4 4m4-4 4 4M5 19h14"/></svg>';
+  var CLIP = '<svg viewBox="0 0 24 24"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.3 3.3 0 0 1 4.7 4.7L10.2 17a1.7 1.7 0 0 1-2.4-2.4L15.5 7"/></svg>';
+
+  function renderTransactions() {
+    var q = ($('tx-search').value || '').toLowerCase();
+    var rows = state.transactions.filter(function (t) {
+      if (!q) return true;
+      return [t.sender && t.sender.name, t.recipient && t.recipient.name, t.type, t.status].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    $('tx-body').innerHTML = rows.map(function (t) {
+      return '<tr class="' + (t.fresh ? 'fresh' : '') + '"><td><span class="cb"></span></td><td>' + fmtDate(t.createdDate) + '</td>' +
+        '<td class="amt ' + (t.amountCents > 0 ? 'pos' : '') + '">' + money(t.amountCents, { signed: true }) + '</td>' +
+        '<td><div class="party">' + party(t.sender) + '</div></td><td><div class="party bank"><span class="bk">' + BANK + '</span>' + party(t.recipient) + '</div></td>' +
+        '<td class="att">' + UPLOAD + '</td>' +
+        '<td class="type">' + esc(t.type) + '</td><td>' + statusPill(t.status) + '</td></tr>';
+    }).join('') || '<tr><td colspan="8" style="color:var(--muted)">No transactions match.</td></tr>';
+    $('tx-count').textContent = rows.length + ' of ' + state.transactions.length + ' transactions';
+  }
+
+  function renderBalances(b) {
+    $('bal-available').innerHTML = bigMoney(b.availableCents);
+    $('bal-current').innerHTML = bigMoney(b.currentCents);
+    $('bal-out').innerHTML = bigMoney(b.pendingOutCents);
+    $('bal-in').innerHTML = bigMoney(b.pendingInCents);
+    $('chg-available').textContent = money(b.availableChangeCents) + ' since last day';
+    $('chg-current').textContent = money(b.currentChangeCents) + ' since last day';
+    var pend = state.transactions.filter(function (t) { return t.status !== 'Settled'; });
+    var outN = pend.filter(function (t) { return t.amountCents < 0; }).length;
+    var inN = pend.filter(function (t) { return t.amountCents > 0; }).length;
+    $('out-count').textContent = outN + ' outgoing payments';
+    $('in-count').textContent = inN + ' incoming payment' + (inN === 1 ? '' : 's');
+    $('nav-op').textContent = '$' + (b.availableCents / 100000000).toFixed(2) + 'M';
+  }
+
+  function initials(name) { return name.split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase(); }
+
+  function renderBatch() {
+    var batch = state.data.batches.find(function (b) { return b.id === $('batch-id').value; }) || state.data.batches[0];
+    $('batch-name').textContent = batch.name + ' · ' + batch.vendorCount + ' vendors';
+    $('batch-total').textContent = money(batch.totalCents);
+    $('vendors').innerHTML = batch.vendors.map(function (v) {
+      return '<div class="vendor" data-id="' + esc(v.id) + '"><span class="vi">' + esc(initials(v.name)) + '</span><div><div>' + esc(v.name) + '</div><div class="vm">' + esc(v.rail) + ' · ••' + esc(v.mask) + '</div></div><span class="va">' + money(v.amountCents) + '</span><span class="vs"></span></div>';
+    }).join('');
+  }
+
+  function payeeOptions(type) {
+    if (type === 'book_transfer') {
+      return state.data.accounts.filter(function (a) { return a.id !== 'op-1234'; }).map(function (a) { return { id: a.id, label: a.name + ' · ' + a.type + ' ••' + a.mask }; });
+    }
+    var list = state.data.payees.slice().sort(function (a, b) {
+      var aFit = (type === 'wire_intl') === !!a.international; var bFit = (type === 'wire_intl') === !!b.international;
+      return (bFit ? 1 : 0) - (aFit ? 1 : 0);
+    });
+    return list.map(function (p) { return { id: p.id, label: p.name + ' · ' + (p.international ? p.country + ' · ' : '') + p.accountType + ' ••' + p.mask }; });
+  }
+
+  function amountCents() {
+    var raw = String($('amount').value || '').replace(/[$,\s]/g, '');
+    if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+    return Math.round(parseFloat(raw) * 100);
+  }
+
+  function renderSummary() {
+    var isBatch = state.type === 'bill_pay_batch';
+    var amt; var to;
+    if (isBatch) {
+      var batch = state.data.batches.find(function (b) { return b.id === $('batch-id').value; }) || state.data.batches[0];
+      amt = batch.totalCents; to = batch.vendorCount + ' vendors';
+    } else {
+      amt = amountCents(); var sel = $('payee-id'); to = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.split(' · ')[0] : '—';
+    }
+    var avail = state.data.balances.availableCents;
+    $('summary').innerHTML = '<div><span>Method</span><span>' + esc(TYPE_LABELS[state.type]) + '</span></div>' +
+      '<div><span>To</span><span>' + esc(to) + '</span></div>' +
+      '<div><span>Total</span><span>' + (isNaN(amt) ? '—' : money(amt)) + '</span></div>' +
+      '<div><span>Available after</span><span>' + (isNaN(amt) ? '—' : money(avail - amt)) + '</span></div>';
+  }
+
+  function setType(type) {
+    state.type = type;
+    Array.prototype.forEach.call(document.querySelectorAll('.rail'), function (r) { r.classList.toggle('on', r.dataset.type === type); });
+    var isBatch = type === 'bill_pay_batch';
+    $('batch-section').classList.toggle('hidden', !isBatch);
+    $('single-section').classList.toggle('hidden', isBatch);
+    if (!isBatch) {
+      $('payee-label').textContent = type === 'book_transfer' ? 'To account' : 'Recipient';
+      $('payee-id').innerHTML = payeeOptions(type).map(function (o) { return '<option value="' + esc(o.id) + '">' + esc(o.label) + '</option>'; }).join('');
+    }
+    $('submit-btn').textContent = isBatch ? 'Pay ' + (state.data.batches[0].vendorCount) + ' vendors' : (type === 'book_transfer' ? 'Transfer' : 'Send payment');
+    renderSummary();
+  }
+
+  function openDrawer() { $('drawer').classList.add('open'); $('scrim').classList.add('open'); $('drawer').setAttribute('aria-hidden', 'false'); }
+  function closeDrawer() { if ($('submit-btn').disabled) return; $('drawer').classList.remove('open'); $('scrim').classList.remove('open'); $('drawer').setAttribute('aria-hidden', 'true'); }
+
+  var toastTimer;
+  function showToast(msg, code) {
+    $('toast-copy').textContent = msg; $('toast-code').textContent = code || '';
+    $('toast').classList.add('show'); clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $('toast').classList.remove('show'); }, 6000);
+  }
+
+  var tick;
+  function startLoading(isBatch) {
+    $('submit-btn').disabled = true; $('cancel-btn').disabled = true; $('loading').classList.add('show');
+    var started = Date.now(); var vendors = Array.prototype.slice.call(document.querySelectorAll('.vendor'));
+    vendors.forEach(function (v) { v.classList.remove('cleared', 'checking'); });
+    if (vendors[0] && isBatch) vendors[0].classList.add('checking');
+    tick = setInterval(function () {
+      var s = ((Date.now() - started) / 1000).toFixed(1);
+      $('loading-copy').textContent = (isBatch ? 'Screening ' + vendors.length + ' vendors… ' : 'Screening payee… ') + s + 's';
+    }, 100);
+  }
+  function stopLoading() {
+    clearInterval(tick); $('submit-btn').disabled = false; $('cancel-btn').disabled = false; $('loading').classList.remove('show');
+    Array.prototype.forEach.call(document.querySelectorAll('.vendor.checking'), function (v) { v.classList.remove('checking'); });
+  }
+
+  function onSuccess(res) {
+    var p = res.payment; var s = res.screening;
+    if (state.type === 'bill_pay_batch') {
+      s.results.forEach(function (r) { var el = document.querySelector('.vendor[data-id="' + r.payeeId + '"]'); if (el) el.classList.add(r.status === 'cleared' ? 'cleared' : ''); });
+    }
+    var dest = state.type === 'book_transfer'
+      ? state.data.accounts.find(function (a) { return a.id === $('payee-id').value; })
+      : state.data.payees.find(function (x) { return x.id === $('payee-id').value; });
+    var recipient = state.type === 'bill_pay_batch'
+      ? { name: p.recipient, accountType: 'Bill Pay', detail: p.memo }
+      : { name: dest.name, accountType: dest.accountType || dest.type, mask: dest.mask };
+    state.transactions.forEach(function (t) { t.fresh = false; });
+    state.transactions.unshift({ id: p.id, createdDate: p.createdAt, amountCents: -p.amountCents, sender: { name: 'Operating', accountType: 'Checking', mask: '1234' }, recipient: recipient, type: state.type === 'bill_pay_batch' ? 'ACH-US' : p.typeLabel, status: p.status, fresh: true });
+    state.data.balances.availableCents -= p.amountCents;
+    state.data.balances.pendingOutCents += p.amountCents;
+    renderBalances(state.data.balances); renderTransactions();
+    $('success-title').textContent = p.typeLabel + ' submitted · ' + money(p.amountCents);
+    $('success-copy').innerHTML = esc(p.recipient) + ' · ' + esc(s.cleared) + ' of ' + esc(s.checked) + ' payees cleared screening · <span class="mono">' + esc(p.id) + '</span> · ' + (res.durationMs / 1000).toFixed(1) + 's';
+    $('success-chips').innerHTML = s.results.slice(0, 14).map(function (r) { return '<span>' + esc(r.name) + '</span>'; }).join('');
+    $('success').classList.add('show');
+    setTimeout(function () { stopLoading(); closeDrawer(); }, state.type === 'bill_pay_batch' ? 700 : 150);
+  }
+
+  $('pay-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if ($('submit-btn').disabled) return;
+    var isBatch = state.type === 'bill_pay_batch';
+    var payload = { fromAccount: $('from-account').value, paymentType: state.type };
+    if (isBatch) { payload.batchId = $('batch-id').value; } else {
+      payload.payeeId = $('payee-id').value; payload.amountCents = amountCents(); payload.memo = $('memo').value;
+      if (isNaN(payload.amountCents)) payload.amountCents = String($('amount').value);
+    }
+    startLoading(isBatch);
+    identityReady.then(function () {
+      payload.devinUserId = localStorage.getItem('devinUserId') || '';
+      payload.devinOrgId = localStorage.getItem('devinOrgId') || '';
+      payload.devinEmail = localStorage.getItem('devinEmail') || '';
+      return fetch('/api/947c7934/payments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+      .then(function (out) {
+        if (!out.ok || !out.body.success) { stopLoading(); showToast(out.body.error || 'Payment could not be submitted', [out.body.code, out.body.requestId].filter(Boolean).join(' · ')); return; }
+        onSuccess(out.body);
+      })
+      .catch(function () { stopLoading(); showToast('Network error — payment not submitted', ''); });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.rail'), function (r) { r.addEventListener('click', function () { if (!$('submit-btn').disabled) setType(r.dataset.type); }); });
+  ['batch-id', 'payee-id', 'amount'].forEach(function (id) { $(id).addEventListener('input', function () { if (id === 'batch-id') renderBatch(); renderSummary(); }); $(id).addEventListener('change', renderSummary); });
+  $('move-funds-btn').addEventListener('click', openDrawer);
+  $('nav-billpay').addEventListener('click', function (e) { e.preventDefault(); setType('bill_pay_batch'); openDrawer(); });
+  $('drawer-close').addEventListener('click', closeDrawer);
+  $('cancel-btn').addEventListener('click', closeDrawer);
+  $('scrim').addEventListener('click', closeDrawer);
+  $('success-close').addEventListener('click', function () { $('success').classList.remove('show'); });
+  $('tx-search').addEventListener('input', renderTransactions);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+
+  fetch('/api/947c7934/account').then(function (r) { return r.json(); }).then(function (data) {
+    state.data = data;
+    state.transactions = data.transactions.slice();
+    $('acct-name').textContent = data.account.name;
+    $('acct-type').textContent = data.account.type;
+    $('acct-mask').textContent = '••' + data.account.mask;
+    $('batch-id').innerHTML = data.batches.map(function (b) { return '<option value="' + esc(b.id) + '">' + esc(b.name) + ' — ' + b.vendorCount + ' vendors</option>'; }).join('');
+    renderBalances(data.balances); renderTransactions(); renderBatch(); setType('bill_pay_batch');
+    if (/[?&]move=1/.test(document.location.search)) openDrawer();
+  }).catch(function () { showToast('Could not load account', 'GET /api/947c7934/account'); });
+</script>
+</body>
+</html>
