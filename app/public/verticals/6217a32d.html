@@ -503,6 +503,8 @@
           .then(function (data) {
             if (requestId !== state.cwRequest) return;
             clearTimeout(slow);
+            var deferredRow = state.rows.filter(function (r) { return r.id === 'continue-watching'; })[0];
+            if (deferredRow) deferredRow.items = data.row.items;
             fillRail(rail, data.row);
             setStatus('continue-watching', data.row.items.length ? '' : 'Nothing in progress yet');
             state.cwState = 'ready';
