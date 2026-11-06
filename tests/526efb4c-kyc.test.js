@@ -119,6 +119,9 @@ describe('login', () => {
     const sel = await request('POST', '/api/526efb4c/session/card', { sessionToken: r.body.sessionToken, cardKey: '98431' });
     expect(sel.status).toBe(200);
     expect(sel.body.card.product).toBe('Corporate Platinum Card');
+    expect(sel.body.cards).toHaveLength(2);
+    const back = await request('POST', '/api/526efb4c/session/card', { sessionToken: r.body.sessionToken, cardKey: '10005' });
+    expect(back.body.card.product).toBe('Corporate Green Card');
     expect((await request('POST', '/api/526efb4c/session', { method: 'account', userId: 'jordan.ellis', password: 'nope' })).status).toBe(401);
   });
 

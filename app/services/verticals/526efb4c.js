@@ -279,7 +279,7 @@ function sessionView(token, s) {
     market: s.market,
     cardmember: CARDMEMBER,
     card: s.card ? publicCard(s.card) : null,
-    cards: s.card ? undefined : s.cards.map(publicCard),
+    cards: s.method === 'account' ? s.cards.map(publicCard) : undefined,
     needsCardSelection: !s.card,
   };
 }
