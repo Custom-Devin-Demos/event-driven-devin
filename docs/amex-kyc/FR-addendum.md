@@ -101,6 +101,7 @@ Condensed from [`FR-requirements.md`](FR-requirements.md) §2, with the required
 | `nationality` | `hasOtherNationality` | radio `no` / `yes` | Yes, if `national` | option | FR-REQ-04 |
 | `nationality` | `secondNationality` | select | Yes, if `yes` | `distinctNationality` (≠ `nationality`) | FR-REQ-04 |
 | `nationality` | `thirdNationality` | select | No (shown if `yes`) | `distinctNationality` (≠ first and second) | FR-REQ-04 |
+| `nationality` | `furtherNationalities` | text: comma-separated country names or ISO codes | No (shown if `yes`) | `nationalityList` (each entry a recognised country, no repeats of earlier answers) | FR-REQ-04 |
 | `nationality` | `protectionCountry` | select | Yes, if `refugee` / `subsidiary-protection` | listed country | FR-REQ-04 |
 | `residential-address` | `addressLine1`, `addressLine2` | text | Yes / No | `noPoBoxFr` (US PO box + BP, CS, TSA, CEDEX, poste restante, boîte postale) | FR-REQ-06 |
 | `residential-address` | `city`: label *Town / City* | text | Yes | `placeName` | FR-REQ-06 |

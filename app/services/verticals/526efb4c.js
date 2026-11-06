@@ -102,6 +102,8 @@ const FR_POSTAL_COUNTRIES = Object.keys(FR_POSTAL_PREFIXES);
 const EU_EEA = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT',
   'LI', 'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];
 
+const COUNTRY_BY_NAME = new Map(COUNTRIES.flatMap(([code, name]) => [[code.toLowerCase(), code], [name.toLowerCase(), code]]));
+
 const PEP_STATUSES = ['pep', 'former-pep', 'family', 'associate'];
 
 const MARKETS = {
@@ -272,6 +274,11 @@ const MARKETS = {
           {
             id: 'thirdNationality', label: 'Third Nationality (if applicable)', type: 'select', required: false, options: COUNTRY_OPTIONS,
             rule: { name: 'distinctNationality', from: ['nationality', 'secondNationality'] },
+            showWhen: { field: 'hasOtherNationality', equals: 'yes' },
+          },
+          {
+            id: 'furtherNationalities', label: 'Any Further Nationalities (country names or codes, separated by commas)', type: 'text',
+            required: false, rule: { name: 'nationalityList', from: ['nationality', 'secondNationality', 'thirdNationality'] },
             showWhen: { field: 'hasOtherNationality', equals: 'yes' },
           },
           {
@@ -635,6 +642,16 @@ const RULES = {
   distinctNationality: (v, values, _today, rule) => (
     rule.from.some((id) => values[id] === v) ? 'Choose a nationality you have not already entered' : null
   ),
+  nationalityList: (v, values, _today, rule) => {
+    const seen = new Set(rule.from.map((id) => values[id]).filter(Boolean));
+    for (const entry of v.split(',').map((s) => s.trim()).filter(Boolean)) {
+      const code = COUNTRY_BY_NAME.get(entry.toLowerCase());
+      if (!code) return `\u201c${entry}\u201d is not a recognised country`;
+      if (seen.has(code)) return 'Choose a nationality you have not already entered';
+      seen.add(code);
+    }
+    return null;
+  },
   noPoBoxFr: (v) => (PO_BOX.test(v) || FR_NON_RESIDENTIAL.test(v)
     ? 'P.O. Boxes (BP), CS / TSA numbers, CEDEX, poste restante and private mailboxes cannot be used as a residential address'
     : null),

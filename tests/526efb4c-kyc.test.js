@@ -293,7 +293,7 @@ describe('France (FR) market', () => {
     expect(form.intro.privacyNotice).toMatch(/NIR/);
     expect(form.steps.map((s) => s.id)).toEqual(['legal-name', 'nationality', 'residential-address', 'identity-document', 'occupation', 'pep']);
     const ids = form.steps.flatMap((s) => s.fields.map((f) => f.id));
-    for (const id of ['usageName', 'birthCity', 'birthCountry', 'nationalityStatus', 'secondNationality', 'idDocumentType', 'taxIdNumber', 'employerSiren', 'pepStatus']) {
+    for (const id of ['usageName', 'birthCity', 'birthCountry', 'nationalityStatus', 'secondNationality', 'furtherNationalities', 'idDocumentType', 'taxIdNumber', 'employerSiren', 'pepStatus']) {
       expect(ids).toContain(id);
     }
     for (const banned of ['ssn', 'itin', 'idType']) expect(ids).not.toContain(banned);
@@ -324,6 +324,10 @@ describe('France (FR) market', () => {
     expect(errs('nationality', { secondNationality: 'FR' }).secondNationality).toMatch(/already/);
     expect(errs('nationality', { thirdNationality: 'US' }).thirdNationality).toMatch(/already/);
     expect(errs('nationality', { thirdNationality: 'DE' }).thirdNationality).toBeUndefined();
+    expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'Belgium, it, Switzerland' })).toEqual({});
+    expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'BE, Narnia' }).furtherNationalities).toMatch(/Narnia/);
+    expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'canada' }).furtherNationalities).toMatch(/already/);
+    expect(errs('nationality', { furtherNationalities: 'BE, Belgium' }).furtherNationalities).toMatch(/already/);
     expect(validate('nationality', { nationalityStatus: 'national', nationality: 'FR', hasOtherNationality: 'no', secondNationality: 'FR' }).valid).toBe(true);
     expect(Object.keys(validate('nationality', { nationalityStatus: 'refugee' }).errors)).toEqual(['protectionCountry']);
     expect(validate('nationality', { nationalityStatus: 'subsidiary-protection', protectionCountry: 'FR' }).valid).toBe(true);
@@ -338,6 +342,7 @@ describe('France (FR) market', () => {
     const byId = Object.fromEntries(fields.map((f) => [f.id, f]));
     const visible = fields.filter((f) => svc.isVisible(f, values, byId)).map((f) => f.id);
     expect(visible).toEqual(['nationalityStatus']);
+    expect(validate('nationality', { ...values, furtherNationalities: 'Narnia' }).valid).toBe(true);
   });
 
   test('residence: French post codes per territory and no BP / CS / TSA / CEDEX addresses', () => {
@@ -410,11 +415,11 @@ describe('France (FR) market', () => {
     expect(Object.keys(invalid.body.errors)).toEqual(['pep']);
 
     const ok = await request('POST', '/api/526efb4c/submissions', {
-      sessionToken: token, market: 'FR', values: { ...FR_VALID, ssn: '123-45-6789', protectionCountry: 'FR' }, signature: SIGNATURE,
+      sessionToken: token, market: 'FR', values: { ...FR_VALID, furtherNationalities: 'BE, CA', ssn: '123-45-6789', protectionCountry: 'FR' }, signature: SIGNATURE,
     });
     expect(ok.status).toBe(201);
     expect(ok.body.market).toBe('FR');
-    expect(ok.body.answers).toMatchObject({ birthCity: 'Lyon', secondNationality: 'US', employerSiren: '842 917 361', taxIdNumber: '***-**-0123' });
+    expect(ok.body.answers).toMatchObject({ birthCity: 'Lyon', secondNationality: 'US', furtherNationalities: 'BE, CA', employerSiren: '842 917 361', taxIdNumber: '***-**-0123' });
     expect(JSON.stringify(ok.body)).not.toContain('1234567890123');
     expect(ok.body.answers.ssn).toBeUndefined();
     expect(ok.body.answers.protectionCountry).toBeUndefined();
