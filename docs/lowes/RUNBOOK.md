@@ -4,6 +4,10 @@ Synthetic WEB demo in COG-GTM/event-driven-devin. No real accounts, orders or pa
 Pepsi (12b28f14) and Marshalls (ea2d0dbc) are the reference verticals.
 Customer slug: `a4c19e72`. Routes: `/lowes`, `/lowes-cart`, `/a4c19e72`.
 
+The normal cart shows shopper-facing messages only. For presenter controls,
+reset and Teams payload/status diagnostics, open `/lowes?ops=1`. This display-only
+option does not enable, disable or otherwise change server-side alert delivery.
+
 ## Revisions and reset
 
 - Baseline: `devin/lowes-cart-b5f26e97` — bulky pickup intentionally fails.
@@ -15,7 +19,7 @@ Customer slug: `a4c19e72`. Routes: `/lowes`, `/lowes-cart`, `/a4c19e72`.
 
 ## Four-minute web demo
 
-1. Open baseline /lowes. Show Central Charlotte and the refrigerator + DEWALT kit.
+1. Open baseline /lowes?ops=1 for rehearsal controls (use /lowes for the shopper view). Show Central Charlotte and the refrigerator + DEWALT kit.
 2. Delivery → Continue to checkout: success, demo confirmation only.
 3. Switch to Pickup → Continue: real HTTP 500, cart retained.
 4. Open Teams alert preview: actual standard checkout Adaptive Card JSON.
