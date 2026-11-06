@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Payments - LINQ | K&#8209;12 Software</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700&family=Work+Sans:wght@400;500;700&family=Literata:opsz,wght@7..72,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0f2d4a;
+      --sky: #1baac1;
+      --orange: #ffa500;
+      --paper: #f7f0e4;
+      --teal: #007897;
+      --utility: #7c8080;
+      --rule: #e4eced;
+      --ink: #141414;
+      --gutter: 8.34%;
+      --poppins: Poppins, sans-serif;
+      --nunito: 'Nunito Sans', sans-serif;
+      --work: 'Work Sans', sans-serif;
+      --spirit: new-spirit, Literata, Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--work); font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    h1, h2, h3, h4, p, figure, address, ul { margin: 0; padding: 0; }
+    ul { list-style: none; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+
+    /* Header */
+    .site-header { position: relative; z-index: 50; background: #fff; padding-top: 6px; box-shadow: rgba(0,0,0,0.1) 0 3px 8px -1px; }
+    .nav-utility { display: flex; justify-content: flex-end; gap: 16px; height: 22px; padding: 0 var(--gutter); align-items: center; margin-bottom: 14px; }
+    .nav-utility a, .nav-utility button { display: inline-flex; align-items: center; gap: 5px; font: 500 11px/15.4px var(--work); color: var(--utility); background: none; border: 0; padding: 0; cursor: pointer; }
+    .nav-utility svg { width: 11px; height: 11px; }
+    .header-main { display: flex; align-items: flex-start; gap: 44px; height: 66.5px; padding: 0 var(--gutter); }
+    .brand { display: flex; align-items: center; width: 106px; height: 38px; flex: none; }
+    .brand svg { width: 106px; height: 38px; display: block; }
+    .nav-primary { display: flex; gap: 42px; flex: 1; padding-top: 17px; }
+    .nav-primary a { display: inline-flex; align-items: center; font: 500 15px/21px var(--work); color: var(--navy); }
+    .nav-primary a svg { width: 8px; height: 5px; margin-left: 5px; }
+    .nav-demo { display: inline-flex; align-items: center; height: 40px; padding: 11.67px 16.005px; background: var(--orange); border: 1px solid var(--orange); border-radius: 50px; color: #fff; font: 700 15px/15px var(--work); text-transform: uppercase; letter-spacing: 0; margin-top: 4px; white-space: nowrap; }
+    .menu-toggle, .mobile-search { display: none; }
+
+    /* Hero */
+    .page-header { display: grid; grid-template-columns: 55% 45%; background: var(--paper); padding-top: 64px; }
+    .page-header__content { display: flex; flex-direction: column; justify-content: center; padding: 64px 1% 80px 14.27%; }
+    .eyebrow { font: 700 12px/18px var(--nunito); letter-spacing: 0.6px; color: var(--utility); margin-bottom: 21px; }
+    .eyebrow a { color: var(--utility); }
+    .eyebrow strong { color: var(--navy); }
+    .page-header h2 { font: 500 61.6px/70.84px var(--poppins); color: var(--navy); margin-bottom: 21px; }
+    .page-header__paragraph { font: 500 21px/30.03px var(--spirit); color: var(--navy); margin-bottom: 36px; }
+    .page-header__image { background: url('https://www.linq.com/wp-content/uploads/2026/05/Vector-header-back-green.png') 100% 0 / 85% 85% no-repeat; align-self: start; aspect-ratio: 1 / 1; }
+    .page-header__image-container { padding: 0 0 5% 5%; }
+    .page-header__image img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; }
+
+    /* Meal account payment form (in place of the hero CTA) */
+    .pay-card { background: #fff; border-radius: 24px; padding: 24px 28px 26px; max-width: 600px; box-shadow: rgba(15,45,74,0.08) 0 6px 20px -4px; }
+    .pay-card h3 { font: 600 20px/26px var(--poppins); color: var(--navy); margin-bottom: 4px; }
+    .pay-card .sub { font: 400 15px/22px var(--nunito); color: var(--navy); margin-bottom: 16px; }
+    .pay-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px 16px; }
+    .field label { display: block; font: 700 13px/18px var(--nunito); color: var(--navy); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid #c4ced4; border-radius: 10px; background: #fff; font: 500 15px var(--nunito); color: var(--navy); appearance: none; -webkit-appearance: none; }
+    .field select { background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230f2d4a' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center; padding-right: 34px; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--sky); outline-offset: 1px; border-color: var(--sky); }
+    .pay-actions { display: flex; align-items: center; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 16px 40px; border-radius: 50px; border: 1px solid var(--sky); background: var(--sky); color: #fff; font: 600 16px/16px var(--nunito); cursor: pointer; }
+    .btn:disabled { opacity: 0.7; cursor: progress; }
+    .pay-note { font: 500 13px/18px var(--nunito); color: var(--navy); opacity: 0.8; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 12px; font: 500 14px/21px var(--nunito); }
+    .result-box.success { display: block; background: #e6f5ea; border: 1px solid #0b8c5c; color: #0b4f37; }
+    .result-box.error { display: block; background: #fdecea; border: 1px solid #c8372d; color: #8a1f17; }
+    .result-box .error-title { font-weight: 700; margin-bottom: 2px; }
+
+    /* Rounded sections */
+    .band { position: relative; border-radius: 50px 50px 0 0; padding: 112px 0; margin-top: -48px; }
+    .band--white { background: #fff; }
+    .band--navy { background: var(--navy); margin-top: 0; }
+    .band--paper { background: var(--paper); padding: 80px 0 104px; }
+    .grid12 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); column-gap: 3%; row-gap: 32px; padding: 0 var(--gutter); }
+
+    .intro { text-align: center; max-width: 800px; margin: 0 auto; padding: 0 25px; }
+    .intro h3 { font: 600 28px/33.6px var(--poppins); color: var(--navy); margin: 20px 0 24.5px; }
+    .sub-head { font: 400 20px/30.4px var(--nunito); color: var(--navy); }
+    .sub-head .hl { color: var(--teal); }
+    .benefits { margin-top: 76px; }
+    .benefit { padding-top: 24px; }
+    .benefit img { height: auto; margin-bottom: 24px; }
+    .benefit h3 { font: 600 22px/28.16px var(--poppins); color: var(--navy); margin-bottom: 19.25px; }
+    .body-copy { font: 500 16px/24.32px var(--nunito); color: var(--navy); }
+
+    .numbers-eyebrow { font: 700 15.984px/23.976px var(--nunito); letter-spacing: 0.7992px; color: #fff; text-align: center; margin-bottom: 68px; }
+    .numbers { max-width: 1120px; margin: 0 auto; padding: 0 118.844px; display: grid; grid-template-columns: minmax(0,228fr) minmax(0,99fr) minmax(0,228fr) minmax(0,79fr) minmax(0,249fr); }
+    .numbers > div:nth-child(2) { grid-column: 3; }
+    .numbers > div:nth-child(3) { grid-column: 5; }
+    .numbers h2 { font: 500 61.6px/70.84px var(--poppins); color: var(--orange); text-align: center; margin-bottom: 43.12px; }
+    .numbers p { font: 500 16px/24.32px var(--nunito); color: #fff; text-align: center; }
+    .backpacks { width: 100%; margin: -10% 0 -18%; }
+    .backpacks img { width: 100%; }
+
+    .features { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); column-gap: 3%; padding: 0 var(--gutter); margin-bottom: 64px; align-items: center; min-height: 418px; }
+    .features .label { font: 700 15.984px/23.976px var(--nunito); letter-spacing: 0.7992px; color: var(--navy); margin-bottom: 27.97px; }
+    .features h1 { font: 500 61.6px/70.84px var(--poppins); color: var(--navy); margin-bottom: 21.56px; }
+    .features .sub-head { max-width: 700px; margin-bottom: 67px; }
+    .switch { display: inline-flex; border: 2px solid var(--sky); border-radius: 50px; padding: 0; }
+    .switch button { height: 52px; margin: 4px; padding: 8px 16px; border-radius: 50px; border: 0; background: #fff; color: var(--sky); font: 500 16px/22.4px var(--work); cursor: pointer; }
+    .switch button.active { background: var(--sky); color: #fff; }
+    .phone-col { background: url('https://www.linq.com/wp-content/uploads/2026/05/Vector-background-lightgreen.png') center / contain no-repeat; min-height: 418px; display: flex; align-items: flex-start; justify-content: center; }
+    .phone-col img { width: 180px; }
+    .feature-item img { margin-bottom: 16px; }
+    .feature-item p { font: 500 16px/24.32px var(--nunito); color: var(--navy); }
+    .feature-panel[hidden] { display: none; }
+
+    .banner { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); column-gap: 3%; padding: 0 var(--gutter); align-items: center; }
+    .banner h2 { font: 500 48px/55.2px var(--poppins); color: var(--navy); margin-bottom: 16px; }
+    .banner .sub-head { max-width: 750px; margin-bottom: 35px; }
+    .banner figure { margin: -94.78px 0 -89.6px; }
+    .banner figure img { width: 474px; }
+
+    /* Footer */
+    .site-footer { background: var(--navy); padding-bottom: 72px; color: #fff; }
+    .site-footer__inner { max-width: 1920px; padding: 0 var(--gutter); }
+    .site-footer__top { display: grid; grid-template-columns: 203.891px minmax(0,1fr); column-gap: 3.4%; padding: 125px 66.26px 48px; }
+    .site-footer__company address { font: 500 14px/23.8px var(--work); font-style: normal; margin: 16px 0 36px; }
+    .site-footer__company .phone { display: block; font: 500 14px/19.6px var(--work); }
+    .social { display: flex; gap: 15px; margin-top: 18px; }
+    .social a { width: 20px; height: 20px; display: inline-flex; }
+    .social svg { width: 20px; height: 20px; }
+    .footer-cols { display: grid; grid-template-columns: 163fr 245fr 163fr 122fr; column-gap: 5%; }
+    .footer-cols h4 { font: 700 13px/20.8px var(--work); letter-spacing: 0.5px; color: var(--sky); margin-bottom: 22px; text-transform: uppercase; }
+    .footer-cols .group { font: 700 13px/20.8px var(--work); letter-spacing: 0.5px; color: #fff; margin-bottom: 15px; text-transform: uppercase; }
+    .footer-cols li a { font: 500 14px/22.4px var(--work); color: #fff; }
+    .footer-cols .tight li { line-height: 22.4px; }
+    .footer-cols .tight li.b a { font-weight: 700; }
+    .footer-cols .tight li.space { margin-top: 16px; }
+    .footer-cols .tight + .group { margin-top: 48px; }
+    .footer-cols .tight + .group.pay { margin-top: 41px; }
+    .footer-cols { padding-bottom: 41px; }
+    .footer-cols .loose li { margin-bottom: 15px; line-height: 22.4px; }
+    .site-footer__info { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rule); padding-top: 32px; margin: 0 66.26px; font: 500 14px/22.4px var(--work); color: var(--rule); }
+    .site-footer__info nav { display: flex; }
+    .site-footer__info nav a + a::before { content: '|'; display: inline-block; margin: 0 10px 0 12px; }
+
+    @media (max-width: 1100px) {
+      .nav-primary, .nav-demo, .nav-utility { display: none; }
+      .site-header { padding: 14px 0 4px; }
+      .header-main { height: 37px; padding: 0 25px; justify-content: space-between; gap: 0; }
+      .brand, .brand svg { width: 87px; height: 31px; }
+      .header-tools { display: flex; align-items: center; gap: 25px; }
+      .mobile-search, .menu-toggle { display: inline-flex; align-items: center; justify-content: center; position: relative; background: none; border: 0; padding: 0; cursor: pointer; color: var(--navy); }
+      .mobile-search svg { width: 18px; height: 18px; color: var(--utility); }
+      .menu-toggle svg { width: 17px; height: 12px; }
+      .mobile-search::before, .menu-toggle::before { content: ''; position: absolute; inset: -13px; }
+      .menu-toggle::before { inset: -16px -14px; }
+      .mobile-menu { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; z-index: 60; overflow-y: auto; padding: 16px 25px 40px; display: none; }
+      .mobile-menu.open { display: block; }
+      .mobile-menu a { display: flex; align-items: center; min-height: 48px; font: 500 17px var(--work); color: var(--navy); border-bottom: 1px solid var(--rule); }
+      .mobile-menu .nav-demo { display: inline-flex; margin-top: 24px; min-height: 44px; border: 0; color: #fff; }
+    }
+    @media (min-width: 1101px) { .header-tools, .mobile-menu { display: none !important; } }
+
+    @media (max-width: 781px) {
+      .page-header { grid-template-columns: minmax(0,1fr); }
+      .page-header { padding-top: 64px; }
+      .page-header__image { order: -1; padding-top: 5%; aspect-ratio: auto; }
+      .page-header__image-container { margin: 0 8%; padding: 0 0 5%; }
+      .page-header__content { padding: 0 25px 176px; }
+      .eyebrow { margin-bottom: 21px; }
+      .page-header h2 { font-size: 36px; line-height: 41.4px; margin-bottom: 12.6px; }
+      .page-header__paragraph { font-size: 18px; line-height: 25.74px; margin-bottom: 31.5px; }
+      .pay-card { padding: 20px 18px 22px; border-radius: 20px; }
+      .pay-grid { grid-template-columns: minmax(0,1fr); }
+      .band { padding: 52px 0 112px; margin-top: -112px; }
+      .band--navy { margin-top: 0; }
+      .band--paper { padding: 52px 0 112px; }
+      .grid12, .features, .banner { grid-template-columns: minmax(0,1fr); padding: 0 calc(25px + 21.7656px); }
+      .intro { padding: 0 25px; }
+      .benefits { margin-top: 52px; row-gap: 32px; }
+      .benefit h3 { font-size: 20px; line-height: 25.6px; margin-bottom: 17.5px; }
+      .numbers-eyebrow { font-size: 14px; line-height: 21px; margin-bottom: 48px; }
+      .numbers { grid-template-columns: minmax(0,1fr); padding: 0 calc(25px + 21.7656px); row-gap: 0; }
+      .numbers h2 { font-size: 36px; line-height: 41.4px; margin-bottom: 3.6px; }
+      .numbers p { margin-bottom: 64px; }
+      .numbers > div:last-child p { margin-bottom: 0; }
+      .backpacks { padding: 0 25px; margin: -8.7% 0 -15.7%; }
+      .features { min-height: 0; margin-bottom: 48px; }
+      .phone-col { order: -1; min-height: 394px; margin-bottom: 56px; }
+      .features .label { font-size: 14px; line-height: 21px; margin-bottom: 24.5px; }
+      .features h1 { font-size: 36px; line-height: 41.4px; margin-bottom: 12.6px; }
+      .features .sub-head { margin-bottom: 69px; }
+      .switch { display: flex; flex-direction: column; align-items: center; border: 0; }
+      .switch button { width: 215px; font-size: 13.6px; line-height: 19.04px; padding: 8px 13.64px; border: 2px solid var(--sky); }
+      .feature-panel { row-gap: 48px; }
+      .banner figure { order: -1; margin: 0 0 32px; }
+      .banner figure img { width: 100%; }
+      .banner h2 { font-size: 48px; line-height: 55.2px; }
+      .site-footer { padding-bottom: 24px; }
+      .site-footer__inner { padding: 0 25px; }
+      .site-footer__top { grid-template-columns: minmax(0,1fr); padding: 56px 0 32px; row-gap: 40px; }
+      .footer-cols { grid-template-columns: minmax(0,1fr); row-gap: 32px; }
+      .site-footer__info { flex-direction: column; align-items: flex-start; gap: 16px; margin: 0; }
+      .site-footer__info nav { flex-wrap: wrap; row-gap: 6px; }
+      .footer-cols { padding-bottom: 0; }
+      .footer-cols .loose li { margin-bottom: 0; }
+      .numbers > div:nth-child(n) { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="siteHeader">
+    <nav class="nav-utility" aria-label="Utility">
+      <a href="#"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M4.6 4.6a1.4 1.4 0 1 1 1.9 1.3c-.4.2-.5.4-.5.8v.3M6 8.6v.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Support</a>
+      <a href="#"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="4" r="2.4" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 11c.6-2.2 2.4-3.4 4.5-3.4s3.9 1.2 4.5 3.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Login</a>
+      <button type="button"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="5" cy="5" r="3.8" stroke="currentColor" stroke-width="1.4"/><path d="M8 8l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Search</button>
+    </nav>
+    <div class="header-main">
+      <a class="brand" href="#" aria-label="LINQ | K-12 Software">
+        <svg viewBox="0 0 106 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="lqFlame" x1="12" y1="0" x2="12" y2="30" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffb21f"/><stop offset="1" stop-color="#f26a1b"/></linearGradient>
+            <linearGradient id="lqBase" x1="12" y1="26" x2="12" y2="38" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffa21a"/><stop offset="1" stop-color="#ff7d1a"/></linearGradient>
+          </defs>
+          <path d="M12.6 0.6c1.1 3.4-0.2 5.6-2.4 8.3C7.6 12 3.4 15.2 3.4 20.9c0 2.7 1 5.2 2.8 7.1 0.4-3.3 2.6-5.6 5.4-6.6-1.1-2.3-0.4-4.9 1.6-6.6 0.4 2.2 2.3 3.6 4.1 4.8 1.6 1.1 2.6 2.9 2.4 5 2.6-1.6 4.2-4.4 4.2-7.6 0-4.4-2.8-7-5-9.8-2.3-2.9-3.6-4.7-6.3-6.6z" fill="url(#lqFlame)"/>
+          <path d="M4 30.1l7.8 7.9 7.8-7.9c-4.3-4.4-11.3-4.4-15.6 0z" fill="url(#lqBase)"/>
+          <text x="27.5" y="29.2" font-family="Poppins, sans-serif" font-weight="700" font-size="25.6" letter-spacing="0.2" fill="#0f2d4a">LINQ</text>
+        </svg>
+      </a>
+      <nav class="nav-primary" aria-label="Primary">
+        <a href="#">Products<svg viewBox="0 0 8 5" fill="none" aria-hidden="true"><path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#">Solutions<svg viewBox="0 0 8 5" fill="none" aria-hidden="true"><path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#">Resources<svg viewBox="0 0 8 5" fill="none" aria-hidden="true"><path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#">About LINQ<svg viewBox="0 0 8 5" fill="none" aria-hidden="true"><path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </nav>
+      <a class="nav-demo" href="#">Request a demo</a>
+      <div class="header-tools">
+        <button type="button" class="mobile-search" aria-label="Search"><svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.8" stroke="currentColor" stroke-width="2"/><path d="M12 12l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><svg viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 1h15M1 6h15M1 11h15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+    <nav class="mobile-menu" id="mobileMenu" aria-label="Mobile">
+      <a href="#">Products</a>
+      <a href="#">Solutions</a>
+      <a href="#">Resources</a>
+      <a href="#">About LINQ</a>
+      <a href="#">Support</a>
+      <a href="#">Login</a>
+      <a class="nav-demo" href="#">Request a demo</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-header">
+      <div class="page-header__content">
+        <p class="eyebrow"><a href="#">Home</a> / <a href="#">Solutions</a> / <a href="#">LINQ Payments</a> / <a href="#">School Payments</a> / <strong>Meal Payments</strong></p>
+        <h2>Unify meal payments across your district.</h2>
+        <p class="page-header__paragraph">Give your nutrition team the tools to keep lines moving, families engaged, and every student fed.</p>
+        <div class="pay-card">
+          <h3>Make a meal account payment</h3>
+          <p class="sub">Credit, debit, and ACH payments post to your student&rsquo;s LINQ Connect meal account.</p>
+          <form id="transferForm">
+            <div class="pay-grid">
+              <div class="field"><label for="fromAccount">Pay with</label><select id="fromAccount"><option value="ACCT-1001">Checking (ACH) &bull;&bull;4821</option><option value="ACCT-1004">Visa debit &bull;&bull;1934</option></select></div>
+              <div class="field"><label for="toAccount">Student meal account</label><select id="toAccount"><option value="ACCT-1002">Maya Rivera &mdash; Lincoln Elementary</option><option value="ACCT-1003">Leo Rivera &mdash; Lincoln Elementary</option></select></div>
+              <div class="field"><label for="amount">Amount</label><input type="number" id="amount" value="25.00" min="0.01" step="0.01" placeholder="$0.00" inputmode="decimal"></div>
+              <div class="field"><label for="accountTier">Account tier</label><select id="accountTier"><option value="standard">Standard</option><option value="premium">Premium</option><option value="basic">Basic</option></select></div>
+            </div>
+            <div class="pay-actions">
+              <button type="submit" class="btn" id="submitBtn">Make a payment</button>
+              <span class="pay-note">Payments are available 24/7.</span>
+            </div>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="page-header__image">
+        <div class="page-header__image-container">
+          <img src="https://www.linq.com/wp-content/uploads/2026/05/meal-payments-hero-1200x1098.png" alt="" width="1200" height="1098" onerror="this.style.visibility='hidden'">
+        </div>
+      </div>
+    </section>
+
+    <section class="band band--white">
+      <div class="intro">
+        <h3>There&rsquo;s already enough on your plate.</h3>
+        <p class="sub-head">Make it simple for families to fund meal accounts, and everything downstream gets easier &mdash; fewer negative balances, less follow-up, and more time for your team to focus on feeding students.&nbsp;</p>
+      </div>
+      <div class="grid12 benefits">
+        <div class="benefit">
+          <img src="https://www.linq.com/wp-content/uploads/2025/08/icon-technology.png" alt="" width="31" height="36" style="width:31px" onerror="this.style.visibility='hidden'">
+          <h3>Funded accounts and less follow-up</h3>
+          <p class="body-copy">Put low-balance alerts and autopay in families&rsquo; hands, so accounts are topped up and staff spends less time on reminders.</p>
+        </div>
+        <div class="benefit">
+          <img src="https://www.linq.com/wp-content/uploads/2026/05/icon-fast-clock.png" alt="" width="56" height="42" style="width:56px" onerror="this.style.visibility='hidden'">
+          <h3>Meal participation made easy</h3>
+          <p class="body-copy">Give families a convenient way to stay informed of menus to keep participation rates healthy across your schools.</p>
+        </div>
+        <div class="benefit">
+          <img src="https://www.linq.com/wp-content/uploads/2026/05/icon-paper-graph-up.png" alt="" width="29" height="36" style="width:29px" onerror="this.style.visibility='hidden'">
+          <h3>The right recipe for reconciliation</h3>
+          <p class="body-copy">Save hours with bank matching and a full transaction trail, allowing you to close the books with confidence.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band band--navy">
+      <h2 class="numbers-eyebrow">LINQ by the Numbers</h2>
+      <div class="numbers">
+        <div><h2>1B+</h2><p>School meals served annually</p></div>
+        <div><h2>3.9M</h2><p>Registered users on LINQ Connect</p></div>
+        <div><h2>7.8M+</h2><p>Transactions each year</p></div>
+      </div>
+      <figure class="backpacks"><img src="https://www.linq.com/wp-content/uploads/2026/05/Backpacks-1-2048x887.png" alt="" width="2048" height="887" onerror="this.style.visibility='hidden'"></figure>
+    </section>
+
+    <section class="band band--white">
+      <div class="features">
+        <div>
+          <p class="label">Features</p>
+          <h1>Flexibility for families</h1>
+          <p class="sub-head">Make it easy for parents to stay on top of meal accounts &mdash; anytime,&nbsp;anywhere.&nbsp;</p>
+          <div class="switch" role="tablist">
+            <button type="button" class="active" role="tab" aria-selected="true" data-panel="p1">Payment Options</button>
+            <button type="button" role="tab" aria-selected="false" data-panel="p2">Account Management</button>
+            <button type="button" role="tab" aria-selected="false" data-panel="p3">Menus &amp; Applications</button>
+          </div>
+        </div>
+        <div class="phone-col"><img src="https://www.linq.com/wp-content/uploads/2026/05/Store-Screen-copy-1.png" alt="" width="180" height="394" onerror="this.style.visibility='hidden'"></div>
+      </div>
+      <div class="grid12 feature-panel" id="p1">
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-get-cash.png" alt="" style="width:56px" onerror="this.style.visibility='hidden'"><p>Submit credit, debit, and ACH meal account payments 24/7.</p></div>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-phone-card.png" alt="" style="width:40px" onerror="this.style.visibility='hidden'"><p>Set up autopay on a schedule that&rsquo;s personalized for each family.</p></div>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-magnifying.png" alt="" style="width:35px" onerror="this.style.visibility='hidden'"><p>Transfer balances between siblings within the same family.</p></div>
+      </div>
+      <div class="grid12 feature-panel" id="p2" hidden>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-limits.png" alt="" style="width:40px" onerror="this.style.visibility='hidden'"><p>Set spending limits for each student.</p></div>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-notification.png" alt="" style="width:40px" onerror="this.style.visibility='hidden'"><p>Get low-balance notifications before accounts run out.</p></div>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-magnify-carrot.png" alt="" style="width:40px" onerror="this.style.visibility='hidden'"><p>Review purchase history for every student.</p></div>
+      </div>
+      <div class="grid12 feature-panel" id="p3" hidden>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-apple-click.png" alt="" style="width:40px" onerror="this.style.visibility='hidden'"><p>View school menus from the LINQ Connect app.</p></div>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-safe-eat.png" alt="" style="width:40px" onerror="this.style.visibility='hidden'"><p>See allergen and nutrition information for menu items.</p></div>
+        <div class="feature-item"><img src="https://www.linq.com/wp-content/uploads/2026/05/icon-comp-check.png" alt="" style="width:40px" onerror="this.style.visibility='hidden'"><p>Apply for free and reduced-price meals online.</p></div>
+      </div>
+    </section>
+
+    <section class="band band--paper">
+      <div class="banner">
+        <div>
+          <h2>Request a demo</h2>
+          <p class="sub-head">Find out how districts like yours are keeping meal accounts funded, lines&nbsp;moving fast, and every family engaged.&nbsp;</p>
+          <a class="btn" href="#">See LINQ In Action</a>
+        </div>
+        <figure><img src="https://www.linq.com/wp-content/uploads/2025/09/icon-money-flowers.png" alt="" width="474" height="391" onerror="this.style.visibility='hidden'"></figure>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__top">
+        <div class="site-footer__company">
+          <a href="#" aria-label="LINQ | K-12 Software" style="display:block;width:121px;height:43px">
+            <svg viewBox="0 0 106 38" width="121" height="43" fill="none" aria-hidden="true">
+              <path d="M12.6 0.6c1.1 3.4-0.2 5.6-2.4 8.3C7.6 12 3.4 15.2 3.4 20.9c0 2.7 1 5.2 2.8 7.1 0.4-3.3 2.6-5.6 5.4-6.6-1.1-2.3-0.4-4.9 1.6-6.6 0.4 2.2 2.3 3.6 4.1 4.8 1.6 1.1 2.6 2.9 2.4 5 2.6-1.6 4.2-4.4 4.2-7.6 0-4.4-2.8-7-5-9.8-2.3-2.9-3.6-4.7-6.3-6.6z" fill="url(#lqFlame)"/>
+              <path d="M4 30.1l7.8 7.9 7.8-7.9c-4.3-4.4-11.3-4.4-15.6 0z" fill="url(#lqBase)"/>
+              <text x="27.5" y="29.2" font-family="Poppins, sans-serif" font-weight="700" font-size="25.6" letter-spacing="0.2" fill="#ffffff">LINQ</text>
+            </svg>
+          </a>
+          <address>EMS LINQ, LLC<br>5000 Plaza on the Lake<br>Ste 100 #3130<br>Austin, TX 78746</address>
+          <span class="phone">737.PIC.LINQ</span>
+          <div class="social">
+            <a href="#" aria-label="Facebook"><svg viewBox="0 0 20 20" aria-hidden="true"><rect width="20" height="20" rx="2" fill="#fff"/><path d="M11 16v-5.2h1.8l.3-2h-2.1V7.5c0-.6.2-1 1-1h1.1V4.7c-.2 0-.9-.1-1.6-.1-1.6 0-2.7 1-2.7 2.8v1.5H7v2h1.8V16H11z" fill="#0f2d4a"/></svg></a>
+            <a href="#" aria-label="X"><svg viewBox="0 0 20 20" aria-hidden="true"><rect width="20" height="20" rx="2" fill="#fff"/><path d="M5 5h2.9l2.5 3.5L13.4 5h1.2l-3.6 4.2L15 15h-2.9l-2.7-3.8L6.1 15H4.9l4-4.6L5 5zm1.7.9l6 8.2h1.1l-6-8.2H6.7z" fill="#0f2d4a"/></svg></a>
+            <a href="#" aria-label="Instagram"><svg viewBox="0 0 20 20" aria-hidden="true"><rect width="20" height="20" rx="2" fill="#fff"/><rect x="5" y="5" width="10" height="10" rx="3" stroke="#0f2d4a" stroke-width="1.4" fill="none"/><circle cx="10" cy="10" r="2.4" stroke="#0f2d4a" stroke-width="1.4" fill="none"/><circle cx="13" cy="7" r=".7" fill="#0f2d4a"/></svg></a>
+            <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 20 20" aria-hidden="true"><rect width="20" height="20" rx="2" fill="#fff"/><path d="M5.3 8h2v6.5h-2V8zm1-3.2a1.1 1.1 0 1 1 0 2.3 1.1 1.1 0 0 1 0-2.3zM8.6 8h1.9v.9c.3-.5 1-1.1 2.1-1.1 2.2 0 2.6 1.4 2.6 3.3v3.4h-2v-3c0-.7 0-1.7-1-1.7s-1.2.8-1.2 1.6v3.1h-2V8z" fill="#0f2d4a"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h4>Products</h4>
+            <p class="group">Nutrition</p>
+            <ul class="tight"><li class="b"><a href="#">School Nutrition</a></li><li><a href="#">Front of House</a></li><li><a href="#">Back of House</a></li><li class="b space"><a href="#">State Nutrition</a></li><li><a href="#">State S-EBT Programs</a></li></ul>
+            <p class="group">ERP</p>
+            <ul class="tight"><li><a href="#">Finance &amp; Accounting</a></li><li><a href="#">HR &amp; Payroll</a></li><li><a href="#">Purchasing &amp; Procurement</a></li><li><a href="#">Reporting &amp; Compliance</a></li></ul>
+            <p class="group pay">Payments</p>
+            <ul class="tight"><li><a href="#">Meal Payments</a></li><li><a href="#">School Payments</a></li></ul>
+          </div>
+          <div>
+            <h4>Solutions</h4>
+            <ul class="loose"><li><a href="#">Nutrition Leaders</a></li><li><a href="#">Finance &amp; Business Operations Leaders</a></li><li><a href="#">Human Resources Leaders</a></li><li><a href="#">Superintendents</a></li><li><a href="#">Technology Directors</a></li><li><a href="#">State Education Agencies</a></li></ul>
+          </div>
+          <div>
+            <h4>Resources</h4>
+            <ul class="loose"><li><a href="#">Blog</a></li><li><a href="#">Resource Library</a></li><li><a href="#">Customer Stories</a></li><li><a href="#">Webinars</a></li><li><a href="#">Events</a></li><li><a href="#">LINQ Connect Resource Center</a></li></ul>
+          </div>
+          <div>
+            <h4>About LINQ</h4>
+            <ul class="loose"><li><a href="#">Why LINQ?</a></li><li><a href="#">News</a></li><li><a href="#">Contact</a></li><li><a href="#">Careers</a></li><li><a href="#">Legal</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Trust Center</a></li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="site-footer__info">
+        <nav aria-label="Legal"><a href="#">Privacy Policy</a><a href="#">Cookie Settings</a><a href="#">Trust Center</a><a href="#">Legal</a></nav>
+        <span>&copy;2026 EMS LINQ, LLC. All rights reserved</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var toggle = document.getElementById('menuToggle');
+      var menu = document.getElementById('mobileMenu');
+      var header = document.getElementById('siteHeader');
+      function setOpen(open) {
+        if (open) menu.style.top = header.getBoundingClientRect().bottom + 'px';
+        menu.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      }
+      toggle.addEventListener('click', function () { setOpen(!menu.classList.contains('open')); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('open')) { setOpen(false); toggle.focus(); } });
+      window.addEventListener('resize', function () { if (window.innerWidth > 1100) setOpen(false); });
+
+      var tabs = document.querySelectorAll('.switch button');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          tabs.forEach(function (t) {
+            var on = t === tab;
+            t.classList.toggle('active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            document.getElementById(t.dataset.panel).hidden = !on;
+          });
+        });
+      });
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (!Number.isFinite(amount) || amount < 0.01) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Enter a payment amount</div><div class="error-detail">The amount must be at least $0.01.</div>';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Payment failed</div><div class="error-detail">${esc(data.errorClass)}: ${esc(data.error)}</div>`;
+        } else {
+          const student = document.getElementById('toAccount');
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Payment submitted</div><div class="error-detail">$${amount.toFixed(2)} added to ${esc(student.options[student.selectedIndex].text)}. Charged $${esc(data.debitAmount)} (includes $${esc(data.fee)} convenience fee).</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${esc(err.message)}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Make a payment'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
