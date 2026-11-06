@@ -31,6 +31,8 @@ Fictional cardmember: Jordan Ellis, Harbor & Pine Coffee Roasters, Inc.
 
 Valid sample answers: SSN `123-45-6789`, ITIN `912-70-1234`, US address `1420 Harbor Ave SW, Seattle, WA 98126`.
 
+France (`/amex-kyc?market=FR`) sample answers: birth surname `Ellis`, surname of use `Martin`, born in `Lyon`, France · nationality France + second nationality United States · address `18 rue de la Paix`, Paris, `75002` · French passport `18AB12345` (any past issue date, future expiry, a `.pdf` upload) · numéro fiscal `1234567890123` (optional) · Manager, `Head of Purchasing`, employer SIREN `842 917 361` (fictional, passes the Luhn check) · PEP: None. Validation errors to show: `BP 45` as Address Line 1, post code `7500`, SIREN `842 917 360`, or the same country as first and second nationality.
+
 ## Run order
 
 1. **Today's journey (2 min).** In `/amex-kyc`, show the USA PATRIOT Act notice. Log in with the card, then walk through Full Legal Name → Full Residential Address → National ID. Show one validation error, for example `P.O. Box 12` in Address Line 1. Sign the form (draw or choose) and submit to get a `KYC-XXXXXXXX` reference.
