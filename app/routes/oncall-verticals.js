@@ -21,6 +21,7 @@ const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
 const { changeoverLine } = require('../services/oncall-verticals/linecontrol');
 const { quoteRates } = require('../services/oncall-verticals/shippingrates');
+const { submitAogRequest } = require('../services/oncall-verticals/aogrequest');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
@@ -955,6 +956,26 @@ router.post('/api/oncall/shippingrates/rates', async (req, res) => {
       error: error.code === 'INVALID_SHIPMENT' ? error.message : 'Rates are unavailable right now.',
       errorClass: error.name,
       code: error.code || 'RATE_QUOTE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/aogrequest/requests — Boeing Global Services AOG &
+ * Emergent Services request for a grounded airplane
+ */
+router.post('/api/oncall/aogrequest/requests', async (req, res) => {
+  try {
+    res.json(await submitAogRequest(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_REQUEST';
+    res.status(invalid ? 400 : 500).json({
+      success: false,
+      error: invalid ? error.message : "We couldn't submit your AOG request. Please try again later.",
+      field: invalid ? error.field : undefined,
+      errorClass: error.name,
+      code: error.code || 'AOG_REQUEST_FAILED',
       requestId: req.requestId,
     });
   }
