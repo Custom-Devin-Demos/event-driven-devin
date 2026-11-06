@@ -147,7 +147,7 @@
       .art-title { font-size: 23px; }
       .row[data-row-id="trending"], .row[data-row-id="because-you-watched"], .row[data-row-id="new-releases"] { --tile-w: 145px; --tile-h: 203px; }
       .row[data-row-id="live-tv"] { --tile-w: 230px; --tile-h: 134px; }
-      .footer { padding: 20px 18px; } .footer span:last-child { display: none; }
+      .footer { padding: 20px 18px 132px; } .footer span:last-child { display: none; }
       .player .hud { padding: 100px 22px 30px; } .player .hud h2 { font-size: 26px; } .player .hud p { font-size: 14px; }
       .player .back { left: 20px; top: 20px; font-size: 14px; }
     }
@@ -275,6 +275,23 @@
         document.getElementById('spotlightMeta').textContent = subtitle(item);
         document.getElementById('spotlightDescription').textContent = item.kind === 'live' ? item.channelName + ' · ' + item.durationLabel : SYNOPSES[posterKey(item)];
         document.getElementById('spotlightHint').textContent = rowId === 'continue-watching' ? 'Press Enter to resume' : 'Press Enter to watch';
+      }
+      function showContinueWatchingStatus(failed) {
+        document.getElementById('spotlightImage').src = POSTER_ROOT + 'wallpaper.webp';
+        document.getElementById('spotlightTitle').textContent = 'Continue Watching';
+        document.getElementById('spotlightLabel').textContent = 'Your saved shows';
+        document.getElementById('spotlightMeta').textContent = '';
+        document.getElementById('spotlightDescription').textContent = failed ? 'We couldn’t load your shows. You can still explore the other rows below.' : 'Getting your shows ready. You can keep browsing while we load.';
+        document.getElementById('spotlightHint').textContent = failed ? 'Press Enter to retry' : 'Loading your shows…';
+      }
+      function selectNavigation(name) {
+        navItems().forEach(function (item) {
+          if (!item.dataset.nav) return;
+          var selected = item.dataset.nav === name;
+          item.classList.toggle('active', selected);
+          if (selected) item.setAttribute('aria-current', 'page');
+          else item.removeAttribute('aria-current');
+        });
       }
       function artStyle(art) { return 'background: linear-gradient(135deg, ' + art[0] + ', ' + art[1] + ')'; }
       function subtitle(item) {
@@ -416,6 +433,7 @@
         state.cols[section.dataset.rowId] = col;
         var row = state.rows.find(function (r) { return r.id === section.dataset.rowId; });
         if (row && row.items && row.items[col] && !tile.dataset.action) updateSpotlight(row.items[col], row.id);
+        if (tile.dataset.action === 'retry-cw') showContinueWatchingStatus(true);
         section.querySelector('.row-count').textContent = (col + 1) + ' / ' + tiles.length;
       }
       function applyFocus() {
@@ -475,6 +493,12 @@
         var homeRequest = ++state.homeRequest;
         ++state.cwRequest;
         state.cwState = 'loading';
+        state.rows = [];
+        state.focus = { area: 'rows', row: 0, col: 0, nav: 0 };
+        state.cols = {};
+        rowsEl.innerHTML = '';
+        selectNavigation('home');
+        showContinueWatchingStatus(false);
         document.getElementById('greeting').textContent = 'Loading…';
         fetch('/api/home/rows?profileId=' + encodeURIComponent(state.profileId))
           .then(function (r) { if (!r.ok) throw new Error('rows ' + r.status); return r.json(); })
@@ -511,6 +535,7 @@
         var rail = section.querySelector('.rail');
         var requestId = ++state.cwRequest;
         state.cwState = 'loading';
+        if (state.focus.area === 'rows' && state.focus.row === 0) showContinueWatchingStatus(false);
         section.setAttribute('aria-busy', 'true');
         skeletonRail(rail);
         setStatus('continue-watching', 'Loading your shows…', 'loading');
@@ -540,7 +565,7 @@
       }
 
       function switchProfile(profileId) {
-        if (profileId === state.profileId) { state.focus = { area: 'rows', row: 0, col: 0, nav: 0 }; return applyFocus(); }
+        if (profileId === state.profileId) { selectNavigation('home'); state.focus = { area: 'rows', row: 0, col: 0, nav: 0 }; return applyFocus(); }
         state.profileId = profileId;
         localStorage.setItem('streamtv.profileId', profileId);
         loadHome();
@@ -612,7 +637,7 @@
           var n = navItems()[state.focus.nav];
           if (!n) return;
           if (n.dataset.profile) return switchProfile(n.dataset.profile);
-          navItems().forEach(function (x) { if (x.dataset.nav) { x.classList.toggle('active', x === n); if (x === n) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current'); } });
+          selectNavigation(n.dataset.nav);
           var target = n.dataset.nav === 'live-tv' ? 'live-tv' : n.dataset.nav === 'what-to-watch' ? 'trending' : 'continue-watching';
           var idx = rowSections().map(function (s) { return s.dataset.rowId; }).indexOf(target);
           state.focus = { area: 'rows', row: idx < 0 ? 0 : idx, col: 0, nav: state.focus.nav };
