@@ -34,19 +34,17 @@ redistribute or publicly deploy this demo without the appropriate permissions.
 - `app/routes/verticals/a4c19e72.js`: catalog, synthetic checkout, standard checkout Teams integration.
 - `app/services/verticals/a4c19e72.js:11-14,24-34`: fulfillment policy lookup,
   authoritative pricing and synthetic quote; bulky pickup is absent on the baseline.
-- `app/public/verticals/a4c19e72.html`: cart UI → checkout → existing on-call trigger
-  only on server error. No new session/Slack/telemetry calls in the vertical.
+- `app/public/verticals/a4c19e72.html`: cart UI → checkout; the server reports only an actual unexpected failure through the existing checkout alert pipeline.
 - `app/services/verticals/a4c19e72-alert.js`: existing Teams card builder/transport,
-  scenario and responder notes. Standard Teams transport is reused in live mode.
-- `app/services/devin-session.js`: new scenario, shared card construction, and Lowe’s-only rehearsal/no-Slack guards.
-- `app/routes/oncall.js`: dry-run response label; legacy delivery text unchanged
-  when `dryRun` is absent/false.
+  preview/no-Slack guards and responder instructions. Standard Teams transport is reused in live mode.
+- Existing `app/services/devin-session.js:126-183,335-485` builds and sends the card; Teams-only delivery is responder-owned. This shared file is unchanged.
+- Existing `app/services/alert-destination.js:24-42` and `app/server.js:81-88` carry the saved Teams cookie to the service; unchanged.
 - Existing conventions: `12b28f14` and `ea2d0dbc` route/service/page/config files.
 
 ## CVE applicability and risk classification
 
 No dependency bump, vendor advisory or CVE is part of this change. Inputs to checkout
-and the send endpoint are untrusted HTTP input; product prices come from the server,
+are untrusted HTTP input; product prices come from the server,
 SKU/quantity/store/fulfillment are validated, and live transport requires explicit server-side opt-in after target approval. Primary operational risk is accidental
 external notification; default dry-run and local credential-free startup isolate it.
 
@@ -62,12 +60,12 @@ document is not a regulated validation assessment or an attestation of completen
 | Customer discovery, aliases, assets | `tests/a4c19e72-checkout.test.js`, `tests/verticals-registry.test.js` |
 | Delivery, parcel pickup, invalid input, planted incident / repair | `tests/a4c19e72-checkout.test.js`; actual service policy lookup above |
 | Identical fail-before/pass-after, stores, quantities and totals | `scripts/a4c19e72-regression.js` |
-| Teams payload parity, no default send/fallback, live transport and responder ownership | Lowe’s tests plus `tests/oncall-teams-alert.test.js`; transport fully mocked |
-| Shared on-call response compatibility | Existing on-call tests + recorded Lowe’s wrapper check |
+| Teams payload parity, no default send/fallback, live transport and responder ownership | Lowe’s tests plus `tests/devin-session-teams.test.js`; transport fully mocked |
+| Saved Teams destination and no-Slack fallback | `tests/alert-destination.test.js`, direct checkout cookie/transport tests |
 | Desktop/mobile, dialog, reset, healthy control, recovery | Real browser rehearsal; recording is the evidence, not a source-only inference |
 
 Out of scope: real Lowe’s orders/accounts/payments (no integration exists), native
-iOS (no files touched), live Teams/responders (approval and host mapping outstanding), deployment
+iOS (no files touched), live Teams/responders (no live send performed; existing responder identity unverified), deployment
 (no workflow changed or dispatched), unrelated fulfillment rules (no service changed).
 The full Jest suite is also run as a broad compatibility check; unrelated known failures
 are reported separately, not silently repaired or counted as Lowe’s verification.
