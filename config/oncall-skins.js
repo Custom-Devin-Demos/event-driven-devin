@@ -95,14 +95,6 @@
  */
 
 const ONCALL_SKINS = {
-  a4c19e72: {
-    slug: 'a4c19e72', company: 'Lowe’s demo', vertical: 'a4c19e72',
-    oncallOnly: true, hideRibbon: true, alertDestination: 'teams',
-    teamsAlerts: true, teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
-    page: { file: 'a4c19e72.html', title: 'Shopping Cart | Lowe’s-inspired demo' },
-    devinSession: { promptAppendix: require('../app/services/verticals/a4c19e72-alert').RESPONDER_NOTES },
-    disclaimer: 'Synthetic internal demo, not affiliated with Lowe’s. No real orders or payments.',
-  },
   '5e57909d': {
     slug: '5e57909d',
     company: 'Regions Bank',

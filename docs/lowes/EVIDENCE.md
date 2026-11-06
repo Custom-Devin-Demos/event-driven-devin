@@ -31,14 +31,14 @@ redistribute or publicly deploy this demo without the appropriate permissions.
 ## Change summary and usage map
 
 - `config/customers/a4c19e72.js`: own customer/aliases, like Marshalls.
-- `app/routes/verticals/a4c19e72.js`: catalog, synthetic checkout, standard Teams route integration.
+- `app/routes/verticals/a4c19e72.js`: catalog, synthetic checkout, standard checkout Teams integration.
 - `app/services/verticals/a4c19e72.js:11-14,24-34`: fulfillment policy lookup,
   authoritative pricing and synthetic quote; bulky pickup is absent on the baseline.
 - `app/public/verticals/a4c19e72.html`: cart UI → checkout → existing on-call trigger
   only on server error. No new session/Slack/telemetry calls in the vertical.
 - `app/services/verticals/a4c19e72-alert.js`: existing Teams card builder/transport,
   scenario and responder notes. Standard Teams transport is reused in live mode.
-- `app/services/oncall.js`: new scenario, shared card construction, and Lowe’s-only rehearsal/no-Slack guards.
+- `app/services/devin-session.js`: new scenario, shared card construction, and Lowe’s-only rehearsal/no-Slack guards.
 - `app/routes/oncall.js`: dry-run response label; legacy delivery text unchanged
   when `dryRun` is absent/false.
 - Existing conventions: `12b28f14` and `ea2d0dbc` route/service/page/config files.

@@ -1,18 +1,23 @@
 jest.mock('axios');
 const axios = require('axios');
 const express = require('express');
-jest.mock('../app/services/slack', () => ({ ownerRotation: x => x, postMessage: jest.fn(), postThreadReply: jest.fn(), lookupSlackUserByEmail: jest.fn() }));
+jest.mock('../app/services/slack', () => ({ postAlertToSlack: jest.fn(), postBugReportToTriage: jest.fn(), postDevinSessionLink: jest.fn() }));
 jest.mock('../app/services/devin-api', () => ({ createDevinSession: jest.fn() }));
-const { postMessage } = require('../app/services/slack');
+jest.mock('../app/services/sonar-pr-trigger', () => ({ scheduleVulnerablePR: jest.fn() }));
+const { scheduleVulnerablePR } = require('../app/services/sonar-pr-trigger');
+const { postAlertToSlack, postBugReportToTriage } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 const fs = require('fs');
 const path = require('path');
 const service = require('../app/services/verticals/a4c19e72');
-const { postOncallAlert } = require('../app/services/oncall');
+const { reportCheckoutError } = require('../app/services/verticals/a4c19e72-alert');
+const { runWithAlertDestination, alertDestinationFromCookie } = require('../app/services/alert-destination');
+const error = new TypeError("Cannot read properties of undefined (reading 'fee')");
+const report = (input = {}) => runWithAlertDestination('teams', () => reportCheckoutError(error, input));
 const router = require('../app/routes/verticals/a4c19e72');
 const fridge = { sku: 'DEMO-FRIDGE', qty: 1 };
 const battery = { sku: 'DEMO-BATTERY', qty: 1 };
-const keys = ['LOWES_DEMO_LIVE_TEAMS', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI', 'SLACK_ONCALL_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID'];
+const keys = ['LOWES_DEMO_LIVE_TEAMS', 'AUTOMATIONS_TEAMS_WEBHOOK_URL'];
 const original = Object.fromEntries(keys.map(k => [k, process.env[k]]));
 beforeEach(() => { jest.clearAllMocks(); keys.forEach(k => delete process.env[k]); });
 afterAll(() => keys.forEach(k => { if (original[k] === undefined) delete process.env[k]; else process.env[k] = original[k]; }));
@@ -21,7 +26,6 @@ test('registers the customer using the existing vertical convention', () => {
   const { getCustomerConfig, listAliases } = require('../config/customers');
   expect(getCustomerConfig('a4c19e72').label).toContain('Lowe');
   expect(listAliases()['lowes']).toBe('a4c19e72');
-  expect(require('../config/oncall-skins').getOncallSkin('a4c19e72')).toMatchObject({ alertDestination: 'teams', teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI' });
   service.CATALOG.forEach(p => expect(fs.existsSync(path.join(__dirname, '../app/public', p.image))).toBe(true));
 });
 
@@ -54,67 +58,70 @@ test.each([
   expect(axios.post).not.toHaveBeenCalled();
 });
 
-test('existing on-call route previews the standard card without any send, session or Slack fallback', async () => {
-  process.env.ONCALL_TEAMS_WEBHOOK_URL = 'https://shared.webhook.office.com/never';
-  const result = await postOncallAlert('a4c19e72', { destination: 'slack', sendDemo: true, skin: { alertDestination: 'devin' } });
+test('default rehearsal previews the same checkout Teams card without send or session', async () => {
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  const result = await report({ store: 'South Charlotte', fulfillment: 'pickup' });
   expect(result).toMatchObject({ ok: true, dryRun: true, sent: false, destination: 'teams' });
   expect(result.payload.attachments[0].content).toEqual(result.card);
   expect(result.payload.text).toContain('Synthetic demo alert');
-  expect(result.payload.text).toContain('scenario branch: devin/lowes-cart-b5f26e97');
-  expect(result.payload.text).toContain('not an observed store');
+  expect(result.payload.text).toContain('devin/lowes-cart-b5f26e97');
+  expect(result.payload.text).toContain('Observed checkout: store=South Charlotte');
   expect(axios.post).not.toHaveBeenCalled();
-  expect(postMessage).not.toHaveBeenCalled();
   expect(createDevinSession).not.toHaveBeenCalled();
 });
 
-test('approved live mode uses the standard Teams sender and channel-owned responder, not an app-created duplicate', async () => {
+test('live Teams uses the real Pepsi pipeline with no duplicate session or vulnerable PR', async () => {
   process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
-  process.env.ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI = 'https://demo.webhook.office.com/workflows/test';
-  process.env.SLACK_ONCALL_BOT_TOKEN = 'test-only';
-  process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'CNEVERSEND';
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockResolvedValue({ status: 202 });
-  const result = await postOncallAlert('a4c19e72', { destination: 'slack', devinOrgId: 'org-ignored', devinUserId: 'ignored' });
-  expect(result).toMatchObject({ ok: true, teams: true, sent: true, dryRun: false, responderManaged: true });
-  expect(result.sessionUrl).toBeUndefined();
+  const result = await report({ devinOrgId: 'org-ignored', devinUserId: 'ignored' });
+  expect(result).toMatchObject({ ok: true, sent: true, dryRun: false, responderManaged: true });
   expect(axios.post).toHaveBeenCalledTimes(1);
-  expect(axios.post).toHaveBeenCalledWith(process.env.ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI, expect.objectContaining({ type: 'message' }), expect.objectContaining({ maxRedirects: 0 }));
-  expect(axios.post.mock.calls[0][1].text).toContain('Teams responder configured to run as Eashan');
-  expect(postMessage).not.toHaveBeenCalled();
+  expect(axios.post).toHaveBeenCalledWith(process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL, expect.objectContaining({ type: 'message' }), expect.objectContaining({ maxRedirects: 0 }));
+  expect(postAlertToSlack).not.toHaveBeenCalled();
+  expect(postBugReportToTriage).not.toHaveBeenCalled();
   expect(createDevinSession).not.toHaveBeenCalled();
+  expect(scheduleVulnerablePR).not.toHaveBeenCalled();
 });
 
-test('dry-run and live mode use identical card construction', async () => {
-  const random = jest.spyOn(Math, 'random').mockReturnValue(0.5);
-  try {
-    const options = { destination: 'teams', runRef: 'identical-rehearsal-ref' };
-    const preview = await postOncallAlert('a4c19e72', options);
-    process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
-    process.env.ONCALL_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
-    axios.post.mockResolvedValue({ status: 202 });
-    await postOncallAlert('a4c19e72', options);
-    const normalized = value => JSON.stringify(value).replace(/\d{4}-\d{2}-\d{2}T[0-9:.]+Z/g, '<timestamp>');
-    expect(normalized(axios.post.mock.calls[0][1])).toEqual(normalized(preview.payload));
-  } finally { random.mockRestore(); }
-});
-
-test.each([undefined, 'https://not-teams.example/test'])('live mode with missing/invalid Teams config fails closed: %p', webhook => {
+test('dry-run payload equals the real pipeline payload', async () => {
+  const preview = await report();
   process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
-  if (webhook) process.env.ONCALL_TEAMS_WEBHOOK_URL = webhook;
-  return expect(postOncallAlert('a4c19e72', { destination: 'slack' })).resolves.toMatchObject({ ok: false, sent: false });
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  axios.post.mockResolvedValue({ status: 202 });
+  await report();
+  const normalized = value => JSON.stringify(value).replace(/\d{4}-\d{2}-\d{2}T[0-9:.]+Z/g, '<timestamp>');
+  expect(normalized(axios.post.mock.calls[0][1])).toEqual(normalized(preview.payload));
 });
 
-test('Teams transport failure cannot post to Slack or create an app-side session', async () => {
+test.each([undefined, 'https://not-teams.example/test'])('missing/invalid Teams config cannot fall back to Slack: %p', async webhook => {
   process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
-  process.env.ONCALL_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  if (webhook) process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = webhook;
+  expect(await report()).toMatchObject({ ok: false, sent: false });
+  expect(postAlertToSlack).not.toHaveBeenCalled();
+  expect(axios.post).not.toHaveBeenCalled();
+});
+
+test.each(['slack', null])('live mode respects saved destination and refuses Slack: %p', async destination => {
+  process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  expect(await runWithAlertDestination(destination, () => reportCheckoutError(error))).toMatchObject({ ok: false, sent: false });
+  expect(axios.post).not.toHaveBeenCalled();
+  expect(postAlertToSlack).not.toHaveBeenCalled();
+});
+
+test('failed Teams transport does not send Slack or start an app-side session', async () => {
+  process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockRejectedValue(new Error('Mock Teams unavailable'));
-  await expect(postOncallAlert('a4c19e72')).resolves.toMatchObject({ ok: false });
-  expect(postMessage).not.toHaveBeenCalled();
+  expect(await report()).toMatchObject({ ok: false, sent: false });
+  expect(postAlertToSlack).not.toHaveBeenCalled();
   expect(createDevinSession).not.toHaveBeenCalled();
 });
 
 describe('HTTP surface', () => {
   let server, base;
-  beforeAll(async () => { const app = express(); app.use(express.json()); app.use(router); server = app.listen(0); await new Promise(resolve => server.once('listening', resolve)); base = `http://127.0.0.1:${server.address().port}`; });
+  beforeAll(async () => { const app = express(); app.use(express.json()); app.use((req, res, next) => runWithAlertDestination(alertDestinationFromCookie(req.headers.cookie), next)); app.use(router); server = app.listen(0); await new Promise(resolve => server.once('listening', resolve)); base = `http://127.0.0.1:${server.address().port}`; });
   afterAll(() => new Promise(resolve => server.close(resolve)));
   test('catalog is synthetic and bespoke send endpoint does not exist', async () => {
     const response = await fetch(`${base}/api/a4c19e72/catalog`);
@@ -127,5 +134,23 @@ describe('HTTP surface', () => {
       const response = await fetch(`${base}/api/a4c19e72/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, fulfillment: 'pickup' }) });
       expect(response.status).toBe(status);
     }
+  });
+  test('failing checkout itself creates preview; no second client trigger is needed', async () => {
+    const response = await fetch(`${base}/api/a4c19e72/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: [fridge, battery], fulfillment: 'pickup', store: 'South Charlotte' }) });
+    expect(response.status).toBe(500);
+    const data = await response.json();
+    expect(data.alert).toMatchObject({ ok: true, dryRun: true, sent: false });
+    expect(data.alert.payload.text).toContain('Observed checkout: store=South Charlotte');
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+  test('checkout carries persisted Teams cookie to the existing transport', async () => {
+    process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+    process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+    axios.post.mockResolvedValue({ status: 202 });
+    const response = await fetch(`${base}/api/a4c19e72/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: 'alert_destination=teams' }, body: JSON.stringify({ items: [fridge], fulfillment: 'pickup' }) });
+    expect(response.status).toBe(500);
+    expect((await response.json()).alert).toMatchObject({ ok: true, sent: true, responderManaged: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(createDevinSession).not.toHaveBeenCalled();
   });
 });

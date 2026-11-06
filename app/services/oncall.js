@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const logger = require('../telemetry/logger');
 const { ownerRotation, postMessage, postThreadReply, lookupSlackUserByEmail } = require('./slack');
-const { buildTeamsAlertCard, teamsCardText, isTeamsWebhookUrl, postTeamsCard } = require('./teams');
+const { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard } = require('./teams');
 const { createDevinSession } = require('./devin-api');
 const { declareDatadogIncident } = require('./datadog-incidents');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
@@ -49,7 +49,6 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
-  a4c19e72: require('./verticals/a4c19e72-alert').SCENARIO,
   regions: {
     vertical: 'regions',
     page: '5e57909d.html',
@@ -1753,10 +1752,10 @@ function validEmail(email) {
  * Mirror of the Slack alert card for Teams. Delivery is best-effort: a failed
  * Teams post is logged and never blocks the Slack card.
  */
-function buildOncallTeamsCard(scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail, notes }) {
+async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail, notes }) {
   const demoPath = demoPagePath(scenario, skin);
   const t = oncallStrings(skin, scenario);
-  return buildTeamsAlertCard({
+  const teamsCard = buildTeamsAlertCard({
     title: `\u{1F6A8} [${t.triggered}] ${card.monitor}`,
     facts: [
       [t.service, `${card.service} (${brand})`],
@@ -1789,10 +1788,6 @@ function buildOncallTeamsCard(scenario, skin, { card, brand, runRef, events, fir
       `${t.endpoint}: ${card.endpoint}`,
     ].filter(Boolean).join(' | '),
   });
-}
-
-async function postTeamsAlert(webhookUrl, scenario, skin, context) {
-  const teamsCard = buildOncallTeamsCard(scenario, skin, context);
   try {
     await postTeamsCard(webhookUrl, teamsCard);
     logger.info('On-Call alert posted to Teams', { scenario: scenario.vertical || scenario.service });
@@ -1842,9 +1837,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, error: `Unknown scenario: ${scenarioId}` };
   }
 
-  const isLowesDemo = scenarioId === 'a4c19e72';
-  const dryRun = isLowesDemo && process.env.LOWES_DEMO_LIVE_TEAMS !== 'true';
-  const skin = isLowesDemo ? require('../../config/oncall-skins').getOncallSkin('a4c19e72') : options.skin || null;
+  const skin = options.skin || null;
   if (skin && skin.alertDestination === 'devin') return startDevinOnlyIncident(scenario, skin, options);
   const env = resolveOncallEnv();
   const { token } = env;
@@ -1861,12 +1854,9 @@ async function postOncallAlert(scenarioId, options = {}) {
   // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips
   // Slack so one demo is never investigated by both the Slack and the Teams
   // responder; with no Teams webhook configured it falls back to Slack.
-  const destination = isLowesDemo ? 'teams' : (options.destination === 'slack' || options.destination === 'teams' ? options.destination : null);
-  if (isLowesDemo && !dryRun && !isTeamsWebhookUrl(teamsWebhook)) {
-    return { ok: false, sent: false, error: 'Approved Teams webhook is not configured. No Slack fallback was used.' };
-  }
+  const destination = options.destination === 'slack' || options.destination === 'teams' ? options.destination : null;
   const teamsWanted = destination === 'teams';
-  const teamsOnly = teamsWanted && (Boolean(teamsWebhook) || dryRun);
+  const teamsOnly = teamsWanted && Boolean(teamsWebhook);
   if (teamsWanted && !teamsOnly) {
     logger.warn('Teams On-Call alert requested but ONCALL_TEAMS_WEBHOOK_URL is not set — posting to Slack');
   }
@@ -1874,7 +1864,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const serverTeamsRouting = !destination && (env.teamsAllAlerts || Boolean(skin && skin.teamsAlerts));
   const teamsWebhookUrl = teamsOnly || serverTeamsRouting ? teamsWebhook : null;
   const slackReady = Boolean(token && alertsChannel) && !teamsOnly;
-  if (!dryRun && !slackReady && !teamsWebhookUrl) {
+  if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
@@ -1906,14 +1896,6 @@ async function postOncallAlert(scenarioId, options = {}) {
   const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy: triggeredByLine, onCall, skin });
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
-  const teamsContext = { card, brand, runRef, events, firstSeen, triggeredByEmail: validEmail(options.devinEmail), notes: slackReady ? null : teamsOnlyNotes(skin) };
-  if (dryRun) {
-    const previewCard = buildOncallTeamsCard(scenario, skin, teamsContext);
-    return {
-      ok: true, dryRun: true, sent: false, destination: 'teams', card: previewCard,
-      payload: { type: 'message', text: teamsCardText(previewCard), attachments: [{ contentType: 'application/vnd.microsoft.card.adaptive', contentUrl: null, content: previewCard }] },
-    };
-  }
   // alertCard.compact keeps only the fields a reader acts on; the fallback text keeps every fact.
   const compact = Boolean(skin && isPlainObject(skin.alertCard) && skin.alertCard.compact);
   const blocks = [
@@ -1940,7 +1922,10 @@ async function postOncallAlert(scenarioId, options = {}) {
     ...(compact ? [] : [contextBlock(card.service, triggeredByLine, null, t)]),
   ];
   const teamsDelivery = teamsWebhookUrl
-    ? postTeamsAlert(teamsWebhookUrl, scenario, skin, teamsContext)
+    ? postTeamsAlert(teamsWebhookUrl, scenario, skin, {
+      card, brand, runRef, events, firstSeen, triggeredByEmail: validEmail(options.devinEmail),
+      notes: slackReady ? null : teamsOnlyNotes(skin),
+    })
     : Promise.resolve(null);
   let ts = null;
   if (slackReady) {
@@ -2010,7 +1995,6 @@ async function postOncallAlert(scenarioId, options = {}) {
     ok: true,
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
-    ...(isLowesDemo ? { dryRun: false, sent: Boolean(teams), responderManaged: true } : {}),
     ...(teamsWanted && !teamsOnly ? { teamsFailed: true } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(repeat ? { grouped: true } : {}),

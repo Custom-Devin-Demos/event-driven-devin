@@ -423,7 +423,6 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
-      const nativeAlertTrigger = ${JSON.stringify(Boolean(scenario.nativeAlertTrigger))};
       const automatedAlertPath = ${JSON.stringify(Boolean(skin && skin.alertPath === 'automated'))};
       const failAfterHang = ${JSON.stringify(Boolean(skin && skin.failAfterHang))};
       var skinAlertDestination = ${JSON.stringify(skin && ['teams', 'slack', 'devin'].includes(skin.alertDestination) ? skin.alertDestination : null)};
@@ -535,7 +534,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
           if (ribbonCollapsed) expandRibbon();
           el.style.color = d.ok ? '#3fb950' : '#f85149';
-          var deliveredMsg = d.dryRun ? 'Teams dry-run preview — nothing sent' : (!d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams'));
+          var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
           if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
           if (d.ok && d.devin && d.sessionUrl) {
             el.textContent = ${JSON.stringify(r.sessionStarted)};
@@ -562,7 +561,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
         });
       }
       window.fetch = function (url, opts) {
-        if (!nativeAlertTrigger && typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
+        if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
           // Reroute the page's primary action to the on-call vertical
           // endpoint: the scenario's real degradation fires and Sentry/
           // Datadog capture genuine telemetry. The alert card is posted
