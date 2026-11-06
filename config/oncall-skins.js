@@ -5224,21 +5224,21 @@ const ONCALL_SKINS = {
 
   '82f029ca': {
     slug: '82f029ca',
-    company: 'MyBoeingFleet',
+    company: 'Boeing Global Services',
     brandMark: 'B',
-    vertical: 'fleetsearch',
+    vertical: 'aogrequest',
     oncallOnly: true,
     alertDestination: 'slack',
-    paths: ['/myboeingfleet', '/mbf-search'],
+    paths: ['/boeing-aog', '/aog-request'],
     devinSession: {
       auto: true,
       promptAppendix: [
-        'Customer-facing context: this alert comes from the Boeing Global Services MyBoeingFleet page linked above. Its header search ("Search keyword, term or part #") posts to the endpoint above, so that endpoint is the backend of this incident.',
-        'In the alert thread the incident reads "5xx rate \u2014 MyBoeingFleet Search: part number search", release fleet-search@2026.11.2, owner team fleet-search-oncall: searching part number 414T4110-12 fails immediately with HTTP 500 while keyword searches (e.g. "airplane health") and other part numbers (e.g. 65C27561-6) work.',
-        'Use "MyBoeingFleet", "Search" and "part number" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Dana Whitfield (fleet-search-oncall)". Dana Whitfield is fictional; never resolve them to a real user. Do not deploy or merge.',
+        'Customer-facing context: this alert comes from the Boeing Global Services AOG & Emergent Services page linked above. Its "Request AOG support" form (aircraft model, tail number, station, part number, ATA chapter) posts to the endpoint above, so that endpoint is the backend of this incident.',
+        "In the alert thread the incident reads \"5xx rate \u2014 Boeing AOG request: Submit\", release aog-intake@2026.11.3, owner team aog-intake-oncall: submitting an AOG request with country C\u00f4te d'Ivoire fails immediately with HTTP 500, so the grounded airplane never reaches an AOG desk, while requests from other countries (e.g. United States, Kenya) are queued normally.",
+        'Use "Boeing", "AOG request" and "Submit" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Dana Whitfield (aog-intake-oncall)". Dana Whitfield is fictional; never resolve them to a real user. Do not deploy or merge.',
       ].join('\n'),
     },
-    page: { file: '82f029ca.html', title: 'MyBoeingFleet - Fleet management, technical docs & support' },
+    page: { file: '82f029ca.html', title: 'Airplane Emergent Services | Boeing Global Services' },
     theme: {
       '--accent': '#0033A1',
       '--ink': '#253746',
@@ -5248,14 +5248,15 @@ const ONCALL_SKINS = {
       '--cta': '#009BDF',
     },
     alertCard: {
-      title: '5xx rate \u2014 MyBoeingFleet Search: part number search',
-      release: 'fleet-search@2026.11.2',
-      team: 'fleet-search-oncall',
-      symptom: 'Searching MyBoeingFleet for part number 414T4110-12 fails immediately with HTTP 500; no results are shown. Keyword searches ("airplane health") and other part numbers (65C27561-6) work. Latency is normal.',
-      impact: "Operators and MROs can't look up 414T4110-12 or its interchangeable alternates from MyBoeingFleet; the search page shows \"Search is unavailable right now.\"",
+      title: '5xx rate \u2014 Boeing AOG request: Submit',
+      release: 'aog-intake@2026.11.3',
+      team: 'aog-intake-oncall',
+      symptom: "Submitting an AOG request with country C\u00f4te d'Ivoire fails immediately with HTTP 500; no request number is issued. Requests from the United States, Kenya and Singapore are queued to their AOG desk. Latency is normal.",
+      impact: "Operators in C\u00f4te d'Ivoire can't get a grounded airplane to a Boeing AOG desk; the form shows \"We couldn't submit your AOG request.\"",
     },
-    disclaimer: 'NOT ACTUALLY A BOEING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Boeing or MyBoeingFleet product.',
+    disclaimer: 'NOT ACTUALLY A BOEING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Boeing or Boeing Global Services product.',
   },
+
   '2993853c': {
     slug: '2993853c',
     company: 'Dolby OptiView',

@@ -20,7 +20,7 @@ const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
 const { quoteRates } = require('../services/oncall-verticals/shippingrates');
-const { searchFleet } = require('../services/oncall-verticals/fleetsearch');
+const { submitAogRequest } = require('../services/oncall-verticals/aogrequest');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
@@ -941,19 +941,20 @@ router.post('/api/oncall/shippingrates/rates', async (req, res) => {
 });
 
 /**
- * POST /api/oncall/fleetsearch/search — MyBoeingFleet header search
- * (keywords, terms and part numbers)
+ * POST /api/oncall/aogrequest/requests — Boeing Global Services AOG &
+ * Emergent Services request for a grounded airplane
  */
-router.post('/api/oncall/fleetsearch/search', async (req, res) => {
+router.post('/api/oncall/aogrequest/requests', async (req, res) => {
   try {
-    res.json(await searchFleet(req.body || {}));
+    res.json(await submitAogRequest(req.body || {}));
   } catch (error) {
-    const invalid = error.code === 'INVALID_QUERY';
+    const invalid = error.code === 'INVALID_REQUEST';
     res.status(invalid ? 400 : 500).json({
       success: false,
-      error: invalid ? error.message : 'Search is unavailable right now. Please try again later.',
+      error: invalid ? error.message : "We couldn't submit your AOG request. Please try again later.",
+      field: invalid ? error.field : undefined,
       errorClass: error.name,
-      code: error.code || 'FLEET_SEARCH_FAILED',
+      code: error.code || 'AOG_REQUEST_FAILED',
       requestId: req.requestId,
     });
   }

@@ -1,51 +1,36 @@
-# MyBoeingFleet — Search on-call demo (`/oncall/c/82f029ca`)
+# Boeing Global Services — AOG request on-call demo (`82f029ca`)
 
-## What I built
+Self-hosted recreation of the public services.boeing.com **AOG & Emergency Support / Emergent Services** page
+(https://services.boeing.com/maintenance/parts/aog). The page's lead form is extended into a
+"Request AOG support" form for a grounded airplane. Not a real Boeing site.
 
-A recreation of Boeing Global Services' public **MyBoeingFleet** portal page (https://services.boeing.com/operations/myboeingfleet-portal), served as the native On-Call skin `82f029ca` at `/oncall/c/82f029ca`, `/myboeingfleet` and `/mbf-search`. It is unlisted: not on the hub, reachable only by direct URL.
+- URL: `/boeing-aog` (also `/aog-request` and `/oncall/c/82f029ca`), unlisted
+- Frontend: `app/public/verticals/82f029ca.html` (assets in `app/public/verticals/82f029ca/`)
+- API: page calls `POST /api/82f029ca/aog-requests`; the on-call shim reroutes it to `POST /api/oncall/aogrequest/requests`
+- Backend: `app/services/oncall-verticals/aogrequest.js`
 
-The landing page and the search-results page were captured from the live site over Chrome CDP. The real stylesheet (pruned to the rules the two views use), the Boeing Meso and icon fonts, logos and imagery are self-hosted under `app/public/verticals/82f029ca/`. Angular scripts, the cookie banner and tracking were removed; a small inline script drives the header search.
+## Demo flow
 
-Behind it is the `fleetsearch` on-call vertical (`app/services/oncall-verticals/fleetsearch.js`):
+1. Open `/boeing-aog`. Click **Request AOG Support** in the page navigation to jump to the form.
+2. The form is pre-filled: Abidjan Aero Technique, country **Côte d'Ivoire**, 737-800 tail **TU-TSZ** grounded at ABJ,
+   part 65C27561-6, ATA 29 (hydraulic power).
+3. Click **Submit**. It fails immediately with "We couldn't submit your AOG request. Please try again later." (HTTP 500).
+   The grounded airplane never reaches an AOG desk. The shim posts the Slack alert
+   ("5xx rate — Boeing AOG request: Submit") and a Devin session starts.
+4. Healthy path: change Country to United States, Kenya or Singapore and submit again. The confirmation shows a request
+   number (`AOG-YYMMDD-NNNN`), the regional AOG desk and the 30-minute first-response target.
 
-- Keyword search over 124 real services.boeing.com content items (`fleetsearch-content.json`, harvested from the live search API).
-- Part number search over a small parts catalog with nomenclature, ATA chapter, effectivity and Parts Interchangeability (PIR) records.
+## Planted defect (keep it)
 
-This is a different flow from the existing MyBoeingFleet spares price & availability skin (`180f1323`).
+`REGION_COUNTRIES` comes from the simulated `geo-ref@2026.11.04` country reference sync, which stored Côte d'Ivoire
+under the mis-encoded name ``CÃ´te d`Ivoire`` (the same mojibake the live Boeing dropdown shows). The form submits
+`Côte d'Ivoire`, so `routeToDesk` gets `undefined` from `COUNTRY_REGIONS`, `AOG_DESKS[undefined]` is `undefined`, and
+reading `desk.name` throws `TypeError: Cannot read properties of undefined (reading 'name')`.
 
-## The story
+Expected fix: correct the country key (and normalise names before lookup) and fail safe to a default AOG desk instead of
+throwing, so an AOG request is never dropped.
 
-Last night's Parts Interchangeability import (`pir-feed@2026.11.05`) added a `ONE_WAY_POST` record for `414T4110-12 → 414T4110-10` (one-way, post-SB 737-21-1203). `INTERCHANGE_CODES` in the `fleet-search@2026.11.2` release has no entry for that code. As a result, every search for that part fails in `interchangeability` with:
+## Local testing without alerts
 
-```
-TypeError: Cannot read properties of undefined (reading 'label')
-```
-
-Nothing fails on page load or on a timer. It only fails when the presenter searches that part number.
-
-What happens on that search:
-
-- The page posts `{ query, searchType: 'boeingFleetSearch' }` to `/api/82f029ca/search`. The on-call shim reroutes it to `POST /api/oncall/fleetsearch/search`, which returns HTTP 500 immediately (latency is normal).
-- The page shows Boeing's red global message, **"Search is unavailable right now. Please try again later."**, above an empty results view.
-- The shim posts `/api/oncall/trigger/fleetsearch` only for the 500 (`alertOnStatus: [500]`). This posts the "5xx rate — MyBoeingFleet Search: part number search" alert to Slack `#oncall-alerts` and starts a Devin session. The session is told to use "MyBoeingFleet", "Search" and "part number", and to cc the fictional on-call engineer as plain text: `cc @Dana Whitfield (fleet-search-oncall)`.
-
-## How to present it
-
-1. Open `/myboeingfleet`. This is Boeing's MyBoeingFleet portal page.
-2. Show that search works. Type `airplane health` in the header search and press Enter to get Boeing content results (AHM, Korean Air, Philippine Airlines…). Then search `65C27561-6`; it returns the hydraulic return check valve with its interchangeability.
-3. Search `414T4110-12`. The error appears instantly. Switch to Slack `#oncall-alerts` and the Devin thread.
-
-The expected fix adds the missing `ONE_WAY_POST` interchangeability code. Unknown codes should also be handled gracefully instead of failing the whole search, plus a regression test for `414T4110-12`.
-
-## Where things live
-
-- Page: `app/public/verticals/82f029ca.html` (assets under `app/public/verticals/82f029ca/`)
-- Skin: `config/oncall-skins.js` → `82f029ca`
-- Scenario: `app/services/oncall.js` → `ALERT_SCENARIOS.fleetsearch`
-- Route: `app/routes/oncall-verticals.js` → `POST /api/oncall/fleetsearch/search`
-- Service: `app/services/oncall-verticals/fleetsearch.js` (+ `fleetsearch-content.json`)
-- Tests: `tests/82f029ca-oncall-skin.test.js`
-
-## Local testing without real alerts
-
-Start with no credentials (`env -i PATH="$PATH" HOME="$HOME" NODE_ENV=development PORT=3100 DD_TRACE_ENABLED=false node app/server.js`), leave `SLACK_ONCALL_ALERTS_CHANNEL_ID` unset, and abort browser requests to `/api/oncall/trigger/**`. Never fire the alert on devindemos.com while setting up.
+Run the server with an empty environment (`env -i PATH="$PATH" HOME="$HOME" PORT=3111 node app/server.js`) and abort
+`/api/oncall/trigger/**` requests in the browser so no Slack or Devin alert is sent.
