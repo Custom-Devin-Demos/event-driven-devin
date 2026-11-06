@@ -49,6 +49,7 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  a4c19e72: require('./verticals/a4c19e72-alert').SCENARIO,
   regions: {
     vertical: 'regions',
     page: '5e57909d.html',
@@ -1832,6 +1833,7 @@ async function startDevinOnlyIncident(scenario, skin, options) {
 }
 
 async function postOncallAlert(scenarioId, options = {}) {
+  if (scenarioId === 'a4c19e72') return require('./verticals/a4c19e72-alert').previewAlert();
   const scenario = ALERT_SCENARIOS[scenarioId];
   if (!scenario) {
     return { ok: false, error: `Unknown scenario: ${scenarioId}` };

@@ -534,7 +534,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
           if (ribbonCollapsed) expandRibbon();
           el.style.color = d.ok ? '#3fb950' : '#f85149';
-          var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
+          var deliveredMsg = d.dryRun ? 'Teams dry-run preview — nothing sent' : (!d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams'));
           if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
           if (d.ok && d.devin && d.sessionUrl) {
             el.textContent = ${JSON.stringify(r.sessionStarted)};
