@@ -31,6 +31,20 @@ test('registers the customer using the existing vertical convention', () => {
   service.CATALOG.forEach(p => expect(fs.existsSync(path.join(__dirname, '../app/public', p.image))).toBe(true));
 });
 
+test('storefront uses the supplied logo and local licensed fonts without a sign-in flow', () => {
+  const publicDir = path.join(__dirname, '../app/public');
+  const html = fs.readFileSync(path.join(publicDir, 'verticals/a4c19e72.html'), 'utf8');
+  expect(html).toContain('<img src="/verticals/lowes-assets/lowes-logo.png" alt="Lowe’s"');
+  expect(html).not.toContain('<text x="65"');
+  expect(html).toContain('Demo only · Synthetic shopping cart');
+  expect(html).toContain('Guest demo · No sign-in');
+  expect(html).not.toContain('type="password"');
+  for (const asset of ['lowes-logo.png', 'Poppins-Regular.ttf', 'Poppins-SemiBold.ttf', 'OFL.txt']) {
+    expect(fs.statSync(path.join(publicDir, 'verticals/lowes-assets', asset)).size).toBeGreaterThan(0);
+  }
+  expect(fs.readFileSync(path.join(publicDir, 'verticals/lowes-assets/OFL.txt'), 'utf8')).toContain('SIL OPEN FONT LICENSE');
+});
+
 test('delivery succeeds with server-owned prices and no real order side effect', () => {
   const result = service.quoteCart({ items: [{ ...fridge, price: 1 }, battery] });
   expect(result).toMatchObject({ demo: true, success: true, subtotal: 1798, fee: 79, tax: 130.36, total: 2007.36 });

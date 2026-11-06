@@ -28,6 +28,17 @@ Public image URLs cached locally for this internal, unlisted reference demo:
 These are third-party brand/product assets, not newly licensed artwork. Do not
 redistribute or publicly deploy this demo without the appropriate permissions.
 
+The header now uses the user-supplied `Lowes-Logo.png` unchanged, stored as
+`app/public/verticals/lowes-assets/lowes-logo.png` (SHA-256
+`f0f8075e140ca6ca5d84948dc6e2d4cc287096020183b4fad9dcc806101398af`).
+Header layout, pickup selector, navigation and palette follow the captured public
+home/cart screenshots above. Poppins Regular/SemiBold are locally served geometric
+substitutes, not a claim to use Lowe’s proprietary typeface; source:
+https://github.com/google/fonts/tree/main/ofl/poppins, with the SIL OFL included
+beside the fonts. Accounts, services and Mylow only show demo explanations, never
+collect credentials or call the real site. The populated cart remains a synthetic
+reconstruction, not a pixel-verified reproduction of a live populated cart.
+
 ## Change summary and usage map
 
 - `config/customers/a4c19e72.js`: own customer/aliases, like Marshalls.
