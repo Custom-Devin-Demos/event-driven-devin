@@ -46,11 +46,18 @@ worktrees. `LOWES_DEMO_FIX_PR_URL` may supply the repair link in the UI; it is n
 credential. The normal server uses dotenv, so an empty environment alone does
 not override a local .env file.
 
-## Standard live Teams path — no new automation
+## Standard live Teams transport
 
-Lowe’s follows Pepsi:
-`checkout failure → createSessionAndAlert → persisted Teams destination →
+Lowe’s captures the exception in Sentry and follows Pepsi’s standard card path:
+`checkout failure → Sentry.captureException + createSessionAndAlert → persisted Teams destination →
 AUTOMATIONS_TEAMS_WEBHOOK_URL → existing Teams responder`.
+
+The card uses the standard Error, Severity, Location, Message, Release,
+Environment and Triggered by fields, plus Watch Devin / Sentry / Datadog links.
+No custom responder instructions are embedded. The frontend forwards the hub’s
+saved org/user/email and uses existing locked host defaults on direct entry.
+Sentry events carry `alert_path: instant` so the webhook fallback does not send
+a duplicate alert. Local rehearsal does not capture Sentry events.
 
 The hub stores the Slack/Teams selection in localStorage and the
 `alert_destination` cookie. Its existing AsyncLocalStorage middleware carries
@@ -73,9 +80,18 @@ Follow the originating Teams thread for the actual investigation link; transport
 acceptance alone does not prove a responder session.
 
 No custom oncall-demo skin/trigger, extra automation, responder signup or new
-secret set is required. The superseded disabled responder proposal was submitted
-for approval before this clarification; **leave it unapproved**. No existing
-responder was changed.
+secret set is required to reuse the existing responder. That does **not** select
+the responder's org or owner. For a separate personal automation, create it from
+the intended human's account in Eashan Dev and select `run_as: creator`; verify
+the saved creator is that human, not the service user that made an API call.
+An additional Lowe’s-only automation on automations-demo can produce a second
+investigation alongside the old automation. It must match only top-level bot
+alerts containing `customer-a4c19e72-checkout` in that channel. Do not alter the
+existing responder or shared Sentry configuration to resolve personal ownership.
+
+The standard Watch Devin button links to an automation page, not the actual
+investigation session. Use the new session link posted in the Teams thread.
+The superseded oncall-demo responder proposal must remain unapproved.
 
 ### Observed vs unknown
 
@@ -92,10 +108,11 @@ responder was changed.
 - The existing responder owns session organization and run-as identity. App body
   IDs and card text do not override it. The linked session is not readable from
   this session's Eashan Dev scope (403), so exact org/owner remain **unverified**.
-  The card requests Eashan Dev as Eashan and instructs the responder to stop/report
-  any mismatch rather than changing responders or spawning another session.
-- The card carries repository + baseline branch and requires the repair PR to
-  target only that branch. These are task instructions, not hard GitHub ACLs.
+  Forwarding the hub identity is not proof of session ownership: the shared
+  Teams branch returns `session: null` rather than calling the org/user-aware API.
+  Do not claim that this card selects Eashan Dev or runs as Eashan.
+- Branch restrictions belong to the explicit investigation prompt below; the
+  standard notification card does not carry a custom repair playbook.
 - Live posting, actual responder identity/branch compliance, and production
   rendering of this new vertical remain untested. No external message was sent.
 

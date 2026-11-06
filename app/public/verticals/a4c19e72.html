@@ -50,6 +50,16 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+  const identityReady = (async () => {
+    try {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      const response = await fetch('/api/config');
+      if (!response.ok) return;
+      const cfg = await response.json();
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    } catch (_) {}
+  })();
   $('demoToolbar').classList.toggle('hidden', new URLSearchParams(location.search).get('ops') !== '1');
   const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
   let catalog = [], items = [{ sku: 'DEMO-FRIDGE', qty: 1 }, { sku: 'DEMO-BATTERY', qty: 1 }], fulfillment = 'delivery', store = 'Central Charlotte', alertPreview = null;
@@ -98,7 +108,8 @@
   async function checkout() {
     busy = true; render(); $('checkout').textContent = 'Preparing checkout…'; clearNotice();
     try {
-      const response = await fetch('/api/a4c19e72/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, fulfillment, store }) });
+      await identityReady;
+      const response = await fetch('/api/a4c19e72/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, fulfillment, store, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }) });
       const data = await response.json();
       if (!response.ok) {
         notice(`We couldn’t prepare your ${fulfillment} checkout.`, 'Your items are still in your cart. Please try again. No payment was taken.');
