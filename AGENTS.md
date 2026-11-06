@@ -13,6 +13,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | Vertical | URL Path | Frontend | API Endpoint | Service File |
 |----------|----------|----------|--------------|-------------|
 | **Hub** (landing page) | `/` | `app/public/hub.html` | — | — |
+| **Marshalls — Best Gift Ideas** (unlisted; original archived gift grid → first MAX STUDIO gift bundle → Quick Look → Add To Bag → Checkout → Place Order fails with `TypeError` reading `handlingFee` because `FULFILLMENT_RULES` lacks `gift-bundle`; standard DISNEY cookie jar succeeds. Sentry + instant `createSessionAndAlert` → Devin fix PR; keep the planted defect) | `/marshalls`, `/ea2d0dbc` | `app/public/verticals/ea2d0dbc.html` | `GET /api/ea2d0dbc/catalog`, `POST /api/ea2d0dbc/checkout` | `app/services/verticals/ea2d0dbc.js` |
 | **Netflix — Membership Signup** (unlisted — direct URL only) | `/ca610f30` | `app/public/verticals/ca610f30.html` | `POST /api/ca610f30/memberships` | `app/services/verticals/ca610f30.js` |
 | **Retail eCommerce** | `/retail` | `app/public/index.html` | `POST /api/storefront/checkout` | `app/routes/storefront.js` |
 | **Banking** | `/banking` | `app/public/verticals/banking.html` | `POST /api/banking/transfer` | `app/services/verticals/banking.js` |
