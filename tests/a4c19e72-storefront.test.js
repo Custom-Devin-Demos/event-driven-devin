@@ -6,6 +6,11 @@ const { CATALOG, STORES } = require('../app/services/verticals/a4c19e72');
 const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/a4c19e72.html'), 'utf8');
 const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
+test('presenter guidance names the dedicated Lowe’s destination', () => {
+  expect(html).toContain('dedicated eashan-demo Workflow and automation');
+  expect(html).not.toContain('automations-demo responder');
+});
+
 function element(tagName = 'div', classes = '') {
   const tokens = new Set(classes.split(' '));
   return {
