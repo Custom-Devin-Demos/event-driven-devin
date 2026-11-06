@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Desk Queue · Dow Jones Newsroom</title>
+  <style>
+    @font-face { font-family: 'Retina'; font-weight: 400; font-display: swap; src: url('/verticals/assets/a1c50ac4/retina-400.woff') format('woff'); }
+    @font-face { font-family: 'Retina'; font-weight: 500; font-display: swap; src: url('/verticals/assets/a1c50ac4/retina-500.woff') format('woff'); }
+    @font-face { font-family: 'Escrow Condensed'; font-weight: 700; font-display: swap; src: url('/verticals/assets/a1c50ac4/escrow-condensed-700.woff') format('woff'); }
+    @font-face { font-family: 'Exchange'; font-weight: 400; font-display: swap; src: url('/verticals/assets/a1c50ac4/exchange-400.woff') format('woff'); }
+    :root { --ink: #111; --muted: #555; --rule: #e0e0e0; --bg: #f7f6f2; --blue: #0274b6; --red: #c8102e; --green: #0a7d39; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: Retina, 'Helvetica Neue', Arial, sans-serif; font-size: 14px; }
+    .topbar { background: #111; color: #fff; display: flex; align-items: center; gap: 24px; padding: 0 24px; height: 44px; }
+    .topbar img { height: 18px; filter: invert(1); }
+    .topbar .app { font-weight: 500; letter-spacing: .04em; text-transform: uppercase; font-size: 12px; color: #ccc; border-left: 1px solid #444; padding-left: 16px; }
+    .topbar .user { margin-left: auto; font-size: 12px; color: #ccc; }
+    .masthead { background: #fff; border-bottom: 1px solid var(--rule); padding: 18px 24px 0; }
+    .masthead h1 { font-family: 'Escrow Condensed', Georgia, serif; font-size: 34px; margin: 0 0 4px; }
+    .masthead p { margin: 0 0 14px; color: var(--muted); font-family: Exchange, Georgia, serif; font-size: 16px; }
+    .tabs { display: flex; gap: 24px; }
+    .tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 0; font: inherit; font-weight: 500; color: var(--muted); cursor: pointer; }
+    .tabs button.active { color: var(--ink); border-color: var(--ink); }
+    main { max-width: 1180px; margin: 24px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--rule); }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 10px 14px; border-bottom: 2px solid var(--ink); }
+    td { padding: 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    td .hed { font-family: 'Escrow Condensed', Georgia, serif; font-size: 20px; line-height: 1.15; margin-bottom: 4px; }
+    td .meta { color: var(--muted); font-size: 12px; }
+    .desk img { height: 14px; display: block; }
+    .desk .section { font-size: 11px; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: .05em; }
+    .status { font-size: 12px; font-weight: 500; }
+    .status.ready { color: var(--blue); } .status.live { color: var(--green); } .status.failed { color: var(--red); }
+    .publish { background: var(--ink); color: #fff; border: 0; padding: 8px 16px; font: inherit; font-weight: 500; cursor: pointer; border-radius: 2px; min-width: 92px; }
+    .publish:disabled { background: #999; cursor: default; }
+    aside .card { background: #fff; border: 1px solid var(--rule); padding: 16px; margin-bottom: 16px; }
+    aside h3 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    aside dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
+    aside dt { color: var(--muted); }
+    aside code { font-size: 11px; word-break: break-all; }
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 460px; background: #fff; border-left: 4px solid var(--red); box-shadow: 0 6px 24px rgba(0,0,0,.18); padding: 14px 16px; display: none; }
+    .toast.show { display: block; }
+    .toast strong { display: block; margin-bottom: 4px; }
+    .toast code { font-size: 12px; word-break: break-word; color: var(--red); }
+    .toast.ok { border-color: var(--green); }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 24px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <img src="/verticals/assets/a1c50ac4/wsj-logo.svg" alt="The Wall Street Journal">
+    <span class="app">Newsroom · Desk Editor</span>
+    <span class="user">Signed in as deskeditor · Copy Desk (NY)</span>
+  </div>
+  <header class="masthead">
+    <h1>Ready for Desk</h1>
+    <p>Stories cleared by section editors, waiting to go live across the Dow Jones network.</p>
+    <nav class="tabs" id="tabs">
+      <button data-desk="all" class="active">All desks</button>
+      <button data-desk="wsj">WSJ</button>
+      <button data-desk="barrons">Barron's</button>
+      <button data-desk="marketwatch">MarketWatch</button>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <table>
+        <thead><tr><th style="width:150px">Desk</th><th>Story</th><th style="width:90px">Status</th><th style="width:120px"></th></tr></thead>
+        <tbody id="queue"><tr><td colspan="4">Loading desk queue…</td></tr></tbody>
+      </table>
+    </section>
+    <aside>
+      <div class="card">
+        <h3>Platform</h3>
+        <dl>
+          <dt>CMS</dt><dd>WordPress 7.1 multisite</dd>
+          <dt>Runtime</dt><dd>PHP-FPM 8.3 · nginx</dd>
+          <dt>API</dt><dd><code>dj/v1/articles/{id}/publish</code></dd>
+          <dt>Repo</dt><dd><code>dowjones-newsroom-wp</code></dd>
+        </dl>
+      </div>
+      <div class="card">
+        <h3>Desk sites</h3>
+        <dl>
+          <dt>WSJ</dt><dd>/wsj/ · metered</dd>
+          <dt>Barron's</dt><dd>/barrons/ · hard paywall</dd>
+          <dt>MarketWatch</dt><dd>/marketwatch/ · free</dd>
+        </dl>
+      </div>
+    </aside>
+  </main>
+  <footer>Dow Jones Newsroom · internal tools · demo environment</footer>
+  <div class="toast" id="toast" role="status"><strong id="toast-title"></strong><code id="toast-copy"></code></div>
+
+  <script>
+    /* global document, localStorage, fetch, window */
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var LOGOS = {
+      wsj: '/verticals/assets/a1c50ac4/wsj-logo.svg',
+      barrons: '/verticals/assets/a1c50ac4/barrons-logo.svg',
+      marketwatch: '/verticals/assets/a1c50ac4/marketwatch-logo.svg',
+    };
+    var state = { stories: [], filter: 'all', status: {} };
+    var el = function (id) { return document.getElementById(id); };
+    var toastTimer;
+
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+    function toast(title, copy, ok) {
+      el('toast-title').textContent = title;
+      el('toast-copy').textContent = copy;
+      el('toast').className = 'toast show' + (ok ? ' ok' : '');
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(function () { el('toast').className = 'toast'; }, 6000);
+    }
+
+    function render() {
+      var rows = state.stories.filter(function (s) { return state.filter === 'all' || s.desk === state.filter; });
+      el('queue').innerHTML = rows.map(function (s) {
+        var st = state.status[s.id] || 'ready';
+        var label = { ready: 'Ready', busy: 'Publishing…', live: 'Live', failed: 'Failed' }[st];
+        return '<tr data-id="' + s.id + '">'
+          + '<td class="desk"><img src="' + LOGOS[s.desk] + '" alt="' + esc(s.deskLabel) + '"><div class="section">' + esc(s.section) + '</div></td>'
+          + '<td><div class="hed">' + esc(s.headline) + '</div><div class="meta">By ' + esc(s.byline) + ' · ' + s.words + ' words · edited by ' + esc(s.editor) + ' · #' + s.id + '</div></td>'
+          + '<td><span class="status ' + (st === 'busy' ? 'ready' : st) + '">' + label + '</span></td>'
+          + '<td><button class="publish" data-id="' + s.id + '"' + (st === 'live' || st === 'busy' ? ' disabled' : '') + '>' + (st === 'failed' ? 'Retry' : 'Publish') + '</button></td>'
+          + '</tr>';
+      }).join('');
+    }
+
+    function publish(id) {
+      state.status[id] = 'busy';
+      render();
+      identityReady.then(function () {
+        return fetch('/api/a1c50ac4/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            articleId: id,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+      }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
+        .then(function (res) {
+          if (res.ok) {
+            state.status[id] = 'live';
+            toast('Published to ' + res.body.desk, res.body.link, true);
+          } else {
+            state.status[id] = 'failed';
+            toast('Publish failed (HTTP ' + res.status + ')', (res.body.errorClass ? res.body.errorClass + ': ' : '') + res.body.error);
+          }
+          render();
+        })
+        .catch(function () {
+          state.status[id] = 'failed';
+          render();
+          toast('Publish failed', 'Network error contacting the newsroom API.');
+        });
+    }
+
+    el('queue').addEventListener('click', function (e) {
+      var btn = e.target.closest('button.publish');
+      if (btn) publish(Number(btn.getAttribute('data-id')));
+    });
+    el('tabs').addEventListener('click', function (e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      state.filter = btn.getAttribute('data-desk');
+      Array.prototype.forEach.call(el('tabs').children, function (b) { b.classList.toggle('active', b === btn); });
+      render();
+    });
+
+    fetch('/api/a1c50ac4/queue').then(function (r) { return r.json(); }).then(function (data) {
+      state.stories = data.stories;
+      render();
+    });
+  </script>
+</body>
+</html>
