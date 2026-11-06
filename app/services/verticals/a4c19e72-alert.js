@@ -30,24 +30,38 @@ function buildAlertData(error, input = {}) {
   };
 }
 
+function rehearsalReason() {
+  if (process.env.NODE_ENV !== 'production') return 'local-or-test-runtime';
+  if (process.env.CI) return 'ci-runtime';
+  if (process.env.LOWES_DEMO_DRY_RUN === 'true') return 'explicit-dry-run';
+  if (!isTeamsWebhookUrl(process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL)) return 'missing-teams-target';
+  return null;
+}
+
+let nextAlertAt = 0;
+const ALERT_COOLDOWN_MS = 60_000;
+
 async function reportCheckoutError(error, input) {
   const alertData = buildAlertData(error, input);
   const card = buildTeamsAlertCardForAlert(alertData);
-  if (process.env.LOWES_DEMO_LIVE_TEAMS !== 'true') {
+  const reason = rehearsalReason();
+  if (reason) {
     return {
-      ok: true, dryRun: true, sent: false, destination: 'teams', card,
+      ok: true, dryRun: true, sent: false, destination: 'teams', reason, card,
       payload: { type: 'message', text: teamsCardText(card), attachments: [{ contentType: 'application/vnd.microsoft.card.adaptive', contentUrl: null, content: card }] },
     };
   }
   if (currentAlertDestination() !== 'teams') {
     return { ok: false, dryRun: false, sent: false, error: 'Select Teams on the demo hub first. No Slack alert was sent.' };
   }
-  if (!isTeamsWebhookUrl(process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL)) {
-    return { ok: false, dryRun: false, sent: false, error: 'The existing Teams Workflow is not configured. No Slack fallback was used.' };
+  const now = Date.now();
+  if (now < nextAlertAt) {
+    return { ok: false, dryRun: false, sent: false, throttled: true, retryAfterMs: nextAlertAt - now, error: 'A demo alert was attempted recently. Wait one minute before retrying; no additional alert was sent.' };
   }
+  nextAlertAt = now + ALERT_COOLDOWN_MS;
   const result = await createSessionAndAlert(alertData);
   const sent = Boolean(result && result.teams);
   return { ok: sent, dryRun: false, sent, responderManaged: sent, ...(sent ? {} : { error: 'Teams delivery was not confirmed. No Slack fallback was used.' }) };
 }
 
-module.exports = { reportCheckoutError, buildAlertData, RESPONDER_NOTES, SESSION_URL, REPO, BASE_BRANCH };
+module.exports = { rehearsalReason, reportCheckoutError, buildAlertData, RESPONDER_NOTES, SESSION_URL, REPO, BASE_BRANCH };

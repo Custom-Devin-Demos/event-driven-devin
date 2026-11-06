@@ -17,9 +17,11 @@ const report = (input = {}) => runWithAlertDestination('teams', () => reportChec
 const router = require('../app/routes/verticals/a4c19e72');
 const fridge = { sku: 'DEMO-FRIDGE', qty: 1 };
 const battery = { sku: 'DEMO-BATTERY', qty: 1 };
-const keys = ['LOWES_DEMO_LIVE_TEAMS', 'AUTOMATIONS_TEAMS_WEBHOOK_URL'];
+const keys = ['NODE_ENV', 'CI', 'LOWES_DEMO_DRY_RUN', 'AUTOMATIONS_TEAMS_WEBHOOK_URL'];
 const original = Object.fromEntries(keys.map(k => [k, process.env[k]]));
-beforeEach(() => { jest.clearAllMocks(); keys.forEach(k => delete process.env[k]); });
+let testTime = Date.now();
+beforeEach(() => { jest.clearAllMocks(); keys.forEach(k => delete process.env[k]); testTime += 60_001; jest.spyOn(Date, 'now').mockReturnValue(testTime); });
+afterAll(() => jest.restoreAllMocks());
 afterAll(() => keys.forEach(k => { if (original[k] === undefined) delete process.env[k]; else process.env[k] = original[k]; }));
 
 test('registers the customer using the existing vertical convention', () => {
@@ -70,8 +72,8 @@ test('default rehearsal previews the same checkout Teams card without send or se
   expect(createDevinSession).not.toHaveBeenCalled();
 });
 
-test('live Teams uses the real Pepsi pipeline with no duplicate session or vulnerable PR', async () => {
-  process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+test('official production runtime automatically uses the real Pepsi pipeline with no duplicate session or vulnerable PR', async () => {
+  process.env.NODE_ENV = 'production';
   process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockResolvedValue({ status: 202 });
   const result = await report({ devinOrgId: 'org-ignored', devinUserId: 'ignored' });
@@ -86,7 +88,7 @@ test('live Teams uses the real Pepsi pipeline with no duplicate session or vulne
 
 test('dry-run payload equals the real pipeline payload', async () => {
   const preview = await report();
-  process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+  process.env.NODE_ENV = 'production';
   process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockResolvedValue({ status: 202 });
   await report();
@@ -95,15 +97,15 @@ test('dry-run payload equals the real pipeline payload', async () => {
 });
 
 test.each([undefined, 'https://not-teams.example/test'])('missing/invalid Teams config cannot fall back to Slack: %p', async webhook => {
-  process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+  process.env.NODE_ENV = 'production';
   if (webhook) process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = webhook;
-  expect(await report()).toMatchObject({ ok: false, sent: false });
+  expect(await report()).toMatchObject({ ok: true, dryRun: true, sent: false, reason: 'missing-teams-target' });
   expect(postAlertToSlack).not.toHaveBeenCalled();
   expect(axios.post).not.toHaveBeenCalled();
 });
 
 test.each(['slack', null])('live mode respects saved destination and refuses Slack: %p', async destination => {
-  process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+  process.env.NODE_ENV = 'production';
   process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   expect(await runWithAlertDestination(destination, () => reportCheckoutError(error))).toMatchObject({ ok: false, sent: false });
   expect(axios.post).not.toHaveBeenCalled();
@@ -111,12 +113,40 @@ test.each(['slack', null])('live mode respects saved destination and refuses Sla
 });
 
 test('failed Teams transport does not send Slack or start an app-side session', async () => {
-  process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+  process.env.NODE_ENV = 'production';
   process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockRejectedValue(new Error('Mock Teams unavailable'));
   expect(await report()).toMatchObject({ ok: false, sent: false });
   expect(postAlertToSlack).not.toHaveBeenCalled();
   expect(createDevinSession).not.toHaveBeenCalled();
+});
+
+test.each([
+  ['test', undefined, undefined, 'local-or-test-runtime'],
+  ['development', undefined, undefined, 'local-or-test-runtime'],
+  ['production', 'true', undefined, 'ci-runtime'],
+  ['production', undefined, 'true', 'explicit-dry-run'],
+])('safe rehearsal in %s / CI=%s / explicit=%s even with a valid target', async (runtime, ci, dryRun, reason) => {
+  process.env.NODE_ENV = runtime;
+  if (ci) process.env.CI = ci;
+  if (dryRun) process.env.LOWES_DEMO_DRY_RUN = dryRun;
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  expect(await report()).toMatchObject({ dryRun: true, sent: false, reason });
+  expect(axios.post).not.toHaveBeenCalled();
+  expect(postAlertToSlack).not.toHaveBeenCalled();
+});
+
+test('concurrent and repeated live failures are capped, including failed delivery attempts', async () => {
+  process.env.NODE_ENV = 'production';
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  axios.post.mockRejectedValue(new Error('Mock transport down'));
+  const results = await Promise.all([report(), report(), report()]);
+  expect(axios.post).toHaveBeenCalledTimes(1);
+  expect(results.filter(r => r.throttled)).toHaveLength(2);
+  Date.now.mockReturnValue(testTime + 60_001);
+  axios.post.mockResolvedValue({ status: 202 });
+  expect(await report()).toMatchObject({ sent: true });
+  expect(axios.post).toHaveBeenCalledTimes(2);
 });
 
 describe('HTTP surface', () => {
@@ -144,7 +174,7 @@ describe('HTTP surface', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
   test('checkout carries persisted Teams cookie to the existing transport', async () => {
-    process.env.LOWES_DEMO_LIVE_TEAMS = 'true';
+    process.env.NODE_ENV = 'production';
     process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
     axios.post.mockResolvedValue({ status: 202 });
     const response = await fetch(`${base}/api/a4c19e72/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: 'alert_destination=teams' }, body: JSON.stringify({ items: [fridge], fulfillment: 'pickup' }) });

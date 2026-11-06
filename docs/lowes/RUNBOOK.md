@@ -33,7 +33,7 @@ In each repository, install with `npm install` if needed, then:
 
 ```sh
 env -i PATH="$PATH" HOME="$HOME" PORT=3011 NODE_ENV=test \
-  DD_TRACE_ENABLED=false DD_LOGS_INJECTION=false LOWES_DEMO_LIVE_TEAMS=false \
+  DD_TRACE_ENABLED=false DD_LOGS_INJECTION=false LOWES_DEMO_DRY_RUN=true \
   node app/server.js
 ```
 
@@ -53,13 +53,20 @@ The hub stores the Slack/Teams selection in localStorage and the
 the cookie to the checkout service; no second browser trigger or custom send
 endpoint exists. Choose **Teams** on the same host's hub, then open /lowes.
 
-Local rehearsal is safe by default. For an explicitly approved live run, set the
-single non-secret switch `LOWES_DEMO_LIVE_TEAMS=true` on the authorized demo
-runtime. Reuse the existing `AUTOMATIONS_TEAMS_WEBHOOK_URL`; do not provision a
-new webhook. If Teams is not selected or the existing webhook is missing/invalid,
-Lowe’s reports that no alert was sent and never falls back to Slack. Other
-customers' routing is unchanged. Live transport acceptance is not proof of a
-responder session: follow the originating Teams thread for the new link.
+The official host already sets `NODE_ENV=production` (`Dockerfile:10`,
+`docker-compose.yml:26`). With the existing valid Teams target and saved Teams
+selection, failing checkout sends automatically — **no new host flag or secret**.
+Local/development/test, CI, missing/invalid target, or explicit
+`LOWES_DEMO_DRY_RUN=true` returns a no-send preview. A hosted Slack/unselected
+preference never sends Slack: choose Teams on the hub. Other customers are unchanged.
+
+Repeated live failures are limited to one send attempt per minute per process,
+reserved before awaiting transport (including failed attempts). This is a bounded
+demo safeguard, not distributed authentication/rate enforcement. Reset does not
+clear the cooldown. Live mode inherits the existing authorized demo-host ingress.
+
+Follow the originating Teams thread for the actual investigation link; transport
+acceptance alone does not prove a responder session.
 
 No custom oncall-demo skin/trigger, extra automation, responder signup or new
 secret set is required. The superseded disabled responder proposal was submitted
@@ -71,6 +78,7 @@ responder was changed.
 - The user's screenshot and the existing automations-demo thread show a real
   Teams alert and [Devin investigation](https://devin-gtm.devinenterprise.com/sessions/25ecdc233e8a47bc987555a105c5c6c2).
   This proves the hosted checkout→Teams→responder path already works.
+- Host /api/config reports teamsAlerts:true, confirming the standard checkout Teams target is configured (presence only, never its value).
 - The VM has no Teams webhook. That is separate from existing host configuration.
   Host /health returns ok; /api/oncall/scenarios reports teamsDefaultWebhook:true,
   but that is the separate on-call variable, not proof of the automations target.

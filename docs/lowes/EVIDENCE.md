@@ -45,8 +45,8 @@ redistribute or publicly deploy this demo without the appropriate permissions.
 
 No dependency bump, vendor advisory or CVE is part of this change. Inputs to checkout
 are untrusted HTTP input; product prices come from the server,
-SKU/quantity/store/fulfillment are validated, and live transport requires explicit server-side opt-in after target approval. Primary operational risk is accidental
-external notification; default dry-run and local credential-free startup isolate it.
+SKU/quantity/store/fulfillment are validated, and the existing production runtime plus configured target and saved Teams preference selects live delivery. Local/test/CI/missing-target runs or explicit dry-run never send. Primary operational risk is accidental
+external notification; local dry-run, credential-free startup, and a per-process one-minute send cooldown reduce it.
 
 No V&V test catalog, traceability matrix or severity/controllability matrix was supplied
 for this synthetic demo. Formal risk scores, requirement/protocol IDs, and scoped vs.
