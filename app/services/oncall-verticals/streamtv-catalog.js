@@ -78,7 +78,7 @@ const TITLES = [
 const TITLE_BY_ID = new Map(TITLES.map((t) => [t.id, t]));
 
 const LIVE_CHANNELS = [
-  { id: 'ch101', number: 101, name: 'StreamTV News 24', program: 'Evening Report', genre: 'live', startedMinAgo: 18, runtimeMin: 60 },
+  { id: 'ch101', number: 101, name: 'Roku News 24', program: 'Evening Report', genre: 'live', startedMinAgo: 18, runtimeMin: 60 },
   { id: 'ch104', number: 104, name: 'Kitchen Live', program: 'Weeknight Dinners', genre: 'live', startedMinAgo: 7, runtimeMin: 30 },
   { id: 'ch108', number: 108, name: 'Sports Desk', program: 'Late Highlights', genre: 'live', startedMinAgo: 41, runtimeMin: 60 },
   { id: 'ch112', number: 112, name: 'Classic Cinema', program: 'The Cartographer', genre: 'live', startedMinAgo: 66, runtimeMin: 140 },

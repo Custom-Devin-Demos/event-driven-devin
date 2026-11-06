@@ -72,12 +72,13 @@ describe('6217a32d TV home screen On-Call skin', () => {
       oncallOnly: true,
       alertDestination: 'slack',
       paths: ['/streamtv'],
-      page: { file: '6217a32d.html', title: 'Cloud Emulator | StreamTV' },
+      page: { file: '6217a32d.html', title: 'Experiences | Roku' },
     });
     expect(skin.devinSession.auto).toBeUndefined();
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
-    expect(skin.disclaimer).toMatch(/^NOT ACTUALLY A [A-Z& ]+ SITE/);
+    expect(skin.disclaimer).toBe('');
+    expect(skin.hideRibbon).toBe(true);
   });
 
   test('skin URL, direct slug and alias serve the same shimmed home screen', async () => {
@@ -89,17 +90,29 @@ describe('6217a32d TV home screen On-Call skin', () => {
     }));
     const html = pages[0];
     pages.slice(1).forEach((page) => expect(page).toEqual(html));
-    expect(html).toContain('<title>Cloud Emulator | StreamTV</title>');
+    expect(html).toContain('<title>Experiences | Roku</title>');
     expect(html).toContain('id="emulator"');
     expect(html).toContain("if (document.documentElement.dataset.view !== 'tv') return;");
     expect(html).toContain('/verticals/assets/6217a32d/emulator.js');
     expect(html).toContain("fetch('/api/playback/start'");
     expect(html).toContain('const oncallApiPath = "/api/playback/start"');
     expect(html).toContain('const triggerWhen = {"row":"continue-watching"}');
-    expect(html).toContain('Demo environment – mock data');
+    expect(html).not.toContain('Demo environment – mock data');
     expect(html).toContain('Something went wrong. Try again.');
     expect(html).toContain('/session-cap-banner.js');
-    expect(fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', '6217a32d.html'), 'utf8')).not.toMatch(/roku/i);
+    expect(html).toContain('<div class="wordmark" aria-label="Roku">Roku</div>');
+    const page = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', '6217a32d.html'), 'utf8');
+    const consoleScript = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', 'assets', '6217a32d', 'emulator.js'), 'utf8');
+    expect(page + consoleScript).not.toMatch(/StreamTV|STREAMTV/);
+    expect(consoleScript).toContain('<div class="ce-brand">Roku</div>');
+    expect(consoleScript).toContain('/api/oncall/trigger/streamtv');
+    expect(consoleScript).toContain('streamtv-emulator');
+    expect(consoleScript).not.toContain('class="ce-mock"');
+    expect(consoleScript).not.toContain('not a native runtime');
+    expect(consoleScript).toContain('Send a real on-call alert?');
+    expect(consoleScript).toContain('Open TV experience');
+    expect(consoleScript).toContain('Open Cloud Emulator');
+    expect(consoleScript).toContain('manual handoff to the responder, not automatic monitor detection');
   });
 
   test('report, incident and the bare scenario page are not opted in', async () => {
@@ -145,6 +158,9 @@ describe('6217a32d TV home screen On-Call skin', () => {
     const cw = body.rows.find((r) => r.id === 'continue-watching');
     expect(cw).toMatchObject({ deferred: true, href: '/api/home/continue-watching?profileId=p-jordan' });
     body.rows.filter((r) => !r.deferred).forEach((r) => expect(r.items.length).toBeGreaterThan(0));
+    const live = body.rows.find((r) => r.id === 'live-tv');
+    expect(live.items[0].channelName).toBe('Roku News 24');
+    expect(JSON.stringify(body.rows)).not.toContain('StreamTV');
   });
 
   test('GET /api/home/continue-watching returns in-progress titles for every profile', async () => {
