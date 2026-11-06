@@ -37,7 +37,12 @@
   }
   function description(p) {
     const extras = ['meats', 'veggies', 'extraCheese', 'dips'].flatMap(key => p[key].map(id => optionName(key, id)));
-    return [p.size[0].toUpperCase() + p.size.slice(1), optionName('crust', p.crust), optionName('sauce', p.sauce), optionName('cheese', p.cheese), ...extras].join(' · ');
+    const portionName = group => {
+      const portion = p[`${group}Portion`];
+      const prefix = portion !== 'normal' && !p[group].startsWith('no-') ? `${portion[0].toUpperCase()}${portion.slice(1)} ` : '';
+      return prefix + optionName(group, p[group]);
+    };
+    return [p.size[0].toUpperCase() + p.size.slice(1), optionName('crust', p.crust), optionName('seasoning', p.seasoning), portionName('sauce'), portionName('cheese'), ...extras].join(' · ');
   }
   function summary() {
     $('item-summary').textContent = `(${quantity}) Pizza`;
@@ -166,6 +171,7 @@
         }
       }
       renderSizes();
+      summary();
       document.querySelectorAll('.add-to-cart').forEach(button => { button.disabled = false; });
     } catch {
       groups = []; $('plus').disabled = true;

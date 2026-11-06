@@ -116,7 +116,7 @@ describe('HTTP contract', () => {
     const app = express(); app.use(express.json()); app.use(router);
     server = app.listen(0, '127.0.0.1', () => { port = server.address().port; done(); });
   });
-  afterAll(done => server.close(done));
+  afterAll(done => { server.close(done); });
   function request(method, url, body) {
     return new Promise((resolve, reject) => {
       const req = http.request({ hostname: '127.0.0.1', port, path: url, method, headers: { 'Content-Type': 'application/json' } }, res => {
