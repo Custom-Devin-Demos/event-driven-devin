@@ -404,6 +404,20 @@
       function clearFocus() {
         Array.prototype.slice.call(document.querySelectorAll('.focused')).forEach(function (n) { n.classList.remove('focused'); });
       }
+      function syncTileFocus(tile) {
+        clearFocus();
+        tile.classList.add('focused');
+        var section = tile.closest('.row');
+        var tiles = tilesIn(section);
+        var col = tiles.indexOf(tile);
+        state.focus.area = 'rows';
+        state.focus.row = rowSections().indexOf(section);
+        state.focus.col = col;
+        state.cols[section.dataset.rowId] = col;
+        var row = state.rows.find(function (r) { return r.id === section.dataset.rowId; });
+        if (row && row.items && row.items[col] && !tile.dataset.action) updateSpotlight(row.items[col], row.id);
+        section.querySelector('.row-count').textContent = (col + 1) + ' / ' + tiles.length;
+      }
       function applyFocus() {
         clearFocus();
         if (state.focus.area === 'nav') {
@@ -424,11 +438,8 @@
         state.cols[section.dataset.rowId] = col;
         state.focus.col = col;
         var tile = tiles[col];
-        tile.classList.add('focused');
+        syncTileFocus(tile);
         tile.focus({ preventScroll: true });
-        var row = state.rows.find(function (r) { return r.id === section.dataset.rowId; });
-        if (row && row.items && row.items[col] && !tile.dataset.action) updateSpotlight(row.items[col], row.id);
-        section.querySelector('.row-count').textContent = (col + 1) + ' / ' + tiles.length;
         tile.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         var rect = section.getBoundingClientRect();
         if (rect.top < 80 || rect.bottom > window.innerHeight - 40) section.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -637,12 +648,7 @@
         var nav = e.target.closest('.nav-item');
         var tile = e.target.closest('.tile:not(.skeleton)');
         if (nav) { clearFocus(); nav.classList.add('focused'); state.focus.area = 'nav'; state.focus.nav = navItems().indexOf(nav); }
-        if (tile) {
-          clearFocus(); tile.classList.add('focused');
-          var section = tile.closest('.row');
-          state.focus.area = 'rows'; state.focus.row = rowSections().indexOf(section);
-          state.cols[section.dataset.rowId] = tilesIn(section).indexOf(tile);
-        }
+        if (tile) syncTileFocus(tile);
       });
       document.addEventListener('click', function (e) {
         if (player.classList.contains('open')) return closePlayer();
