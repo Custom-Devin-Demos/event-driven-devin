@@ -19,6 +19,7 @@ const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
+const { changeoverLine } = require('../services/oncall-verticals/linecontrol');
 const { quoteRates } = require('../services/oncall-verticals/shippingrates');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
@@ -917,6 +918,26 @@ router.post('/api/oncall/releasegate/evaluate', async (req, res) => {
       error: 'Release gate evaluation failed.',
       errorClass: error.name,
       code: error.code || 'RELEASE_GATE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/linecontrol/changeover — change an assembly line over to
+ * a new model and download station recipes
+ */
+router.post('/api/oncall/linecontrol/changeover', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await changeoverLine({ line: body.line || 'L3', model: body.model || 'HX-450-G2', workOrder: body.workOrder }));
+  } catch (error) {
+    const notFound = error.code === 'LINE_NOT_FOUND' || error.code === 'MODEL_NOT_FOUND';
+    res.status(notFound ? 404 : 500).json({
+      success: false,
+      error: notFound ? error.message : 'Changeover failed: station recipe download was rejected.',
+      errorClass: error.name,
+      code: error.code || 'CHANGEOVER_FAILED',
       requestId: req.requestId,
     });
   }
