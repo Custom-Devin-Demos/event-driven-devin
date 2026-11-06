@@ -747,7 +747,7 @@
         .then(({ ok, p }) => {
           if (token !== idToken) return;
           if (ok && p.userId) { localStorage.setItem('devinUserId', p.userId); setIdStatus('Devin session will run as ' + email + '.', true); }
-          else setIdStatus((p && p.error) || 'Email not found in HC-GTM-AD. The session will use the demo service user.');
+          else setIdStatus(((p && p.error) ? String(p.error).replace(/\.?$/, '. ') : 'Email not found in HC-GTM-AD. ') + 'The session will use the demo service user.');
         })
         .catch(() => { if (token === idToken) setIdStatus('Could not look up this email right now. The session will use the demo service user.'); });
       return identityReady;
