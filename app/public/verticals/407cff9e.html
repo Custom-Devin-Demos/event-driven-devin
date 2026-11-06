@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B3 Investidor | Área do Investidor</title>
+  <link rel="icon" href="/verticals/assets/407cff9e/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #FFD862;
+      --ink: #1E2023;
+      --surface: #FFFFFF;
+      --chrome-bg: #001B74;
+      --chrome-text: #FFFFFF;
+      --navy: #002C63;
+      --blue: #0063DE;
+      --cyan: #00B0E6;
+      --deep: #131722;
+      --muted: #666E7A;
+      --line: #E3E7EE;
+      --paper: #F4F8FD;
+      --ok: #0B8A5F;
+      --down: #E5484D;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: "B3SansText", "Fira Sans", Arial, sans-serif; color: var(--ink); background: var(--paper); font-size: 15px; line-height: 1.45; }
+    a { color: inherit; }
+    img { max-width: 100%; }
+    button { font: inherit; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    header.site { background: var(--chrome-bg); color: var(--chrome-text); }
+    header.site .top { display: flex; align-items: center; gap: 20px; min-height: 72px; }
+    .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+    .brand .mark { width: 40px; height: 40px; display: block; }
+    .brand .word { height: 22px; display: block; }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; text-align: right; }
+    .user b { display: block; font-size: 15px; }
+    .user small { opacity: .75; }
+    .user .av { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: var(--navy); font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    nav.tabs a { flex: 0 0 auto; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 14px; border-bottom: 3px solid transparent; opacity: .85; }
+    nav.tabs a.on { border-color: var(--accent); opacity: 1; }
+    .ticker { background: #fff; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .ticker .container { display: flex; gap: 26px; overflow-x: auto; padding-top: 10px; padding-bottom: 10px; white-space: nowrap; scrollbar-width: none; }
+    .ticker b { font-weight: 700; }
+    .up { color: var(--ok); } .dn { color: var(--down); }
+    main { padding: 22px 0 40px; }
+    h1 { font-size: 24px; margin: 0 0 4px; font-weight: 700; color: var(--navy); }
+    .sub { color: var(--muted); margin: 0 0 18px; }
+    .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; }
+    .card { background: #fff; border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(0, 27, 116, .06); }
+    .card h2 { font-size: 17px; margin: 0 0 12px; color: var(--navy); }
+    .pat small { color: var(--muted); display: block; font-size: 13px; }
+    .pat .total { font-size: 34px; font-weight: 800; color: var(--navy); letter-spacing: -.5px; }
+    .pat .var { font-size: 14px; margin: 2px 0 16px; }
+    .bar { display: flex; height: 12px; border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+    .bar i { display: block; height: 100%; }
+    .assets { list-style: none; margin: 0; padding: 0; }
+    .assets li { display: grid; grid-template-columns: 14px 1fr auto auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .assets li:last-child { border-bottom: 0; }
+    .assets .dot { width: 12px; height: 12px; border-radius: 4px; }
+    .assets .pct { color: var(--muted); font-size: 13px; min-width: 52px; text-align: right; }
+    .assets b { font-weight: 700; text-align: right; }
+    .promo { position: relative; overflow: hidden; border-radius: 16px; background: var(--chrome-bg); color: #fff; padding: 24px; min-height: 290px; display: flex; flex-direction: column; justify-content: flex-end; }
+    .promo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+    .promo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,27,116,0) 20%, rgba(0,27,116,.92) 72%); }
+    .promo > * { position: relative; z-index: 1; }
+    .promo .tag { align-self: flex-start; background: var(--cyan); color: #fff; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 3px 10px; margin-bottom: 8px; }
+    .promo h2 { color: #fff; font-size: 22px; margin: 0 0 6px; line-height: 1.15; }
+    .promo p { margin: 0 0 14px; font-size: 14px; opacity: .92; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 28px; border-radius: 40px; border: 0; background: var(--accent); color: var(--navy); font-weight: 700; font-size: 15px; letter-spacing: .3px; cursor: pointer; text-decoration: none; }
+    .btn:disabled { opacity: .7; cursor: progress; }
+    .btn.ghost { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
+    .promo .btn { align-self: flex-start; }
+    .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 18px 0; }
+    .quick a { background: #fff; border-radius: 14px; padding: 14px; text-decoration: none; font-size: 13px; color: var(--muted); box-shadow: 0 2px 10px rgba(0, 27, 116, .06); }
+    .quick b { display: block; color: var(--navy); font-size: 15px; margin-bottom: 2px; }
+    .panel { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 10px rgba(0, 27, 116, .06); margin-top: 18px; scroll-margin-top: 12px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .panel-head h2 { margin: 0; font-size: 20px; color: var(--navy); }
+    .pill { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 3px 10px; background: #E6F7FD; color: #00739A; }
+    .titles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 18px; }
+    .title-opt { border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px; cursor: pointer; background: #fff; text-align: left; color: var(--ink); min-height: 48px; }
+    .title-opt.on { border-color: var(--blue); background: #F0F6FF; }
+    .title-opt b { display: block; color: var(--navy); font-size: 15px; }
+    .title-opt .rate { font-size: 20px; font-weight: 800; color: var(--blue); margin: 4px 0 2px; }
+    .title-opt small { color: var(--muted); font-size: 12px; display: block; }
+    .inv-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+    .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--navy); }
+    .field select, .field input { width: 100%; min-height: 48px; border: 1px solid #C9D1DD; border-radius: 10px; padding: 0 14px; font: inherit; color: var(--ink); background: #fff; }
+    .field input[readonly] { background: var(--paper); font-weight: 700; }
+    .field small { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .money { position: relative; }
+    .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--muted); }
+    .money input { padding-left: 44px; }
+    .summary { background: var(--paper); border-radius: 14px; padding: 18px 20px; margin: 0; align-self: start; }
+    .summary h3 { margin: 0 0 10px; font-size: 16px; color: var(--navy); }
+    .summary div { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .summary div:last-child { border-bottom: 0; font-weight: 800; font-size: 18px; color: var(--navy); }
+    .summary dt { color: var(--muted); }
+    .summary div:last-child dt { color: var(--navy); }
+    .summary dd { margin: 0; text-align: right; }
+    .note { background: #FFF8E1; border: 1px solid #FFD862; border-radius: 12px; padding: 10px 14px; font-size: 13px; margin: 14px 0 0; }
+    .panel-actions { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
+    .status { font-size: 13px; color: var(--muted); margin: 0 auto 0 0; max-width: 520px; }
+    .result-box { display: none; white-space: pre-line; margin-top: 16px; padding: 14px 16px; border-radius: 12px; font-size: 15px; }
+    .result-box.success { display: block; background: #E7F6F0; border: 1px solid var(--ok); color: #075A3E; }
+    .result-box.notice { display: block; background: #FDECEC; border: 1px solid var(--down); color: #8F1D21; }
+    footer.site { background: var(--deep); color: #C9CED6; margin-top: 28px; padding: 28px 0 22px; font-size: 13px; }
+    .foot-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .foot-top img { height: 36px; }
+    .foot-legal { margin: 14px 0 0; opacity: .8; }
+    @media (max-width: 900px) {
+      .grid, .inv-grid { grid-template-columns: 1fr; }
+      .quick { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .container { padding: 0 16px; }
+      header.site .top { min-height: 62px; gap: 10px; }
+      .brand .word { height: 18px; }
+      .brand .mark { width: 32px; height: 32px; }
+      .user b { font-size: 13px; }
+      .user small { display: none; }
+      .user .av { width: 36px; height: 36px; }
+      .pat .total { font-size: 28px; }
+      .titles, .form-grid { grid-template-columns: 1fr; }
+      .card, .panel { padding: 18px 16px; }
+      .panel-actions .btn { width: 100%; }
+      .status { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="container top">
+      <a class="brand" href="#inicio" aria-label="B3 Investidor"><img class="mark" src="/verticals/assets/407cff9e/b3-logo-white.svg" alt="B3"><img class="word" src="/verticals/assets/407cff9e/logo-b3-investidor.png" alt="B3 Investidor"></a>
+      <div class="user"><div><b>Mariana Souza</b><small>CPF ***.482.917-**</small></div><span class="av" aria-hidden="true">MS</span></div>
+    </div>
+    <div class="container">
+      <nav class="tabs" aria-label="Menu principal">
+        <a href="#inicio" class="on">Início</a><a href="#inicio">Investimentos</a><a href="#tesouro">Tesouro Direto</a><a href="#inicio">Proventos</a><a href="#inicio">Extrato</a><a href="#inicio">Ofertas públicas</a><a href="#inicio">Imposto de Renda</a>
+      </nav>
+    </div>
+  </header>
+  <div class="ticker" aria-label="Cotações">
+    <div class="container">
+      <span><b>IBOVESPA</b> 166.191 <span class="dn">−0,82%</span></span>
+      <span><b>Taxa DI</b> 13,65% a.a.</span>
+      <span><b>Tesouro Selic 2029</b> SELIC + 0,0882%</span>
+      <span><b>Tesouro IPCA+ 2035</b> IPCA + 7,41%</span>
+      <span><b>IFIX</b> 3.412 <span class="up">+0,31%</span></span>
+      <span><b>Dólar</b> R$ 5,41</span>
+    </div>
+  </div>
+  <main class="container" id="inicio">
+    <h1>Olá, Mariana</h1>
+    <p class="sub">Seus investimentos em todas as corretoras, consolidados pela B3 · São Paulo, atualizado hoje às 09:12</p>
+    <div class="grid">
+      <section class="card pat" aria-label="Patrimônio">
+        <small>Patrimônio total na B3</small>
+        <div class="total">R$ 186.420,37</div>
+        <div class="var up">+R$ 1.482,10 (+0,80%) no mês</div>
+        <div class="bar" aria-hidden="true"><i style="width:31%;background:#0063DE"></i><i style="width:22%;background:#00B0E6"></i><i style="width:9%;background:#7B61FF"></i><i style="width:24%;background:#FFD862"></i><i style="width:14%;background:#002C63"></i></div>
+        <ul class="assets">
+          <li><span class="dot" style="background:#0063DE"></span><span>Ações</span><span class="pct">31,2%</span><b>R$ 58.163,15</b></li>
+          <li><span class="dot" style="background:#00B0E6"></span><span>Fundos imobiliários (FIIs)</span><span class="pct">21,8%</span><b>R$ 40.639,64</b></li>
+          <li><span class="dot" style="background:#7B61FF"></span><span>ETFs</span><span class="pct">9,3%</span><b>R$ 17.337,09</b></li>
+          <li><span class="dot" style="background:#FFD862"></span><span>Tesouro Direto</span><span class="pct">23,9%</span><b>R$ 44.554,47</b></li>
+          <li><span class="dot" style="background:#002C63"></span><span>Renda fixa (CDB, LCI, LCA)</span><span class="pct">13,8%</span><b>R$ 25.726,02</b></li>
+        </ul>
+      </section>
+      <section class="promo" aria-label="Tesouro Direto">
+        <img src="/verticals/assets/407cff9e/banner-hub-pf.webp" alt="">
+        <span class="tag">Tesouro Direto</span>
+        <h2>Invista no Tesouro Direto direto pelo B3 Investidor</h2>
+        <p>A partir de R$ 30, com liquidez diária no Tesouro Selic. Seu aporte mensal já está pronto.</p>
+        <button type="button" class="btn" id="investBtn">Investir</button>
+      </section>
+    </div>
+    <div class="quick">
+      <a href="#inicio"><b>Proventos</b>R$ 412,80 a receber em novembro</a>
+      <a href="#inicio"><b>Extrato</b>Movimentações de todas as corretoras</a>
+      <a href="#inicio"><b>Ofertas públicas</b>2 reservas abertas</a>
+      <a href="#inicio"><b>Imposto de Renda</b>Relatório auxiliar 2026</a>
+    </div>
+    <section class="panel" id="tesouro" hidden aria-label="Investir no Tesouro Direto">
+      <div class="panel-head"><h2>Investir no Tesouro Direto</h2><span class="pill">Aporte mensal programado · novembro</span></div>
+      <div class="titles" id="titles" role="radiogroup" aria-label="Título"></div>
+      <form id="transferForm" novalidate>
+        <div class="inv-grid">
+          <div>
+            <div class="form-grid">
+              <div class="field"><label for="toAccount">Título</label><select id="toAccount"></select><small id="titleHint">Vencimento 01/03/2029</small></div>
+              <div class="field"><label for="amount">Valor do investimento</label><div class="money"><span aria-hidden="true">R$</span><input type="text" id="amount" value="1.284,50" data-amount="1284.50" inputmode="decimal" readonly required></div><small>Aporte mensal programado. A taxa de custódia B3 é somada ao confirmar.</small></div>
+              <div class="field"><label for="fromAccount">Instituição financeira</label><select id="fromAccount"><option value="ACCT-1001">Horizonte CTVM · conta 48217-3</option><option value="ACCT-1002">Paulista Invest DTVM · conta 90155-0</option></select><small>Débito em conta na liquidação · D+0</small></div>
+              <div class="field"><label for="accountTier">Perfil do investidor</label><select id="accountTier"><option value="standard">Investidor · moderado</option><option value="basic">Investidor iniciante</option><option value="premium">Investidor qualificado</option></select><small>Define a taxa de custódia B3 desta aplicação.</small></div>
+            </div>
+            <p class="note"><strong>Taxa de custódia B3:</strong> cobrada na liquidação conforme seu perfil e exibida no resumo antes de confirmar. A instituição financeira não cobra taxa de administração no Tesouro Direto.</p>
+          </div>
+          <dl class="summary" aria-label="Resumo do investimento">
+            <h3>Resumo</h3>
+            <div><dt>Título</dt><dd id="summaryTitle">—</dd></div>
+            <div><dt>Rentabilidade</dt><dd id="summaryRate">—</dd></div>
+            <div><dt>Quantidade</dt><dd id="summaryQty">—</dd></div>
+            <div><dt>Valor do investimento</dt><dd id="summaryAmount">—</dd></div>
+            <div><dt>Taxa de custódia B3</dt><dd id="summaryFee">—</dd></div>
+            <div><dt>Total a debitar</dt><dd id="summaryTotal">—</dd></div>
+          </dl>
+        </div>
+        <div class="panel-actions">
+          <p class="status" id="transferStatus" role="status" aria-live="polite">Ao confirmar, você declara estar ciente das regras do Tesouro Direto e da taxa de custódia B3.</p>
+          <button type="button" class="btn ghost" id="backBtn">Voltar</button>
+          <button type="submit" id="submitBtn" class="btn">Confirmar investimento</button>
+        </div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+  <footer class="site">
+    <div class="container">
+      <div class="foot-top"><img src="/verticals/assets/407cff9e/b3-logo-white.svg" alt="B3 S.A. – Brasil, Bolsa, Balcão"><span>B3 S.A. – Brasil, Bolsa, Balcão · Praça Antonio Prado, 48 · São Paulo – SP</span></div>
+      <p class="foot-legal">Experiência de demonstração. Investidora, CPF, saldos, títulos e corretoras são fictícios; nenhum investimento ou débito real é gerado.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const TITLES = [
+      { id: 'ACCT-2001', name: 'Tesouro Selic 2029', rate: 'SELIC + 0,0882%', unit: 16842.37, due: '01/03/2029', hint: 'Liquidez diária · pós-fixado' },
+      { id: 'ACCT-2002', name: 'Tesouro IPCA+ 2035', rate: 'IPCA + 7,41%', unit: 2318.64, due: '15/05/2035', hint: 'Protege da inflação' },
+      { id: 'ACCT-2003', name: 'Tesouro Reserva', rate: 'SELIC + 0,0000%', unit: 112.48, due: '01/03/2031', hint: 'Reserva de emergência' },
+    ];
+    const FEE_TIERS = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
+    const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const qtyFmt = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const stamp = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
+    const panel = document.getElementById('tesouro');
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const tierSelect = document.getElementById('accountTier');
+    const amountInput = document.getElementById('amount');
+    const titlesEl = document.getElementById('titles');
+    const buttonLabel = 'Confirmar investimento';
+    toAccount.innerHTML = TITLES.map((t) => `<option value="${t.id}">${t.name}</option>`).join('');
+    function currentTitle() { return TITLES.find((t) => t.id === toAccount.value) || TITLES[0]; }
+    function custodyFee(amount) { const t = FEE_TIERS[tierSelect.value] || FEE_TIERS.standard; return amount > 0 ? Math.round(Math.max(t.rate * amount, t.flat) * 100) / 100 : 0; }
+    function render() {
+      const t = currentTitle();
+      const amount = parseFloat(amountInput.dataset.amount) || 0;
+      const fee = custodyFee(amount);
+      titlesEl.innerHTML = TITLES.map((o) => `<button type="button" role="radio" aria-checked="${o.id === t.id}" class="title-opt${o.id === t.id ? ' on' : ''}" data-id="${o.id}"><b>${o.name}</b><div class="rate">${o.rate}</div><small>${o.hint} · venc. ${o.due}</small></button>`).join('');
+      document.getElementById('titleHint').textContent = `Vencimento ${t.due} · preço unitário ${brl.format(t.unit)}`;
+      document.getElementById('summaryTitle').textContent = t.name;
+      document.getElementById('summaryRate').textContent = t.rate;
+      document.getElementById('summaryQty').textContent = `${qtyFmt.format(Math.floor((amount / t.unit) * 100) / 100)} título(s)`;
+      document.getElementById('summaryAmount').textContent = brl.format(amount);
+      document.getElementById('summaryFee').textContent = fee ? brl.format(fee) : 'Isento';
+      document.getElementById('summaryTotal').textContent = brl.format(amount + fee);
+    }
+    titlesEl.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-id]');
+      if (!b) return;
+      toAccount.value = b.dataset.id;
+      render();
+    });
+    [toAccount, fromAccount, tierSelect].forEach((el) => el.addEventListener('change', render));
+    function openInvest() {
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.getElementById('investBtn').addEventListener('click', openInvest);
+    document.querySelector('nav.tabs a[href="#tesouro"]').addEventListener('click', (e) => { e.preventDefault(); openInvest(); });
+    document.getElementById('backBtn').addEventListener('click', () => document.getElementById('inicio').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    render();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const amount = parseFloat(amountInput.dataset.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        result.className = 'result-box notice';
+        result.textContent = 'Informe um valor de investimento válido.';
+        return;
+      }
+      const t = currentTitle();
+      button.disabled = true;
+      button.textContent = 'Confirmando investimento…';
+      status.textContent = 'Estamos registrando seu investimento na B3. Não feche esta janela…';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount,
+            accountTier: tierSelect.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('investment-failed');
+        result.className = 'result-box success';
+        result.textContent = `Investimento confirmado! ${t.name} · ${t.rate}.\nTotal debitado: ${brl.format(Number(data.receipt.totalDebit))} (investimento ${brl.format(Number(data.receipt.amount))} + taxa de custódia B3 ${brl.format(Number(data.receipt.fee))})\n${selected(fromAccount)} · ${stamp.format(new Date(data.receipt.timestamp))}\nProtocolo: ${data.receipt.receiptId}`;
+        status.textContent = 'Investimento confirmado.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'Não foi possível confirmar seu investimento agora. Nenhum valor foi debitado; tente novamente em alguns minutos ou fale com a Central de Atendimento B3.';
+        status.textContent = 'Investimento não confirmado.';
+      } finally {
+        button.disabled = false;
+        button.textContent = buttonLabel;
+      }
+    });
+    function selected(select) { return select.options[select.selectedIndex].text; }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
