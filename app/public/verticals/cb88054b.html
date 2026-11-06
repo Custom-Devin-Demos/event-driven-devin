@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Line 3 · Line Control | LineWorks MES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root {
+    --bg: #070D13; --chrome: #0B1219; --panel: #111A24; --panel2: #16212E; --line: #223142; --ink: #E6EDF3; --mute: #8B9BAE;
+    --accent: #1F6FEB; --run: #2EA043; --run-bg: rgba(46,160,67,0.14); --warn: #D29922; --warn-bg: rgba(210,153,34,0.16);
+    --down: #F85149; --down-bg: rgba(248,81,73,0.16); --idle: #57677A;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .top { height: 56px; background: var(--chrome); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 18px; padding: 0 20px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.02em; }
+  .brand .mark { width: 30px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, #1F6FEB, #0E3E8C); display: grid; place-items: center; font-weight: 800; }
+  .brand small { display: block; font-weight: 500; color: var(--mute); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .crumbs { color: var(--mute); font-size: 13px; }
+  .crumbs b { color: var(--ink); font-weight: 600; }
+  .top .right { margin-left: auto; display: flex; gap: 18px; align-items: center; color: var(--mute); font-size: 13px; }
+  .top .clock { color: var(--ink); }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: #2B3A4D; display: grid; place-items: center; color: var(--ink); font-weight: 600; font-size: 12px; }
+  .shell { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 56px); }
+  aside { background: var(--chrome); border-right: 1px solid var(--line); padding: 16px 10px; }
+  aside h4 { margin: 8px 10px 8px; font-size: 11px; color: var(--mute); text-transform: uppercase; letter-spacing: 0.08em; }
+  aside a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; color: #C3CFDC; text-decoration: none; font-size: 13px; }
+  aside a.active { background: var(--panel2); color: #fff; }
+  aside a .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--run); flex: none; }
+  aside a .dot.down { background: var(--down); box-shadow: 0 0 0 3px rgba(248,81,73,0.25); }
+  aside a .dot.warn { background: var(--warn); }
+  aside a .dot.idle { background: var(--idle); }
+  aside .sep { height: 1px; background: var(--line); margin: 14px 6px; }
+  main { padding: 18px 22px 40px; min-width: 0; }
+  .andon { display: none; align-items: center; gap: 18px; padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; background: #3B0D0C; border: 1px solid var(--down); }
+  .andon.on { display: flex; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(248,81,73,0.0); } 50% { box-shadow: 0 0 0 6px rgba(248,81,73,0.25); } }
+  .andon .light { width: 18px; height: 18px; border-radius: 50%; background: var(--down); box-shadow: 0 0 14px var(--down); flex: none; }
+  .andon .msg b { display: block; font-size: 17px; letter-spacing: 0.03em; }
+  .andon .msg span { color: #F4B5B1; font-size: 13px; }
+  .andon .stat { margin-left: auto; display: flex; gap: 22px; }
+  .andon .stat div { text-align: right; font-size: 11px; text-transform: uppercase; color: #F4B5B1; letter-spacing: 0.06em; }
+  .andon .stat div b { display: block; font-size: 20px; color: #fff; letter-spacing: 0; }
+  .head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .head h1 { margin: 0; font-size: 22px; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; }
+  .chip::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .chip.RUNNING { background: var(--run-bg); color: #56D364; }
+  .chip.CHANGEOVER { background: var(--warn-bg); color: #E3B341; }
+  .chip.DOWN { background: var(--down-bg); color: #FF7B72; }
+  .head .meta { color: var(--mute); font-size: 13px; }
+  .head .meta b { color: var(--ink); font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .kpi label { display: block; font-size: 11px; color: var(--mute); text-transform: uppercase; letter-spacing: 0.07em; }
+  .kpi .v { font-size: 24px; font-weight: 700; margin-top: 4px; }
+  .kpi .s { font-size: 12px; color: var(--mute); margin-top: 2px; }
+  .kpi .s.good { color: #56D364; } .kpi .s.bad { color: #FF7B72; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; min-width: 0; }
+  .panel h2 { margin: 0 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #A9B7C6; display: flex; align-items: center; gap: 10px; }
+  .panel h2 .sub { margin-left: auto; text-transform: none; letter-spacing: 0; color: var(--mute); font-weight: 400; }
+  .flow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+  .st { background: var(--panel2); border: 1px solid var(--line); border-top: 3px solid var(--run); border-radius: 6px; padding: 10px; position: relative; min-width: 0; }
+  .st.warn { border-top-color: var(--warn); } .st.down { border-top-color: var(--down); background: #241315; } .st.idle { border-top-color: var(--idle); }
+  .st .id { font-size: 11px; color: var(--mute); }
+  .st .nm { font-weight: 600; font-size: 13px; margin: 2px 0 8px; min-height: 34px; }
+  .st .row { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); margin-top: 3px; gap: 6px; }
+  .st .row b { color: var(--ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st .bar { height: 4px; background: #0B1219; border-radius: 2px; margin-top: 9px; overflow: hidden; }
+  .st .bar i { display: block; height: 100%; width: 0; background: var(--run); }
+  .st.down .bar i { background: var(--down); width: 100% !important; }
+  .st .state { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; margin-top: 7px; color: #56D364; }
+  .st.warn .state { color: #E3B341; } .st.down .state { color: #FF7B72; } .st.idle .state { color: var(--mute); }
+  .grid2 { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
+  th { font-size: 11px; color: var(--mute); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  td .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.04em; }
+  .tag.RUN { background: var(--run-bg); color: #56D364; } .tag.NEXT { background: rgba(31,111,235,0.18); color: #79B8FF; } .tag.QUEUED { background: #1E2A38; color: var(--mute); }
+  .tag.HELD { background: var(--down-bg); color: #FF7B72; } .tag.DONE { background: #1E2A38; color: #8B9BAE; }
+  button.cta { height: 36px; padding: 0 14px; background: var(--accent); color: #fff; border: 0; border-radius: 6px; font: 600 13px Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+  button.cta:disabled { opacity: 0.55; cursor: wait; }
+  button.ghost { white-space: nowrap; height: 36px; padding: 0 14px; background: transparent; color: var(--ink); border: 1px solid #3A4B5F; border-radius: 6px; font: 600 13px Inter, system-ui, sans-serif; cursor: pointer; }
+  .log { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow: auto; font-size: 12.5px; }
+  .log li { display: grid; grid-template-columns: 62px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #1E2B3A; }
+  .log li time { color: var(--mute); }
+  .log li.err span { color: #FF7B72; } .log li.ok span { color: #56D364; } .log li.warn span { color: #E3B341; }
+  .chart { width: 100%; height: 150px; display: block; }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--mute); margin-top: 6px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .tablewrap { overflow-x: auto; }
+  #changeoverResult:empty { display: none; }
+  .err-box { background: #2A1215; border: 1px solid #6E2A2A; color: #FFB4AE; border-radius: 6px; padding: 10px 12px; margin-top: 10px; font-size: 13px; display: flex; align-items: center; gap: 12px; }
+  .err-box .actions { margin-left: auto; display: flex; gap: 8px; }
+  .ok-box { background: #10261A; border: 1px solid #22573A; color: #A6EBB8; border-radius: 6px; padding: 10px 12px; margin-top: 10px; font-size: 13px; }
+  footer { color: #5E6E80; font-size: 12px; text-align: center; padding: 10px 0 0; }
+  @media (max-width: 1180px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .flow { grid-template-columns: repeat(4, minmax(0, 1fr)); } .grid2 { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .shell { grid-template-columns: 1fr; } aside { display: none; } .crumbs, .top .right .hide-sm { display: none; }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .andon { flex-wrap: wrap; } .top { gap: 10px; padding: 0 12px; } .err-box { flex-wrap: wrap; } .err-box .actions { margin-left: 0; } th, td { padding: 9px 5px; } .andon .stat { margin-left: 0; } .hide-sm { display: none; }
+    button.cta, button.ghost { height: 44px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="mark">H</div><div>LineWorks MES<small>Harlow Precision</small></div></div>
+  <div class="crumbs">Plant 2 — Dayton, OH &nbsp;/&nbsp; Final Assembly &nbsp;/&nbsp; <b>Line 3</b></div>
+  <div class="right">
+    <span class="hide-sm">Shift B · 06:00–14:30</span>
+    <span class="clock mono" id="clock">--:--:--</span>
+    <span class="avatar" title="J. Alvarez — Shift Supervisor">JA</span>
+  </div>
+</header>
+<div class="shell">
+  <aside>
+    <h4>Plant 2 lines</h4>
+    <a href="#"><span class="dot"></span>Line 1 · Machining</a>
+    <a href="#"><span class="dot warn"></span>Line 2 · Sub-assembly</a>
+    <a href="#" class="active"><span class="dot" id="navDot"></span>Line 3 · Final Assembly</a>
+    <a href="#"><span class="dot idle"></span>Line 4 · Pack-out</a>
+    <div class="sep"></div>
+    <h4>Operations</h4>
+    <a href="#">Work orders</a><a href="#">Downtime &amp; andon</a><a href="#">Quality holds</a><a href="#">Recipes</a><a href="#">Maintenance</a>
+  </aside>
+  <main>
+    <div class="andon" id="andon" role="alert">
+      <div class="light"></div>
+      <div class="msg"><b>LINE 3 DOWN</b><span id="andonMsg">Changeover failed — station recipe download rejected. MES on-call paged.</span></div>
+      <div class="stat">
+        <div>Downtime<b class="mono" id="dtClock">00:00</b></div>
+        <div>Units lost<b class="mono" id="dtUnits">0</b></div>
+        <div>Output lost<b class="mono" id="dtCost">$0</b></div>
+      </div>
+    </div>
+
+    <div class="head">
+      <h1>Final Assembly Line 3</h1>
+      <span class="chip RUNNING" id="lineChip">RUNNING</span>
+      <span class="meta">Model <b id="curModel">HX-450</b> · WO <b id="curWo">WO-24-11873</b> · Cycle <b id="curCycle">57.5 s</b> · Target <b id="curTarget">62</b> UPH</span>
+    </div>
+
+    <section class="kpis">
+      <div class="kpi"><label>OEE</label><div class="v" id="kOee">78.4%</div><div class="s good">Target 75%</div></div>
+      <div class="kpi"><label>Availability</label><div class="v" id="kAvail">93.1%</div><div class="s" id="kAvailS">Downtime 0 min</div></div>
+      <div class="kpi"><label>Rate (UPH)</label><div class="v" id="kRate">59</div><div class="s" id="kRateS">Target 62</div></div>
+      <div class="kpi"><label>Good units</label><div class="v" id="kGood">312</div><div class="s" id="kGoodS">Plan 400 this WO</div></div>
+      <div class="kpi"><label>Scrap</label><div class="v" id="kScrap">4</div><div class="s" id="kScrapS">FPY 98.7%</div></div>
+      <div class="kpi"><label>Shift output</label><div class="v" id="kShift">286</div><div class="s">Plan 465 by 14:30</div></div>
+    </section>
+
+    <section class="panel">
+      <h2>Station flow <span class="sub" id="flowSub">All stations in cycle</span></h2>
+      <div class="flow" id="flow"></div>
+    </section>
+
+    <div class="grid2">
+      <section class="panel">
+        <h2>Work order queue <span class="sub">Changeover downloads every station recipe, then releases the line</span></h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Work order</th><th>Model</th><th class="hide-sm">Qty</th><th class="hide-sm">Due</th><th>Status</th><th></th></tr></thead>
+          <tbody id="woBody"></tbody>
+        </table></div>
+        <div id="changeoverResult" aria-live="polite"></div>
+      </section>
+      <section class="panel">
+        <h2>Andon &amp; events <span class="sub">Line 3</span></h2>
+        <ul class="log mono" id="log"></ul>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h2>Hourly output — Shift B <span class="sub">Good units per hour vs target</span></h2>
+      <svg class="chart" id="chart" viewBox="0 0 800 150" preserveAspectRatio="none"></svg>
+      <div class="legend"><span><i style="background:#2EA043"></i>Good units</span><span><i style="background:#F85149"></i>Down</span><span><i style="background:#8B9BAE"></i>Target</span></div>
+    </section>
+    <footer>LineWorks MES 7.4.0 · Plant 2 — Dayton · Harlow Precision Manufacturing</footer>
+  </main>
+</div>
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+  function devinIdentity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+    };
+  }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  (function () {
+    var STATIONS = [
+      { id: 'ST10', name: 'Housing load', recipe: 'LD-LBL-HX-HD', ct: 41.2 },
+      { id: 'ST20', name: 'Shaft press', recipe: 'PR-22MM', ct: 52.8 },
+      { id: 'ST30', name: 'Bolt torque (6-spindle)', recipe: 'TQ-M12-HD', ct: 56.9 },
+      { id: 'ST40', name: 'Leak test', recipe: 'LK-250', ct: 55.4 },
+      { id: 'ST50', name: 'Vision inspection', recipe: 'VJ-HX4', ct: 22.6 },
+      { id: 'ST60', name: 'End-of-line test', recipe: 'EOL-HX-B', ct: 57.1 },
+      { id: 'ST70', name: 'Label & pack', recipe: 'LBL-HX-HD', ct: 34.0 },
+    ];
+    var MODELS = {
+      'HX-300': { cycle: 51.0, uph: 68 }, 'HX-350': { cycle: 53.5, uph: 65 },
+      'HX-450': { cycle: 57.5, uph: 62 }, 'HX-450-G2': { cycle: 58.0, uph: 62 },
+    };
+    var WOS = [
+      { wo: 'WO-24-11873', model: 'HX-450', qty: 400, due: '11:30', status: 'RUN' },
+      { wo: 'WO-24-11874', model: 'HX-450-G2', qty: 240, due: '14:00 · ship', status: 'NEXT' },
+      { wo: 'WO-24-11875', model: 'HX-350', qty: 180, due: '16:45', status: 'QUEUED' },
+      { wo: 'WO-24-11876', model: 'HX-300', qty: 300, due: 'Tomorrow', status: 'QUEUED' },
+    ];
+    var HOURS = [{ h: '06', v: 58 }, { h: '07', v: 61 }, { h: '08', v: 55 }, { h: '09', v: 60 }, { h: '10', v: 59 }, { h: '11', v: 27, live: true }, { h: '12', v: null }, { h: '13', v: null }, { h: '14', v: null }];
+    var DOWNTIME_PER_MIN = 410;
+
+    var state = { line: 'RUNNING', model: 'HX-450', wo: 'WO-24-11873', good: 312, scrap: 4, shift: 286, downSince: null, downtimeSec: 0, lostBase: 0, busy: false };
+    var progress = STATIONS.map(function (_, i) { return (i * 17) % 100; });
+
+    var flow = document.getElementById('flow');
+    var woBody = document.getElementById('woBody');
+    var logEl = document.getElementById('log');
+    var result = document.getElementById('changeoverResult');
+
+    function now() { return new Date().toTimeString().slice(0, 8); }
+    function log(msg, cls) {
+      var li = document.createElement('li');
+      if (cls) li.className = cls;
+      li.innerHTML = '<time>' + now() + '</time><span>' + esc(msg) + '</span>';
+      logEl.insertBefore(li, logEl.firstChild);
+    }
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function renderFlow() {
+      flow.innerHTML = STATIONS.map(function (s, i) {
+        var cls = state.line === 'DOWN' ? (s.fault ? 'down' : 'idle') : (state.line === 'CHANGEOVER' ? 'warn' : '');
+        var label = state.line === 'DOWN' ? (s.fault ? 'FAULT · NO RECIPE' : 'STOPPED') : (state.line === 'CHANGEOVER' ? 'DOWNLOADING' : 'IN CYCLE');
+        return '<div class="st ' + cls + '" data-station="' + s.id + '">' +
+          '<div class="id mono">' + s.id + '</div><div class="nm">' + esc(s.name) + '</div>' +
+          '<div class="row">Recipe <b class="mono">' + esc(s.recipe) + '</b></div>' +
+          '<div class="row">Last CT <b class="mono">' + (state.line === 'RUNNING' ? s.ct.toFixed(1) + ' s' : '—') + '</b></div>' +
+          '<div class="bar"><i style="width:' + (state.line === 'RUNNING' ? progress[i] : 0) + '%"></i></div>' +
+          '<div class="state">' + label + '</div></div>';
+      }).join('');
+    }
+
+    function renderWos() {
+      woBody.innerHTML = WOS.map(function (w) {
+        var action = '';
+        if (w.status === 'NEXT' || w.status === 'QUEUED' || w.status === 'HELD') {
+          action = '<button type="button" class="cta" data-wo="' + w.wo + '" data-model="' + w.model + '"' + (state.busy ? ' disabled' : '') + '>Changeover &amp; start</button>';
+        }
+        var tag = w.status === 'RUN' ? 'RUNNING' : w.status;
+        return '<tr><td class="mono">' + w.wo + '</td><td><b>' + w.model + '</b></td><td class="hide-sm">' + w.qty + '</td><td class="hide-sm">' + w.due + '</td>' +
+          '<td><span class="tag ' + w.status + '">' + tag + '</span></td><td>' + action + '</td></tr>';
+      }).join('');
+    }
+
+    function renderChart() {
+      var svg = document.getElementById('chart');
+      var max = 80, w = 800, h = 150, bw = w / HOURS.length;
+      var target = MODELS[state.model] ? MODELS[state.model].uph : 62;
+      var ty = h - (target / max) * (h - 20) - 4;
+      var bars = HOURS.map(function (p, i) {
+        var x = i * bw + bw * 0.2, bwid = bw * 0.6;
+        var label = '<text x="' + (i * bw + bw / 2) + '" y="' + (h - 2) + '" fill="#8B9BAE" font-size="11" text-anchor="middle">' + p.h + ':00</text>';
+        if (p.v === null) return label;
+        if (p.live && state.line === 'DOWN') {
+          return '<rect x="' + x + '" y="' + (h - 120) + '" width="' + bwid + '" height="104" fill="rgba(248,81,73,0.25)" stroke="#F85149" stroke-dasharray="4 3"/>' + label;
+        }
+        var bh = (p.v / max) * (h - 20);
+        return '<rect x="' + x + '" y="' + (h - 16 - bh) + '" width="' + bwid + '" height="' + bh + '" rx="2" fill="#2EA043" opacity="' + (p.live ? 0.65 : 1) + '"/>' + label;
+      }).join('');
+      svg.innerHTML = bars + '<line x1="0" x2="' + w + '" y1="' + ty + '" y2="' + ty + '" stroke="#8B9BAE" stroke-dasharray="6 4"/>';
+    }
+
+    function renderHeader() {
+      var chip = document.getElementById('lineChip');
+      chip.className = 'chip ' + state.line;
+      chip.textContent = state.line;
+      document.getElementById('navDot').className = 'dot' + (state.line === 'DOWN' ? ' down' : (state.line === 'CHANGEOVER' ? ' warn' : ''));
+      document.getElementById('curModel').textContent = state.model;
+      document.getElementById('curWo').textContent = state.wo;
+      document.getElementById('curCycle').textContent = MODELS[state.model].cycle.toFixed(1) + ' s';
+      document.getElementById('curTarget').textContent = MODELS[state.model].uph;
+      document.getElementById('flowSub').textContent = state.line === 'DOWN' ? 'Line stopped — ST30 has no recipe for ' + state.pendingModel
+        : (state.line === 'CHANGEOVER' ? 'Downloading station recipes…' : 'All stations in cycle');
+      document.getElementById('andon').classList.toggle('on', state.line === 'DOWN');
+    }
+
+    function renderKpis() {
+      var down = state.line === 'DOWN';
+      var dtMin = Math.floor(state.downtimeSec / 60);
+      var avail = Math.max(0, 93.1 - state.downtimeSec / 300);
+      document.getElementById('kOee').textContent = (down ? 0 : (avail * 0.842)).toFixed(1) + '%';
+      document.getElementById('kAvail').textContent = avail.toFixed(1) + '%';
+      document.getElementById('kAvailS').textContent = 'Downtime ' + dtMin + ' min';
+      document.getElementById('kAvailS').className = 's' + (state.downtimeSec ? ' bad' : '');
+      document.getElementById('kRate').textContent = down || state.line === 'CHANGEOVER' ? '0' : String(MODELS[state.model].uph - 3);
+      document.getElementById('kRateS').textContent = 'Target ' + MODELS[state.model].uph;
+      document.getElementById('kRateS').className = 's' + (down ? ' bad' : '');
+      document.getElementById('kGood').textContent = state.good;
+      document.getElementById('kScrap').textContent = state.scrap;
+      document.getElementById('kScrapS').textContent = 'FPY ' + (100 * state.good / (state.good + state.scrap)).toFixed(1) + '%';
+      document.getElementById('kShift').textContent = state.shift;
+    }
+
+    function renderAll() { renderHeader(); renderFlow(); renderWos(); renderKpis(); renderChart(); }
+
+    function tickDowntime() {
+      if (state.line !== 'DOWN') return;
+      var sec = Math.floor((Date.now() - state.downSince) / 1000);
+      state.downtimeSec = state.lostBase + sec;
+      document.getElementById('dtClock').textContent = pad(Math.floor(sec / 60)) + ':' + pad(sec % 60);
+      document.getElementById('dtUnits').textContent = String(Math.floor(sec * MODELS[state.pendingModel].uph / 3600 * 10) / 10);
+      document.getElementById('dtCost').textContent = '$' + Math.floor(sec * DOWNTIME_PER_MIN / 60).toLocaleString();
+      renderKpis();
+    }
+
+    var cycleTick = 0;
+    setInterval(function () {
+      document.getElementById('clock').textContent = now();
+      tickDowntime();
+      if (state.line !== 'RUNNING') return;
+      cycleTick++;
+      progress = progress.map(function (p, i) { return (p + 9 + (i % 3) * 3) % 104; });
+      if (cycleTick % 6 === 0) {
+        if (cycleTick % 54 === 0) { state.scrap++; log('ST40 leak decay over limit — part rejected to red bin', 'warn'); }
+        else { state.good++; state.shift++; }
+        STATIONS.forEach(function (s) { s.ct = Math.max(10, s.ct + (Math.random() - 0.5) * 0.8); });
+        renderKpis();
+      }
+      renderFlow();
+    }, 1000);
+
+    function lineDown(model, wo) {
+      state.line = 'DOWN';
+      state.pendingModel = model;
+      if (!state.downSince) {
+        state.downSince = Date.now();
+        state.lostBase = state.downtimeSec;
+      }
+      STATIONS.forEach(function (s) { s.fault = s.id === 'ST30'; });
+      WOS.forEach(function (w) { if (w.wo === wo) w.status = 'HELD'; else if (w.status === 'RUN') w.status = 'DONE'; });
+      document.getElementById('andonMsg').textContent = 'Changeover to ' + model + ' failed — station recipe download rejected. MES on-call paged.';
+      log('ANDON: Line 3 DOWN — changeover to ' + model + ' failed (recipe download rejected)', 'err');
+      log('ST30 Bolt torque: no recipe loaded — station faulted', 'err');
+      log('Page sent to MES on-call (mes-line-control-oncall)', 'warn');
+      result.innerHTML = '<div class="err-box"><span><b>Changeover failed.</b> Station recipes could not be downloaded for ' + esc(model) + '. Line 3 is stopped.</span>' +
+        '<span class="actions"><button type="button" class="ghost" id="retryBtn" data-wo="' + esc(wo) + '" data-model="' + esc(model) + '">Retry changeover</button></span></div>';
+      renderAll();
+    }
+
+    function lineRunning(d, wo) {
+      state.line = 'RUNNING';
+      state.model = d.model;
+      state.wo = wo;
+      state.good = 0; state.scrap = 0;
+      state.downSince = null;
+      (d.stations || []).forEach(function (r) {
+        var s = STATIONS.find(function (x) { return x.id === r.station; });
+        if (s) { s.recipe = r.recipe; s.fault = false; }
+      });
+      WOS.forEach(function (w) { if (w.wo === wo) w.status = 'RUN'; else if (w.status === 'RUN' || w.status === 'HELD') w.status = w.status === 'HELD' ? 'QUEUED' : 'DONE'; });
+      (d.stations || []).forEach(function (r) { log(r.station + ' recipe ' + r.recipe + ' downloaded', 'ok'); });
+      log('Line 3 released — running ' + d.model + ' (' + wo + ')', 'ok');
+      result.innerHTML = '<div class="ok-box">Changeover complete — Line 3 running <b>' + esc(d.model) + '</b> at ' + d.targetUph + ' UPH target.</div>';
+      renderAll();
+    }
+
+    async function changeover(model, wo) {
+      if (state.busy) return;
+      state.busy = true;
+      state.line = 'CHANGEOVER';
+      result.innerHTML = '';
+      log('Changeover requested: ' + state.model + ' → ' + model + ' (' + wo + ') by J. Alvarez');
+      renderAll();
+      try {
+        var res = await fetch('/api/cb88054b/changeover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ line: 'L3', model: model, workOrder: wo }, devinIdentity())),
+        });
+        var d = await res.json().catch(function () { return {}; });
+        if (!res.ok || d.success === false) throw new Error(d.error || 'changeover failed');
+        await new Promise(function (r) { setTimeout(r, 1200); });
+        state.busy = false;
+        lineRunning(d, wo);
+      } catch (e) {
+        state.busy = false;
+        lineDown(model, wo);
+      }
+    }
+
+    document.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('button[data-model]');
+      if (!btn || btn.disabled) return;
+      changeover(btn.getAttribute('data-model'), btn.getAttribute('data-wo'));
+    });
+
+    log('Shift B started — 7 stations online', 'ok');
+    log('WO-24-11873 HX-450 in production (312 / 400)');
+    log('ECN-24117 released to Line 3: HX-450 Gen 2 (HX-450-G2)', 'warn');
+    log('WO-24-11874 HX-450-G2 staged — kits at line side');
+    renderAll();
+  })();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>

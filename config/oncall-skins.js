@@ -5186,7 +5186,41 @@ const ONCALL_SKINS = {
       impact: 'Test leads cannot release-gate the INV800 release candidate; the program release review is blocked.',
     },
     disclaimer: 'NOT ACTUALLY A BORGWARNER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BorgWarner product.',
-  },  '1960590a': {
+  },
+  'cb88054b': {
+    slug: 'cb88054b',
+    company: 'Harlow Precision',
+    brandMark: 'H',
+    vertical: 'linecontrol',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/line-control', '/mes-line', '/manufacturing-line'],
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the LineWorks MES Line Control console linked above (Final Assembly Line 3). Its Changeover & start button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 Line 3: Changeover & start", release lineworks-mes@7.4.0, owner team mes-line-control-oncall: Changeover & start to model HX-450-G2 fails immediately with HTTP 500 and Line 3 is DOWN, while changeovers to HX-300, HX-350 and HX-450 succeed.',
+        'Use "Line 3", "HX-450-G2" and "changeover" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Dana Whitfield (mes-line-control-oncall)". Dana Whitfield is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: 'cb88054b.html', title: 'Line 3 \u00b7 Line Control | LineWorks MES' },
+    theme: {
+      '--accent': '#1F6FEB',
+      '--ink': '#E6EDF3',
+      '--surface': '#111A24',
+      '--chrome-bg': '#0B1219',
+      '--chrome-text': '#E6EDF3',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 Line 3: Changeover & start',
+      release: 'lineworks-mes@7.4.0',
+      team: 'mes-line-control-oncall',
+      symptom: 'Changeover & start to model HX-450-G2 on Final Assembly Line 3 fails immediately with HTTP 500; station recipes are not downloaded and the line drops to DOWN. Changeovers to HX-300, HX-350 and HX-450 succeed. Latency is normal.',
+      impact: 'Final Assembly Line 3 is stopped (~62 units/hr, ~$410/min of lost output); the 14:00 HX-450 Gen 2 customer shipment is at risk.',
+    },
+    disclaimer: 'NOT A REAL MANUFACTURER \u2014 internal demo only. Harlow Precision and LineWorks MES are fictional; all plant, line and production data is made up.',
+  },
+  '1960590a': {
     slug: '1960590a',
     company: 'FedEx',
     brandMark: 'F',
