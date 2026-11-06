@@ -524,7 +524,7 @@
       : { name: dest.name, accountType: dest.accountType || dest.type, mask: dest.mask };
     state.transactions.forEach(function (t) { t.fresh = false; });
     state.transactions.unshift({ id: p.id, createdDate: p.createdAt, amountCents: -p.amountCents, sender: { name: 'Operating', accountType: 'Checking', mask: '1234' }, recipient: recipient, type: state.type === 'bill_pay_batch' ? 'ACH-US' : p.typeLabel, status: p.status, fresh: true });
-    state.data.balances.availableCents = res.balances.availableAfterCents;
+    state.data.balances.availableCents -= p.amountCents;
     state.data.balances.pendingOutCents += p.amountCents;
     renderBalances(state.data.balances); renderTransactions();
     $('success-title').textContent = p.typeLabel + ' submitted · ' + money(p.amountCents);
