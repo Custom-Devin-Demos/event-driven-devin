@@ -456,3 +456,53 @@ describe('Copa Airlines On-Call skin (fixed On-Call member, Slack only)', () => 
     expect(text).toContain('<@U0PRESENTER>');
   });
 });
+
+describe('B3 On-Call skin (fixed On-Call member, Slack only)', () => {
+  const B3_SLUG = '407cff9e';
+  const ENV_KEY = 'CUSTOMER_407CFF9E_SLACK_MEMBER_ID';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSkinAlertMemory();
+    delete process.env[ENV_KEY];
+  });
+
+  afterAll(() => {
+    delete process.env[ENV_KEY];
+  });
+
+  test('routes to Slack, pages the configured member as On-Call and names B3', async () => {
+    const skin = getOncallSkin(B3_SLUG);
+    expect(skin.alertDestination).toBe('slack');
+    expect(skin.teamsAlerts).toBeUndefined();
+    expect(skin.onCallSlackMemberId).toBe('U09A56TAB8B');
+    expect(skin.alertCard.metricQuery).toContain('service:checkout-api');
+
+    const result = await postOncallAlert(skin.vertical, { skin });
+
+    expect(result.ok).toBe(true);
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    expect(text).toContain('*On-Call:* <@U09A56TAB8B>');
+    expect(text).toContain('B3');
+    expect(text).toContain('Confirmar investimento');
+    expect(text).toContain('investidor-tesouro-custodia');
+    expect(JSON.stringify(blocks)).toContain('<@U09A56TAB8B>');
+
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    const [prompt] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('/oncall/c/407cff9e');
+    expect(prompt).toContain('POST /api/oncall/banking/transfer');
+    expect(prompt).toContain('<@U09A56TAB8B>');
+  });
+
+  test('CUSTOMER_407CFF9E_SLACK_MEMBER_ID overrides the configured member', async () => {
+    process.env[ENV_KEY] = 'U0OVERRIDE';
+    const skin = getOncallSkin(B3_SLUG);
+
+    await postOncallAlert(skin.vertical, { skin });
+
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain('*On-Call:* <@U0OVERRIDE>');
+    expect(text).not.toContain(skin.onCallSlackMemberId);
+  });
+});

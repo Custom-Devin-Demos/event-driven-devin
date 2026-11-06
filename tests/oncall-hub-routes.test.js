@@ -530,6 +530,20 @@ test('the Copa Airlines skin forces Slack and serves its native booking page', a
   expect(html).toMatch(/<input[^>]*id="amount"[^>]*readonly/);
 });
 
+test('the B3 skin forces Slack and serves its native B3 Investidor page', async () => {
+  const res = await fetch(`${baseUrl}/oncall/c/407cff9e`);
+  const html = await res.text();
+  expect(res.status).toBe(200);
+  expect(html).toContain('var skinAlertDestination = "slack";');
+  expect(html).toContain('Confirmar investimento');
+  expect(html).toContain('Mariana Souza');
+  expect(html).toContain('Tesouro Selic 2029');
+  expect(html).toContain('Taxa de custódia B3');
+  expect(html).toContain('receipt.totalDebit');
+  expect(html).toContain('NOT ACTUALLY A B3 SITE');
+  expect(html).toMatch(/<input[^>]*id="amount"[^>]*value="1.284,50"[^>]*data-amount="1284.50"[^>]*readonly/);
+});
+
 describe('on-call hub page contract', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'oncall.html'), 'utf8');
 
