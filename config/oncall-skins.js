@@ -8891,6 +8891,13 @@ const ONCALL_SKINS = {
     page: { file: '81e62395.html', title: 'Meal Payments - LINQ | K\u201112 Software' },
     disclaimer: 'NOT ACTUALLY A LINQ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real LINQ product.',
   },
+  '0bd02f01': {
+    slug: '0bd02f01',
+    company: 'Chainguard',
+    vertical: 'hightech',
+    page: { file: '0bd02f01.html', title: 'The trusted source for open source | Chainguard' },
+    disclaimer: 'NOT ACTUALLY A CHAINGUARD SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Chainguard product.',
+  },
 };
 
 function getOncallSkin(slug) {
