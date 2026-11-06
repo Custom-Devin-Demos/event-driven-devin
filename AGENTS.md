@@ -13,6 +13,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | Vertical | URL Path | Frontend | API Endpoint | Service File |
 |----------|----------|----------|--------------|-------------|
 | **Hub** (landing page) | `/` | `app/public/hub.html` | — | — |
+| **f2ec3d90 — external incident report bridge** (unlisted; deduplicated, rate-limited reports post an on-call alert and request a Devin fix session in the separate repo) | `/f2ec3d90/` (external container) | — | `POST /api/f2ec3d90/incident` | `app/services/verticals/f2ec3d90.js` |
 | **f2ec3d90 — external multi-service demo stack** (separate repo, own container; profile-gated) | `/f2ec3d90/` | `f2ec3d90-src/` (external checkout) | `GET /f2ec3d90/health` | `docker-compose.yml` service `f2ec3d90` |
 | **Marshalls — Best Gift Ideas** (unlisted; original archived gift grid → first MAX STUDIO gift bundle → Quick Look → Add To Bag → Checkout → Place Order fails with `TypeError` reading `handlingFee` because `FULFILLMENT_RULES` lacks `gift-bundle`; standard DISNEY cookie jar succeeds. Sentry + instant `createSessionAndAlert` → Devin fix PR; keep the planted defect) | `/marshalls`, `/ea2d0dbc` | `app/public/verticals/ea2d0dbc.html` | `GET /api/ea2d0dbc/catalog`, `POST /api/ea2d0dbc/checkout` | `app/services/verticals/ea2d0dbc.js` |
 | **Netflix — Membership Signup** (unlisted — direct URL only) | `/ca610f30` | `app/public/verticals/ca610f30.html` | `POST /api/ca610f30/memberships` | `app/services/verticals/ca610f30.js` |
