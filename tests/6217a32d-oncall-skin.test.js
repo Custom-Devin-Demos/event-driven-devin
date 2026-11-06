@@ -155,6 +155,9 @@ describe('6217a32d TV home screen On-Call skin', () => {
     const cw = body.rows.find((r) => r.id === 'continue-watching');
     expect(cw).toMatchObject({ deferred: true, href: '/api/home/continue-watching?profileId=p-jordan' });
     body.rows.filter((r) => !r.deferred).forEach((r) => expect(r.items.length).toBeGreaterThan(0));
+    const live = body.rows.find((r) => r.id === 'live-tv');
+    expect(live.items[0].channelName).toBe('Roku News 24');
+    expect(JSON.stringify(body.rows)).not.toContain('StreamTV');
   });
 
   test('GET /api/home/continue-watching returns in-progress titles for every profile', async () => {
