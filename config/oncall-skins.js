@@ -8727,7 +8727,7 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     paths: ['/streamtv'],
     alertDestination: 'slack',
-    page: { file: '6217a32d.html', title: 'Home | StreamTV' },
+    page: { file: '6217a32d.html', title: 'Cloud Emulator | StreamTV' },
     devinSession: {
       promptAppendix: 'Expected from the responder: root cause with the culprit commit (use git log / git blame on streamtv-home-api), a fix, a regression test that guards the latency budget, a PR with before/after p95 and the test output, and a reply in this thread. Keep the summary short and in plain English; it is shown on a TV screen.',
     },
