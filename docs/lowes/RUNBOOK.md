@@ -12,8 +12,8 @@ sessions are created by the default flow. No public deployment is authorized.
   (`ea2d0dbc`) customer alias + bulky/category-specific fulfillment scenario.
 - Registration: filesystem discovery, unchanged shared vertical registry and customer loader.
 - Teams: existing `/api/oncall/trigger/:vertical` and `app/services/teams.js` card
-  builder/transport. The Lowe’s scenario returns its actual Teams payload without
-  reaching generic Slack fallback or session-creation logic.
+  builder/transport. Lowe’s uses the standard selected-Teams sender and channel-owned responder.
+  Local rehearsal previews the same card; live mode never falls back to Slack.
 - Baseline: `devin/lowes-cart-b5f26e97`.
 - Repair: `devin/lowes-pickup-fix-b5f26e97`, targeting the baseline, **not main**.
 - [Preparation session](https://devin-gtm.devinenterprise.com/sessions/b5f26e97a86b49a59c23f5023ffc618e)
@@ -81,35 +81,63 @@ script; the production artifact is the existing Dockerfile/Node application.
 
 > In Eashan Dev only, investigate the synthetic Lowe’s cart incident in COG-GTM/event-driven-devin on devin/lowes-cart-b5f26e97. Open /lowes locally with integrations disabled, confirm Central Charlotte and the refrigerator plus DEWALT kit, verify delivery succeeds, then switch to pickup and reproduce the failure; verify tools-only pickup still succeeds. Trace quoteCart’s fulfillment-policy lookup, add a focused regression test, and open a repair PR targeting devin/lowes-cart-b5f26e97, not main. Run the unchanged scripts/a4c19e72-regression.js before and after, run tests and lint, and record yourself replaying the same desktop and mobile browser flow against the fixed revision. Keep Teams dry-run, show the actual Adaptive Card payload, and distinguish this live investigation from prebuilt replay. Do not merge, deploy, create a repository, use Slack, post to shared on-call/customer channels, use real orders/payments/logins, or modify native iOS work.
 
-## Teams delivery safeguards (default: disabled)
+## Standard Teams live path and safe rehearsal
 
-`POST /api/oncall/trigger/a4c19e72` always returns `{dryRun:true,sent:false}`,
-even with Slack/live request options or shared Teams environment configuration.
-It neither sends a message nor starts a session. The generic `/oncall/a4c19e72`
-wrapper likewise labels dry-run truthfully and triggers only on HTTP 500.
+The same `POST /api/oncall/trigger/a4c19e72` route supports both modes:
 
-An administrator may **only after explicit approval of a dedicated demo channel**
-configure all of these server-side values, using secrets rather than code:
+- **Default:** `LOWES_DEMO_LIVE_TEAMS` absent/false returns the exact standard
+  Adaptive Card envelope with `dryRun:true,sent:false`. No send or session.
+- **Approved live run:** set the single non-secret switch
+  `LOWES_DEMO_LIVE_TEAMS=true` **only after destination and responder approval**.
+  This follows `postOncallAlert → postTeamsAlert → postTeamsCard`, using the
+  existing skin preference `ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI`, then the
+  existing `ONCALL_TEAMS_WEBHOOK_URL` fallback. No new webhook scheme or custom
+  send endpoint. Missing/invalid webhook fails closed; no Slack fallback even
+  when the caller requests Slack.
+- The Teams **channel responder** starts the investigation. The app does not
+  create a duplicate session. `devinOrgId`/`devinUserId` in an app request do
+  not configure ownership for Teams-created sessions.
+- A successful send confirms transport acceptance only, not responder execution.
+  Follow the originating Teams thread for the actual new session and repair PR.
+- The native page owns its trigger, including under `/oncall/c/a4c19e72`;
+  the shared on-call wrapper does not send a duplicate.
+- Enable this only on an access-controlled demo runtime. The existing trigger is
+  not a new authenticated production ingress. The normal upstream trigger cap applies.
+- Never store or display webhook values in code, URLs, logs, browser state or PRs.
 
-| Variable | Meaning |
-| --- | --- |
-| `LOWES_DEMO_TEAMS_ENABLED` | Exact value `true` |
-| `LOWES_DEMO_TEAMS_WEBHOOK_URL` | Approved HTTPS Teams/Workflow webhook |
-| `LOWES_DEMO_APPROVED_WEBHOOK_SHA256` | SHA-256 of that exact webhook URL |
-| `LOWES_DEMO_APPROVED_CHANNEL` | Exact approved demo-channel label |
-| `LOWES_DEMO_SEND_TOKEN` | Independent random token, at least 32 characters |
+### Read-only readiness findings
 
-Only `POST /api/a4c19e72/teams/send` can send; it requires the token in
-`x-lowes-demo-token` and `{"approval":"<exact approved channel label>"}`.
-Never put the token or webhook in the browser, URL, PR or logs. The existing Teams
-transport blocks redirects and validates the URL; attempts are throttled to one per
-minute per process. This is a demo guard, not a distributed production rate limiter.
-There is no Slack fallback. Do not enable it for this rehearsal.
+- This VM has **no Teams webhook**. The existing live demo host reports
+  `teamsDefaultWebhook:true` at https://devindemos.com/api/oncall/scenarios.
+  This proves presence, not its destination or permission to send.
+- Existing deployment sync maps `MAIN_ONCALL_TEAMS_WEBHOOK_URL` and
+  `MAIN_ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI` Actions secrets to those runtime
+  variables (see `.github/workflows/deploy.yml:79-108`,
+  `scripts/deploy-ec2.sh:105-130`, `.env.example:96-109`).
+  Reuse that configured Workflow once its exact destination is confirmed;
+  absence in the VM is **not** a reason to create another webhook.
+- COG-GTM / oncall-demo exists and is accessible. Historical Workflows cards are
+  visible there. Access and historical traffic are not authorization for this run.
+- The user's screenshot and a read-only thread lookup confirm the distinct
+  **automations-demo** checkout path is working:
+  `storefront → createSessionAndAlert → AUTOMATIONS_TEAMS_WEBHOOK_URL →
+  Teams responder`. [Observed investigation session](https://devin-gtm.devinenterprise.com/sessions/25ecdc233e8a47bc987555a105c5c6c2).
+  This does not prove Eashan Dev/Eashan ownership for an oncall-demo alert.
+- Eashan Dev's currently listed responder is Slack-only and runs as a service user.
+  A **disabled** Lowe’s-only Teams responder proposal was validated and submitted
+  for approval separately. It watches top-level bot messages in oncall-demo with
+  all three markers: `customer-a4c19e72-checkout`, `Synthetic demo alert`,
+  `devin/lowes-cart-b5f26e97`; it runs as creator (Eashan).
+- No existing responder was modified. No Teams message or responder test was sent.
+  Do not enable until the channel owner/admin approves the target, confirms the
+  Workflow mapping and prevents duplicate responders. Then separately approve one
+  live trigger. A channel admin can confirm the mapping; Eashan is needed to approve
+  the intended creator identity. An authorized presenter can launch afterward.
 
-`webhookAccepted:true` is not proof of card rendering or responder execution. Before
-any future live run, a human must verify the actual Teams channel, bot membership,
-Eashan Dev responder mapping and repository access. Those surfaces are **unverified**;
-no approved webhook/channel was supplied and no live send was attempted.
+The responder's repo/branch restriction is a runbook instruction, not a hard GitHub
+ACL. Its filter is schema-validated, but matching actual Adaptive Card text is
+unverified until an approved real event is delivered. Network policy remains the
+organization default; no telemetry or broad Slack grants were added.
 
 ## Publication safeguards
 

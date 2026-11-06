@@ -423,6 +423,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
+      const nativeAlertTrigger = ${JSON.stringify(Boolean(scenario.nativeAlertTrigger))};
       const automatedAlertPath = ${JSON.stringify(Boolean(skin && skin.alertPath === 'automated'))};
       const failAfterHang = ${JSON.stringify(Boolean(skin && skin.failAfterHang))};
       var skinAlertDestination = ${JSON.stringify(skin && ['teams', 'slack', 'devin'].includes(skin.alertDestination) ? skin.alertDestination : null)};
@@ -561,7 +562,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
         });
       }
       window.fetch = function (url, opts) {
-        if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
+        if (!nativeAlertTrigger && typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
           // Reroute the page's primary action to the on-call vertical
           // endpoint: the scenario's real degradation fires and Sentry/
           // Datadog capture genuine telemetry. The alert card is posted
