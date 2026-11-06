@@ -106,6 +106,24 @@ describe('6217a32d TV home screen On-Call skin', () => {
     }
   });
 
+  test('ships original local poster art with a matching image for each presentation key', () => {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', '6217a32d.html'), 'utf8');
+    const posterMap = html.match(/var POSTERS = \{([\s\S]*?)\};/)[1];
+    const names = new Set([...posterMap.matchAll(/: '([a-z-]+)'/g)].map((match) => match[1]));
+    names.add('woodland');
+    names.add('wallpaper');
+    for (const name of names) {
+      const art = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', 'assets', '6217a32d', `${name}.webp`));
+      expect(art.toString('ascii', 0, 4)).toBe('RIFF');
+      expect(art.toString('ascii', 8, 12)).toBe('WEBP');
+      expect(art.length).toBeLessThan(160000);
+    }
+    expect(html).toContain("var t = el('button', 'tile')");
+    expect(html).toContain('prefers-reduced-motion');
+    expect(html).toContain('id="spotlightTitle"');
+    expect(html).toContain('id="playerBack"');
+  });
+
   test('seeds 50 titles and 3 profiles', () => {
     expect(TITLES).toHaveLength(50);
     expect(new Set(TITLES.map((t) => t.id)).size).toBe(50);
