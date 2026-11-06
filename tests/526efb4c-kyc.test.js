@@ -238,6 +238,15 @@ describe('submission', () => {
     expect(r.body.signatureMethod).toBe('draw');
   });
 
+  test('submissions are retired with their session so the store stays bounded', () => {
+    const { sessionToken } = svc.login({ cardNumber: '378282246310005', cardId: '4321' });
+    expect(svc.submit({ sessionToken, values: VALID, signature: SIGNATURE }).status).toBe(201);
+    expect(svc.storeSizes().submissions).toBe(1);
+    for (let i = 0; i < 500; i++) svc.login({ cardNumber: '378282246310005', cardId: '4321' });
+    expect(svc.storeSizes().sessions).toBeLessThanOrEqual(500);
+    expect(svc.storeSizes().submissions).toBe(0);
+  });
+
   test('requires a session with a selected card', async () => {
     expect((await request('POST', '/api/526efb4c/submissions', { sessionToken: 'nope', values: VALID, signature: SIGNATURE })).status).toBe(401);
     const acct = await request('POST', '/api/526efb4c/session', { method: 'account', userId: 'jordan.ellis', password: 'Corporate2026!' });

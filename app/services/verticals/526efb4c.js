@@ -247,11 +247,16 @@ function publicCard(card) {
   return { key: card.cardNumber.slice(-5), product: card.product, masked: maskCard(card.cardNumber) };
 }
 
+function retireSession(token) {
+  sessions.delete(token);
+  submissions.delete(token);
+}
+
 function pruneSessions(now = Date.now()) {
   for (const [token, s] of sessions) {
-    if (now - s.createdAt > SESSION_TTL_MS) sessions.delete(token);
+    if (now - s.createdAt > SESSION_TTL_MS) retireSession(token);
   }
-  while (sessions.size >= MAX_SESSIONS) sessions.delete(sessions.keys().next().value);
+  while (sessions.size >= MAX_SESSIONS) retireSession(sessions.keys().next().value);
 }
 
 function newSession(data) {
@@ -266,7 +271,7 @@ function getSession(token) {
   const s = sessions.get(token);
   if (!s) return null;
   if (Date.now() - s.createdAt > SESSION_TTL_MS) {
-    sessions.delete(token);
+    retireSession(token);
     return null;
   }
   return s;
@@ -516,4 +521,5 @@ module.exports = {
   submit,
   isVisible,
   resetForTests,
+  storeSizes: () => ({ sessions: sessions.size, submissions: submissions.size }),
 };
