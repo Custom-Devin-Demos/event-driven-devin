@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home | StreamTV</title>
+  <title>Cloud Emulator | StreamTV</title>
+  <script>
+    document.documentElement.dataset.view = new URLSearchParams(location.search).get('view') === 'tv' ? 'tv' : 'console';
+    if (document.documentElement.dataset.view === 'tv') document.title = 'Home | StreamTV';
+  </script>
+  <link rel="stylesheet" href="/verticals/assets/6217a32d/emulator.css">
+  <script src="/verticals/assets/6217a32d/tv-bridge.js"></script>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,6 +161,8 @@
   </style>
 </head>
 <body>
+  <div id="emulator"></div>
+  <div id="tvApp">
   <header class="tv-header">
     <div class="wordmark" aria-label="StreamTV">Stream<span>TV</span></div>
     <div class="header-section">Home</div>
@@ -199,6 +207,8 @@
     </div>
   </div>
 
+  </div>
+  <script src="/verticals/assets/6217a32d/emulator.js"></script>
   <script>
     /* Ensure locked-mode config is in localStorage for direct navigation */
     (function () {
@@ -212,9 +222,10 @@
 
   <script>
     (function () {
+      if (document.documentElement.dataset.view !== 'tv') return;
       var ROW_ORDER = ['continue-watching', 'trending', 'live-tv', 'because-you-watched', 'new-releases'];
       var state = {
-        profileId: localStorage.getItem('streamtv.profileId') || 'p-maya',
+        profileId: ['p-maya', 'p-jordan', 'p-sam'].includes(new URLSearchParams(location.search).get('profileId')) ? new URLSearchParams(location.search).get('profileId') : localStorage.getItem('streamtv.profileId') || 'p-maya',
         profiles: [],
         rows: [],
         focus: { area: 'rows', row: 0, col: 0, nav: 0 },

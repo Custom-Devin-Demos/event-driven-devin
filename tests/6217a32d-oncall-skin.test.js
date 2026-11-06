@@ -72,7 +72,7 @@ describe('6217a32d TV home screen On-Call skin', () => {
       oncallOnly: true,
       alertDestination: 'slack',
       paths: ['/streamtv'],
-      page: { file: '6217a32d.html', title: 'Home | StreamTV' },
+      page: { file: '6217a32d.html', title: 'Cloud Emulator | StreamTV' },
     });
     expect(skin.devinSession.auto).toBeUndefined();
     expect(skin.bugPortal).toBeUndefined();
@@ -89,7 +89,10 @@ describe('6217a32d TV home screen On-Call skin', () => {
     }));
     const html = pages[0];
     pages.slice(1).forEach((page) => expect(page).toEqual(html));
-    expect(html).toContain('<title>Home | StreamTV</title>');
+    expect(html).toContain('<title>Cloud Emulator | StreamTV</title>');
+    expect(html).toContain('id="emulator"');
+    expect(html).toContain("if (document.documentElement.dataset.view !== 'tv') return;");
+    expect(html).toContain('/verticals/assets/6217a32d/emulator.js');
     expect(html).toContain("fetch('/api/playback/start'");
     expect(html).toContain('const oncallApiPath = "/api/playback/start"');
     expect(html).toContain('const triggerWhen = {"row":"continue-watching"}');
