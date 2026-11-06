@@ -1,4 +1,4 @@
-/* global document, window, localStorage, fetch, AbortController, setTimeout, clearTimeout */
+/* global document, window, localStorage, fetch, AbortController */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
