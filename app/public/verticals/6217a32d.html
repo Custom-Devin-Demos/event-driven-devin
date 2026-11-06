@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | StreamTV</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tv-bg: #140724; --tv-bg-deep: #0b0416; --tv-panel: #281340;
+      --tv-purple: #6629a9; --tv-purple-bright: #ba8eff;
+      --tv-text: #fff; --tv-text-dim: #c6b9d6; --tv-text-faint: #aa99bd;
+      --tv-danger: #ffb3bf; --tile-w: 290px; --tile-h: 164px; --nav-w: 252px;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; scroll-behavior: smooth; }
+    body {
+      margin: 0; color: var(--tv-text); background: var(--tv-bg-deep);
+      font: 400 18px/1.4 'Inter', Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background: linear-gradient(180deg, #270b3d55, #140724cc 55%, #0b0416 94%),
+        url('/verticals/assets/6217a32d/wallpaper.webp') center top / cover;
+    }
+    button { font: inherit; color: inherit; }
+    .tv-header {
+      display: flex; align-items: center; gap: 24px; padding: 32px 48px 24px;
+    }
+    .wordmark { font-size: 36px; letter-spacing: -1.8px; font-weight: 700; line-height: 1; }
+    .wordmark span { font-weight: 400; }
+    .header-section { font-size: 27px; font-weight: 400; border-left: 1px solid #ffffff45; padding-left: 24px; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+    .viewer { display: flex; align-items: center; gap: 10px; font-size: 17px; color: var(--tv-text-dim); }
+    .clock { font-size: 23px; font-variant-numeric: tabular-nums; }
+    .shell { display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr); gap: 38px; padding: 0 0 0 32px; }
+    .nav { position: sticky; top: 24px; height: min-content; padding-top: 22px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 9px 16px;
+      border: 2px solid transparent; border-radius: 4px; margin: 4px 0; font-size: 22px;
+      background: transparent; color: var(--tv-text-dim); cursor: pointer; text-align: left; width: 100%;
+    }
+    .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 24px; }
+    .nav-item.active[data-nav] { background: #ffffffec; color: #321447; }
+    .nav-item.focused, .nav-item:focus-visible { border-color: white; color: white; outline: none; background: #6f38a9; }
+    .nav-group { border-top: 1px solid #ffffff24; margin-top: 35px; padding-top: 20px; }
+    .nav-group .label { padding: 0 18px 8px; font-size: 14px; color: var(--tv-text-faint); }
+    .nav-group .nav-item { font-size: 18px; min-height: 48px; }
+    .nav-group .active { color: white; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-size: 14px; font-weight: 600; color: #19002d; }
+    .check { margin-left: auto; font-size: 13px; color: var(--tv-text-dim); }
+    .nav-help { padding: 26px 18px; color: var(--tv-text-faint); font-size: 13px; line-height: 1.9; }
+    kbd { font: inherit; border: 1px solid #ffffff55; border-radius: 3px; padding: 1px 5px; color: white; }
+    .main { min-width: 0; padding: 16px 0 34px; }
+    .spotlight { position: relative; isolation: isolate; height: 244px; margin: 0 40px 26px 0; overflow: hidden; border-radius: 4px; background: #221036; }
+    .spotlight-image { position: absolute; z-index: -2; right: 0; top: 0; width: 65%; height: 100%; object-fit: cover; object-position: center 42%; }
+    .spotlight::after { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg, #251038 24%, #251038ed 39%, #25103800 80%); }
+    .spotlight-copy { padding: 24px 28px; max-width: 65%; }
+    .eyebrow { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #d9bdfc; font-weight: 500; }
+    .spotlight h1 { margin: 8px 0 8px; font: 400 38px/1.05 Georgia, serif; text-transform: uppercase; letter-spacing: 1px; max-width: 580px; }
+    .spotlight p { font-size: 15px; max-width: 400px; color: #dfd4ea; margin: 8px 0; }
+    .spotlight-meta { font-size: 13px; color: var(--tv-text-dim); }
+    .spotlight-hint { margin-top: 12px; font-size: 12px; color: var(--tv-text-dim); }
+    .row { margin: 0 0 20px; scroll-margin-top: 28px; }
+    .row-head { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; padding-right: 40px; }
+    .row-title { font-size: 22px; font-weight: 400; margin: 0; letter-spacing: -.3px; }
+    .row-status { font-size: 13px; color: var(--tv-text-dim); display: inline-flex; align-items: center; gap: 8px; }
+    .row-status.error { color: var(--tv-danger); }
+    .row-count { margin-left: auto; color: var(--tv-text-faint); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .rail { display: flex; gap: 20px; overflow-x: auto; padding: 12px 40px 12px 8px; margin-left: -8px; scrollbar-width: none; scroll-padding: 10px; }
+    .rail::-webkit-scrollbar { display: none; }
+    .tile { display: block; padding: 0; background: transparent; color: white; text-align: left; border: 0; flex: 0 0 var(--tile-w); width: var(--tile-w); cursor: pointer; position: relative; outline: none; }
+    .art { height: var(--tile-h); border-radius: 3px; position: relative; overflow: hidden; background: var(--tv-panel); isolation: isolate; }
+    .poster-image { position: absolute; width: 100%; height: 100%; inset: 0; object-fit: cover; z-index: -2; transition: transform .18s; }
+    .art::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(0deg, #08030ce6, transparent 80%); }
+    .art-title { position: absolute; bottom: 18px; left: 18px; right: 18px; font: 500 26px/.98 Georgia, serif; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 12px #0008; }
+    .tile[data-genre="scifi"] .art-title { font-family: 'Inter', sans-serif; font-weight: 500; letter-spacing: 3px; }
+    .tile[data-genre="comedy"] .art-title, .tile[data-genre="kids"] .art-title { font-style: italic; text-transform: none; letter-spacing: -.7px; }
+    .badge { position: absolute; top: 11px; left: 13px; font-size: 9px; font-weight: 500; letter-spacing: 1.4px; text-shadow: 0 1px 6px black; }
+    .badge.live { background: #f3e9ff; color: #311149; padding: 3px 7px; text-shadow: none; letter-spacing: .8px; border-radius: 2px; }
+    .progress { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: #ffffff55; }
+    .progress > i { display: block; height: 100%; background: #d3a9ff; }
+    .meta { padding: 9px 1px 0; }
+    .meta .t { font-size: 15px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta .s { font-size: 12px; color: var(--tv-text-dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tile.focused .art, .tile:focus-visible .art { outline: 4px solid white; outline-offset: 4px; }
+    .tile:hover .poster-image { transform: scale(1.035); }
+    .row[data-row-id="trending"], .row[data-row-id="because-you-watched"], .row[data-row-id="new-releases"] { --tile-w: 176px; --tile-h: 242px; }
+    .row[data-row-id="trending"] .art-title, .row[data-row-id="because-you-watched"] .art-title, .row[data-row-id="new-releases"] .art-title { font-size: 24px; bottom: 24px; }
+    .row[data-row-id="live-tv"] { --tile-w: 272px; --tile-h: 150px; }
+    .row[data-row-id="live-tv"] .art-title { font: 600 25px/1 'Inter',sans-serif; text-transform: none; letter-spacing: -1px; }
+    .tile .overlay { position: absolute; inset: 0 0 auto; height: var(--tile-h); background: #160b26e8; display: none; place-content: center; text-align: center; padding: 20px; font-size: 16px; border-radius: 3px; }
+    .tile.busy .overlay, .tile.failed .overlay { display: grid; }
+    .tile.failed .overlay { color: var(--tv-danger); }
+    .tile.failed .overlay small { display: block; color: var(--tv-text-dim); margin-top: 10px; }
+    .tile.skeleton { pointer-events: none; }
+    .tile.skeleton .art { background: linear-gradient(110deg, #321747, #4b2867, #321747); background-size: 300% 100%; animation: shimmer 2s infinite; }
+    .tile.skeleton .meta .t, .tile.skeleton .meta .s { color: transparent; border-radius: 2px; background: #ffffff12; width: 60%; height: 12px; margin-top: 4px; }
+    .tile.skeleton .meta .s { width: 40%; }
+    .tile.retry .art { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px; border: 1px solid #b48ccc; }
+    .tile.retry .art-title { position: static; font: 500 18px/1.4 'Inter',sans-serif; letter-spacing: 0; text-transform: none; }
+    .tile.retry .hint { font-size: 13px; margin-top: 12px; color: var(--tv-text-dim); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #ffffff35; border-top-color: white; animation: spin .8s linear infinite; }
+    .spinner.lg { width: 34px; height: 34px; border-width: 3px; margin: auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+    .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 22px 48px; color: var(--tv-text-faint); font-size: 12px; background: #0b0416; border-top: 1px solid #ffffff13; }
+    .player { position: fixed; inset: 0; z-index: 999; display: none; background: #08040e; color: white; }
+    .player.open { display: block; }
+    .player .scene { position: absolute; inset: 0; opacity: .75; background-size: cover; background-position: center; }
+    .player .hud { position: absolute; left: 0; right: 0; bottom: 0; padding: 110px 56px 44px; background: linear-gradient(transparent, #08040ef7); }
+    .player .hud h2 { font-size: 36px; margin: 0 0 5px; font-weight: 500; }
+    .player .hud p { margin: 0 0 22px; color: #e8daef; }
+    .player .bar { height: 5px; background: #ffffff35; }
+    .player .bar > i { display: block; height: 100%; background: #c59aff; }
+    .player .times { display: flex; justify-content: space-between; font-size: 14px; margin-top: 12px; }
+    .player .back { position: absolute; top: 32px; left: 48px; min-height: 44px; padding: 8px 16px; background: #130b22c9; border: 1px solid #ffffff88; border-radius: 3px; cursor: pointer; }
+    .player .back:focus-visible { outline: 3px solid white; outline-offset: 4px; }
+    @media (min-width: 1800px) { :root { --nav-w: 300px; --tile-w: 350px; --tile-h: 198px; } .spotlight { height: 300px; } .spotlight h1 { font-size: 52px; } .spotlight-copy { padding: 36px; } .row { margin-bottom: 30px; } }
+    @media (max-width: 1100px) { :root { --nav-w: 205px; --tile-w: 245px; --tile-h: 140px; } .shell { gap: 20px; padding-left: 20px; } .tv-header { padding: 26px 36px; } .nav-item { font-size: 19px; padding-left: 12px; gap: 12px; } .spotlight h1 { font-size: 31px; } .spotlight p { font-size: 14px; } .spotlight-copy { max-width: 73%; } }
+    @media (max-width: 760px) {
+      :root { --tile-w: 230px; --tile-h: 134px; }
+      .tv-header { padding: 22px 18px 16px; gap: 14px; flex-wrap: wrap; }
+      .wordmark { font-size: 27px; } .header-section { font-size: 20px; padding-left: 14px; }
+      .header-right { gap: 12px; } .clock { font-size: 14px; } .viewer { display: none; }
+      .shell { display: block; padding: 0; }
+      .nav { position: static; display: flex; overflow-x: auto; gap: 8px; padding: 4px 18px 12px; scrollbar-width: none; }
+      .nav-item { width: auto; flex-shrink: 0; font-size: 15px; min-height: 44px; padding: 7px 12px; margin: 0; gap: 8px; white-space: nowrap; }
+      .nav-item svg { width: 18px; height: 18px; flex-basis: 18px; }
+      .nav-group { display: flex; gap: 8px; margin: 0; padding: 0 0 0 10px; border: 0; border-left: 1px solid #ffffff35; }
+      .nav-group .label, .nav-help, .check { display: none; }
+      .nav-group .nav-item { font-size: 15px; min-height: 44px; }
+      .main { padding: 8px 0 20px 18px; }
+      .spotlight { height: 220px; margin: 0 18px 22px 0; }
+      .spotlight-image { width: 100%; }
+      .spotlight::after { background: linear-gradient(90deg, #251038f2, #25103870), linear-gradient(0deg, #251038e0, transparent); }
+      .spotlight-copy { padding: 22px 18px; max-width: 94%; }
+      .spotlight h1 { font-size: 29px; } .spotlight p { font-size: 12px; } .eyebrow { font-size: 9px; }
+      .spotlight-meta, .spotlight-hint { font-size: 11px; }
+      .row-head { padding-right: 18px; } .row-title { font-size: 19px; } .row-count { font-size: 11px; }
+      .row-status { font-size: 12px; } .row-status.error { flex-basis: 100%; }
+      .rail { gap: 16px; padding-right: 18px; }
+      .art-title { font-size: 23px; }
+      .row[data-row-id="trending"], .row[data-row-id="because-you-watched"], .row[data-row-id="new-releases"] { --tile-w: 145px; --tile-h: 203px; }
+      .row[data-row-id="live-tv"] { --tile-w: 230px; --tile-h: 134px; }
+      .footer { padding: 20px 18px 132px; } .footer span:last-child { display: none; }
+      .player .hud { padding: 100px 22px 30px; } .player .hud h2 { font-size: 26px; } .player .hud p { font-size: 14px; }
+      .player .back { left: 20px; top: 20px; font-size: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <header class="tv-header">
+    <div class="wordmark" aria-label="StreamTV">Stream<span>TV</span></div>
+    <div class="header-section">Home</div>
+    <div class="header-right"><span class="viewer" id="greeting">Welcome back</span><span class="clock" id="clock">--:--</span></div>
+  </header>
+  <div class="shell">
+    <nav class="nav" id="nav" aria-label="Main">
+      <button class="nav-item active" data-nav="home" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5 10v10h14V10"/></svg><span>Home</span>
+      </button>
+      <button class="nav-item" data-nav="what-to-watch">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7Z"/></svg><span>What to Watch</span>
+      </button>
+      <button class="nav-item" data-nav="live-tv">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8m1-14 5 4-5 4Z"/></svg><span>Live TV</span>
+      </button>
+      <div class="nav-group" id="profileGroup"><div class="label">Who's watching?</div></div>
+      <div class="nav-help"><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> to explore<br><kbd>Enter</kbd> to watch · <kbd>Esc</kbd> to go back</div>
+    </nav>
+    <main class="main" id="main">
+      <section class="spotlight" aria-label="Selected title">
+        <img class="spotlight-image" id="spotlightImage" src="/verticals/assets/6217a32d/orbit.webp" alt="">
+        <div class="spotlight-copy">
+          <div class="eyebrow" id="spotlightLabel">Featured on StreamTV</div>
+          <h1 id="spotlightTitle">Orbit Station</h1>
+          <div class="spotlight-meta" id="spotlightMeta">2025 · TV-14 · Science fiction</div>
+          <p id="spotlightDescription">At the edge of the solar system, a small crew makes a discovery that changes everything.</p>
+          <div class="spotlight-hint" id="spotlightHint">Find your next favorite below</div>
+        </div>
+      </section>
+      <div id="rows"></div>
+    </main>
+  </div>
+  <footer class="footer"><span>Demo environment – mock data</span><span>StreamTV · Your home for great TV</span></footer>
+  <div class="player" id="player" role="dialog" aria-modal="true" aria-label="Now playing">
+    <div class="scene" id="playerScene"></div>
+    <button class="back" id="playerBack">← Back to Home <span aria-hidden="true">· Esc</span></button>
+    <div class="hud">
+      <h2 id="playerTitle">Title</h2><p id="playerSub">Resuming</p>
+      <div class="bar"><i id="playerBar"></i></div>
+      <div class="times"><span id="playerPos">0:00</span><span id="playerDur">0:00</span></div>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var ROW_ORDER = ['continue-watching', 'trending', 'live-tv', 'because-you-watched', 'new-releases'];
+      var state = {
+        profileId: localStorage.getItem('streamtv.profileId') || 'p-maya',
+        profiles: [],
+        rows: [],
+        focus: { area: 'rows', row: 0, col: 0, nav: 0 },
+        cols: {},
+        cwState: 'loading',
+        cwRequest: 0,
+        homeRequest: 0,
+      };
+      var rowsEl = document.getElementById('rows');
+      var navEl = document.getElementById('nav');
+
+      // ---------- helpers ----------
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined) n.textContent = text;
+        return n;
+      }
+      var POSTER_ROOT = '/verticals/assets/6217a32d/';
+      var POSTERS = {
+        t001: 'northern', t002: 'harbor', t003: 'orbit', t004: 'city', t005: 'kitchen',
+        t006: 'night', t007: 'coast', t008: 'city', t009: 'orbit', t010: 'theater',
+        t011: 'redwood', t012: 'harbor', t013: 'orbit', t014: 'summit', t015: 'theater',
+        t016: 'low-orbit', t017: 'main-street', t018: 'theater', t019: 'coast', t020: 'harbor',
+        t021: 'train', t022: 'meridian', t023: 'coast', t024: 'coast', t025: 'copper',
+        t026: 'summit', t027: 'orbit', t028: 'night', t029: 'harbor', t030: 'coast',
+        t031: 'echo', t032: 'orbit', t033: 'main-street', t034: 'train', t035: 'lanterns',
+        t036: 'summit', t037: 'coast', t038: 'northern', t039: 'orbit', t040: 'northern',
+        ch101: 'city', ch104: 'kitchen', ch108: 'summit', ch112: 'train', ch117: 'coast',
+        ch121: 'theater', ch126: 'northern', ch133: 'main-street', ch140: 'woodland', ch145: 'summit',
+      };
+      var SYNOPSES = {
+        harbor: 'A quiet coastal town. A long-buried secret. Some stories never stay beneath the surface.',
+        orbit: 'At the edge of the solar system, a small crew makes a discovery that changes everything.',
+        summit: 'Beyond the familiar trails, discover breathtaking places and the people who call them home.',
+        'main-street': 'In this small town, every neighbor has a story. And nobody can keep a secret.',
+        northern: 'Under an extraordinary sky, ordinary lives become unexpectedly intertwined.',
+        night: 'When the city goes quiet, the real story is just beginning.',
+        kitchen: 'Meet the people, places and flavors that bring us together around the table.',
+        coast: 'A new season. An unexpected connection. A chance to begin again.',
+        theater: 'Behind the curtain, ambition and loyalty take center stage.',
+        woodland: 'Big adventures begin with the smallest friends.',
+        train: 'One journey. A world of possibilities. Nothing will be quite the same.',
+        city: 'In a world built on ambition, every decision has a price.',
+        redwood: 'Deep in the forest, one detective follows a trail that nobody else can see.',
+        meridian: 'An impossible discovery leads an explorer beyond the edge of the known world.',
+        copper: 'High above the canyon, a rescue crew faces the flight of a lifetime.',
+        echo: 'Two strangers return to the lake where their stories began.',
+        lanterns: 'An unexpected friendship lights the way through a changing world.',
+        'low-orbit': 'The coffee is hot. The gravity is optional. Welcome to the neighborhood.',
+      };
+      function posterKey(item) { return POSTERS[item.titleId] || 'woodland'; }
+      function posterUrl(item) { return POSTER_ROOT + posterKey(item) + '.webp'; }
+      function updateSpotlight(item, rowId) {
+        document.getElementById('spotlightImage').src = posterUrl(item);
+        document.getElementById('spotlightTitle').textContent = item.title;
+        document.getElementById('spotlightLabel').textContent = rowId === 'continue-watching' ? 'Pick up where you left off' : item.kind === 'live' ? 'On now · Live TV' : 'Featured on StreamTV';
+        document.getElementById('spotlightMeta').textContent = subtitle(item);
+        document.getElementById('spotlightDescription').textContent = item.kind === 'live' ? item.channelName + ' · ' + item.durationLabel : SYNOPSES[posterKey(item)];
+        document.getElementById('spotlightHint').textContent = rowId === 'continue-watching' ? 'Press Enter to resume' : 'Press Enter to watch';
+      }
+      function showContinueWatchingStatus(failed) {
+        document.getElementById('spotlightImage').src = POSTER_ROOT + 'wallpaper.webp';
+        document.getElementById('spotlightTitle').textContent = 'Continue Watching';
+        document.getElementById('spotlightLabel').textContent = 'Your saved shows';
+        document.getElementById('spotlightMeta').textContent = '';
+        document.getElementById('spotlightDescription').textContent = failed ? 'We couldn’t load your shows. You can still explore the other rows below.' : 'Getting your shows ready. You can keep browsing while we load.';
+        document.getElementById('spotlightHint').textContent = failed ? 'Press Enter to retry' : 'Loading your shows…';
+      }
+      function selectNavigation(name) {
+        navItems().forEach(function (item) {
+          if (!item.dataset.nav) return;
+          var selected = item.dataset.nav === name;
+          item.classList.toggle('active', selected);
+          if (selected) item.setAttribute('aria-current', 'page');
+          else item.removeAttribute('aria-current');
+        });
+      }
+      function artStyle(art) { return 'background: linear-gradient(135deg, ' + art[0] + ', ' + art[1] + ')'; }
+      function subtitle(item) {
+        if (item.kind === 'live') return 'Ch ' + item.channelNumber + ' · ' + item.channelName;
+        var parts = [];
+        if (item.episodeLabel) parts.push(item.episodeLabel);
+        else parts.push(item.year);
+        if (item.rating) parts.push(item.rating);
+        if (item.remainingLabel) parts.push(item.remainingLabel);
+        else if (item.durationLabel) parts.push(item.durationLabel);
+        return parts.join(' · ');
+      }
+      function tickClock() {
+        var d = new Date();
+        var h = d.getHours(); var m = d.getMinutes();
+        document.getElementById('clock').textContent = ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + (h < 12 ? ' AM' : ' PM');
+      }
+      tickClock(); setInterval(tickClock, 30000);
+
+      // ---------- rendering ----------
+      function renderTile(item, rowId) {
+        var t = el('button', 'tile');
+        t.type = 'button';
+        t.dataset.titleId = item.titleId;
+        t.dataset.row = rowId;
+        t.dataset.genre = item.genre;
+        var art = el('div', 'art');
+        art.setAttribute('style', artStyle(item.art));
+        var image = el('img', 'poster-image');
+        image.src = posterUrl(item); image.alt = ''; image.loading = 'lazy';
+        image.addEventListener('error', function () { image.hidden = true; });
+        art.appendChild(image);
+        var badge = el('span', 'badge' + (item.kind === 'live' ? ' live' : ''), item.kind === 'live' ? 'LIVE · ' + item.channelNumber : 'STREAMTV');
+        art.appendChild(badge);
+        art.appendChild(el('div', 'art-title', item.title));
+        if (typeof item.progressPct === 'number') {
+          var p = el('div', 'progress'); var i = el('i'); i.style.width = item.progressPct + '%'; p.appendChild(i); art.appendChild(p);
+        }
+        t.appendChild(art);
+        var meta = el('div', 'meta');
+        meta.appendChild(el('div', 't', item.title));
+        meta.appendChild(el('div', 's', subtitle(item)));
+        t.appendChild(meta);
+        var overlay = el('div', 'overlay');
+        t.appendChild(overlay);
+        t.setAttribute('aria-label', item.title + ', ' + subtitle(item));
+        return t;
+      }
+
+      function renderRow(row) {
+        var section = el('section', 'row');
+        section.dataset.rowId = row.id;
+        var head = el('div', 'row-head');
+        head.appendChild(el('h2', 'row-title', row.title));
+        var status = el('span', 'row-status'); status.id = 'status-' + row.id;
+        status.setAttribute('aria-live', 'polite');
+        head.appendChild(status);
+        head.appendChild(el('span', 'row-count', row.items ? row.items.length + ' titles' : ''));
+        section.appendChild(head);
+        var rail = el('div', 'rail');
+        rail.setAttribute('aria-label', row.title);
+        section.appendChild(rail);
+        fillRail(rail, row);
+        return section;
+      }
+
+      function fillRail(rail, row) {
+        rail.innerHTML = '';
+        (row.items || []).forEach(function (item) { rail.appendChild(renderTile(item, row.id)); });
+      }
+
+      function skeletonRail(rail) {
+        rail.innerHTML = '';
+        for (var i = 0; i < 6; i++) {
+          var t = el('div', 'tile skeleton');
+          t.appendChild(el('div', 'art'));
+          var meta = el('div', 'meta'); meta.appendChild(el('div', 't', 'Loading')); meta.appendChild(el('div', 's', 'Loading'));
+          t.appendChild(meta);
+          rail.appendChild(t);
+        }
+      }
+
+      function retryRail(rail) {
+        rail.innerHTML = '';
+        var t = el('button', 'tile retry');
+        t.type = 'button';
+        t.dataset.action = 'retry-cw'; t.dataset.row = 'continue-watching';
+        var art = el('div', 'art');
+        art.appendChild(el('div', 'art-title', 'Something went wrong. Try again.'));
+        art.appendChild(el('div', 'hint', 'Press Enter to retry'));
+        t.appendChild(art);
+        var meta = el('div', 'meta'); meta.appendChild(el('div', 't', 'Continue Watching')); meta.appendChild(el('div', 's', 'Could not load your shows'));
+        t.appendChild(meta);
+        rail.appendChild(t);
+      }
+
+      function setStatus(rowId, text, kind) {
+        var s = document.getElementById('status-' + rowId);
+        if (!s) return;
+        s.className = 'row-status' + (kind ? ' ' + kind : '');
+        s.innerHTML = '';
+        if (kind === 'loading') s.appendChild(el('span', 'spinner'));
+        s.appendChild(document.createTextNode(text || ''));
+      }
+
+      function renderProfiles() {
+        var group = document.getElementById('profileGroup');
+        Array.prototype.slice.call(group.querySelectorAll('.nav-item')).forEach(function (n) { n.remove(); });
+        state.profiles.forEach(function (p) {
+          var n = el('button', 'nav-item' + (p.id === state.profileId ? ' active' : ''));
+          n.type = 'button';
+          n.setAttribute('aria-pressed', String(p.id === state.profileId));
+          n.dataset.profile = p.id;
+          var av = el('span', 'avatar', p.avatar); av.style.background = p.color;
+          n.appendChild(av);
+          n.appendChild(el('span', '', p.name));
+          if (p.id === state.profileId) n.appendChild(el('span', 'check', '✓'));
+          group.appendChild(n);
+        });
+      }
+
+      function navItems() { return Array.prototype.slice.call(navEl.querySelectorAll('.nav-item')); }
+      function rowSections() { return Array.prototype.slice.call(rowsEl.querySelectorAll('.row')); }
+      function tilesIn(section) { return Array.prototype.slice.call(section.querySelectorAll('.tile:not(.skeleton)')); }
+
+      // ---------- focus model ----------
+      function clearFocus() {
+        Array.prototype.slice.call(document.querySelectorAll('.focused')).forEach(function (n) { n.classList.remove('focused'); });
+      }
+      function syncTileFocus(tile) {
+        clearFocus();
+        tile.classList.add('focused');
+        var section = tile.closest('.row');
+        var tiles = tilesIn(section);
+        var col = tiles.indexOf(tile);
+        state.focus.area = 'rows';
+        state.focus.row = rowSections().indexOf(section);
+        state.focus.col = col;
+        state.cols[section.dataset.rowId] = col;
+        var row = state.rows.find(function (r) { return r.id === section.dataset.rowId; });
+        if (row && row.items && row.items[col] && !tile.dataset.action) updateSpotlight(row.items[col], row.id);
+        if (tile.dataset.action === 'retry-cw') showContinueWatchingStatus(true);
+        section.querySelector('.row-count').textContent = (col + 1) + ' / ' + tiles.length;
+      }
+      function applyFocus() {
+        clearFocus();
+        if (state.focus.area === 'nav') {
+          var items = navItems();
+          state.focus.nav = Math.max(0, Math.min(items.length - 1, state.focus.nav));
+          var n = items[state.focus.nav];
+          if (n) { n.classList.add('focused'); n.focus({ preventScroll: true }); n.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+          return;
+        }
+        var sections = rowSections();
+        if (!sections.length) return;
+        state.focus.row = Math.max(0, Math.min(sections.length - 1, state.focus.row));
+        var section = sections[state.focus.row];
+        var tiles = tilesIn(section);
+        if (!tiles.length) return;
+        var col = state.cols[section.dataset.rowId] || 0;
+        col = Math.max(0, Math.min(tiles.length - 1, col));
+        state.cols[section.dataset.rowId] = col;
+        state.focus.col = col;
+        var tile = tiles[col];
+        syncTileFocus(tile);
+        tile.focus({ preventScroll: true });
+        tile.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        var rect = section.getBoundingClientRect();
+        if (rect.top < 80 || rect.bottom > window.innerHeight - 40) section.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+      function focusedTile() { return rowsEl.querySelector('.tile.focused'); }
+
+      function move(dx, dy) {
+        if (state.focus.area === 'nav') {
+          if (dy) state.focus.nav += dy;
+          if (dx > 0) { state.focus.area = 'rows'; }
+          return applyFocus();
+        }
+        if (dy) { state.focus.row += dy; return applyFocus(); }
+        var section = rowSections()[state.focus.row];
+        if (!section) return;
+        var rowId = section.dataset.rowId;
+        var col = (state.cols[rowId] || 0) + dx;
+        if (col < 0) { state.focus.area = 'nav'; return applyFocus(); }
+        state.cols[rowId] = Math.min(tilesIn(section).length - 1, col);
+        applyFocus();
+      }
+
+      // ---------- data ----------
+      function devinIdentity() {
+        return {
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+      }
+
+      function loadHome() {
+        var homeRequest = ++state.homeRequest;
+        ++state.cwRequest;
+        state.cwState = 'loading';
+        state.rows = [];
+        state.focus = { area: 'rows', row: 0, col: 0, nav: 0 };
+        state.cols = {};
+        rowsEl.innerHTML = '';
+        selectNavigation('home');
+        showContinueWatchingStatus(false);
+        document.getElementById('greeting').textContent = 'Loading…';
+        fetch('/api/home/rows?profileId=' + encodeURIComponent(state.profileId))
+          .then(function (r) { if (!r.ok) throw new Error('rows ' + r.status); return r.json(); })
+          .then(function (data) {
+            if (homeRequest !== state.homeRequest) return;
+            state.profiles = data.profiles;
+            renderProfiles();
+            document.getElementById('greeting').textContent = data.profile.name + '’s home';
+            state.rows = data.rows.slice().sort(function (a, b) { return ROW_ORDER.indexOf(a.id) - ROW_ORDER.indexOf(b.id); });
+            rowsEl.innerHTML = '';
+            state.rows.forEach(function (row) {
+              var section = renderRow(row);
+              rowsEl.appendChild(section);
+              if (row.deferred) {
+                skeletonRail(section.querySelector('.rail'));
+                loadContinueWatching(row.href);
+              }
+            });
+            state.focus = { area: 'rows', row: 0, col: 0, nav: 0 };
+            state.cols = {};
+            applyFocus();
+          })
+          .catch(function () {
+            if (homeRequest !== state.homeRequest) return;
+            rowsEl.innerHTML = '';
+            var p = el('p', 'row-status error', 'Something went wrong. Try again.');
+            rowsEl.appendChild(p);
+          });
+      }
+
+      function loadContinueWatching(href) {
+        var section = rowsEl.querySelector('.row[data-row-id="continue-watching"]');
+        if (!section) return;
+        var rail = section.querySelector('.rail');
+        var requestId = ++state.cwRequest;
+        state.cwState = 'loading';
+        if (state.focus.area === 'rows' && state.focus.row === 0) showContinueWatchingStatus(false);
+        section.setAttribute('aria-busy', 'true');
+        skeletonRail(rail);
+        setStatus('continue-watching', 'Loading your shows…', 'loading');
+        var slow = setTimeout(function () { if (requestId === state.cwRequest) setStatus('continue-watching', 'Still loading…', 'loading'); }, 3000);
+        fetch(href || '/api/home/continue-watching?profileId=' + encodeURIComponent(state.profileId))
+          .then(function (r) { if (!r.ok) throw new Error('continue-watching ' + r.status); return r.json(); })
+          .then(function (data) {
+            if (requestId !== state.cwRequest) return;
+            clearTimeout(slow);
+            section.setAttribute('aria-busy', 'false');
+            var deferredRow = state.rows.filter(function (r) { return r.id === 'continue-watching'; })[0];
+            if (deferredRow) deferredRow.items = data.row.items;
+            fillRail(rail, data.row);
+            setStatus('continue-watching', data.row.items.length ? '' : 'Nothing in progress yet');
+            state.cwState = 'ready';
+            if (state.focus.area === 'rows' && state.focus.row === 0) applyFocus();
+          })
+          .catch(function () {
+            if (requestId !== state.cwRequest) return;
+            clearTimeout(slow);
+            section.setAttribute('aria-busy', 'false');
+            retryRail(rail);
+            setStatus('continue-watching', 'Something went wrong. Try again.', 'error');
+            state.cwState = 'error';
+            if (state.focus.area === 'rows' && state.focus.row === 0) applyFocus();
+          });
+      }
+
+      function switchProfile(profileId) {
+        if (profileId === state.profileId) { selectNavigation('home'); state.focus = { area: 'rows', row: 0, col: 0, nav: 0 }; return applyFocus(); }
+        state.profileId = profileId;
+        localStorage.setItem('streamtv.profileId', profileId);
+        loadHome();
+      }
+
+      // ---------- playback ----------
+      var player = document.getElementById('player');
+      function openPlayer(result, item) {
+        document.getElementById('playerTitle').textContent = result.title;
+        document.getElementById('playerSub').textContent = result.resumeLabel + (item && item.subtitle ? ' · ' + item.subtitle : '');
+        document.getElementById('playerScene').style.backgroundImage = item ? 'url("' + posterUrl(item) + '")' : 'none';
+        var pos = result.resumeFromSec || 0;
+        document.getElementById('playerPos').textContent = clock(pos);
+        document.getElementById('playerDur').textContent = item && item.durationLabel ? item.durationLabel : '';
+        var bar = document.getElementById('playerBar');
+        bar.style.transition = 'none'; bar.style.width = (item && item.progressPct ? item.progressPct : 0) + '%';
+        player.classList.add('open');
+        document.getElementById('playerBack').focus();
+        requestAnimationFrame(function () { bar.style.transition = 'width 6s linear'; bar.style.width = Math.min(100, (item && item.progressPct ? item.progressPct : 0) + 4) + '%'; });
+
+      }
+      function closePlayer() { player.classList.remove('open'); applyFocus(); }
+      function clock(sec) {
+        var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+        var mm = (m < 10 && h ? '0' : '') + m, ss = (s < 10 ? '0' : '') + s;
+        return h ? h + ':' + mm + ':' + ss : m + ':' + ss;
+      }
+
+      function startPlayback(tile) {
+        if (tile.classList.contains('busy')) return;
+        var homeRequest = state.homeRequest;
+        var rowId = tile.dataset.row;
+        var row = state.rows.filter(function (r) { return r.id === rowId; })[0];
+        var item = null;
+        if (row && row.items) item = row.items.filter(function (i) { return i.titleId === tile.dataset.titleId; })[0];
+        if (!item) {
+          var artEl = tile.querySelector('.art');
+          item = { titleId: tile.dataset.titleId, title: tile.querySelector('.art-title').textContent, subtitle: tile.querySelector('.meta .s').textContent, art: null };
+          if (artEl) item.artStyle = artEl.getAttribute('style');
+        } else {
+          item.subtitle = subtitle(item);
+        }
+        tile.classList.remove('failed');
+        tile.classList.add('busy');
+        var overlay = tile.querySelector('.overlay');
+        overlay.innerHTML = '';
+        overlay.appendChild(el('span', 'spinner lg'));
+        var body = Object.assign({ profileId: state.profileId, titleId: tile.dataset.titleId, row: rowId }, devinIdentity());
+        fetch('/api/playback/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function (r) { if (!r.ok) throw new Error('playback ' + r.status); return r.json(); })
+          .then(function (result) {
+            tile.classList.remove('busy');
+            if (homeRequest !== state.homeRequest) return;
+            openPlayer(result, item);
+          })
+          .catch(function () {
+            tile.classList.remove('busy');
+            tile.classList.add('failed');
+            overlay.innerHTML = '';
+            overlay.appendChild(document.createTextNode('Something went wrong. Try again.'));
+            overlay.appendChild(el('small', '', 'Press Enter to retry'));
+          });
+      }
+
+      // ---------- activation ----------
+      function activate() {
+        if (player.classList.contains('open')) return closePlayer();
+        if (state.focus.area === 'nav') {
+          var n = navItems()[state.focus.nav];
+          if (!n) return;
+          if (n.dataset.profile) return switchProfile(n.dataset.profile);
+          selectNavigation(n.dataset.nav);
+          var target = n.dataset.nav === 'live-tv' ? 'live-tv' : n.dataset.nav === 'what-to-watch' ? 'trending' : 'continue-watching';
+          var idx = rowSections().map(function (s) { return s.dataset.rowId; }).indexOf(target);
+          state.focus = { area: 'rows', row: idx < 0 ? 0 : idx, col: 0, nav: state.focus.nav };
+          return applyFocus();
+        }
+        var tile = focusedTile();
+        if (!tile) return;
+        if (tile.dataset.action === 'retry-cw') return loadContinueWatching();
+        startPlayback(tile);
+      }
+
+      document.addEventListener('keydown', function (e) {
+        var k = e.key;
+        if (k === 'Escape' || k === 'Backspace') {
+          if (player.classList.contains('open')) { e.preventDefault(); closePlayer(); }
+          else if (state.focus.area === 'rows') { e.preventDefault(); state.focus.area = 'nav'; applyFocus(); }
+          return;
+        }
+        if (player.classList.contains('open')) {
+          if (k === 'Enter' || k === ' ') { e.preventDefault(); closePlayer(); }
+          else if (k.startsWith('Arrow') || k === 'Tab') e.preventDefault();
+          return;
+        }
+        if (k === 'Tab') return;
+        if (k === 'ArrowLeft') { e.preventDefault(); move(-1, 0); }
+        else if (k === 'ArrowRight') { e.preventDefault(); move(1, 0); }
+        else if (k === 'ArrowUp') { e.preventDefault(); move(0, -1); }
+        else if (k === 'ArrowDown') { e.preventDefault(); move(0, 1); }
+        else if (k === 'Enter' || k === ' ') { e.preventDefault(); activate(); }
+      });
+
+      document.addEventListener('focusin', function (e) {
+        var nav = e.target.closest('.nav-item');
+        var tile = e.target.closest('.tile:not(.skeleton)');
+        if (nav) { clearFocus(); nav.classList.add('focused'); state.focus.area = 'nav'; state.focus.nav = navItems().indexOf(nav); }
+        if (tile) syncTileFocus(tile);
+      });
+      document.addEventListener('click', function (e) {
+        if (player.classList.contains('open')) return closePlayer();
+        var nav = e.target.closest('.nav-item');
+        if (nav) {
+          state.focus.area = 'nav';
+          state.focus.nav = navItems().indexOf(nav);
+          applyFocus();
+          return activate();
+        }
+        var tile = e.target.closest('.tile');
+        if (tile && !tile.classList.contains('skeleton')) {
+          var section = tile.closest('.row');
+          state.focus.area = 'rows';
+          state.focus.row = rowSections().indexOf(section);
+          state.cols[section.dataset.rowId] = tilesIn(section).indexOf(tile);
+          applyFocus();
+          activate();
+        }
+      });
+
+      loadHome();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
