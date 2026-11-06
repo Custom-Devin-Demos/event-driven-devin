@@ -41,6 +41,8 @@ const CUSTOMERS_DIR = path.join(__dirname, 'customers');
  * `config/customers/<slug>.js`, so adding a customer never edits a shared file.
  * An entry may also carry `aliases: ['friendly-url', ...]` — friendly paths that
  * serve `app/public/verticals/<slug>.html` (see app/routes/verticals/index.js).
+ * `teamsWebhookEnv` names an exclusive Teams target; `teamsAutomationUrl` overrides
+ * that customer's Watch Devin action without changing the shared channel.
  */
 const CUSTOMERS = {
   default: {
@@ -114,6 +116,8 @@ function getCustomerConfig(customerSlug) {
       || entry.sonarWorkflowCustomer || slug,
     itsm: entry.itsm || null,
     locale: entry.locale || 'en',
+    teamsWebhookEnv: entry.teamsWebhookEnv || '',
+    teamsAutomationUrl: entry.teamsAutomationUrl || '',
     itsmAssignmentGroup: entry.itsmAssignmentGroup || '',
     slackChannelId: suffix ? (process.env[`SLACK_CHANNEL_ID${suffix}`] || entry.slackChannelId || '') : '',
   };

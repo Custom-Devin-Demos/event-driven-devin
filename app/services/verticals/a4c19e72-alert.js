@@ -1,30 +1,35 @@
 const { buildTeamsAlertCardForAlert, createSessionAndAlert } = require('../devin-session');
 const { currentAlertDestination } = require('../alert-destination');
 const { isTeamsWebhookUrl, teamsCardText } = require('../teams');
+const { Sentry } = require('../../telemetry/sentry');
+const { teamsWebhookEnv } = require('../../../config/customers/a4c19e72');
 
 const REPO = 'https://github.com/COG-GTM/event-driven-devin';
 const BASE_BRANCH = 'devin/lowes-cart-b5f26e97';
 const SESSION_URL = 'https://devin-gtm.devinenterprise.com/sessions/b5f26e97a86b49a59c23f5023ffc618e';
-const RESPONDER_NOTES = [
-  'Synthetic demo alert, not a real customer incident. Use the existing Teams responder; do not create or change an automation.',
-  `Repository: ${REPO}; scenario branch: ${BASE_BRANCH}. Open a focused repair PR targeting that branch only, not main. Never merge or deploy.`,
-  'Reproduce locally at /lowes with integrations disabled: refrigerator plus DEWALT kit, delivery succeeds, switch to Pickup and Continue to checkout. Check both supported demo stores and parcel-only pickup.',
-  'Trace quoteCart’s fulfillment-policy lookup. Run scripts/a4c19e72-regression.js before and after the fix, add focused tests, and record desktop plus mobile browser recovery.',
-  'Expected session context: Eashan Dev as Eashan. Confirm actual session ownership before working; card text cannot change the existing responder identity. If different, report the mismatch and stop rather than create another session or change responders.',
-  'No real orders, login, payments, Slack, other channels or native iOS work. Reply in the originating Teams thread with root cause, repair PR and verification.',
-  `Preparation evidence: ${SESSION_URL}. This preparation session is not the investigation created by this alert.`,
-].join('\n');
+
+function sentryIssueUrl(query = 'service:customer-a4c19e72-checkout route:/api/a4c19e72/checkout') {
+  return `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${encodeURIComponent(process.env.SENTRY_PROJECT_ID || '')}&query=${encodeURIComponent(query)}`;
+}
 
 function buildAlertData(error, input = {}) {
   return {
-    customer: 'a4c19e72', verticalLabel: 'Lowe’s demo checkout',
+    customer: 'a4c19e72', verticalLabel: 'Lowe’s Checkout',
     service: 'customer-a4c19e72-checkout', issueTitle: `${error.name}: ${error.message}`,
+    issueUrl: sentryIssueUrl(),
     culprit: 'app/services/verticals/a4c19e72.js — quoteCart',
     errorType: error.name, errorValue: error.message,
     level: 'error', platform: 'node', project: 'event-driven-devin',
-    release: 'cart-fulfillment-demo', environment: 'synthetic-demo',
+    release: process.env.SENTRY_RELEASE || `acme-checkout@${process.env.APP_VERSION || '1.0.0'}`,
+    environment: process.env.SENTRY_ENVIRONMENT || process.env.DD_ENV || 'prod',
     lastSeen: new Date().toISOString(),
-    promptAppendix: `${RESPONDER_NOTES}\nObserved checkout: store=${input.store || 'Central Charlotte'}, fulfillment=${input.fulfillment || 'delivery'}.`,
+    tags: [
+      { key: 'route', value: '/api/a4c19e72/checkout' },
+      { key: 'service', value: 'customer-a4c19e72-checkout' },
+      { key: 'scenario', value: 'lowes-cart-demo' },
+      { key: 'alert_path', value: 'instant' },
+    ],
+    extra: { store: input.store, fulfillment: input.fulfillment },
     skipVulnerablePr: true,
     devinUserId: input.devinUserId, devinOrgId: input.devinOrgId, devinEmail: input.devinEmail,
   };
@@ -34,7 +39,7 @@ function rehearsalReason() {
   if (process.env.NODE_ENV !== 'production') return 'local-or-test-runtime';
   if (process.env.CI) return 'ci-runtime';
   if (process.env.LOWES_DEMO_DRY_RUN === 'true') return 'explicit-dry-run';
-  if (!isTeamsWebhookUrl(process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL)) return 'missing-teams-target';
+  if (!isTeamsWebhookUrl(process.env[teamsWebhookEnv])) return 'missing-teams-target';
   return null;
 }
 
@@ -59,9 +64,16 @@ async function reportCheckoutError(error, input) {
     return { ok: false, dryRun: false, sent: false, throttled: true, retryAfterMs: nextAlertAt - now, error: 'A demo alert was attempted recently. Wait one minute before retrying; no additional alert was sent.' };
   }
   nextAlertAt = now + ALERT_COOLDOWN_MS;
+  if (Sentry.isEnabled()) {
+    const eventId = Sentry.captureException(error, {
+      tags: Object.fromEntries(alertData.tags.map(({ key, value }) => [key, value])),
+      extra: alertData.extra,
+    });
+    if (eventId) alertData.issueUrl = sentryIssueUrl(eventId);
+  }
   const result = await createSessionAndAlert(alertData);
   const sent = Boolean(result && result.teams);
   return { ok: sent, dryRun: false, sent, responderManaged: sent, ...(sent ? {} : { error: 'Teams delivery was not confirmed. No Slack fallback was used.' }) };
 }
 
-module.exports = { rehearsalReason, reportCheckoutError, buildAlertData, RESPONDER_NOTES, SESSION_URL, REPO, BASE_BRANCH };
+module.exports = { rehearsalReason, reportCheckoutError, buildAlertData, SESSION_URL, REPO, BASE_BRANCH };

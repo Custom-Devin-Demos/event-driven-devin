@@ -45,11 +45,31 @@
 </main><footer class="footer"><strong>Make home feel like home.</strong>Lowe’s-inspired concept for an internal demonstration. Not affiliated with or endorsed by Lowe’s.</footer>
 <div id="demoToolbar" class="demo-toolbar hidden"><div><span class="status-dot"></span><strong>Demo controls</strong><span class="revision-label"> &nbsp; / &nbsp; <span id="revision">Loading revision…</span></span></div><div class="toolbar-actions"><button class="text-button" id="reset">Reset cart</button><button class="ops-button" id="openOps">Teams alert preview</button></div></div>
 <dialog id="storeDialog" aria-labelledby="storeTitle"><div class="dialog-heading"><h2 id="storeTitle">Choose your demo store</h2><button class="close" data-close="storeDialog" aria-label="Close store selector">×</button></div><div class="dialog-body" id="stores"></div></dialog>
-<dialog id="opsDialog" aria-labelledby="opsTitle"><div class="dialog-heading"><h2 id="opsTitle">Cart recovery · Microsoft Teams</h2><button class="close" data-close="opsDialog" aria-label="Close on-call preview">×</button></div><div class="dialog-body"><div class="ops-intro" id="deliveryStatus"><strong>Dry-run mode. Nothing sent.</strong> This renders the actual payload from the existing checkout alert builder. Live mode is enabled only after an approved live rehearsal.</div><div class="ops-grid"><div class="teams-shell"><div class="teams-title">Microsoft Teams · Card preview, not a channel</div><div id="teamsCard" class="teams-card">Trigger the pickup checkout error to generate the alert preview.</div></div><div><ol class="timeline"><li><b>1. Reproduce the cart regression</b><p id="incidentState">Delivery is the starting state. Switch to Pickup and continue.</p></li><li><b>2. Inspect the Teams payload</b><p>Checkout calls createSessionAndAlert, like Pepsi. Your saved Teams selection sends to the existing automations-demo responder.</p></li><li><b>3. Devin investigates</b><p>This link is preparation evidence, not an alert-created session. In live mode, the Teams responder starts the investigation; follow its thread for the new session.</p><a id="sessionLink" target="_blank" rel="noopener">Open preparation session</a></li><li><b>4. Review and verify the repair</b><p>The repair is a real code change on a separate branch. Replay it in the fixed preview, then retry the same cart.</p><a id="fixLink" class="hidden" target="_blank" rel="noopener">Open repair PR</a><a id="sourceLink" target="_blank" rel="noopener">Open scenario source</a></li></ol></div></div><details><summary id="payloadLabel">Teams payload / delivery status</summary><pre id="payload">No alert generated yet.</pre></details><div class="ops-controls"><button id="healthyControl">Load healthy tools control</button><button id="resetOps">Reset incident cart</button></div></div></dialog>
+<dialog id="opsDialog" aria-labelledby="opsTitle"><div class="dialog-heading"><h2 id="opsTitle">Cart recovery · Microsoft Teams</h2><button class="close" data-close="opsDialog" aria-label="Close on-call preview">×</button></div><div class="dialog-body"><div class="ops-intro" id="deliveryStatus"><strong>Dry-run mode. Nothing sent.</strong> This renders the actual payload from the existing checkout alert builder. Live mode is enabled only after an approved live rehearsal.</div><div class="ops-grid"><div class="teams-shell"><div class="teams-title">Microsoft Teams · Card preview, not a channel</div><div id="teamsCard" class="teams-card">Trigger the pickup checkout error to generate the alert preview.</div></div><div><ol class="timeline"><li><b>1. Reproduce the cart regression</b><p id="incidentState">Delivery is the starting state. Switch to Pickup and continue.</p></li><li><b>2. Inspect the Teams payload</b><p>Checkout calls createSessionAndAlert, like Pepsi. Your saved Teams selection sends Lowe’s alerts to the dedicated eashan-demo Workflow and automation.</p></li><li><b>3. Devin investigates</b><p>This link is preparation evidence, not an alert-created session. In live mode, the Teams responder starts the investigation; follow its thread for the new session.</p><a id="sessionLink" target="_blank" rel="noopener">Open preparation session</a></li><li><b>4. Review and verify the repair</b><p>The repair is a real code change on a separate branch. Replay it in the fixed preview, then retry the same cart.</p><a id="fixLink" class="hidden" target="_blank" rel="noopener">Open repair PR</a><a id="sourceLink" target="_blank" rel="noopener">Open scenario source</a></li></ol></div></div><details><summary id="payloadLabel">Teams payload / delivery status</summary><pre id="payload">No alert generated yet.</pre></details><div class="ops-controls"><button id="healthyControl">Load healthy tools control</button><button id="resetOps">Reset incident cart</button></div></div></dialog>
 <div id="toast" class="toast hidden" role="status"></div>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+  const lockedIdentity = {};
+  function savedIdentity() {
+    const identity = { devinOrgId: '', devinUserId: '', devinEmail: '' };
+    try {
+      for (const key of Object.keys(identity)) identity[key] = localStorage.getItem(key) || '';
+    } catch (_) {}
+    return { ...identity, ...lockedIdentity };
+  }
+  const identityReady = (async () => {
+    try {
+      const identity = savedIdentity();
+      if (identity.devinOrgId && identity.devinUserId) return;
+      const response = await fetch('/api/config');
+      if (!response.ok) return;
+      const cfg = await response.json();
+      if (cfg.lockOrg && cfg.defaultOrgId) lockedIdentity.devinOrgId = cfg.defaultOrgId;
+      if (cfg.lockUser && cfg.defaultUserId) lockedIdentity.devinUserId = cfg.defaultUserId;
+      for (const [key, value] of Object.entries(lockedIdentity)) localStorage.setItem(key, value);
+    } catch (_) {}
+  })();
   $('demoToolbar').classList.toggle('hidden', new URLSearchParams(location.search).get('ops') !== '1');
   const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
   let catalog = [], items = [{ sku: 'DEMO-FRIDGE', qty: 1 }, { sku: 'DEMO-BATTERY', qty: 1 }], fulfillment = 'delivery', store = 'Central Charlotte', alertPreview = null;
@@ -98,7 +118,8 @@
   async function checkout() {
     busy = true; render(); $('checkout').textContent = 'Preparing checkout…'; clearNotice();
     try {
-      const response = await fetch('/api/a4c19e72/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, fulfillment, store }) });
+      await identityReady;
+      const response = await fetch('/api/a4c19e72/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, fulfillment, store, ...savedIdentity() }) });
       const data = await response.json();
       if (!response.ok) {
         notice(`We couldn’t prepare your ${fulfillment} checkout.`, 'Your items are still in your cart. Please try again. No payment was taken.');

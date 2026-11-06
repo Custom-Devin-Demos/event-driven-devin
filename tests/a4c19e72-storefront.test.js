@@ -6,6 +6,11 @@ const { CATALOG, STORES } = require('../app/services/verticals/a4c19e72');
 const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/a4c19e72.html'), 'utf8');
 const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
+test('presenter guidance names the dedicated Lowe’s destination', () => {
+  expect(html).toContain('dedicated eashan-demo Workflow and automation');
+  expect(html).not.toContain('automations-demo responder');
+});
+
 function element(tagName = 'div', classes = '') {
   const tokens = new Set(classes.split(' '));
   return {
@@ -24,22 +29,35 @@ function element(tagName = 'div', classes = '') {
   };
 }
 
-async function storefront(search = '') {
+const savedIdentity = { devinOrgId: 'org-selected', devinUserId: 'user-selected', devinEmail: 'presenter@example.com' };
+
+async function storefront(search = '', identity = savedIdentity, config = {}, storageBlocked = false) {
   const nodes = new Map([...html.matchAll(/<[^>]+\bid="([^"]+)"[^>]*>/g)].map(match => [
     match[1], element('div', match[0].match(/class="([^"]*)"/)?.[1] || ''),
   ]));
   const methods = ['delivery', 'pickup'].map(method => Object.assign(element('button'), { dataset: { method } }));
-  const fetch = jest.fn().mockResolvedValueOnce({ ok: true, json: async () => ({ products: CATALOG, stores: STORES, revision: 'Incident baseline' }) });
+  const storage = new Map(Object.entries(identity));
+  const localStorage = {
+    getItem: key => {
+      if (storageBlocked === true || storageBlocked === 'read') throw new Error('SecurityError: storage blocked');
+      return storage.get(key) || null;
+    },
+    setItem: (key, value) => {
+      if (storageBlocked === true || storageBlocked === 'write') throw new Error('SecurityError: storage blocked');
+      storage.set(key, value);
+    },
+  };
+  const fetch = jest.fn().mockImplementation(async url => ({ ok: true, json: async () => url === '/api/config' ? config : { products: CATALOG, stores: STORES, revision: 'Incident baseline' } }));
   vm.runInNewContext(source, {
     document: {
       getElementById: id => nodes.get(id), createElement: element,
       querySelectorAll: selector => selector === '[data-method]' ? methods : [],
     },
-    fetch, URLSearchParams, location: { search }, Intl,
+    fetch, localStorage, URLSearchParams, location: { search }, Intl,
     setTimeout: jest.fn(), clearTimeout: jest.fn(),
   });
   await new Promise(setImmediate);
-  return { nodes, methods, fetch };
+  return { nodes, methods, fetch, storage };
 }
 
 test.each(['', '?ops=0', '?ops=true'])('shopper view hides internal presenter controls: %s', async search => {
@@ -74,9 +92,51 @@ test.each([
   expect(nodes.get('deliveryStatus').textContent).toContain(alert?.dryRun ? 'Dry-run' : alert?.sent ? 'accepted' : 'not confirmed');
   expect(fetch).toHaveBeenCalledTimes(2);
   const request = JSON.parse(fetch.mock.calls[1][1].body);
-  expect(request).toMatchObject({ fulfillment: 'pickup', items: [{ sku: 'DEMO-FRIDGE', qty: 1 }, { sku: 'DEMO-BATTERY', qty: 1 }] });
+  expect(request).toMatchObject({ ...savedIdentity, fulfillment: 'pickup', items: [{ sku: 'DEMO-FRIDGE', qty: 1 }, { sku: 'DEMO-BATTERY', qty: 1 }] });
   await nodes.get('checkout').onclick();
   expect(fetch.mock.calls[2][1].body).toBe(fetch.mock.calls[1][1].body);
+});
+
+test('direct entry uses existing locked identity defaults like Pepsi', async () => {
+  const { nodes, fetch } = await storefront('', {}, { lockOrg: true, defaultOrgId: 'org-default', lockUser: true, defaultUserId: 'user-default' });
+  fetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
+  await nodes.get('checkout').onclick();
+  const request = JSON.parse(fetch.mock.calls.find(([url]) => url.endsWith('/checkout'))[1].body);
+  expect(request).toMatchObject({ devinOrgId: 'org-default', devinUserId: 'user-default', devinEmail: '' });
+});
+
+test('unlocked host defaults do not invent a presenter identity', async () => {
+  const { nodes, fetch } = await storefront('', {}, { defaultOrgId: 'org-default', defaultUserId: 'user-default' });
+  fetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
+  await nodes.get('checkout').onclick();
+  const request = JSON.parse(fetch.mock.calls.find(([url]) => url.endsWith('/checkout'))[1].body);
+  expect(request).toMatchObject({ devinOrgId: '', devinUserId: '', devinEmail: '' });
+});
+
+test('saved hub identity does not fetch or replace host defaults', async () => {
+  const { fetch, storage } = await storefront();
+  expect(fetch).not.toHaveBeenCalledWith('/api/config');
+  expect(Object.fromEntries(storage)).toEqual(savedIdentity);
+});
+
+test('blocked browser storage does not prevent a healthy checkout', async () => {
+  const { nodes, fetch } = await storefront('', {}, {}, true);
+  fetch.mockResolvedValue({ ok: true, json: async () => ({ total: 2007.36, confirmation: 'DEMO-TEST' }) });
+  await nodes.get('checkout').onclick();
+  const checkoutRequest = fetch.mock.calls.find(([url]) => url.endsWith('/checkout'));
+  expect(checkoutRequest).toBeDefined();
+  expect(JSON.parse(checkoutRequest[1].body)).toMatchObject({ devinOrgId: '', devinUserId: '', devinEmail: '' });
+  expect(nodes.get('notice').textContent).toContain('Your demo checkout is ready.');
+});
+
+test.each([true, 'read', 'write'])('locked identity survives blocked storage: %s', async storageBlocked => {
+  const config = { lockOrg: true, defaultOrgId: 'org-default', lockUser: true, defaultUserId: 'user-default' };
+  const { nodes, fetch } = await storefront('', { devinUserId: 'user-stale' }, config, storageBlocked);
+  fetch.mockResolvedValue({ ok: true, json: async () => ({ total: 2007.36, confirmation: 'DEMO-TEST' }) });
+  await nodes.get('checkout').onclick();
+  const request = JSON.parse(fetch.mock.calls.find(([url]) => url.endsWith('/checkout'))[1].body);
+  expect(request).toMatchObject({ devinOrgId: 'org-default', devinUserId: 'user-default', devinEmail: '' });
+  expect(nodes.get('notice').textContent).toContain('Your demo checkout is ready.');
 });
 
 test('delivery errors name delivery, not pickup', async () => {
