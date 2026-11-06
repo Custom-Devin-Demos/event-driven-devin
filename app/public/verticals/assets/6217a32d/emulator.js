@@ -23,6 +23,7 @@
   const profiles = { 'p-maya': 'Maya', 'p-jordan': 'Jordan', 'p-sam': 'Sam' };
   let nextId = 3;
   let current = null;
+  let experience = 'overview';
   let frame = null;
   let screenObserver = null;
   let toastTimer;
@@ -37,12 +38,13 @@
     };
   }
   const devices = [device('tv-001', 'Roku QA TV', 'TV'), device('player-002', 'Playback validation', 'Player')];
+  const customer = device('customer-tv', 'Customer TV', 'TV');
 
   root.innerHTML = `
-    <header class="ce-header"><div class="ce-brand">Roku</div><div class="ce-product">Cloud Emulator</div><div class="ce-account">Developer workspace <span class="ce-account-mark">${icon('person')}</span></div></header>
-    <nav class="ce-subnav" aria-label="Console navigation"><button data-action="devices">Devices</button><a href="https://developer.roku.com/dev/docs/rce" target="_blank" rel="noopener noreferrer">Reference documentation ↗</a><span class="ce-environment">Development workspace</span></nav>
+    <header class="ce-header"><div class="ce-brand">Roku</div><div class="ce-product" id="ceProduct">Experiences</div><div class="ce-account">Workspace <span class="ce-account-mark">${icon('person')}</span></div></header>
+    <nav class="ce-subnav" aria-label="Workspace navigation"><button data-action="overview" data-experience="overview">Overview</button><button data-action="customer" data-experience="customer">Customer experience</button><button data-action="devices" data-experience="developer">Cloud Emulator</button><a class="ce-environment" href="https://developer.roku.com/dev/docs/rce" target="_blank" rel="noopener noreferrer">RCE documentation ↗</a></nav>
     <main class="ce-main" id="ceMain"></main>
-    <footer class="ce-footer"><span>Cloud Emulator</span><span>Device state is stored for this browser session.</span></footer>
+    <footer class="ce-footer"><span>Roku</span><span>TV experience · Cloud Emulator</span></footer>
     <dialog class="ce-dialog" id="ceDialog" aria-labelledby="ceDialogTitle"></dialog>
     <div class="ce-toast" id="ceToast" role="status" hidden></div>`;
   const main = document.getElementById('ceMain');
@@ -73,6 +75,53 @@
   function disconnectScreen() {
     removeFrame();
     screenObserver?.disconnect(); screenObserver = null;
+  }
+
+
+  function goToExperience(next, push = true) {
+    experience = ['customer', 'developer'].includes(next) ? next : 'overview';
+    if (push) {
+      const url = new URL(location.href);
+      if (experience === 'overview') url.searchParams.delete('experience');
+      else url.searchParams.set('experience', experience);
+      window.history.pushState(null, '', url);
+    }
+    const label = experience === 'customer' ? 'Customer experience' : experience === 'developer' ? 'Cloud Emulator' : 'Experiences';
+    document.title = label + ' | Roku';
+    document.getElementById('ceProduct').textContent = label;
+    main.classList.toggle('ce-customer', experience === 'customer');
+    root.querySelectorAll('[data-experience]').forEach((button) => {
+      if (button.dataset.experience === experience) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
+    if (experience === 'customer') renderCustomer();
+    else if (experience === 'developer') renderDevices();
+    else renderOverview();
+  }
+  function renderOverview() {
+    disconnectScreen(); current = null;
+    main.innerHTML = `
+      <section class="ce-intro"><div class="ce-eyebrow">STREAMING PLATFORM</div><h1>Two perspectives. One experience.</h1><p>Start with the viewer journey, or open the developer workspace.</p></section>
+      <div class="ce-experience-grid">
+        <section class="ce-experience-card"><div class="ce-experience-art ce-tv-art"><span>ROKU TV</span><strong>Your home for great TV.</strong></div><div class="ce-experience-copy"><div class="ce-eyebrow">CUSTOMER IMPACT → ON-CALL</div><h2>Customer experience</h2><p>Launch the TV app, observe Continue Watching, and follow the request evidence into the on-call response.</p><button class="ce-button ce-primary" data-action="customer">Open TV experience ${icon('screen')}</button></div></section>
+        <section class="ce-experience-card"><div class="ce-experience-art ce-dev-art">${icon('screen')}<strong>Cloud Emulator</strong><span>Devices / Remote / Application log</span></div><div class="ce-experience-copy"><div class="ce-eyebrow">DEVELOPER WORKFLOW</div><h2>Build, reproduce, validate</h2><p>Run a device, launch the bundled app, use the remote, and inspect application requests in the developer console.</p><button class="ce-button" data-action="devices">Open Cloud Emulator ${icon('screen')}</button></div></section>
+      </div><p class="ce-entry-note">Workspaces open idle. Launching the app and sending an on-call alert are separate actions.</p>`;
+  }
+  function incidentPanel() {
+    return '<section class="ce-card ce-incident"><div><h3>On-Call response</h3><p id="ceIncidentStatus"></p></div><button class="ce-button" data-action="alert" id="ceAlert" disabled>Send on-call alert</button></section>';
+  }
+  function requestLog(hidden = true) {
+    return `<section class="ce-log" id="ceLog" ${hidden ? 'hidden' : ''}><div class="ce-log-head"><h3>Application log</h3><span>Actual browser requests and local actions</span><button data-action="clear-logs">Clear</button></div><div class="ce-log-body" id="ceLogBody" role="log" aria-label="Application request log"></div></section>`;
+  }
+  function renderCustomer() {
+    disconnectScreen(); current = customer; customer.running = true;
+    main.innerHTML = `
+      <div class="ce-customer-heading"><div><h1>Customer experience</h1><p>Choose a profile, then launch the TV app.</p></div><label class="ce-field">App profile<select id="ceProfile">${Object.entries(profiles).map(([id, name]) => `<option value="${id}" ${id === customer.profileId ? 'selected' : ''}>${name}</option>`).join('')}</select></label></div>
+      <div class="ce-screen" id="ceScreen">${launcher(customer)}</div>
+      <div class="ce-customer-tools"><button class="ce-button ce-primary" data-action="launch">Launch TV app</button><div class="ce-customer-remote" aria-label="TV remote"><button class="ce-icon-button" data-key="ArrowUp" aria-label="Up">${icon('up')}</button><button class="ce-icon-button" data-key="ArrowLeft" aria-label="Left">${icon('left')}</button><button class="ce-icon-button" data-key="Enter" aria-label="OK">OK</button><button class="ce-icon-button" data-key="ArrowRight" aria-label="Right">${icon('right')}</button><button class="ce-icon-button" data-key="ArrowDown" aria-label="Down">${icon('down')}</button><button class="ce-icon-button" data-key="Escape" aria-label="Back">${icon('back')}</button><button class="ce-icon-button" data-action="home" aria-label="Home">${icon('home')}</button></div><button class="ce-button" data-action="oncall">Open On-Call</button></div>
+      <details class="ce-oncall-panel" id="ceOncall"><summary>On-Call workspace<span>Request evidence → alert → investigation → fix PR</span></summary><p>Inspect the request evidence below. Sending an alert is a manual handoff to the responder, not automatic monitor detection. Follow the investigation in #oncall-alerts; review its PR, tests, and before/after evidence before approving any deployment.</p>${incidentPanel()}${requestLog(false)}</details>`;
+    screenObserver = new ResizeObserver(scaleScreen); screenObserver.observe(document.getElementById('ceScreen'));
+    scaleScreen(); updateIncident(); renderLogs();
   }
 
   function renderDevices() {
@@ -162,8 +211,8 @@
         <div class="ce-remote-tools"><button class="ce-button" data-action="wake">Wake Device</button><button class="ce-button" data-action="dev-mode" id="ceDevMode">Dev Mode: ${d.devMode ? 'on' : 'off'}</button><button class="ce-button" data-action="logs">View Log</button><button class="ce-button" data-action="sideload" id="ceSideload" ${d.devMode ? '' : 'disabled'}>Sideload</button></div>
         <div class="ce-remote-help">Arrow keys · Enter / OK · Esc / Back<br>Home returns to the device launcher.</div>
       </aside></div>
-      <section class="ce-card ce-incident"><div><h3>On-call demonstration</h3><p id="ceIncidentStatus">Launch Roku to observe the home API. Alerts stay off until you explicitly send one.</p></div><button class="ce-button" data-action="alert" id="ceAlert" disabled>Send on-call alert</button></section>
-      <section class="ce-log" id="ceLog" hidden><div class="ce-log-head"><h3>Application log</h3><span>Actual browser requests + local emulator actions · Not BrightScript output</span><button data-action="clear-logs">Clear</button></div><div class="ce-log-body" id="ceLogBody" role="log" aria-label="Application request log"></div></section>`;
+      ${incidentPanel()}
+      ${requestLog()}`;
     screenObserver = new ResizeObserver(scaleScreen); screenObserver.observe(document.getElementById('ceScreen'));
     scaleScreen(); updateIncident(); renderLogs();
   }
@@ -246,7 +295,10 @@
     if (button.dataset.key) { sendKey(button.dataset.key); return; }
     const d = button.dataset.device ? devices.find((item) => item.id === button.dataset.device) : current;
     switch (button.dataset.action) {
-      case 'devices': renderDevices(); break;
+      case 'overview': goToExperience('overview'); break;
+      case 'customer': goToExperience('customer'); break;
+      case 'devices': goToExperience('developer'); break;
+      case 'oncall': { const panel = document.getElementById('ceOncall'); panel.open = true; panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); break; }
       case 'add': addDevice(); break;
       case 'run': runDevice(d); break;
       case 'stop': stopDevice(d); break;
@@ -275,11 +327,11 @@
     }
   });
   document.addEventListener('keydown', (event) => {
-    if (!current || dialog.open || event.target.closest('input,select,textarea,a')) return;
+    if (!current || dialog.open || event.target.closest('input,select,textarea,a,summary')) return;
     if (event.key === 'Enter' && event.target.closest('button')) return;
     if (event.key === 'Home') { event.preventDefault(); home(); return; }
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape'].includes(event.key)) {
-      if (event.target.closest('.ce-remote-tools,.ce-incident,.ce-breadcrumb,.ce-viewer-heading,.ce-log-head,.ce-subnav')) return;
+      if (event.target.closest('.ce-remote-tools,.ce-incident,.ce-breadcrumb,.ce-viewer-heading,.ce-log-head,.ce-subnav,.ce-oncall-panel,.ce-customer-tools,.ce-customer-heading')) return;
       event.preventDefault(); sendKey(event.key);
     }
   });
@@ -309,5 +361,6 @@
       document.querySelectorAll(`[data-runtime="${d.id}"]`).forEach((node) => { node.textContent = d.running ? elapsed(d) : '—'; });
     });
   }, 1000);
-  renderDevices();
+  window.addEventListener('popstate', () => goToExperience(new URL(location.href).searchParams.get('experience'), false));
+  goToExperience(new URL(location.href).searchParams.get('experience'), false);
 })();

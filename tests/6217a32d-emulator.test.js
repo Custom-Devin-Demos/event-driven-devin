@@ -4,6 +4,93 @@ const path = require('path');
 const vm = require('vm');
 
 const bridge = fs.readFileSync(path.join(__dirname, '../app/public/verticals/assets/6217a32d/tv-bridge.js'), 'utf8');
+const consoleScript = fs.readFileSync(path.join(__dirname, '../app/public/verticals/assets/6217a32d/emulator.js'), 'utf8');
+
+function consoleHarness(search = '') {
+  const nodes = new Map();
+  const events = {};
+  const location = new URL('https://demo.example/oncall/c/6217a32d' + search);
+  const element = () => ({
+    innerHTML: '', style: {}, dataset: {}, clientWidth: 1440, events: {},
+    classList: { toggle: jest.fn() }, remove: jest.fn(), appendChild: jest.fn(),
+    replaceChildren: jest.fn(), scrollIntoView: jest.fn(),
+    querySelectorAll: () => [], contentWindow: { focus: jest.fn(), postMessage: jest.fn() },
+    addEventListener(name, fn) { this.events[name] = fn; },
+  });
+  const document = {
+    documentElement: { dataset: { view: 'console' } },
+    getElementById(id) { if (!nodes.has(id)) nodes.set(id, element()); return nodes.get(id); },
+    querySelectorAll: () => [], addEventListener: jest.fn(),
+    createElement: jest.fn(element),
+  };
+  const window = {
+    addEventListener: (name, fn) => { events[name] = fn; },
+    history: { pushState: jest.fn((_state, _title, url) => { location.href = url.href; }) },
+  };
+  const fetch = jest.fn();
+  vm.runInNewContext(consoleScript, {
+    document, window, location, URL, fetch, setInterval: jest.fn(), setTimeout, clearTimeout,
+    ResizeObserver: class { observe() {} disconnect() {} },
+  });
+  const node = (id) => document.getElementById(id);
+  const click = (action) => node('emulator').events.click({ target: { closest: () => ({ dataset: { action } }) } });
+  return { node, click, document, window, events, location, fetch };
+}
+
+describe('6217a32d experience selection', () => {
+  test('opens on two idle paths without creating a TV or starting any requests', () => {
+    const h = consoleHarness();
+    expect(h.document.title).toBe('Experiences | Roku');
+    expect(h.node('ceMain').innerHTML).toContain('Open TV experience');
+    expect(h.node('ceMain').innerHTML).toContain('Open Cloud Emulator');
+    expect(h.document.createElement).not.toHaveBeenCalled();
+    expect(h.fetch).not.toHaveBeenCalled();
+  });
+
+  test('customer path requires explicit launch and holds alerting until degraded evidence', async () => {
+    const h = consoleHarness('?experience=customer');
+    expect(h.document.title).toBe('Customer experience | Roku');
+    expect(h.node('ceMain').innerHTML).toContain('On-Call workspace');
+    expect(h.node('ceAlert').disabled).toBe(true);
+    expect(h.document.createElement).not.toHaveBeenCalled();
+    await h.click('launch');
+    const frame = h.document.createElement.mock.results[0].value;
+    expect(frame.src).toContain('view=tv&embed=1&profileId=p-maya');
+    h.events.message({ origin: h.location.origin, source: frame.contentWindow, data: {
+      source: 'streamtv-emulator', type: 'request', phase: 'end', method: 'GET',
+      path: '/api/home/continue-watching', status: 504, durationMs: 8500,
+    } });
+    expect(h.node('ceAlert').disabled).toBe(false);
+    expect(h.fetch).not.toHaveBeenCalled();
+    await h.click('oncall');
+    expect(h.node('ceOncall').open).toBe(true);
+  });
+
+  test('switching paths removes the old frame; developer devices remain idle', async () => {
+    const h = consoleHarness();
+    await h.click('customer');
+    await h.click('launch');
+    const frame = h.document.createElement.mock.results[0].value;
+    await h.click('devices');
+    expect(frame.remove).toHaveBeenCalled();
+    expect(h.document.title).toBe('Cloud Emulator | Roku');
+    expect(h.node('ceDevices').innerHTML).toContain('Stopped');
+    expect(h.location.search).toBe('?experience=developer');
+    expect(h.fetch).not.toHaveBeenCalled();
+    await h.click('overview');
+    expect(h.location.search).toBe('');
+    expect(h.node('ceMain').innerHTML).toContain('Open TV experience');
+  });
+
+  test('browser history selects an idle workspace without launching the app', () => {
+    const h = consoleHarness('?experience=developer');
+    h.location.search = '?experience=customer';
+    h.events.popstate();
+    expect(h.document.title).toBe('Customer experience | Roku');
+    expect(h.document.createElement).not.toHaveBeenCalled();
+    expect(h.fetch).not.toHaveBeenCalled();
+  });
+});
 
 function harness({ embedded = true, view = 'tv', fetch = jest.fn().mockResolvedValue(new Response('{}')) } = {}) {
   const parent = { postMessage: jest.fn() };

@@ -72,7 +72,7 @@ describe('6217a32d TV home screen On-Call skin', () => {
       oncallOnly: true,
       alertDestination: 'slack',
       paths: ['/streamtv'],
-      page: { file: '6217a32d.html', title: 'Cloud Emulator | Roku' },
+      page: { file: '6217a32d.html', title: 'Experiences | Roku' },
     });
     expect(skin.devinSession.auto).toBeUndefined();
     expect(skin.bugPortal).toBeUndefined();
@@ -90,7 +90,7 @@ describe('6217a32d TV home screen On-Call skin', () => {
     }));
     const html = pages[0];
     pages.slice(1).forEach((page) => expect(page).toEqual(html));
-    expect(html).toContain('<title>Cloud Emulator | Roku</title>');
+    expect(html).toContain('<title>Experiences | Roku</title>');
     expect(html).toContain('id="emulator"');
     expect(html).toContain("if (document.documentElement.dataset.view !== 'tv') return;");
     expect(html).toContain('/verticals/assets/6217a32d/emulator.js');
@@ -110,6 +110,9 @@ describe('6217a32d TV home screen On-Call skin', () => {
     expect(consoleScript).not.toContain('class="ce-mock"');
     expect(consoleScript).not.toContain('not a native runtime');
     expect(consoleScript).toContain('Send a real on-call alert?');
+    expect(consoleScript).toContain('Open TV experience');
+    expect(consoleScript).toContain('Open Cloud Emulator');
+    expect(consoleScript).toContain('manual handoff to the responder, not automatic monitor detection');
   });
 
   test('report, incident and the bare scenario page are not opted in', async () => {
