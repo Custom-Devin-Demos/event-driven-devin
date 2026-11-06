@@ -13,6 +13,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | Vertical | URL Path | Frontend | API Endpoint | Service File |
 |----------|----------|----------|--------------|-------------|
 | **Hub** (landing page) | `/` | `app/public/hub.html` | — | — |
+| **f2ec3d90 — external multi-service demo stack** (separate repo, own container; profile-gated) | `/f2ec3d90/` | `f2ec3d90-src/` (external checkout) | `GET /f2ec3d90/health` | `docker-compose.yml` service `f2ec3d90` |
 | **Marshalls — Best Gift Ideas** (unlisted; original archived gift grid → first MAX STUDIO gift bundle → Quick Look → Add To Bag → Checkout → Place Order fails with `TypeError` reading `handlingFee` because `FULFILLMENT_RULES` lacks `gift-bundle`; standard DISNEY cookie jar succeeds. Sentry + instant `createSessionAndAlert` → Devin fix PR; keep the planted defect) | `/marshalls`, `/ea2d0dbc` | `app/public/verticals/ea2d0dbc.html` | `GET /api/ea2d0dbc/catalog`, `POST /api/ea2d0dbc/checkout` | `app/services/verticals/ea2d0dbc.js` |
 | **Netflix — Membership Signup** (unlisted — direct URL only) | `/ca610f30` | `app/public/verticals/ca610f30.html` | `POST /api/ca610f30/memberships` | `app/services/verticals/ca610f30.js` |
 | **Retail eCommerce** | `/retail` | `app/public/index.html` | `POST /api/storefront/checkout` | `app/routes/storefront.js` |
@@ -909,7 +910,7 @@ After the initial setup, certificate renewal is fully automatic (certbot checks 
 Deployments are automated: the `Deploy to EC2` workflow (`.github/workflows/deploy.yml`) runs on every push to `main` in **both** source repos (COG-GTM and Custom-Devin-Demos), uploads the tree to `/var/tmp/devindemos-deploy/<sha>` (outside `/home/ubuntu`, which is the Docker build context of whatever deploy is running) and hands it to `scripts/deploy-ec2.sh` on the host. Never `tar xzf` over `/home/ubuntu` by hand — that is how stale files and unregistered verticals used to pile up. For a manual redeploy use the same script:
 
 ```bash
-tar czf /tmp/release.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
+tar czf /tmp/release.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot --exclude=avature-src --exclude=f2ec3d90-src -C . .
 ssh ubuntu@<EC2_IP> 'install -d -m 700 /var/tmp/devindemos-deploy'
 scp /tmp/release.tar.gz ubuntu@<EC2_IP>:/var/tmp/devindemos-deploy/release-manual.tar.gz
 ssh ubuntu@<EC2_IP> bash -s <<'EOF'

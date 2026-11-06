@@ -46,7 +46,7 @@ PROTECTED_APP=(routes/verticals public/verticals services/verticals)
 PROTECTED_CONFIG=(customers)
 # Host-only top-level entries that must never be replaced even if a staging
 # tree happens to contain them.
-NEVER_TOUCH=(.env .env.example.local .ssh certbot docker-compose.override.yml archive releases node_modules .git data)
+NEVER_TOUCH=(.env .env.example.local .ssh certbot docker-compose.override.yml archive releases node_modules .git data avature-src f2ec3d90-src)
 
 CRITICAL_PATHS=(/ /health /retail /api/verticals /oncall /publix /qbe /4f645972)
 
@@ -430,6 +430,34 @@ if avature_sync 2>"$AV_ERR" && compose --profile avature build --pull avature >/
 else
   log "warning: avature sync/build/start failed (GITHUB_PAT missing or repo unreachable?) — /avature/ left as-is"
   [ -n "${GITHUB_PAT:-}" ] || log "   GITHUB_PAT is not set in $APP_DIR/.env"
+  tail -5 "$AV_ERR" | log_lines '   '
+fi
+
+# ── 5b. f2ec3d90 demo (separate public repo, best effort) ─────────────────
+# Keep failures isolated from the main stack; nginx resolves this service lazily.
+F2EC3D90_SRC="$APP_DIR/f2ec3d90-src"
+F2EC3D90_REF=${F2EC3D90_REF:-$(env_value F2EC3D90_REF)}; F2EC3D90_REF=${F2EC3D90_REF:-main}
+f2ec3d90_sync() {
+  if [ ! -d "$F2EC3D90_SRC/.git" ]; then
+    mkdir -p "$F2EC3D90_SRC" && git -C "$F2EC3D90_SRC" init -q \
+      && git -C "$F2EC3D90_SRC" remote add origin https://github.com/COG-GTM/civil-money-claims-demo.git || return 1
+  fi
+  git -C "$F2EC3D90_SRC" fetch -q --depth 1 origin "$F2EC3D90_REF" \
+    && git -C "$F2EC3D90_SRC" checkout -q --detach FETCH_HEAD \
+    && F2EC3D90_GIT_SHA=$(git -C "$F2EC3D90_SRC" rev-parse HEAD) && export F2EC3D90_GIT_SHA
+}
+if f2ec3d90_sync 2>"$AV_ERR" && compose --profile f2ec3d90 build --pull f2ec3d90 >/dev/null 2>>"$AV_ERR" \
+   && compose --profile f2ec3d90 up -d --no-deps f2ec3d90 >/dev/null 2>>"$AV_ERR"; then
+  log "f2ec3d90: built $(git -C "$F2EC3D90_SRC" rev-parse --short HEAD) from $F2EC3D90_REF"
+  F2EC3D90_STATUS=000
+  for _ in $(seq 1 60); do
+    F2EC3D90_STATUS=$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' "${F2EC3D90_HEALTH_URL:-http://localhost:3400/f2ec3d90/health}" || true)
+    [ "$F2EC3D90_STATUS" = 200 ] && break
+    sleep 2
+  done
+  if [ "$F2EC3D90_STATUS" = 200 ]; then log "f2ec3d90 health 200"; else log "warning: f2ec3d90 health returned $F2EC3D90_STATUS"; fi
+else
+  log "warning: f2ec3d90 sync/build/start failed — /f2ec3d90/ left as-is"
   tail -5 "$AV_ERR" | log_lines '   '
 fi
 

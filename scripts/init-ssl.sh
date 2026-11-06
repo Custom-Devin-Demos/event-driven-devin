@@ -61,6 +61,7 @@ CERT_DIR="./certbot/conf/live/${DOMAIN_NAME}"
 # are skipped by plain `compose up`; bring back whatever image already exists.
 restart_optional_services() {
   docker compose --profile avature up -d --no-deps --no-build avature 2>/dev/null || true
+  docker compose --profile f2ec3d90 up -d --no-deps --no-build f2ec3d90 2>/dev/null || true
 }
 
 if sudo test -d "$CERT_DIR" && sudo test -f "$CERT_DIR/fullchain.pem"; then

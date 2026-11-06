@@ -536,6 +536,27 @@ services:
         limits:
           memory: 192M
 
+  # f2ec3d90 demo (separate repo, optional all-in-one container).
+  f2ec3d90:
+    profiles: ["f2ec3d90"]
+    build:
+      context: ./f2ec3d90-src
+      dockerfile: Dockerfile.devindemos
+      args:
+        GIT_SHA: ${F2EC3D90_GIT_SHA:-unknown}
+    ports:
+      - "127.0.0.1:3400:3000"
+    environment:
+      - BASE_PATH=/f2ec3d90
+      - DD_AGENT_HOST=datadog-agent
+      - DD_ENV=demo
+      - DD_TRACE_ENABLED=true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+
   # ─── Migration Control Tower (Ab Initio -> dbt parity demo) ───
   migration-tower:
     build:
