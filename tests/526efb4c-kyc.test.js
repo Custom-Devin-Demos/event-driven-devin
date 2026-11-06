@@ -328,6 +328,9 @@ describe('France (FR) market', () => {
     expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'BE, Narnia' }).furtherNationalities).toMatch(/Narnia/);
     expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'canada' }).furtherNationalities).toMatch(/already/);
     expect(errs('nationality', { furtherNationalities: 'BE, Belgium' }).furtherNationalities).toMatch(/already/);
+    for (const list of [',,', 'BE,', ', BE', 'BE,, IT']) {
+      expect(errs('nationality', { furtherNationalities: list }).furtherNationalities).toMatch(/single comma/);
+    }
     expect(validate('nationality', { nationalityStatus: 'national', nationality: 'FR', hasOtherNationality: 'no', secondNationality: 'FR' }).valid).toBe(true);
     expect(Object.keys(validate('nationality', { nationalityStatus: 'refugee' }).errors)).toEqual(['protectionCountry']);
     expect(validate('nationality', { nationalityStatus: 'subsidiary-protection', protectionCountry: 'FR' }).valid).toBe(true);

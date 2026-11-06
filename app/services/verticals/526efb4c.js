@@ -644,7 +644,8 @@ const RULES = {
   ),
   nationalityList: (v, values, _today, rule) => {
     const seen = new Set(rule.from.map((id) => values[id]).filter(Boolean));
-    for (const entry of v.split(',').map((s) => s.trim()).filter(Boolean)) {
+    for (const entry of v.split(',').map((s) => s.trim())) {
+      if (!entry) return 'Separate each country with a single comma';
       const code = COUNTRY_BY_NAME.get(entry.toLowerCase());
       if (!code) return `\u201c${entry}\u201d is not a recognised country`;
       if (seen.has(code)) return 'Choose a nationality you have not already entered';
