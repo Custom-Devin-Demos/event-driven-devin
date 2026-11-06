@@ -32,17 +32,17 @@
   function device(id, name, type) {
     return {
       id, name, type, running: false, started: 0, maxMinutes: 30, firmware: type === 'TV' ? '15.2.4-tv' : '15.2.4-player',
-      esn: 'MOCK-' + id.toUpperCase(), devMode: true, installed: true, profileId: 'p-maya', logs: [], degraded: false, alertSent: false,
-      snapshots: [{ name: 'StreamTV ready', note: 'Prepared demo app and Maya profile', devMode: true, installed: true, profileId: 'p-maya' }],
+      esn: 'VIRTUAL-' + id.toUpperCase(), devMode: true, installed: true, profileId: 'p-maya', logs: [], degraded: false, alertSent: false,
+      snapshots: [{ name: 'Roku ready', note: 'Prepared demo app and Maya profile', devMode: true, installed: true, profileId: 'p-maya' }],
     };
   }
-  const devices = [device('tv-001', 'StreamTV QA TV', 'TV'), device('player-002', 'Playback validation', 'Player')];
+  const devices = [device('tv-001', 'Roku QA TV', 'TV'), device('player-002', 'Playback validation', 'Player')];
 
   root.innerHTML = `
-    <header class="ce-header"><div class="ce-brand">StreamTV</div><div class="ce-product">Cloud Emulator</div><span class="ce-mock">MOCK</span><div class="ce-account">Demo workspace <span class="ce-account-mark">${icon('person')}</span></div></header>
-    <nav class="ce-subnav" aria-label="Console navigation"><button data-action="devices">Devices</button><a href="https://developer.roku.com/dev/docs/rce" target="_blank" rel="noopener noreferrer">Reference documentation ↗</a><span class="ce-environment">Browser simulation · No cloud resources</span></nav>
+    <header class="ce-header"><div class="ce-brand">Roku</div><div class="ce-product">Cloud Emulator</div><div class="ce-account">Developer workspace <span class="ce-account-mark">${icon('person')}</span></div></header>
+    <nav class="ce-subnav" aria-label="Console navigation"><button data-action="devices">Devices</button><a href="https://developer.roku.com/dev/docs/rce" target="_blank" rel="noopener noreferrer">Reference documentation ↗</a><span class="ce-environment">Development workspace</span></nav>
     <main class="ce-main" id="ceMain"></main>
-    <footer class="ce-footer"><span>Demo environment – mock data</span><span>Simulated devices and firmware. Refresh resets local device state.</span></footer>
+    <footer class="ce-footer"><span>Cloud Emulator</span><span>Device state is stored for this browser session.</span></footer>
     <dialog class="ce-dialog" id="ceDialog" aria-labelledby="ceDialogTitle"></dialog>
     <div class="ce-toast" id="ceToast" role="status" hidden></div>`;
   const main = document.getElementById('ceMain');
@@ -84,14 +84,14 @@
         <div class="ce-table-meta"><span>TV ${devices.filter((d) => d.type === 'TV').length}/25 · Player ${devices.filter((d) => d.type === 'Player').length}/25</span><span>Browser-local devices · Updated just now</span></div>
         <div class="ce-table-scroll"><table><thead><tr><th>Device name</th><th>Device type</th><th>Status</th><th>Run time</th><th>ESN</th><th>Firmware version</th><th>Actions</th></tr></thead><tbody id="ceDevices"></tbody></table></div>
       </section>
-      <aside class="ce-notice">${icon('info')}<p><strong>A developer-console demo, not a native runtime</strong>Start a device, choose View device, then launch StreamTV. The intentionally slow API runs only after you launch the app. On-call alerts are manual and require confirmation.</p></aside>`;
+      <aside class="ce-notice">${icon('info')}<p><strong>Get started</strong>Start a device, choose View device, then launch Roku. Use View Log to inspect application requests.</p></aside>`;
     document.getElementById('ceType').value = filters.type;
     document.getElementById('ceStatus').value = filters.status;
     renderDeviceRows();
   }
   function renderDeviceRows() {
     const matches = devices.filter((d) => d.name.toLowerCase().includes(filters.query.toLowerCase()) && (filters.type === 'All' || filters.type === d.type) && (filters.status === 'All' || filters.status === (d.running ? 'Running' : 'Stopped')));
-    document.getElementById('ceDevices').innerHTML = matches.length ? matches.map((d) => `<tr><td><div class="ce-device-name">${escape(d.name)}</div><div class="ce-device-description">${d.installed ? 'StreamTV demo installed' : 'No sample app installed'}</div></td><td>${d.type}</td><td>${status(d)}</td><td data-runtime="${d.id}">${d.running ? elapsed(d) : '—'}</td><td>${d.esn}</td><td>${d.firmware}<div class="ce-device-description">Simulated build</div></td><td><div class="ce-actions">${action(d, d.running ? 'stop' : 'run', d.running ? 'stop' : 'play', d.running ? 'Stop device' : 'Run device')}${action(d, 'view', 'screen', 'View device', !d.running)}${action(d, 'logs', 'log', 'View logs')}${action(d, 'snapshot', 'snapshot', 'Save snapshot')}${action(d, 'copy', 'copy', 'Copy mock ESN')}</div></td></tr>`).join('') : '<tr><td colspan="7" class="ce-empty">No devices match these filters.</td></tr>';
+    document.getElementById('ceDevices').innerHTML = matches.length ? matches.map((d) => `<tr><td><div class="ce-device-name">${escape(d.name)}</div><div class="ce-device-description">${d.installed ? 'Roku app installed' : 'No sample app installed'}</div></td><td>${d.type}</td><td>${status(d)}</td><td data-runtime="${d.id}">${d.running ? elapsed(d) : '—'}</td><td>${d.esn}</td><td>${d.firmware}</td><td><div class="ce-actions">${action(d, d.running ? 'stop' : 'run', d.running ? 'stop' : 'play', d.running ? 'Stop device' : 'Run device')}${action(d, 'view', 'screen', 'View device', !d.running)}${action(d, 'logs', 'log', 'View logs')}${action(d, 'snapshot', 'snapshot', 'Save snapshot')}${action(d, 'copy', 'copy', 'Copy ESN')}</div></td></tr>`).join('') : '<tr><td colspan="7" class="ce-empty">No devices match these filters.</td></tr>';
   }
   function openDialog(title, fields, submitText, onSubmit) {
     dialogReturnFocus = document.activeElement;
@@ -122,10 +122,10 @@
     });
   }
   function runDevice(d) {
-    openDialog('Run device', `<p>${escape(d.name)} · ${d.type}. Firmware selection is simulated.</p><label class="ce-field">Firmware version<select name="firmware"><option value="15.2.4-${d.type.toLowerCase()}">15.2.4 — current release (mock)</option><option value="16.0.0-${d.type.toLowerCase()}">16.0.0 — next release (mock)</option></select></label><label class="ce-field">Max run time<select name="minutes"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option></select></label><label class="ce-field">Use this snapshot<select name="snapshot">${d.snapshots.map((s, i) => `<option value="${i}">${escape(s.name)}</option>`).join('')}</select></label>`, 'Run device', (form) => {
+    openDialog('Run device', `<p>${escape(d.name)} · ${d.type}. </p><label class="ce-field">Firmware version<select name="firmware"><option value="15.2.4-${d.type.toLowerCase()}">15.2.4 — current release</option><option value="16.0.0-${d.type.toLowerCase()}">16.0.0 — next release</option></select></label><label class="ce-field">Max run time<select name="minutes"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option></select></label><label class="ce-field">Use this snapshot<select name="snapshot">${d.snapshots.map((s, i) => `<option value="${i}">${escape(s.name)}</option>`).join('')}</select></label>`, 'Run device', (form) => {
       const snapshot = d.snapshots[Number(form.get('snapshot'))];
       Object.assign(d, { running: true, started: Date.now(), maxMinutes: Number(form.get('minutes')), firmware: String(form.get('firmware')), devMode: snapshot.devMode, installed: snapshot.installed, profileId: snapshot.profileId, degraded: false, alertSent: false, alertMessage: '' });
-      addLog(d, `EMULATOR Mock device started · ${d.firmware} · snapshot ${snapshot.name}`);
+      addLog(d, `EMULATOR Device started · ${d.firmware} · snapshot ${snapshot.name}`);
       renderDevices(); toast('Device running. Choose View device to open the viewer.');
     });
   }
@@ -136,7 +136,7 @@
     toast('Device stopped.');
   }
   function saveSnapshot(d) {
-    openDialog('Add snapshot', `<p>Saves mock app installation, developer-mode setting and selected profile. This is not a native OS snapshot.</p><label class="ce-field">Snapshot name<input name="name" maxlength="60" required></label><label class="ce-field">Note<input name="note" maxlength="200"></label><div>${d.snapshots.map((s) => `<div class="ce-snapshot-item">${escape(s.name)}<small>${escape(s.note)}</small></div>`).join('')}</div>`, 'Save', (form) => {
+    openDialog('Add snapshot', `<p>Saves app installation, developer-mode setting and selected profile for this browser session.</p><label class="ce-field">Snapshot name<input name="name" maxlength="60" required></label><label class="ce-field">Note<input name="note" maxlength="200"></label><div>${d.snapshots.map((s) => `<div class="ce-snapshot-item">${escape(s.name)}<small>${escape(s.note)}</small></div>`).join('')}</div>`, 'Save', (form) => {
       const name = String(form.get('name')).trim();
       if (!name || d.snapshots.some((s) => s.name.toLowerCase() === name.toLowerCase())) return 'Use a unique, nonempty snapshot name.';
       if (d.snapshots.length >= 20) return 'This demo supports up to 20 snapshots per device.';
@@ -146,7 +146,7 @@
   }
 
   function launcher(d) {
-    return `<div class="ce-launcher" id="ceLauncher"><div class="ce-launcher-top"><strong>StreamTV TV</strong><span>Home</span><small>Virtual device · mock display</small></div><div class="ce-launcher-grid"><div class="ce-launcher-nav"><b>Home</b><div>Streaming apps</div><div>Settings</div></div><div><h3>Quick access</h3><button class="ce-app-tile" data-action="launch" aria-label="Launch StreamTV"><strong>StreamTV</strong><span>${d.installed ? 'Press OK to launch' : 'Install the bundled demo'}</span></button><div class="ce-launcher-copy">${d.installed ? 'Your shows. Ready when you are.' : 'Enable Dev Mode, then choose Sideload.'}</div></div><div class="ce-promo"><small>STREAMTV ORIGINAL</small><strong>NORTHERN<br>LIGHTS</strong><span>A world of stories awaits.</span></div></div></div>`;
+    return `<div class="ce-launcher" id="ceLauncher"><div class="ce-launcher-top"><strong>Roku TV</strong><span>Home</span><small>Virtual device</small></div><div class="ce-launcher-grid"><div class="ce-launcher-nav"><b>Home</b><div>Streaming apps</div><div>Settings</div></div><div><h3>Quick access</h3><button class="ce-app-tile" data-action="launch" aria-label="Launch Roku"><strong>Roku</strong><span>${d.installed ? 'Press OK to launch' : 'Install the bundled app'}</span></button><div class="ce-launcher-copy">${d.installed ? 'Your shows. Ready when you are.' : 'Enable Dev Mode, then choose Sideload.'}</div></div><div class="ce-promo"><small>FEATURED TITLE</small><strong>NORTHERN<br>LIGHTS</strong><span>A world of stories awaits.</span></div></div></div>`;
   }
   function renderViewer(d) {
     if (!d.running) return;
@@ -154,15 +154,15 @@
     main.innerHTML = `
       <div class="ce-breadcrumb"><button data-action="devices">Devices</button><span>/</span><span>${escape(d.name)}</span></div>
       <div class="ce-viewer-heading"><h1>${escape(d.name)}</h1>${status(d)}<label class="ce-field">App profile<select id="ceProfile">${Object.entries(profiles).map(([id, name]) => `<option value="${id}" ${id === d.profileId ? 'selected' : ''}>${name}</option>`).join('')}</select></label><button class="ce-button ce-quiet" data-action="snapshot">${icon('snapshot')}Snapshot</button></div>
-      <div class="ce-viewer-grid"><div class="ce-screen-area"><div class="ce-screen" id="ceScreen">${launcher(d)}</div><div class="ce-screen-meta"><span>Current run time: <b data-runtime="${d.id}">${elapsed(d)}</b></span><span>1440 × 810 · Browser preview</span><span>${escape(d.firmware)} (mock)</span></div></div>
+      <div class="ce-viewer-grid"><div class="ce-screen-area"><div class="ce-screen" id="ceScreen">${launcher(d)}</div><div class="ce-screen-meta"><span>Current run time: <b data-runtime="${d.id}">${elapsed(d)}</b></span><span>1440 × 810 · Browser preview</span><span>${escape(d.firmware)}</span></div></div>
       <aside class="ce-remote"><h3>Remote</h3><p>Use this remote to navigate and interact with the demo app.</p>
         <div class="ce-remote-top"><button class="ce-icon-button" data-key="Escape" aria-label="Back">${icon('back')}</button><button class="ce-icon-button" data-action="home" aria-label="Home">${icon('home')}</button><button class="ce-icon-button" data-action="stop" aria-label="Stop device">${icon('power')}</button></div>
         <div class="ce-dpad" aria-label="Directional controls"><button data-key="ArrowUp" aria-label="Up">${icon('up')}</button><button data-key="ArrowLeft" aria-label="Left">${icon('left')}</button><button data-key="Enter" aria-label="OK">OK</button><button data-key="ArrowRight" aria-label="Right">${icon('right')}</button><button data-key="ArrowDown" aria-label="Down">${icon('down')}</button></div>
-        <div class="ce-media"><button class="ce-icon-button" data-key="Enter" aria-label="Select or close mock playback">${icon('play')}</button><button class="ce-icon-button" data-action="home" aria-label="Return to device home">${icon('screen')}</button></div>
+        <div class="ce-media"><button class="ce-icon-button" data-key="Enter" aria-label="Select or close playback">${icon('play')}</button><button class="ce-icon-button" data-action="home" aria-label="Return to device home">${icon('screen')}</button></div>
         <div class="ce-remote-tools"><button class="ce-button" data-action="wake">Wake Device</button><button class="ce-button" data-action="dev-mode" id="ceDevMode">Dev Mode: ${d.devMode ? 'on' : 'off'}</button><button class="ce-button" data-action="logs">View Log</button><button class="ce-button" data-action="sideload" id="ceSideload" ${d.devMode ? '' : 'disabled'}>Sideload</button></div>
-        <div class="ce-remote-help">Arrow keys · Enter / OK · Esc / Back<br>Home returns to the device launcher.<br>Media playback is a visual mock.</div>
+        <div class="ce-remote-help">Arrow keys · Enter / OK · Esc / Back<br>Home returns to the device launcher.</div>
       </aside></div>
-      <section class="ce-card ce-incident"><div><h3>On-call demonstration</h3><p id="ceIncidentStatus">Launch StreamTV to observe the home API. Alerts stay off until you explicitly send one.</p></div><button class="ce-button" data-action="alert" id="ceAlert" disabled>Send on-call alert</button></section>
+      <section class="ce-card ce-incident"><div><h3>On-call demonstration</h3><p id="ceIncidentStatus">Launch Roku to observe the home API. Alerts stay off until you explicitly send one.</p></div><button class="ce-button" data-action="alert" id="ceAlert" disabled>Send on-call alert</button></section>
       <section class="ce-log" id="ceLog" hidden><div class="ce-log-head"><h3>Application log</h3><span>Actual browser requests + local emulator actions · Not BrightScript output</span><button data-action="clear-logs">Clear</button></div><div class="ce-log-body" id="ceLogBody" role="log" aria-label="Application request log"></div></section>`;
     screenObserver = new ResizeObserver(scaleScreen); screenObserver.observe(document.getElementById('ceScreen'));
     scaleScreen(); updateIncident(); renderLogs();
@@ -185,11 +185,11 @@
     if (!d.installed) { toast('Enable Dev Mode and use Sideload to install the bundled app.'); return; }
     removeFrame();
     const screen = document.getElementById('ceScreen'); screen.innerHTML = '';
-    frame = document.createElement('iframe'); frame.title = 'StreamTV app preview';
+    frame = document.createElement('iframe'); frame.title = 'Roku app preview';
     const url = new URL(location.pathname, location.origin);
     url.searchParams.set('view', 'tv'); url.searchParams.set('embed', '1'); url.searchParams.set('profileId', d.profileId);
     frame.src = url.href; screen.appendChild(frame); scaleScreen();
-    addLog(d, `EMULATOR Launching bundled StreamTV web app · profile ${profiles[d.profileId]}.`);
+    addLog(d, `EMULATOR Launching bundled Roku web app · profile ${profiles[d.profileId]}.`);
     frame.addEventListener('load', () => frame?.contentWindow.focus(), { once: true });
   }
   function sendKey(key) {
@@ -202,7 +202,7 @@
     const button = document.getElementById('ceAlert');
     button.disabled = !current.degraded || current.alertSent;
     button.textContent = current.alertSent ? 'Alert delivered' : 'Send on-call alert';
-    document.getElementById('ceIncidentStatus').textContent = current.alertMessage || (current.degraded ? 'Slow or failed home API request observed. Review the log, then explicitly send an alert to page on-call.' : 'Launch StreamTV to observe the home API. Alerts stay off until you explicitly send one.');
+    document.getElementById('ceIncidentStatus').textContent = current.alertMessage || (current.degraded ? 'Slow or failed home API request observed. Review the log, then explicitly send an alert to page on-call.' : 'Launch Roku to observe the home API. Alerts stay off until you explicitly send one.');
   }
   function renderLogs() {
     const log = document.getElementById('ceLogBody'); if (!log || !current) return;
@@ -216,18 +216,18 @@
   }
   function showLogs(d) {
     if (current === d) { const panel = document.getElementById('ceLog'); panel.hidden = !panel.hidden; renderLogs(); return; }
-    openDialog('Application log', `<p>Browser requests and local mock actions. No native device logs.</p><pre style="white-space:pre-wrap;font-size:11px;max-height:280px;overflow:auto">${escape(d.logs.map((l) => l.time + ' ' + l.message).join('\n') || 'No events yet.')}</pre>`, 'Done', () => {});
+    openDialog('Application log', `<p>Browser requests and local emulator actions.</p><pre style="white-space:pre-wrap;font-size:11px;max-height:280px;overflow:auto">${escape(d.logs.map((l) => l.time + ' ' + l.message).join('\n') || 'No events yet.')}</pre>`, 'Done', () => {});
   }
   function sideload() {
     if (!current?.devMode) return;
     const d = current;
-    openDialog('Development Application Installer', '<p>Install the bundled StreamTV demo into this mock device.</p><div class="ce-notice"><p><strong>streamtv-demo · browser build</strong>This installs a web preview only. It does not upload or execute native app packages.</p></div>', 'Install sample app', () => {
-      d.installed = true; addLog(d, 'EMULATOR Bundled web app installed (mock sideload).'); home(); toast('StreamTV installed. Press OK to launch.');
+    openDialog('Development Application Installer', '<p>Install the bundled Roku app into this device.</p><div class="ce-notice"><p><strong>sample-channel · browser build</strong>This installs a web preview only. It does not upload or execute native app packages.</p></div>', 'Install sample app', () => {
+      d.installed = true; addLog(d, 'EMULATOR Bundled web app installed.'); home(); toast('Roku installed. Press OK to launch.');
     });
   }
   function sendAlert() {
     const d = current; if (!d?.degraded || d.alertSent) return;
-    openDialog('Send a real on-call alert?', '<p>This posts to <strong>#oncall-alerts</strong> through the existing demo backend and may start the real responder automation. The emulator is a mock; the alert action is not.</p><p>Continue only when you are ready to demonstrate the on-call response.</p>', 'Send on-call alert', async () => {
+    openDialog('Send a real on-call alert?', '<p>This posts to <strong>#oncall-alerts</strong> through the existing demo backend and may start the real responder automation.</p><p>Continue only when you are ready to demonstrate the on-call response.</p>', 'Send on-call alert', async () => {
       const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 12000);
       try {
         const response = await fetch('/api/oncall/trigger/streamtv', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal, body: JSON.stringify({ unique: true, skin: '6217a32d', alertDestination: 'slack', devinUserId: window.localStorage.getItem('devinUserId') || '', devinOrgId: window.localStorage.getItem('devinOrgId') || '', devinEmail: window.localStorage.getItem('devinEmail') || '' }) });
@@ -253,10 +253,10 @@
       case 'view': renderViewer(d); break;
       case 'snapshot': saveSnapshot(d); break;
       case 'logs': showLogs(d); break;
-      case 'copy': try { await navigator.clipboard.writeText(d.esn); toast('Mock ESN copied.'); } catch { toast('Clipboard unavailable. ESN: ' + d.esn); } break;
+      case 'copy': try { await navigator.clipboard.writeText(d.esn); toast('ESN copied.'); } catch { toast('Clipboard unavailable. ESN: ' + d.esn); } break;
       case 'home': home(); break;
       case 'launch': launchApp(); break;
-      case 'wake': toast('Mock device is awake and ready.'); break;
+      case 'wake': toast('Device is awake and ready.'); break;
       case 'dev-mode': d.devMode = !d.devMode; button.textContent = 'Dev Mode: ' + (d.devMode ? 'on' : 'off'); document.getElementById('ceSideload').disabled = !d.devMode; addLog(d, 'EMULATOR Developer mode ' + (d.devMode ? 'enabled' : 'disabled') + '.'); break;
       case 'sideload': sideload(); break;
       case 'alert': sendAlert(); break;

@@ -8830,12 +8830,13 @@ const ONCALL_SKINS = {
   '6217a32d': {
     slug: '6217a32d',
     company: 'Roku',
-    brandMark: 'S',
+    brandMark: 'R',
     vertical: 'streamtv',
     oncallOnly: true,
+    hideRibbon: true,
     paths: ['/streamtv'],
     alertDestination: 'slack',
-    page: { file: '6217a32d.html', title: 'Cloud Emulator | StreamTV' },
+    page: { file: '6217a32d.html', title: 'Cloud Emulator | Roku' },
     devinSession: {
       promptAppendix: 'Expected from the responder: root cause with the culprit commit (use git log / git blame on streamtv-home-api), a fix, a regression test that guards the latency budget, a PR with before/after p95 and the test output, and a reply in this thread. Keep the summary short and in plain English; it is shown on a TV screen.',
     },
@@ -8846,8 +8847,8 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#19002D',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'StreamTV Support',
-    disclaimer: 'NOT ACTUALLY A ROKU SITE — internal demo only, not affiliated with, endorsed by, or a real Roku product. StreamTV is a mock service with mock data.',
+    supportCenter: 'Roku Demo Support',
+    disclaimer: '',
   },
   '81e62395': {
     slug: '81e62395',
