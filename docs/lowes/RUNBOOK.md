@@ -56,8 +56,10 @@ The card uses the standard Error, Severity, Location, Message, Release,
 Environment and Triggered by fields, plus Watch Devin / Sentry / Datadog links.
 No custom responder instructions are embedded. The frontend forwards the hub’s
 saved org/user/email and uses existing locked host defaults on direct entry.
-Sentry events carry `alert_path: instant` so the webhook fallback does not send
-a duplicate alert. Local rehearsal does not capture Sentry events.
+Sentry events carry `alert_path: instant`; tagless issue webhooks are also
+suppressed by the Lowe’s culprit slug. The live Sentry link searches the captured
+event ID; previews use a Lowe’s service/route filter because no event was captured.
+Local rehearsal does not capture Sentry events.
 
 The hub stores the Slack/Teams selection in localStorage and the
 `alert_destination` cookie. Its existing AsyncLocalStorage middleware carries

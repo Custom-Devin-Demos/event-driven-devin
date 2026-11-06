@@ -7,11 +7,15 @@ const REPO = 'https://github.com/COG-GTM/event-driven-devin';
 const BASE_BRANCH = 'devin/lowes-cart-b5f26e97';
 const SESSION_URL = 'https://devin-gtm.devinenterprise.com/sessions/b5f26e97a86b49a59c23f5023ffc618e';
 
+function sentryIssueUrl(query = 'service:customer-a4c19e72-checkout route:/api/a4c19e72/checkout') {
+  return `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${encodeURIComponent(process.env.SENTRY_PROJECT_ID || '')}&query=${encodeURIComponent(query)}`;
+}
+
 function buildAlertData(error, input = {}) {
   return {
     customer: 'a4c19e72', verticalLabel: 'Lowe’s Checkout',
     service: 'customer-a4c19e72-checkout', issueTitle: `${error.name}: ${error.message}`,
-    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+    issueUrl: sentryIssueUrl(),
     culprit: 'app/services/verticals/a4c19e72.js — quoteCart',
     errorType: error.name, errorValue: error.message,
     level: 'error', platform: 'node', project: 'event-driven-devin',
@@ -59,10 +63,11 @@ async function reportCheckoutError(error, input) {
     return { ok: false, dryRun: false, sent: false, throttled: true, retryAfterMs: nextAlertAt - now, error: 'A demo alert was attempted recently. Wait one minute before retrying; no additional alert was sent.' };
   }
   nextAlertAt = now + ALERT_COOLDOWN_MS;
-  Sentry.captureException(error, {
+  const eventId = Sentry.captureException(error, {
     tags: Object.fromEntries(alertData.tags.map(({ key, value }) => [key, value])),
     extra: alertData.extra,
   });
+  if (eventId) alertData.issueUrl = sentryIssueUrl(eventId);
   const result = await createSessionAndAlert(alertData);
   const sent = Boolean(result && result.teams);
   return { ok: sent, dryRun: false, sent, responderManaged: sent, ...(sent ? {} : { error: 'Teams delivery was not confirmed. No Slack fallback was used.' }) };

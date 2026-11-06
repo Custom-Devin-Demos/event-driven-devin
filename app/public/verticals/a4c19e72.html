@@ -50,9 +50,17 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+  function savedIdentity() {
+    const identity = { devinOrgId: '', devinUserId: '', devinEmail: '' };
+    try {
+      for (const key of Object.keys(identity)) identity[key] = localStorage.getItem(key) || '';
+    } catch (_) {}
+    return identity;
+  }
   const identityReady = (async () => {
     try {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      const identity = savedIdentity();
+      if (identity.devinOrgId && identity.devinUserId) return;
       const response = await fetch('/api/config');
       if (!response.ok) return;
       const cfg = await response.json();
@@ -109,7 +117,7 @@
     busy = true; render(); $('checkout').textContent = 'Preparing checkout…'; clearNotice();
     try {
       await identityReady;
-      const response = await fetch('/api/a4c19e72/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, fulfillment, store, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }) });
+      const response = await fetch('/api/a4c19e72/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, fulfillment, store, ...savedIdentity() }) });
       const data = await response.json();
       if (!response.ok) {
         notice(`We couldn’t prepare your ${fulfillment} checkout.`, 'Your items are still in your cart. Please try again. No payment was taken.');

@@ -15,14 +15,15 @@ const service = require('../app/services/verticals/a4c19e72');
 const { reportCheckoutError, buildAlertData } = require('../app/services/verticals/a4c19e72-alert');
 const { runWithAlertDestination, alertDestinationFromCookie } = require('../app/services/alert-destination');
 const error = new TypeError("Cannot read properties of undefined (reading 'fee')");
+const sentryEventId = '0123456789abcdef0123456789abcdef';
 const report = (input = {}) => runWithAlertDestination('teams', () => reportCheckoutError(error, input));
 const router = require('../app/routes/verticals/a4c19e72');
 const fridge = { sku: 'DEMO-FRIDGE', qty: 1 };
 const battery = { sku: 'DEMO-BATTERY', qty: 1 };
-const keys = ['NODE_ENV', 'CI', 'LOWES_DEMO_DRY_RUN', 'AUTOMATIONS_TEAMS_WEBHOOK_URL', 'SENTRY_ORG_SLUG', 'SENTRY_PROJECT_ID', 'SENTRY_RELEASE', 'SENTRY_ENVIRONMENT', 'APP_VERSION', 'DD_ENV'];
+const keys = ['NODE_ENV', 'CI', 'LOWES_DEMO_DRY_RUN', 'AUTOMATIONS_TEAMS_WEBHOOK_URL', 'SENTRY_ORG_SLUG', 'SENTRY_PROJECT_ID', 'SENTRY_RELEASE', 'SENTRY_ENVIRONMENT', 'SENTRY_CLIENT_SECRET', 'APP_VERSION', 'DD_ENV'];
 const original = Object.fromEntries(keys.map(k => [k, process.env[k]]));
 let testTime = Date.now();
-beforeEach(() => { jest.clearAllMocks(); keys.forEach(k => delete process.env[k]); testTime += 60_001; jest.spyOn(Date, 'now').mockReturnValue(testTime); });
+beforeEach(() => { jest.clearAllMocks(); Sentry.captureException.mockReturnValue(sentryEventId); keys.forEach(k => delete process.env[k]); testTime += 60_001; jest.spyOn(Date, 'now').mockReturnValue(testTime); });
 afterAll(() => jest.restoreAllMocks());
 afterAll(() => keys.forEach(k => { if (original[k] === undefined) delete process.env[k]; else process.env[k] = original[k]; }));
 
@@ -109,6 +110,8 @@ test('hosted mode captures Sentry and uses the existing Teams transport without 
   });
   expect(Sentry.captureException.mock.invocationCallOrder[0]).toBeLessThan(axios.post.mock.invocationCallOrder[0]);
   expect(axios.post.mock.calls[0][1].text).toContain('presenter@example.com');
+  const sentryAction = axios.post.mock.calls[0][1].attachments[0].content.body.find(block => block.type === 'ActionSet').actions.find(action => action.title === 'View in Sentry');
+  expect(new URL(sentryAction.url).searchParams.get('query')).toBe(sentryEventId);
 });
 
 test('alert metadata follows the standard Sentry card and carries the supplied identity', () => {
@@ -118,19 +121,24 @@ test('alert metadata follows the standard Sentry card and carries the supplied i
   process.env.DD_ENV = 'staging';
   const identity = { devinOrgId: 'org-selected', devinUserId: 'user-selected', devinEmail: 'presenter@example.com' };
   const data = buildAlertData(error, identity);
-  expect(data).toMatchObject({ ...identity, issueUrl: 'https://devin-gtm.sentry.io/issues/?project=123&query=is%3Aunresolved', release: 'checkout@test', environment: 'staging' });
+  expect(data).toMatchObject({ ...identity, release: 'checkout@test', environment: 'staging' });
+  const issueUrl = new URL(data.issueUrl);
+  expect(issueUrl.origin).toBe('https://devin-gtm.sentry.io');
+  expect(issueUrl.searchParams.get('project')).toBe('123');
+  expect(issueUrl.searchParams.get('query')).toBe('service:customer-a4c19e72-checkout route:/api/a4c19e72/checkout');
   expect(data).not.toHaveProperty('promptAppendix');
   const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
   expect(isInstantPathEvent({ tags: data.tags })).toBe(true);
 });
 
-test('dry-run payload equals the real pipeline payload', async () => {
+test('dry-run payload equals the real pipeline payload except the captured Sentry event link', async () => {
   const preview = await report();
   process.env.NODE_ENV = 'production';
   process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockResolvedValue({ status: 202 });
   await report();
-  const normalized = value => JSON.stringify(value).replace(/\d{4}-\d{2}-\d{2}T[0-9:.]+Z/g, '<timestamp>');
+  const previewQuery = new URL(buildAlertData(error).issueUrl).searchParams.get('query');
+  const normalized = value => JSON.stringify(value).replace(/\d{4}-\d{2}-\d{2}T[0-9:.]+Z/g, '<timestamp>').replaceAll(sentryEventId, encodeURIComponent(previewQuery));
   expect(normalized(axios.post.mock.calls[0][1])).toEqual(normalized(preview.payload));
 });
 
@@ -204,7 +212,7 @@ test('concurrent and repeated live failures are capped, including failed deliver
 
 describe('HTTP surface', () => {
   let server, base;
-  beforeAll(async () => { const app = express(); app.use(express.json()); app.use((req, res, next) => runWithAlertDestination(alertDestinationFromCookie(req.headers.cookie), next)); app.use(router); server = app.listen(0); await new Promise(resolve => server.once('listening', resolve)); base = `http://127.0.0.1:${server.address().port}`; });
+  beforeAll(async () => { const app = express(); app.use(express.json()); app.use((req, res, next) => runWithAlertDestination(alertDestinationFromCookie(req.headers.cookie), next)); app.use(router); app.use(require('../app/routes/sentry-webhook')); server = app.listen(0); await new Promise(resolve => server.once('listening', resolve)); base = `http://127.0.0.1:${server.address().port}`; });
   afterAll(() => new Promise(resolve => server.close(resolve)));
   test('catalog is synthetic and bespoke send endpoint does not exist', async () => {
     const response = await fetch(`${base}/api/a4c19e72/catalog`);
@@ -237,6 +245,19 @@ describe('HTTP surface', () => {
     expect(response.status).toBe(500);
     expect((await response.json()).alert).toMatchObject({ ok: true, sent: true, responderManaged: true });
     expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(createDevinSession).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    { action: 'triggered', data: { event: { title: error.message, tags: [['alert_path', 'instant']] } } },
+    ...['app/services/verticals/a4c19e72.js in quoteCart', 'quoteCart(app.services.verticals.a4c19e72)'].map(culprit => ({ action: 'created', data: { issue: { id: 'lowes-demo', title: error.message, culprit } } })),
+  ])('Sentry event/issue webhooks do not duplicate the Lowe’s alert: %j', async payload => {
+    const response = await fetch(`${base}/webhooks/sentry`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ skipped: true, reason: 'instant_path' });
+    expect(axios.post).not.toHaveBeenCalled();
+    expect(postAlertToSlack).not.toHaveBeenCalled();
+    expect(postBugReportToTriage).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
   });
 });

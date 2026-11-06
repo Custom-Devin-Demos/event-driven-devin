@@ -26,13 +26,13 @@ function element(tagName = 'div', classes = '') {
 
 const savedIdentity = { devinOrgId: 'org-selected', devinUserId: 'user-selected', devinEmail: 'presenter@example.com' };
 
-async function storefront(search = '', identity = savedIdentity, config = {}) {
+async function storefront(search = '', identity = savedIdentity, config = {}, storageBlocked = false) {
   const nodes = new Map([...html.matchAll(/<[^>]+\bid="([^"]+)"[^>]*>/g)].map(match => [
     match[1], element('div', match[0].match(/class="([^"]*)"/)?.[1] || ''),
   ]));
   const methods = ['delivery', 'pickup'].map(method => Object.assign(element('button'), { dataset: { method } }));
   const storage = new Map(Object.entries(identity));
-  const localStorage = { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) };
+  const localStorage = { getItem: key => { if (storageBlocked) throw new Error('SecurityError: storage blocked'); return storage.get(key) || null; }, setItem: (key, value) => storage.set(key, value) };
   const fetch = jest.fn().mockImplementation(async url => ({ ok: true, json: async () => url === '/api/config' ? config : { products: CATALOG, stores: STORES, revision: 'Incident baseline' } }));
   vm.runInNewContext(source, {
     document: {
@@ -103,6 +103,16 @@ test('saved hub identity does not fetch or replace host defaults', async () => {
   const { fetch, storage } = await storefront();
   expect(fetch).not.toHaveBeenCalledWith('/api/config');
   expect(Object.fromEntries(storage)).toEqual(savedIdentity);
+});
+
+test('blocked browser storage does not prevent a healthy checkout', async () => {
+  const { nodes, fetch } = await storefront('', {}, {}, true);
+  fetch.mockResolvedValue({ ok: true, json: async () => ({ total: 2007.36, confirmation: 'DEMO-TEST' }) });
+  await nodes.get('checkout').onclick();
+  const checkoutRequest = fetch.mock.calls.find(([url]) => url.endsWith('/checkout'));
+  expect(checkoutRequest).toBeDefined();
+  expect(JSON.parse(checkoutRequest[1].body)).toMatchObject({ devinOrgId: '', devinUserId: '', devinEmail: '' });
+  expect(nodes.get('notice').textContent).toContain('Your demo checkout is ready.');
 });
 
 test('delivery errors name delivery, not pickup', async () => {
