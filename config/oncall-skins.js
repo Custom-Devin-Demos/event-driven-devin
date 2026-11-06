@@ -8719,6 +8719,13 @@ const ONCALL_SKINS = {
     supportCenter: 'Dun & Bradstreet Customer Service',
     disclaimer: 'NOT ACTUALLY A DUN & BRADSTREET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dun & Bradstreet or D&B Finance Analytics product.',
   },
+  '81e62395': {
+    slug: '81e62395',
+    company: 'LINQ',
+    vertical: 'banking',
+    page: { file: '81e62395.html', title: 'Meal Payments - LINQ | K\u201112 Software' },
+    disclaimer: 'NOT ACTUALLY A LINQ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real LINQ product.',
+  },
 };
 
 function getOncallSkin(slug) {
