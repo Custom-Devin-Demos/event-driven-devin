@@ -31,7 +31,7 @@ const {
 } = require('../app/services/alert-destination');
 
 const TEAMS_URL = 'https://default1.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/abc';
-const savedEnv = { url: process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL, channel: process.env.SLACK_CHANNEL_ID };
+const savedEnv = { url: process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL, channel: process.env.SLACK_CHANNEL_ID, lowes: process.env.LOWES_TEAMS_WEBHOOK_URL };
 
 const alert = () => ({
   issueTitle: 'TypeError: Cannot read properties of undefined (reading \'limit\')',
@@ -63,6 +63,7 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     axios.post.mockResolvedValue({ status: 202 });
     process.env.SLACK_CHANNEL_ID = 'C123';
     process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = TEAMS_URL;
+    delete process.env.LOWES_TEAMS_WEBHOOK_URL;
   });
 
   afterEach(() => {
@@ -70,6 +71,8 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     else process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = savedEnv.url;
     if (savedEnv.channel === undefined) delete process.env.SLACK_CHANNEL_ID;
     else process.env.SLACK_CHANNEL_ID = savedEnv.channel;
+    if (savedEnv.lowes === undefined) delete process.env.LOWES_TEAMS_WEBHOOK_URL;
+    else process.env.LOWES_TEAMS_WEBHOOK_URL = savedEnv.lowes;
   });
 
   test('without a destination choice the alert is Slack-only and unchanged', async () => {
@@ -129,6 +132,27 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     expect(result).toMatchObject({ triggered: true, threadTs: 'thread-123' });
     expect(postAlertToSlack).toHaveBeenCalledTimes(1);
     expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('a configured customer target sends once without changing another customer’s route', async () => {
+    const dedicatedUrl = 'https://lowes.webhook.office.com/workflows/test';
+    process.env.LOWES_TEAMS_WEBHOOK_URL = dedicatedUrl;
+    await runWithAlertDestination('teams', () => createSessionAndAlert({ ...alert(), customer: 'a4c19e72' }));
+    await runWithAlertDestination('teams', () => createSessionAndAlert({ ...alert(), customer: '12b28f14' }));
+    expect(axios.post.mock.calls.map(([url]) => url)).toEqual([dedicatedUrl, TEAMS_URL]);
+    expect(postAlertToSlack).not.toHaveBeenCalled();
+    expect(postBugReportToTriage).not.toHaveBeenCalled();
+    expect(createDevinSession).not.toHaveBeenCalled();
+  });
+
+  test.each([undefined, 'https://not-teams.example/test'])('an exclusive customer target never falls back to the shared channel or Slack: %p', async target => {
+    if (target) process.env.LOWES_TEAMS_WEBHOOK_URL = target;
+    const result = await runWithAlertDestination('teams', () => createSessionAndAlert({ ...alert(), customer: 'a4c19e72' }));
+    expect(result).toBeNull();
+    expect(axios.post).not.toHaveBeenCalled();
+    expect(postAlertToSlack).not.toHaveBeenCalled();
+    expect(postBugReportToTriage).not.toHaveBeenCalled();
+    expect(createDevinSession).not.toHaveBeenCalled();
   });
 
   test('the Teams card carries the service-owned remediation directive for the responder', async () => {

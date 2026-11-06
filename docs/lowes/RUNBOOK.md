@@ -46,11 +46,11 @@ worktrees. `LOWES_DEMO_FIX_PR_URL` may supply the repair link in the UI; it is n
 credential. The normal server uses dotenv, so an empty environment alone does
 not override a local .env file.
 
-## Standard live Teams transport
+## Standard live Teams transport, dedicated Lowe’s destination
 
 Lowe’s captures the exception in Sentry and follows Pepsi’s standard card path:
 `checkout failure → Sentry.captureException + createSessionAndAlert → persisted Teams destination →
-AUTOMATIONS_TEAMS_WEBHOOK_URL → existing Teams responder`.
+LOWES_TEAMS_WEBHOOK_URL → eashan-demo → Lowe’s Checkout Automation`.
 
 The card uses the standard Error, Severity, Location, Message, Release,
 Environment and Triggered by fields, plus Watch Devin / Sentry / Datadog links.
@@ -67,8 +67,8 @@ the cookie to the checkout service; no second browser trigger or custom send
 endpoint exists. Choose **Teams** on the same host's hub, then open /lowes.
 
 The official host already sets `NODE_ENV=production` (`Dockerfile:10`,
-`docker-compose.yml:26`). With the existing valid Teams target and saved Teams
-selection, failing checkout sends automatically — **no new host flag or secret**.
+`docker-compose.yml:26`). With the dedicated Lowe’s Teams target and saved Teams
+selection, failing checkout sends automatically — no additional live-mode flag.
 Local/development/test, CI, missing/invalid target, or explicit
 `LOWES_DEMO_DRY_RUN=true` returns a no-send preview. A hosted Slack/unselected
 preference never sends Slack: choose Teams on the hub. Other customers are unchanged.
@@ -81,46 +81,56 @@ clear the cooldown. Live mode inherits the existing authorized demo-host ingress
 Follow the originating Teams thread for the actual investigation link; transport
 acceptance alone does not prove a responder session.
 
-No custom oncall-demo skin/trigger, extra automation, responder signup or new
-secret set is required to reuse the existing responder. That does **not** select
-the responder's org or owner. For a separate personal automation, create it from
-the intended human's account in Eashan Dev and select `run_as: creator`; verify
-the saved creator is that human, not the service user that made an API call.
-An additional Lowe’s-only automation on automations-demo can produce a second
-investigation alongside the old automation. It must match only top-level bot
-alerts containing `customer-a4c19e72-checkout` in that channel. Do not alter the
-existing responder or shared Sentry configuration to resolve personal ownership.
+### Hosted setup
+
+The dedicated channel is an intentional change from the original shared
+automations-demo setup. Store its incoming Teams Workflow URL as the repository
+Actions secret `LOWES_TEAMS_WEBHOOK_URL`. The normal deployment workflow and
+host allowlist synchronize that one variable. A secret supplied only to a Devin
+session does not configure the hosted app. Never put a webhook URL in source,
+browser storage, a PR or a chat message.
+
+Only customer `a4c19e72` opts into the dedicated target through `teamsWebhookEnv`.
+Other customers retain `AUTOMATIONS_TEAMS_WEBHOOK_URL` and their existing routing.
+Lowe’s never falls back to that shared target or Slack when its own target is
+missing or invalid. Do not replace the shared secret to redirect one customer.
+
+The dedicated [Lowe’s Checkout Automation](https://devin-gtm.devinenterprise.com/org/eashan-dev/automations/80bea729c76642c08bf5f12a610c9857)
+must be enabled in Eashan Dev, created by Eashan Sinha and configured with
+`run_as: creator`. Its trigger must match only `teams:message` events with:
+
+- Team: `20ffc60a-db5d-48d3-aab2-200c66d8eba4`.
+- Channel: `19:e15bb53a96314a4bab02f8c80d15359f@thread.tacv2` (`eashan-demo`).
+- Sender type: `bot`; thread reply: `false`.
+- Text containing `customer-a4c19e72-checkout`.
+
+Do not alter existing responders or shared Sentry configuration. App body IDs
+and card text do not override the automation’s session identity. Verify saved
+creator/run-as metadata, then verify the actual resulting session separately.
 
 The standard Watch Devin button links to an automation page, not the actual
 investigation session. Use the new session link posted in the Teams thread.
 The superseded oncall-demo responder proposal must remain unapproved.
 
-### Observed vs unknown
+### Live verification
 
-- The user's screenshot and the existing automations-demo thread show a real
-  Teams alert and [Devin investigation](https://devin-gtm.devinenterprise.com/sessions/25ecdc233e8a47bc987555a105c5c6c2).
-  This proves the hosted checkout→Teams→responder path already works.
-- Host /api/config reports teamsAlerts:true, confirming the standard checkout Teams target is configured (presence only, never its value).
-- The VM has no Teams webhook. That is separate from existing host configuration.
-  Host /health returns ok; /api/oncall/scenarios reports teamsDefaultWebhook:true,
-  but that is the separate on-call variable, not proof of the automations target.
-- `.github/workflows/deploy.yml` and `scripts/deploy-ec2.sh` already synchronize
-  `MAIN_AUTOMATIONS_TEAMS_WEBHOOK_URL` to `AUTOMATIONS_TEAMS_WEBHOOK_URL`.
-  No secret values were read or logged; no new route was provisioned.
-- The existing responder owns session organization and run-as identity. App body
-  IDs and card text do not override it. The linked session is not readable from
-  this session's Eashan Dev scope (403), so exact org/owner remain **unverified**.
-  Forwarding the hub identity is not proof of session ownership: the shared
-  Teams branch returns `session: null` rather than calling the org/user-aware API.
-  Do not claim that this card selects Eashan Dev or runs as Eashan.
-- Branch restrictions belong to the explicit investigation prompt below; the
-  standard notification card does not carry a custom repair playbook.
-- Live posting, actual responder identity/branch compliance, and production
-  rendering of this new vertical remain untested. No external message was sent.
+Only after the target, enabled automation and runtime revision are verified,
+exercise one explicitly authorized synthetic checkout through the actual cart.
+Do not manually post a Teams message as a substitute. Confirm the alert in
+eashan-demo, its automation event, the new session link in that thread, and the
+session’s actual Eashan Dev organization and Eashan user metadata. Report each
+unverified step separately; transport acceptance is not proof of a session.
+
+For a VM integration check, keep Sentry/Slack/API credentials absent and label
+it as local checkout → real Teams, not a hosted or live-Sentry verification.
+Real Sentry capture should be exercised only after the duplicate-webhook fix
+is deployed: an older hosted issue-webhook handler can lack the Lowe’s culprit
+suppression. Unit tests mock Sentry and all transports; ordinary UI rehearsal
+must remain local/test/dry-run and must never send externally.
 
 ## Exact live investigation prompt
 
-> Investigate the synthetic Lowe’s pickup-checkout failure in COG-GTM/event-driven-devin, branch devin/lowes-cart-b5f26e97. Confirm you are in Eashan Dev as Eashan; report a mismatch instead of changing responders. Reproduce delivery passing and bulky pickup failing, keep parcel pickup healthy, fix the fulfillment policy and open a PR against that baseline branch only. Run scripts/a4c19e72-regression.js before and after, run tests/lint, and record desktop/mobile recovery. Use the existing Teams thread; no Slack, new automation, merge, deployment, real orders or iOS work.
+> Investigate the synthetic Lowe’s pickup-checkout failure in COG-GTM/event-driven-devin, branch devin/lowes-cart-b5f26e97. Verify actual session metadata confirms Eashan Dev as Eashan; report a mismatch instead of changing responders. Check for an existing repair PR first. If the baseline branch no longer exists, stop and ask rather than choosing another branch. Reproduce delivery passing and bulky pickup failing, keep parcel pickup healthy, fix the fulfillment policy and open a PR against that baseline branch only. Run scripts/a4c19e72-regression.js before and after, run tests/lint, and record local desktop/mobile recovery. Use the originating eashan-demo Teams thread and post the actual new session URL, not the automation settings link. Sentry is read-only in devin-gtm. No hosted checkout, Slack, new automation, merge, deployment, real orders or iOS work.
 
 ## Checks
 

@@ -2,6 +2,7 @@ const { buildTeamsAlertCardForAlert, createSessionAndAlert } = require('../devin
 const { currentAlertDestination } = require('../alert-destination');
 const { isTeamsWebhookUrl, teamsCardText } = require('../teams');
 const { Sentry } = require('../../telemetry/sentry');
+const { teamsWebhookEnv } = require('../../../config/customers/a4c19e72');
 
 const REPO = 'https://github.com/COG-GTM/event-driven-devin';
 const BASE_BRANCH = 'devin/lowes-cart-b5f26e97';
@@ -38,7 +39,7 @@ function rehearsalReason() {
   if (process.env.NODE_ENV !== 'production') return 'local-or-test-runtime';
   if (process.env.CI) return 'ci-runtime';
   if (process.env.LOWES_DEMO_DRY_RUN === 'true') return 'explicit-dry-run';
-  if (!isTeamsWebhookUrl(process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL)) return 'missing-teams-target';
+  if (!isTeamsWebhookUrl(process.env[teamsWebhookEnv])) return 'missing-teams-target';
   return null;
 }
 

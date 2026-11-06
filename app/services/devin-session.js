@@ -13,7 +13,7 @@ const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { legacyAlertsSuppressed } = require('./oncall-suppression');
 const { currentAlertDestination } = require('./alert-destination');
 const {
-  buildTeamsAlertCard, buildTeamsFieldCard, buildTeamsCloudWatchAlarmCard, postTeamsCard,
+  buildTeamsAlertCard, buildTeamsFieldCard, buildTeamsCloudWatchAlarmCard, postTeamsCard, isTeamsWebhookUrl,
 } = require('./teams');
 const { alertStrings, alertLocale } = require('./alert-locale');
 
@@ -28,10 +28,15 @@ const DEFAULT_TEAMS_AUTOMATION_URL = 'https://app.devin.ai/automations/5604e34de
  * Where this request's alert goes, from the presenter's hub choice
  * (alert_destination cookie). Teams needs AUTOMATIONS_TEAMS_WEBHOOK_URL; without
  * it the alert stays on Slack so the demo never goes silent.
+ * Customer-scoped Teams targets are exclusive: missing/invalid targets send nowhere.
  */
-function resolveAlertRouting() {
+function resolveAlertRouting(customerConfig = {}) {
   const destination = currentAlertDestination();
   if (destination === 'slack') return { slack: true, teamsUrl: null };
+  if (customerConfig.teamsWebhookEnv) {
+    const teamsUrl = process.env[customerConfig.teamsWebhookEnv];
+    return { slack: false, teamsUrl: isTeamsWebhookUrl(teamsUrl) ? teamsUrl : null };
+  }
   const teamsUrl = process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL;
   if (!teamsUrl) {
     logger.warn('Teams alert destination requested but AUTOMATIONS_TEAMS_WEBHOOK_URL is not set — posting to Slack');
@@ -125,6 +130,7 @@ function newRelicFooter(nr) {
 
 function buildTeamsAlertCardForAlert(alertData) {
   if (alertData.cloudwatch) return buildTeamsCloudWatchCardForAlert(alertData);
+  const config = alertData.customerConfig || getCustomerConfig(alertData.customer);
   const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
     ? alertData.devinEmail
     : null;
@@ -165,7 +171,7 @@ function buildTeamsAlertCardForAlert(alertData) {
       },
     ],
     actions: [
-      { title: t.watchDevin, url: process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
+      { title: t.watchDevin, url: config.teamsAutomationUrl || process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
       { title: t.viewSentry, url: alertData.issueUrl },
       { title: t.viewDatadog, url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
       alertData.quantumMetric ? { title: 'View session replay in Quantum Metric', url: alertData.quantumMetric.replayUrl } : null,
@@ -364,7 +370,7 @@ async function createSessionAndAlert(alertData) {
       devinOrgId: resolvedOrgId || 'default',
     });
 
-    const routing = resolveAlertRouting();
+    const routing = resolveAlertRouting(config);
 
     // Mirror the bug report to the dedicated triage channel (#automated-devin-triage).
     // Report-only: this copy never triggers a Devin session. Fire-and-forget so it

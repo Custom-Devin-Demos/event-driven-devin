@@ -20,7 +20,7 @@ const report = (input = {}) => runWithAlertDestination('teams', () => reportChec
 const router = require('../app/routes/verticals/a4c19e72');
 const fridge = { sku: 'DEMO-FRIDGE', qty: 1 };
 const battery = { sku: 'DEMO-BATTERY', qty: 1 };
-const keys = ['NODE_ENV', 'CI', 'LOWES_DEMO_DRY_RUN', 'AUTOMATIONS_TEAMS_WEBHOOK_URL', 'SENTRY_ORG_SLUG', 'SENTRY_PROJECT_ID', 'SENTRY_RELEASE', 'SENTRY_ENVIRONMENT', 'SENTRY_CLIENT_SECRET', 'APP_VERSION', 'DD_ENV'];
+const keys = ['NODE_ENV', 'CI', 'LOWES_DEMO_DRY_RUN', 'LOWES_TEAMS_WEBHOOK_URL', 'AUTOMATIONS_TEAMS_WEBHOOK_URL', 'SENTRY_ORG_SLUG', 'SENTRY_PROJECT_ID', 'SENTRY_RELEASE', 'SENTRY_ENVIRONMENT', 'SENTRY_CLIENT_SECRET', 'APP_VERSION', 'DD_ENV'];
 const original = Object.fromEntries(keys.map(k => [k, process.env[k]]));
 let testTime = Date.now();
 beforeEach(() => { jest.clearAllMocks(); Sentry.captureException.mockReturnValue(sentryEventId); keys.forEach(k => delete process.env[k]); testTime += 60_001; jest.spyOn(Date, 'now').mockReturnValue(testTime); });
@@ -78,7 +78,7 @@ test.each([
 });
 
 test('default rehearsal previews the same checkout Teams card without send or session', async () => {
-  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   const result = await report({ store: 'South Charlotte', fulfillment: 'pickup' });
   expect(result).toMatchObject({ ok: true, dryRun: true, sent: false, destination: 'teams' });
   expect(result.payload.attachments[0].content).toEqual(result.card);
@@ -94,12 +94,13 @@ test('default rehearsal previews the same checkout Teams card without send or se
 
 test('hosted mode captures Sentry and uses the existing Teams transport without an app-created session', async () => {
   process.env.NODE_ENV = 'production';
-  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://shared.webhook.office.com/workflows/other-demos';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockResolvedValue({ status: 202 });
   const result = await report({ devinOrgId: 'org-selected', devinUserId: 'user-selected', devinEmail: 'presenter@example.com', store: 'Central Charlotte', fulfillment: 'pickup' });
   expect(result).toMatchObject({ ok: true, sent: true, dryRun: false, responderManaged: true });
   expect(axios.post).toHaveBeenCalledTimes(1);
-  expect(axios.post).toHaveBeenCalledWith(process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL, expect.objectContaining({ type: 'message' }), expect.objectContaining({ maxRedirects: 0 }));
+  expect(axios.post).toHaveBeenCalledWith(process.env.LOWES_TEAMS_WEBHOOK_URL, expect.objectContaining({ type: 'message' }), expect.objectContaining({ maxRedirects: 0 }));
   expect(postAlertToSlack).not.toHaveBeenCalled();
   expect(postBugReportToTriage).not.toHaveBeenCalled();
   expect(createDevinSession).not.toHaveBeenCalled();
@@ -110,6 +111,8 @@ test('hosted mode captures Sentry and uses the existing Teams transport without 
   });
   expect(Sentry.captureException.mock.invocationCallOrder[0]).toBeLessThan(axios.post.mock.invocationCallOrder[0]);
   expect(axios.post.mock.calls[0][1].text).toContain('presenter@example.com');
+  const watchAction = axios.post.mock.calls[0][1].attachments[0].content.body.find(block => block.type === 'ActionSet').actions.find(action => action.title === 'Watch Devin');
+  expect(watchAction.url).toBe('https://devin-gtm.devinenterprise.com/org/eashan-dev/automations/80bea729c76642c08bf5f12a610c9857');
   const sentryAction = axios.post.mock.calls[0][1].attachments[0].content.body.find(block => block.type === 'ActionSet').actions.find(action => action.title === 'View in Sentry');
   expect(new URL(sentryAction.url).searchParams.get('query')).toBe(sentryEventId);
 });
@@ -134,7 +137,7 @@ test('alert metadata follows the standard Sentry card and carries the supplied i
 test('dry-run payload equals the real pipeline payload except the captured Sentry event link', async () => {
   const preview = await report();
   process.env.NODE_ENV = 'production';
-  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockResolvedValue({ status: 202 });
   await report();
   const previewQuery = new URL(buildAlertData(error).issueUrl).searchParams.get('query');
@@ -154,7 +157,8 @@ test('card release and environment use the same defaults as Sentry capture', () 
 
 test.each([undefined, 'https://not-teams.example/test'])('missing/invalid Teams config cannot fall back to Slack: %p', async webhook => {
   process.env.NODE_ENV = 'production';
-  if (webhook) process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = webhook;
+  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://shared.webhook.office.com/workflows/other-demos';
+  if (webhook) process.env.LOWES_TEAMS_WEBHOOK_URL = webhook;
   expect(await report()).toMatchObject({ ok: true, dryRun: true, sent: false, reason: 'missing-teams-target' });
   expect(Sentry.captureException).not.toHaveBeenCalled();
   expect(postAlertToSlack).not.toHaveBeenCalled();
@@ -163,7 +167,7 @@ test.each([undefined, 'https://not-teams.example/test'])('missing/invalid Teams 
 
 test.each(['slack', null])('live mode respects saved destination and refuses Slack: %p', async destination => {
   process.env.NODE_ENV = 'production';
-  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   expect(await runWithAlertDestination(destination, () => reportCheckoutError(error))).toMatchObject({ ok: false, sent: false });
   expect(Sentry.captureException).not.toHaveBeenCalled();
   expect(axios.post).not.toHaveBeenCalled();
@@ -172,7 +176,7 @@ test.each(['slack', null])('live mode respects saved destination and refuses Sla
 
 test('failed Teams transport does not send Slack or start an app-side session', async () => {
   process.env.NODE_ENV = 'production';
-  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockRejectedValue(new Error('Mock Teams unavailable'));
   expect(await report()).toMatchObject({ ok: false, sent: false });
   expect(postAlertToSlack).not.toHaveBeenCalled();
@@ -188,7 +192,7 @@ test.each([
   process.env.NODE_ENV = runtime;
   if (ci) process.env.CI = ci;
   if (dryRun) process.env.LOWES_DEMO_DRY_RUN = dryRun;
-  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   expect(await report()).toMatchObject({ dryRun: true, sent: false, reason });
   expect(Sentry.captureException).not.toHaveBeenCalled();
   expect(axios.post).not.toHaveBeenCalled();
@@ -197,7 +201,7 @@ test.each([
 
 test('concurrent and repeated live failures are capped, including failed delivery attempts', async () => {
   process.env.NODE_ENV = 'production';
-  process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   axios.post.mockRejectedValue(new Error('Mock transport down'));
   const results = await Promise.all([report(), report(), report()]);
   expect(axios.post).toHaveBeenCalledTimes(1);
@@ -239,7 +243,7 @@ describe('HTTP surface', () => {
   });
   test('checkout carries persisted Teams cookie to the existing transport', async () => {
     process.env.NODE_ENV = 'production';
-    process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+    process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
     axios.post.mockResolvedValue({ status: 202 });
     const response = await fetch(`${base}/api/a4c19e72/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: 'alert_destination=teams' }, body: JSON.stringify({ items: [fridge], fulfillment: 'pickup' }) });
     expect(response.status).toBe(500);
