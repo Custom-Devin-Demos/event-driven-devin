@@ -276,6 +276,7 @@
   });
   document.addEventListener('keydown', (event) => {
     if (!current || dialog.open || event.target.closest('input,select,textarea,a')) return;
+    if (event.key === 'Enter' && event.target.closest('button')) return;
     if (event.key === 'Home') { event.preventDefault(); home(); return; }
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape'].includes(event.key)) {
       if (event.target.closest('.ce-remote-tools,.ce-incident,.ce-breadcrumb,.ce-viewer-heading,.ce-log-head,.ce-subnav')) return;
@@ -286,6 +287,12 @@
     if (event.origin !== location.origin || !frame || event.source !== frame.contentWindow || !current?.running) return;
     const data = event.data;
     if (!data || data.source !== 'streamtv-emulator') return;
+    if (data.type === 'profile' && Object.hasOwn(profiles, data.profileId)) {
+      current.profileId = data.profileId;
+      document.getElementById('ceProfile').value = data.profileId;
+      addLog(current, 'EMULATOR App profile selected: ' + profiles[data.profileId]);
+      return;
+    }
     if (data.type === 'home') { home(); return; }
     if (data.type === 'ready') { addLog(current, 'EMULATOR Web preview ready. Automatic on-call alerts are held in manual mode.'); return; }
     if (data.type === 'alert-held') { addLog(current, 'ALERT Automatic trigger held. Use Send on-call alert to explicitly page on-call.', 'warn'); return; }

@@ -42,6 +42,9 @@
   };
 
   if (embedded) {
+    window.addEventListener('streamtv-profile', (event) => {
+      if (['p-maya', 'p-jordan', 'p-sam'].includes(event.detail)) report({ type: 'profile', profileId: event.detail });
+    });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Home') { event.preventDefault(); report({ type: 'home' }); }
     });

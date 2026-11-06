@@ -100,4 +100,13 @@ describe('6217a32d mock emulator bridge', () => {
     expect(event.preventDefault).toHaveBeenCalled();
     expect(h.parent.postMessage).toHaveBeenCalledWith({ source: 'streamtv-emulator', type: 'home' }, 'https://demo.example');
   });
+
+  test('only reports supported inner-TV profile changes to the console', () => {
+    const h = harness();
+    h.events['streamtv-profile']({ detail: 'p-jordan' });
+    expect(h.parent.postMessage).toHaveBeenCalledWith({ source: 'streamtv-emulator', type: 'profile', profileId: 'p-jordan' }, 'https://demo.example');
+    h.events['streamtv-profile']({ detail: 'unknown' });
+    h.events['streamtv-profile']({ detail: { profileId: 'p-sam' } });
+    expect(h.parent.postMessage).toHaveBeenCalledTimes(1);
+  });
 });
