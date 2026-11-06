@@ -48,7 +48,7 @@ not override a local .env file.
 
 ## Standard live Teams transport, dedicated Lowe’s destination
 
-Lowe’s captures the exception in Sentry and follows Pepsi’s standard card path:
+With Sentry enabled, Lowe’s captures the exception and follows Pepsi’s standard card path:
 `checkout failure → Sentry.captureException + createSessionAndAlert → persisted Teams destination →
 LOWES_TEAMS_WEBHOOK_URL → eashan-demo → Lowe’s Checkout Automation`.
 
@@ -60,6 +60,8 @@ Sentry events carry `alert_path: instant`; tagless issue webhooks are also
 suppressed by the Lowe’s culprit slug. The live Sentry link searches the captured
 event ID; previews use a Lowe’s service/route filter because no event was captured.
 Local rehearsal does not capture Sentry events.
+Teams-only runs without an enabled Sentry client keep the service/route search
+link instead of linking to an event that was never sent.
 
 The hub stores the Slack/Teams selection in localStorage and the
 `alert_destination` cookie. Its existing AsyncLocalStorage middleware carries

@@ -50,12 +50,13 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+  const lockedIdentity = {};
   function savedIdentity() {
     const identity = { devinOrgId: '', devinUserId: '', devinEmail: '' };
     try {
       for (const key of Object.keys(identity)) identity[key] = localStorage.getItem(key) || '';
     } catch (_) {}
-    return identity;
+    return { ...identity, ...lockedIdentity };
   }
   const identityReady = (async () => {
     try {
@@ -64,8 +65,9 @@
       const response = await fetch('/api/config');
       if (!response.ok) return;
       const cfg = await response.json();
-      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
-      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      if (cfg.lockOrg && cfg.defaultOrgId) lockedIdentity.devinOrgId = cfg.defaultOrgId;
+      if (cfg.lockUser && cfg.defaultUserId) lockedIdentity.devinUserId = cfg.defaultUserId;
+      for (const [key, value] of Object.entries(lockedIdentity)) localStorage.setItem(key, value);
     } catch (_) {}
   })();
   $('demoToolbar').classList.toggle('hidden', new URLSearchParams(location.search).get('ops') !== '1');

@@ -4,7 +4,7 @@ const express = require('express');
 jest.mock('../app/services/slack', () => ({ postAlertToSlack: jest.fn(), postBugReportToTriage: jest.fn(), postDevinSessionLink: jest.fn() }));
 jest.mock('../app/services/devin-api', () => ({ createDevinSession: jest.fn() }));
 jest.mock('../app/services/sonar-pr-trigger', () => ({ scheduleVulnerablePR: jest.fn() }));
-jest.mock('../app/telemetry/sentry', () => ({ Sentry: { captureException: jest.fn() } }));
+jest.mock('../app/telemetry/sentry', () => ({ Sentry: { captureException: jest.fn(), isEnabled: jest.fn() } }));
 const { Sentry } = require('../app/telemetry/sentry');
 const { scheduleVulnerablePR } = require('../app/services/sonar-pr-trigger');
 const { postAlertToSlack, postBugReportToTriage } = require('../app/services/slack');
@@ -23,7 +23,7 @@ const battery = { sku: 'DEMO-BATTERY', qty: 1 };
 const keys = ['NODE_ENV', 'CI', 'LOWES_DEMO_DRY_RUN', 'LOWES_TEAMS_WEBHOOK_URL', 'AUTOMATIONS_TEAMS_WEBHOOK_URL', 'SENTRY_ORG_SLUG', 'SENTRY_PROJECT_ID', 'SENTRY_RELEASE', 'SENTRY_ENVIRONMENT', 'SENTRY_CLIENT_SECRET', 'APP_VERSION', 'DD_ENV'];
 const original = Object.fromEntries(keys.map(k => [k, process.env[k]]));
 let testTime = Date.now();
-beforeEach(() => { jest.clearAllMocks(); Sentry.captureException.mockReturnValue(sentryEventId); keys.forEach(k => delete process.env[k]); testTime += 60_001; jest.spyOn(Date, 'now').mockReturnValue(testTime); });
+beforeEach(() => { jest.clearAllMocks(); Sentry.isEnabled.mockReturnValue(true); Sentry.captureException.mockReturnValue(sentryEventId); keys.forEach(k => delete process.env[k]); testTime += 60_001; jest.spyOn(Date, 'now').mockReturnValue(testTime); });
 afterAll(() => jest.restoreAllMocks());
 afterAll(() => keys.forEach(k => { if (original[k] === undefined) delete process.env[k]; else process.env[k] = original[k]; }));
 
@@ -115,6 +115,20 @@ test('hosted mode captures Sentry and uses the existing Teams transport without 
   expect(watchAction.url).toBe('https://devin-gtm.devinenterprise.com/org/eashan-dev/automations/80bea729c76642c08bf5f12a610c9857');
   const sentryAction = axios.post.mock.calls[0][1].attachments[0].content.body.find(block => block.type === 'ActionSet').actions.find(action => action.title === 'View in Sentry');
   expect(new URL(sentryAction.url).searchParams.get('query')).toBe(sentryEventId);
+});
+
+test('Teams-only mode keeps the service search instead of linking an unsent Sentry event', async () => {
+  process.env.NODE_ENV = 'production';
+  process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
+  Sentry.isEnabled.mockReturnValue(false);
+  axios.post.mockResolvedValue({ status: 202 });
+  expect(await report()).toMatchObject({ ok: true, sent: true, responderManaged: true });
+  expect(Sentry.captureException).not.toHaveBeenCalled();
+  const actions = axios.post.mock.calls[0][1].attachments[0].content.body.find(block => block.type === 'ActionSet').actions;
+  const sentryAction = actions.find(action => action.title === 'View in Sentry');
+  expect(new URL(sentryAction.url).searchParams.get('query')).toBe('service:customer-a4c19e72-checkout route:/api/a4c19e72/checkout');
+  expect(postAlertToSlack).not.toHaveBeenCalled();
+  expect(createDevinSession).not.toHaveBeenCalled();
 });
 
 test('alert metadata follows the standard Sentry card and carries the supplied identity', () => {

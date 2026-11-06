@@ -64,11 +64,13 @@ async function reportCheckoutError(error, input) {
     return { ok: false, dryRun: false, sent: false, throttled: true, retryAfterMs: nextAlertAt - now, error: 'A demo alert was attempted recently. Wait one minute before retrying; no additional alert was sent.' };
   }
   nextAlertAt = now + ALERT_COOLDOWN_MS;
-  const eventId = Sentry.captureException(error, {
-    tags: Object.fromEntries(alertData.tags.map(({ key, value }) => [key, value])),
-    extra: alertData.extra,
-  });
-  if (eventId) alertData.issueUrl = sentryIssueUrl(eventId);
+  if (Sentry.isEnabled()) {
+    const eventId = Sentry.captureException(error, {
+      tags: Object.fromEntries(alertData.tags.map(({ key, value }) => [key, value])),
+      extra: alertData.extra,
+    });
+    if (eventId) alertData.issueUrl = sentryIssueUrl(eventId);
+  }
   const result = await createSessionAndAlert(alertData);
   const sent = Boolean(result && result.teams);
   return { ok: sent, dryRun: false, sent, responderManaged: sent, ...(sent ? {} : { error: 'Teams delivery was not confirmed. No Slack fallback was used.' }) };
