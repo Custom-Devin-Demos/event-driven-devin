@@ -24,6 +24,7 @@ const medtronic = require('../app/services/verticals/afd8d03a');
 const cvsCopay = require('../app/services/verticals/1d54e3b4');
 const lillyTrialLab = require('../app/services/verticals/fc0bd7f3');
 const highmarkPayer = require('../app/services/verticals/fe64010d');
+const floridaBluePayer = require('../app/services/verticals/d571c3eb');
 
 const devin = { devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: '' };
 
@@ -81,6 +82,12 @@ const CASES = [
     passing: { memberId: 'SHP-448210', cpt: '72148', placeOfService: '11', attachedDocs: ['6 weeks conservative therapy'] },
     message: "reading 'requiredDocs'", failureMetric: 'prior_auth.failure',
   },
+  {
+    slug: 'd571c3eb', name: 'Florida Blue prior authorization', run: floridaBluePayer.submitPriorAuth,
+    failing: { memberId: 'SHP-448210', cpt: '72148', placeOfService: '22', attachedDocs: ['6 weeks conservative therapy', 'Neurologic deficit note'] },
+    passing: { memberId: 'SHP-448210', cpt: '72148', placeOfService: '11', attachedDocs: ['6 weeks conservative therapy'] },
+    message: "reading 'requiredDocs'", failureMetric: 'prior_auth.failure',
+  },
 ];
 
 describe.each(CASES)('$name ($slug)', ({ slug, run, failing, passing, message, failureMetric }) => {
@@ -130,5 +137,25 @@ describe('Highmark prior authorization (fe64010d) alert payload', () => {
   test('office MRI is approved at submission', async () => {
     const result = await highmarkPayer.submitPriorAuth({ memberId: 'SHP-448210', cpt: '72148', placeOfService: '11', attachedDocs: ['6 weeks conservative therapy'], ...devin });
     expect(result).toMatchObject({ success: true, status: 'approved', plan: 'Highmark Gold PPO' });
+  });
+});
+
+describe('Florida Blue prior authorization (d571c3eb) alert payload', () => {
+  beforeEach(() => { createSessionAndAlert.mockClear(); Sentry.captureException.mockClear(); });
+
+  test('tags the instant alert path and forwards the presenter identity', async () => {
+    const failing = { memberId: 'SHP-448210', cpt: '72148', placeOfService: '22', attachedDocs: [] };
+    await expect(floridaBluePayer.submitPriorAuth({ ...failing, ...devin, devinName: 'Jason Warren' })).rejects.toThrow(TypeError);
+    expect(Sentry.captureException.mock.calls[0][1].tags.alert_path).toBe('instant');
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.devinName).toBe('Jason Warren');
+    expect(alert.service).toBe('d571c3eb-prior-auth-api');
+    expect(alert.culprit).toBe('app/services/verticals/d571c3eb.js — submitPriorAuth');
+    expect(alert.release).toContain('d571c3eb');
+  });
+
+  test('office MRI is approved at submission', async () => {
+    const result = await floridaBluePayer.submitPriorAuth({ memberId: 'SHP-448210', cpt: '72148', placeOfService: '11', attachedDocs: ['6 weeks conservative therapy'], ...devin });
+    expect(result).toMatchObject({ success: true, status: 'approved', plan: 'BlueOptions Gold PPO' });
   });
 });

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>New authorization request — Florida Blue Providers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand:#015a83; --brand-deep:#222121; --brand-tint:#e8f5fc; --brand-line:#b7e0f5;
+      --cobalt:#0091cc; --sky:#5bb5dc; --ice:#b7e0f5; --cream:#fdfaf8; --sand:#f0ede9; --orange:#faa83f;
+      --snow:#fdfaf8; --panel:#ffffff; --ink:#222121; --body:#3d3b3b; --muted:#625f5e; --faint:#8a8685;
+      --line:#e2ddd8; --line-strong:#afadac;
+      --ok:#1e7b4f; --ok-bg:#e8f4ed; --ok-line:#a9d5bb;
+      --pend:#a35f00; --pend-bg:#fdf1df; --pend-line:#f4cf97;
+      --rev:#015a83; --rev-bg:#e8f5fc; --rev-line:#b7e0f5;
+      --bad:#b3261e; --bad-bg:#fbebea; --bad-line:#eeb2ae;
+      --amber:#faa83f;
+      --font:'Sarabun', Arial, sans-serif;
+      --serif:'Libre Baskerville', Times, serif;
+      --r:2px;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { -webkit-font-smoothing:antialiased; scroll-padding-top:120px; }
+    body { font-family:var(--font); font-size:16px; line-height:1.5; color:var(--ink); background:#fff; min-height:100vh; }
+    a { color:var(--brand); }
+    button, input, select, textarea { font:inherit; color:inherit; }
+    button { cursor:pointer; }
+    :focus-visible { outline:2px solid var(--cobalt); outline-offset:2px; }
+    .num { font-variant-numeric:tabular-nums; letter-spacing:.01em; }
+    .skip { position:absolute; left:8px; top:-48px; background:#fff; color:var(--brand); padding:8px 12px; border-radius:var(--r); z-index:50; text-decoration:none; font-weight:600; }
+    .skip:focus { top:8px; }
+    .vh { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+    .wrap { max-width:1218px; margin:0 auto; padding:0 24px; }
+
+    /* ---------- support bar + header (floridablue.com) ---------- */
+    .util { background:var(--cream); color:var(--ink); font-size:16px; }
+    .util .wrap { height:50px; display:flex; align-items:stretch; gap:28px; }
+    .util a { color:inherit; text-decoration:none; display:flex; align-items:center; border-bottom:3px solid transparent; }
+    .util a:hover { text-decoration:underline; }
+    .util .lang { padding-right:28px; margin-right:44px; border-right:1px solid var(--line-strong); align-self:center; height:24px; }
+    .util nav { display:flex; gap:29px; }
+    .util nav a[aria-current] { font-weight:700; border-bottom-color:var(--cobalt); }
+    .util .right { margin-left:auto; display:flex; align-items:center; gap:16px; }
+    .util .right > a { gap:8px; }
+    .util .pipe { width:1px; height:24px; background:var(--line-strong); }
+    .hdr { background:#fff; color:var(--ink); box-shadow:0 2px 4px rgba(34,33,33,.14); position:relative; z-index:3; }
+    .hdr .wrap { height:84px; display:flex; align-items:center; gap:40px; }
+    .brand { display:flex; align-items:center; text-decoration:none; color:var(--cobalt); flex:none; }
+    .brand svg { display:block; width:216px; height:24px; }
+    .gnav { display:flex; align-items:stretch; justify-content:space-between; flex:1; height:100%; padding:0 24px 0 18px; }
+    .gnav a { display:flex; align-items:center; color:var(--ink); text-decoration:none; font-size:16px; border-bottom:3px solid transparent; }
+    .gnav a:hover { text-decoration:underline; }
+    .gnav a[aria-current] { border-bottom-color:var(--cobalt); font-weight:600; }
+    .me { display:flex; align-items:center; gap:10px; }
+    .ibtn { position:relative; width:40px; height:40px; display:grid; place-items:center; background:transparent; border:0; border-radius:var(--r); color:var(--ink); }
+    .ibtn:hover { background:var(--sand); }
+    .ibtn .dot { position:absolute; top:4px; right:3px; min-width:16px; height:16px; padding:0 4px; border-radius:8px; background:var(--orange); color:var(--ink); font-size:11px; font-weight:700; line-height:16px; }
+    .user { display:flex; align-items:center; gap:8px; background:transparent; border:0; color:var(--ink); padding:4px 6px; border-radius:var(--r); text-align:left; line-height:1.15; }
+    .user:hover { background:var(--sand); }
+    .user .av { width:30px; height:30px; border-radius:50%; background:var(--ice); color:var(--ink); display:grid; place-items:center; font-weight:700; font-size:12.5px; }
+    .user span { display:block; font-size:15px; font-weight:700; }
+    .user small { display:block; font-size:12.5px; color:var(--muted); }
+    .hero { background:var(--sky); }
+    .hero .wrap { display:grid; grid-template-columns:minmax(0,1fr) 450px; align-items:stretch; min-height:240px; }
+    .hero .txt { padding:40px 40px 40px 0; align-self:center; }
+    .hero h1 { font-family:var(--serif); font-weight:700; font-size:36px; line-height:1.3; letter-spacing:0; color:var(--ink); }
+    .hero p { font-size:22px; font-weight:700; line-height:1.4; margin-top:14px; max-width:36em; }
+    .hero img { display:block; width:450px; height:100%; min-height:240px; object-fit:cover; object-position:center 30%; }
+    .orgbar { background:#fff; border-bottom:1px solid var(--line); font-size:14.5px; color:var(--body); }
+    .orgbar .wrap { min-height:44px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:6px; padding-bottom:6px; }
+    .orgbar b { color:var(--ink); font-weight:700; }
+    .orgbar .sep { color:var(--line-strong); }
+    .orgbar a { margin-left:auto; font-weight:600; color:var(--brand); }
+
+    /* ---------- run as (demo presenter) ---------- */
+    .runas fieldset { border:0; padding:14px 20px 16px; display:grid; gap:12px; min-width:0; }
+    .runas input[type=email] { width:100%; min-height:38px; padding:7px 10px; border:1px solid var(--line-strong); border-radius:var(--r); background:#fff; color:var(--ink); }
+    .runas .ra-status { font-size:13px; color:var(--muted); min-height:16px; }
+    .runas .ra-status.ok { color:var(--ok); }
+
+    /* ---------- shell ---------- */
+    .shell { display:grid; grid-template-columns:232px minmax(0,1fr); gap:0 32px; padding-bottom:56px; }
+    .rail { padding:24px 0 24px; border-right:1px solid var(--line); align-self:start; position:sticky; top:0; }
+    .rail h2 { font-size:12.5px; color:var(--faint); font-weight:600; padding:0 12px; margin:20px 0 6px; }
+    .rail h2:first-child { margin-top:0; }
+    .rail a { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; margin-right:-1px; color:var(--body); text-decoration:none; font-size:14.5px; border-right:3px solid transparent; }
+    .rail a:hover { background:#fff; color:var(--ink); }
+    .rail a[aria-current] { color:var(--brand); font-weight:600; background:#fff; border-right-color:var(--brand); }
+    .rail .cnt { font-size:12px; font-weight:600; color:var(--pend); background:var(--pend-bg); border-radius:10px; padding:0 7px; line-height:18px; }
+    .rail .cnt.rev { color:var(--rev); background:var(--rev-bg); }
+    .rail .sub a { padding-left:26px; font-size:13.5px; color:var(--muted); }
+    .menu-btn { display:none; }
+
+    .content { padding-top:22px; min-width:0; }
+    .crumbs { font-size:13px; color:var(--muted); display:flex; gap:8px; flex-wrap:wrap; }
+    .crumbs a { text-decoration:none; }
+    .crumbs a:hover { text-decoration:underline; }
+    .titlebar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:8px; }
+    h1 { font-size:27px; font-weight:700; letter-spacing:-.015em; line-height:1.15; }
+    .draft { font-size:13.5px; color:var(--muted); display:flex; align-items:center; gap:14px; }
+    .draft b { color:var(--ink); font-weight:600; }
+    .draft .saved { display:inline-flex; align-items:center; gap:6px; }
+    .draft .saved::before { content:''; width:8px; height:8px; border-radius:50%; background:var(--ok); }
+
+    /* stepper */
+    .stepper { margin-top:18px; display:grid; grid-template-columns:repeat(5,1fr); background:#fff; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; counter-reset:st; }
+    .stepper li { list-style:none; position:relative; padding:12px 16px 12px 48px; border-right:1px solid var(--line); font-size:14px; color:var(--muted); }
+    .stepper li:last-child { border-right:0; }
+    .stepper li::before { counter-increment:st; content:counter(st); position:absolute; left:14px; top:12px; width:24px; height:24px; border-radius:50%; border:1.5px solid var(--line-strong); color:var(--muted); font-size:12.5px; font-weight:600; display:grid; place-items:center; background:#fff; }
+    .stepper li.done::before { content:''; background:var(--brand) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='10'><path d='M1 5l3.5 3.5L11 1.5' fill='none' stroke='white' stroke-width='2'/></svg>") center/12px no-repeat; border-color:var(--brand); }
+    .stepper li.now { color:var(--ink); background:var(--brand-tint); }
+    .stepper li.now::before { border-color:var(--brand); color:var(--brand); border-width:2px; }
+    .stepper b { display:block; font-weight:600; color:var(--ink); }
+    .stepper small { display:block; font-size:12.5px; }
+    .stepper li.done b { color:var(--body); }
+
+    /* member banner */
+    .member { margin-top:18px; background:#fff; border:1px solid var(--line); border-left:4px solid var(--ok); border-radius:var(--r); display:grid; grid-template-columns:minmax(220px,1.3fr) repeat(4,minmax(0,1fr)); }
+    .member > div { padding:12px 18px; border-right:1px solid var(--line); min-width:0; }
+    .member > div:last-child { border-right:0; }
+    .member dt { font-size:12.5px; color:var(--muted); }
+    .member dd { font-size:15px; font-weight:600; margin-top:1px; line-height:1.3; }
+    .member dd small { display:block; font-weight:400; font-size:13px; color:var(--muted); }
+    .member .pill { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--ok); }
+    .member .pill::before { content:''; width:8px; height:8px; border-radius:50%; background:var(--ok); }
+    .meter { height:6px; background:var(--snow); border-radius:3px; margin-top:6px; overflow:hidden; border:1px solid var(--line); }
+    .meter i { display:block; height:100%; background:var(--brand); }
+
+    /* two columns */
+    .cols { margin-top:18px; display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:24px; align-items:start; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); }
+    .panel-h { padding:14px 20px; border-bottom:1px solid var(--line); display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .panel-h h2 { font-size:17px; font-weight:700; }
+    .panel-h .meta { font-size:13px; color:var(--muted); }
+
+    .sec { padding:18px 20px 20px; border-bottom:1px solid var(--line); }
+    .sec-h { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .sec-h h3 { font-size:15.5px; font-weight:700; color:var(--ink); }
+    .sec-h h3 span { color:var(--muted); font-weight:600; margin-right:8px; }
+    .sec-h a { font-size:13px; text-decoration:none; font-weight:600; }
+    .sec-h a:hover { text-decoration:underline; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
+    .grid .full { grid-column:1 / -1; }
+    .grid.svc { grid-template-columns:1.6fr 1fr; }
+    .fld label, .fld .lbl { display:block; font-size:13.5px; font-weight:600; color:var(--body); margin-bottom:5px; }
+    .fld .req { color:var(--bad); margin-left:2px; }
+    .fld .help { font-size:12.5px; color:var(--muted); margin-top:5px; }
+    input[type=text], select, textarea { width:100%; min-height:38px; padding:7px 10px; border:1px solid var(--line-strong); border-radius:3px; background:#fff; color:var(--ink); }
+    input[type=text]:read-only, textarea:read-only { background:#f6f8fa; color:var(--body); border-color:var(--line); }
+    textarea { resize:vertical; line-height:1.4; }
+    select { appearance:none; padding-right:34px; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%233b4552' stroke-width='1.6'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; }
+    .ro { display:flex; align-items:center; min-height:38px; padding:7px 10px; border:1px solid var(--line); border-radius:3px; background:#f6f8fa; color:var(--body); gap:8px; }
+    .ro .npi { color:var(--muted); font-size:13px; margin-left:auto; }
+
+    /* place-of-service tiles */
+    .tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .tile { position:relative; display:block; border:1px solid var(--line-strong); border-radius:3px; padding:10px 12px 10px 38px; cursor:pointer; background:#fff; }
+    .tile:hover { border-color:var(--brand); }
+    .tile input { position:absolute; left:12px; top:13px; width:16px; height:16px; accent-color:var(--brand); margin:0; }
+    .tile b { display:block; font-size:14.5px; font-weight:600; line-height:1.25; }
+    .tile b span { color:var(--muted); font-weight:600; margin-right:6px; }
+    .tile small { display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+    .tile:has(input:checked) { border-color:var(--brand); box-shadow:inset 0 0 0 1px var(--brand); background:var(--brand-tint); }
+    .tile:has(input:focus-visible) { outline:2px solid var(--cobalt); outline-offset:2px; }
+
+    .radios { display:flex; gap:18px; flex-wrap:wrap; min-height:38px; align-items:center; }
+    .radios label { display:inline-flex; align-items:center; gap:8px; font-size:14.5px; }
+    .radios input { width:16px; height:16px; accent-color:var(--brand); margin:0; }
+
+    /* attachments */
+    .docs { border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+    .doc { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid var(--line); cursor:pointer; background:#fff; }
+    .doc:last-child { border-bottom:0; }
+    .doc:hover { background:#fafbfc; }
+    .doc input { width:16px; height:16px; accent-color:var(--brand); margin:0; }
+    .doc .name { font-weight:600; font-size:14.5px; }
+    .doc .name small { display:block; font-weight:400; color:var(--muted); font-size:12.5px; }
+    .doc .st { font-size:12.5px; color:var(--muted); text-align:right; display:flex; align-items:center; gap:8px; }
+    .doc .file { display:inline-flex; align-items:center; gap:5px; color:var(--body); }
+    .doc .file svg { flex:none; }
+    .doc .need { font-weight:600; color:var(--pend); }
+    .doc:has(input:checked) { background:#fbfdfc; }
+    .uploader { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px dashed var(--line-strong); border-radius:3px; padding:10px 14px; font-size:13.5px; color:var(--muted); }
+    .uploader button { background:#fff; border:1px solid var(--line-strong); border-radius:3px; padding:6px 12px; font-weight:600; color:var(--brand); }
+    .uploader button:hover { border-color:var(--brand); }
+
+    .review { font-size:14.5px; display:grid; grid-template-columns:140px 1fr; gap:6px 16px; }
+    .review dt { color:var(--muted); }
+    .review dd { font-weight:600; }
+    .attest { margin-top:16px; display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--body); padding:12px 14px; background:#f6f8fa; border-radius:3px; }
+    .attest input { width:16px; height:16px; accent-color:var(--brand); margin-top:3px; flex:none; }
+
+    .actions { position:sticky; bottom:0; z-index:5; display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:14px 20px; background:#fff; border-top:1px solid var(--line); border-radius:0 0 var(--r) var(--r); box-shadow:0 -6px 16px -12px rgba(27,36,48,.35); }
+    .btn { min-height:42px; padding:0 20px; border-radius:3px; border:1px solid var(--brand); background:var(--brand); color:#fff; font-weight:700; font-size:15px; white-space:nowrap; }
+    .btn:hover { background:var(--brand-deep); }
+    .btn:disabled { opacity:.65; cursor:progress; }
+    .btn-2 { background:#fff; color:var(--brand); }
+    .btn-2:hover { background:var(--brand-tint); }
+    .btn-link { background:transparent; border-color:transparent; color:var(--brand); font-weight:600; }
+    .btn-link:hover { text-decoration:underline; background:transparent; }
+    .actions .note { margin-left:auto; font-size:12.5px; color:var(--muted); text-align:right; }
+
+    /* ---------- decision panel ---------- */
+    .side { position:sticky; top:16px; display:grid; gap:16px; }
+    .path { padding:6px 20px 16px; }
+    .st { position:relative; padding:14px 0 14px 36px; border-bottom:1px solid var(--line); }
+    .st:last-child { border-bottom:0; }
+    .st::before { content:''; position:absolute; left:10px; top:38px; bottom:-14px; width:2px; background:var(--line); }
+    .st:last-child::before { display:none; }
+    .st .mk { position:absolute; left:0; top:16px; width:22px; height:22px; border-radius:50%; border:2px solid var(--line-strong); background:#fff; display:grid; place-items:center; }
+    .st .mk svg { display:none; }
+    .st h3 { font-size:15px; font-weight:700; }
+    .st p { font-size:13.5px; color:var(--muted); margin-top:2px; }
+    .st dl { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:13.5px; margin-top:8px; }
+    .st dt { color:var(--muted); }
+    .st dd { font-weight:600; }
+    .st.done .mk { background:var(--brand); border-color:var(--brand); }
+    .st.done .mk svg.ok { display:block; }
+    .st.done::before { background:var(--brand); }
+    .st.active .mk { border-color:var(--brand); }
+    .st.active .mk::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--brand); animation:pulse 1.1s ease-in-out infinite; }
+    .st.failed .mk { background:var(--bad); border-color:var(--bad); }
+    .st.failed .mk svg.x { display:block; }
+    .st.failed h3 { color:var(--bad); }
+    .st.pended .mk { background:var(--pend); border-color:var(--pend); }
+    .st.pended .mk svg.ok { display:block; }
+    .st.review .mk { background:var(--rev); border-color:var(--rev); }
+    .st.review .mk svg.ok { display:block; }
+    @keyframes pulse { 0%,100% { transform:scale(.8); opacity:.7; } 50% { transform:scale(1.15); opacity:1; } }
+
+    .result-box { display:none; margin-top:12px; border-radius:3px; border:1px solid var(--line); background:#fff; overflow:hidden; }
+    .result-box.success, .result-box.pended, .result-box.review, .result-box.error { display:block; }
+    .stamp { display:flex; align-items:center; gap:10px; padding:10px 14px; font-weight:700; font-size:15px; color:#fff; }
+    .stamp svg { flex:none; }
+    .result-box.success .stamp { background:var(--ok); }
+    .result-box.pended .stamp { background:var(--pend); }
+    .result-box.review .stamp { background:var(--rev); }
+    .result-box.error .stamp { background:var(--bad); }
+    .result-box.success { border-color:var(--ok-line); }
+    .result-box.pended { border-color:var(--pend-line); }
+    .result-box.review { border-color:var(--rev-line); }
+    .result-box.error { border-color:var(--bad-line); }
+    .rbody { padding:12px 14px 14px; font-size:14px; color:var(--body); }
+    .rbody p + p { margin-top:6px; }
+    .refno { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+    .refno dt { font-size:12.5px; color:var(--muted); }
+    .refno dd { font-size:22px; font-weight:700; color:var(--ink); line-height:1.15; word-break:break-all; }
+    .refno dd.sm { font-size:15px; }
+    .kv { display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:13.5px; margin-top:10px; }
+    .kv dt { color:var(--muted); }
+    .kv dd { font-weight:600; color:var(--ink); }
+    .missing { margin-top:8px; padding-left:18px; font-size:13.5px; }
+    .missing li { margin-top:2px; }
+    .ractions { display:flex; gap:8px; flex-wrap:wrap; padding:0 14px 14px; }
+    .ractions .btn { min-height:34px; font-size:13.5px; padding:0 12px; font-weight:600; }
+
+    .pol { padding:8px 20px 16px; }
+    .pol table { width:100%; border-collapse:collapse; font-size:13.5px; }
+    .pol th, .pol td { text-align:left; padding:8px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+    .pol th { color:var(--muted); font-weight:600; font-size:12.5px; }
+    .pol th:nth-child(1) { width:30%; } .pol th:nth-child(2) { width:42%; } .pol td + td { padding-left:10px; }
+    .pol tr:last-child td { border-bottom:0; }
+    .pol tr.hi td { color:var(--brand); font-weight:600; background:linear-gradient(to right, var(--brand-tint), transparent); }
+    .pol tr.hi td:first-child { box-shadow:inset 3px 0 0 var(--brand); padding-left:10px; }
+    .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12.5px; font-weight:600; white-space:nowrap; }
+    .tag.auto { background:var(--ok-bg); color:var(--ok); }
+    .tag.nurse { background:var(--rev-bg); color:var(--rev); }
+    .pol-foot { font-size:12.5px; color:var(--muted); margin-top:10px; line-height:1.4; }
+    .gold { display:flex; gap:12px; padding:14px 20px; font-size:13.5px; color:var(--body); border-top:1px solid var(--line); }
+    .gold svg { flex:none; margin-top:2px; }
+    .gold b { color:var(--ink); }
+
+    /* ---------- queue ---------- */
+    .queue { margin-top:28px; }
+    .queue-h { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .queue-h h2 { font-size:19px; font-weight:700; }
+    .queue-h a { font-size:14px; font-weight:600; text-decoration:none; }
+    .tiles4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .kpi { background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:14px 18px; text-decoration:none; color:inherit; display:block; border-top:3px solid var(--line-strong); }
+    .kpi:hover { border-color:var(--brand); }
+    .kpi b { display:block; font-size:28px; font-weight:700; line-height:1.1; }
+    .kpi span { display:block; font-size:14px; color:var(--body); margin-top:2px; }
+    .kpi small { display:block; font-size:12.5px; color:var(--muted); margin-top:4px; }
+    .kpi.pend { border-top-color:var(--pend); } .kpi.pend b { color:var(--pend); }
+    .kpi.rev { border-top-color:var(--rev); } .kpi.rev b { color:var(--rev); }
+    .kpi.ok { border-top-color:var(--ok); } .kpi.ok b { color:var(--ok); }
+    .kpi.bad { border-top-color:var(--bad); } .kpi.bad b { color:var(--bad); }
+    .tbl { margin-top:14px; overflow-x:auto; }
+    .tbl table { width:100%; border-collapse:collapse; font-size:14px; background:#fff; border:1px solid var(--line); border-radius:var(--r); min-width:880px; }
+    .tbl th { text-align:left; font-size:12.5px; color:var(--muted); font-weight:600; padding:10px 14px; border-bottom:1px solid var(--line); background:#fafbfc; }
+    .tbl td { padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+    .tbl tr:last-child td { border-bottom:0; }
+    .tbl td a { font-weight:600; text-decoration:none; white-space:nowrap; }
+    .tbl td a:hover { text-decoration:underline; }
+    .tbl .sub { display:block; color:var(--muted); font-size:12.5px; }
+    .chip { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; padding:2px 9px 2px 7px; border-radius:10px; white-space:nowrap; }
+    .chip::before { content:''; width:7px; height:7px; border-radius:50%; background:currentColor; }
+    .chip.ok { color:var(--ok); background:var(--ok-bg); }
+    .chip.pend { color:var(--pend); background:var(--pend-bg); }
+    .chip.rev { color:var(--rev); background:var(--rev-bg); }
+    .chip.bad { color:var(--bad); background:var(--bad-bg); }
+    .due { color:var(--body); }
+    .due.soon { color:var(--pend); font-weight:600; }
+
+    .help3 { margin-top:24px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .help3 > div { background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; font-size:14px; color:var(--body); }
+    .help3 h3 { font-size:15px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+    .help3 a { font-weight:600; text-decoration:none; }
+    .help3 a:hover { text-decoration:underline; }
+
+    footer { border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    footer .wrap { padding:20px 24px 24px; display:grid; gap:10px; }
+    footer nav { display:flex; gap:18px; flex-wrap:wrap; }
+    footer nav a { text-decoration:none; color:var(--body); }
+    footer nav a:hover { text-decoration:underline; }
+    footer .legal { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+
+    /* ---------- responsive ---------- */
+    @media (max-width:1240px) { .cols { grid-template-columns:minmax(0,1fr) 340px; } .shell { grid-template-columns:208px minmax(0,1fr); gap:0 24px; } }
+    @media (max-width:1060px) {
+      .shell { grid-template-columns:1fr; gap:0; }
+      .rail { display:none; position:static; border-right:0; border-bottom:1px solid var(--line); padding:12px 0; }
+      .rail.open { display:block; }
+      .menu-btn { display:inline-flex; align-items:center; gap:8px; margin-top:16px; background:#fff; border:1px solid var(--line-strong); border-radius:3px; padding:7px 12px; font-weight:600; color:var(--brand); }
+      .cols { grid-template-columns:1fr; }
+      .side { position:static; }
+      .member { grid-template-columns:1fr 1fr; }
+      .member > div { border-bottom:1px solid var(--line); }
+      .member > div:nth-child(odd):nth-last-child(-n+2), .member > div:last-child { border-bottom:0; }
+      .member > div:nth-child(2n) { border-right:0; }
+      .tiles4 { grid-template-columns:1fr 1fr; }
+      .help3 { grid-template-columns:1fr; }
+      .gnav { display:none; }
+      .stepper { grid-template-columns:repeat(5,1fr); }
+      .stepper li { padding:10px 8px 10px 40px; }
+      .stepper small { display:none; }
+    }
+    @media (max-width:760px) {
+      .util nav, .util .pipe, .util .hours { display:none; }
+      .user span, .user small { display:none; }
+      .brand small { display:none; }
+      .orgbar a { margin-left:0; flex-basis:100%; }
+      .grid, .grid.svc { grid-template-columns:1fr; }
+      .tiles { grid-template-columns:1fr; }
+      .stepper { display:flex; overflow:hidden; }
+      .stepper li.now { flex:1 1 auto; padding:10px 10px 10px 44px; }
+      .stepper li:not(.now) b { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+      .stepper li:not(.now) { flex:0 0 46px; padding:0; min-height:46px; }
+      .stepper li::before { left:11px; top:11px; }
+      .x-m { display:none; }
+      .brand b { font-size:17px; }
+      .hdr .wrap { gap:12px; }
+      .me { gap:4px; }
+      .user > svg { display:none; }
+      .brand { padding-right:0; }
+      .member { grid-template-columns:1fr; }
+      .member > div { border-right:0; border-bottom:1px solid var(--line); }
+      .member > div:last-child { border-bottom:0; }
+      .actions .note { margin-left:0; text-align:left; max-width:none; flex-basis:100%; }
+      .actions .btn { flex:1 1 auto; }
+      .actions .btn-link { flex-basis:100%; }
+      .review { grid-template-columns:1fr; gap:2px; }
+      .review dt { margin-top:8px; }
+      .doc { grid-template-columns:auto 1fr; }
+      .doc .st { grid-column:2; text-align:left; justify-content:flex-start; flex-wrap:wrap; }
+      .tiles4 { grid-template-columns:1fr 1fr; gap:10px; }
+      .kpi b { font-size:24px; }
+      .wrap { padding-left:16px; padding-right:16px; }
+      footer .wrap { padding-left:16px; padding-right:16px; }
+      h1 { font-size:23px; }
+    }
+    @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    /* ---------- floridablue.com component skin ---------- */
+    @media (min-width:1241px) { .shell { grid-template-columns:240px minmax(0,1fr); gap:0 36px; } }
+    .rail { border-right:0; padding-top:40px; }
+    .rail h2 { font-size:14px; color:var(--muted); font-weight:600; padding:0 16px; }
+    .rail a { padding:9px 16px; margin-right:0; color:var(--ink); font-size:16px; font-weight:600; border-right:0; border-left:4px solid transparent; }
+    .rail a:hover { background:transparent; text-decoration:underline; }
+    .rail a[aria-current] { color:var(--ink); background:transparent; border-left-color:var(--cobalt); font-weight:700; }
+    .rail .sub a { padding-left:40px; font-weight:400; }
+    .content { padding-top:32px; }
+    .titlebar h2 { font-family:var(--serif); font-size:28px; font-weight:700; line-height:1.3; }
+    .panel { border-color:var(--line); border-radius:4px; }
+    .panel-h h2 { font-family:var(--serif); font-size:18px; font-weight:700; }
+    .sec-h h3 { font-size:17px; }
+    .queue-h h2 { font-family:var(--serif); font-size:24px; }
+    .help3 > div { background:var(--sand); border:0; }
+    .help3 h3 { font-family:var(--serif); font-size:17px; }
+    .stepper li.now { background:var(--brand-tint); }
+    .member { border-left-color:var(--cobalt); }
+    .tbl th { background:var(--cream); }
+    .btn { min-height:48px; padding:0 28px; border-radius:var(--r); border:2px solid var(--ink); background:var(--ink); color:#fff; font-weight:700; font-size:16px; }
+    .btn:hover { background:#000; border-color:#000; text-decoration:underline; }
+    .btn-2 { background:#fff; color:var(--ink); }
+    .btn-2:hover { background:var(--sand); color:var(--ink); }
+    .btn-link { background:transparent; border-color:transparent; color:var(--brand); text-decoration:underline; }
+    .btn-link:hover { background:transparent; border-color:transparent; }
+    .ractions .btn { min-height:36px; font-size:14px; padding:0 14px; }
+    a { color:var(--brand); }
+    footer.fb { border-top:0; background:var(--ink); color:#fff; font-size:16px; margin-top:24px; }
+    footer.fb a { color:#fff; }
+    footer.fb .wrap { padding:56px 24px 0; display:block; }
+    footer.fb .top { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap; padding:0 16px 48px; border-bottom:1px solid #fff; }
+    footer.fb .help { font-family:var(--serif); font-size:24px; font-weight:700; line-height:1.4; }
+    footer.fb .phone { display:inline-block; font-family:var(--serif); font-size:28px; font-weight:700; margin-top:18px; }
+    footer.fb .social { display:flex; gap:60px; padding-top:6px; }
+    footer.fb .social svg { display:block; }
+    footer.fb .mid { padding:72px 16px 56px; display:grid; grid-template-columns:300px 300px minmax(0,1fr); gap:24px 0; border-bottom:1px solid #6b6867; }
+    footer.fb .flogo { grid-column:1 / -1; color:#fff; margin-bottom:20px; }
+    footer.fb .flogo svg { display:block; width:252px; height:28px; }
+    footer.fb h2 { font-size:16px; font-weight:600; margin-bottom:16px; }
+    footer.fb ul { list-style:none; display:grid; gap:20px; font-size:14px; }
+    footer.fb .legaltxt { font-size:16px; line-height:1.5; display:grid; gap:16px; max-width:560px; }
+    footer.fb .bot { padding:44px 16px 48px; display:flex; justify-content:space-between; gap:16px 36px; flex-wrap:wrap; font-size:14px; }
+    footer.fb .bot nav { display:flex; gap:16px 36px; flex-wrap:wrap; }
+    @media (max-width:1060px) {
+      .hero .wrap { grid-template-columns:1fr; }
+      .hero img { display:none; }
+      .util nav, .util .lang { display:none; }
+      footer.fb .mid { grid-template-columns:1fr 1fr; }
+      footer.fb .legaltxt { grid-column:1 / -1; }
+      .menu-btn { color:var(--ink); }
+    }
+    @media (max-width:760px) {
+      .util .right > a span { display:none; }
+      .util .pipe { display:none; }
+      .hdr .wrap { height:64px; gap:12px; }
+      .brand svg { width:170px; height:19px; }
+      .hero .txt { padding:24px 0; }
+      .hero h1 { font-size:28px; }
+      .hero p { font-size:18px; }
+      .titlebar h2 { font-size:23px; }
+      footer.fb .social { gap:28px; }
+      footer.fb .mid { grid-template-columns:1fr; padding-top:48px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to request form</a>
+
+<header>
+  <div class="util">
+    <div class="wrap">
+      <a class="lang" href="#" lang="es">Español</a>
+      <nav aria-label="Audience"><a href="#">FloridaBlue.com</a><a href="#">For Employers</a><a href="#">For Agents</a><a href="#" aria-current="page">For Providers</a></nav>
+      <div class="right"><a href="#"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 19s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="8" cy="8" r="2.3"/></svg><span>Find a Florida Blue Center</span></a><span class="pipe" aria-hidden="true"></span>
+        <button class="user" type="button" aria-haspopup="menu"><span class="av" id="userAv">DW</span><div><span id="userName">Dana Whitfield</span><small>Authorization coordinator</small></div></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hdr">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Florida Blue providers home"><svg viewBox="0 -64 9139 1024" aria-hidden="true"><path fill="currentColor" transform="translate(0,896) scale(1,-1)" d="M659.114 452.654c-66.766 0-205.587-13.243-314.917-26.529 60.081 81.321 110.642 151.218 129.978 205.037 71.336 6.812 145.464 12.27 217.053 12.27 128.032 0 181.47-7.954 197.463-18.363 5.331 5.204 15.993 18.363 15.993 41.761 0 57.5-69.347 115.042-221.496 115.042-218.83 0-443.076-70.532-616.507-75.736-10.662-44.511 2.623-102.011 96.087-102.011 34.356 0 75.567 3.089 120.5 7.447-221.030-328.372-283.269-470.324-283.269-577.158 0-62.704 80.094-60.123 96.087-15.613 37.614 99.387 96.849 194.84 157.776 282.381 126.001 1.1 289.446 13.37 373.264 23.313 85.425 10.535 106.707 39.307 112.165 62.704 7.954 49.715-24.032 65.454-80.178 65.454zM2375.145 498.646c12.355 28.898-2.369 57.627-21.959 72.013-22.171 16.84-49.080 21.578-76.032 4.823-66.258-38.418-213.372-182.443-308.909-273.707l112.758 189.636c14.766 24.032 7.447 62.366-14.766 81.702-24.54 19.082-56.358 19.082-78.359 7.193-115.296-74.509-215.742-132.136-328.626-170.554-7.32 24.032-29.364 48.107-68.543 48.107-66.174 0-127.482-50.434-127.482-98.414 0-40.914 44.13-55.3 83.352-52.804-49.080-100.911-149.61-194.502-201.060-194.502-19.59 0-29.364 12.016-29.364 43.241 0 192.005 166.704 355.239 286.823 324.014 44.13-4.696 44.13 16.84 44.13 28.771 0 26.529-39.307 76.836-107.977 76.836-80.813 0-156.803-38.418-254.836-155.957-250.14-264.145-357.99-307.428-375.083-307.428-9.901 0-12.27 4.95-12.27 14.513 0 83.902 107.977 285.723 389.849 669.734 22.044 28.771 14.639 72.013-17.178 91.222-31.902 21.578-71.082 14.386-93.21-14.386-301.505-386.507-416.674-628.946-416.674-761.082 0-79.205 41.634-112.8 102.899-112.8 76.032 0 154.434 50.434 330.953 218.534-31.86-100.784-12.27-225.727 122.574-225.727 120.12 0 286.823 180.116 335.819 321.687 68.67 19.209 151.98 57.627 247.686 105.734-53.904-105.734-132.39-259.321-171.612-326.511-24.54-43.241 4.908-100.911 56.358-100.911 29.448 0 41.634 12.016 58.769 33.595 105.565 153.714 188.917 242.439 348.174 345.72-17.22-38.418-14.766-91.222 24.54-105.607 34.356-12.016 73.493 2.369 85.763 33.595l73.493 189.721zM2708.595 623.462c53.904 0 125.070 55.3 125.070 117.623 0 36.091-24.54 52.804-61.35 52.804-53.904 0-112.8-62.366-112.8-132.009 0-26.402 12.312-38.418 49.080-38.418zM4194.203 277.742c-147.156-136.705-218.28-156.041-267.36-156.041-12.143 0-16.967 4.95-16.967 16.84 0 43.241 24.413 103.238 80.813 182.443 22.044 35.964 19.632 74.382-12.27 96.087-36.683 23.905-80.813 9.562-107.85-26.402-147.071-199.325-252.509-271.338-301.505-271.338-9.858 0-17.093 7.32-17.093 19.209 0 122.489 257.375 352.912 436.306 321.687 24.498-4.823 39.222 9.689 39.222 24.032 0 26.402-51.577 84.029-142.163 84.029-107.85 0-230.423-69.643-323.633-160.907-242.693-254.498-343.096-285.723-360.359-285.723-9.774 0-12.27 4.95-12.27 14.513 0 83.902 103.026 242.439 416.759 660.087 24.54 31.225 14.766 72.139-19.59 93.718-29.364 19.209-68.67 12.016-90.629-16.84l-252.636-338.4c-26.952 11.889-56.4 23.905-110.304 23.905-100.53 0-205.883-64.82-291.689-148.891-257.375-254.371-372.671-285.596-387.311-285.596-7.362 0-12.355 4.696-12.355 12.016 0 52.804 66.174 160.78 210.833 352.912 22.128 28.771 12.27 74.382-17.093 91.222-39.307 23.905-76.032 11.889-95.622-14.386-174.023-216.165-237.828-362.559-237.828-444.261 0-79.205 39.18-112.8 103.026-112.8 63.635 0 149.483 45.611 291.689 170.427-19.59-86.398-4.908-182.358 98.034-182.358 71.166 0 156.93 50.307 264.779 148.764-12.27-84.029 19.59-136.832 95.622-136.832 56.358 0 125.028 35.964 259.829 156.041-14.682-79.205 0-167.973 102.942-167.973 68.67 0 151.98 45.484 259.956 146.395-7.362-79.205 29.364-134.505 110.177-134.505 103.026 0 188.832 59.996 259.829 122.489 61.35 55.342 93.21 129.682 46.711 146.437zM2845.892 119.332c-7.362 0-14.682 7.32-14.682 21.705 0 103.153 210.833 324.014 362.771 316.821-159.384-247.305-294.228-338.527-348.089-338.527zM5037.494 440.976c0 28.898 311.363 72.013 311.363 204.021 0 86.525-120.247 139.329-262.283 136.832-193.74-2.369-392.303-55.173-451.2-71.886-26.91-7.32-39.18-26.529-34.229-48.107 4.95-24.032 26.91-35.964 44.13-35.964 24.54 0 78.359 26.275 193.613 43.157-63.847-105.607-247.559-398.523-340.769-542.421h-24.498c-34.398 0-61.308-26.529-61.308-62.493 0-48.107 46.626-59.996 127.439-59.996 458.519 0 644.686 98.414 644.686 244.809 0.085 108.019-146.945 170.512-146.945 192.048zM4647.772 114.508c102.899 160.907 306.413 477.728 360.232 566.623h56.527c58.769 0 137.213-16.84 137.213-55.173 0-96.087-311.363-112.927-311.363-213.711 0-79.205 159.299-141.698 159.299-199.325-0.042-110.346-276.965-110.346-401.908-98.414zM6319.589 469.875c22.044 28.771 17.22 69.559-9.774 93.591-27.036 21.578-73.62 21.578-95.58-7.193-242.693-290.42-365.309-434.572-431.525-434.572-14.766 0-14.766 7.193-14.766 19.336 0 47.98 63.847 179.989 181.512 333.703 22.044 28.771 17.22 67.189-7.447 88.768-29.406 26.402-71.039 24.032-95.58 0-105.353-119.993-164.25-184.812-213.203-232.793-213.33-208.972-232.92-220.903-247.686-220.903-9.774 0-12.27 4.696-12.27 14.386 0 86.398 100.53 285.596 394.673 679.423 22.171 31.098 12.27 74.382-17.093 93.591-31.86 24.032-73.493 12.016-95.58-16.84-306.413-388.834-419.213-636.139-419.213-770.517 0-76.836 39.18-112.8 100.403-112.8 83.436 0 125.070 57.5 308.909 232.793-41.634-108.103-44.13-232.793 85.89-232.793 75.99 0 171.569 62.366 294.185 192.005-27.036-98.414 14.766-204.021 112.8-204.021 31.733 0 48.953 12.016 48.953 23.905 0 9.689-31.86 43.241-31.86 124.943 0 110.261 66.216 211.172 164.25 335.988zM6778.108 474.698c0 69.559-46.626 115.169-142.29 115.169-205.883 0-367.636-268.841-367.636-441.638 0-88.894 41.634-156.041 139.709-156.041 78.444 0 183.839 33.595 286.823 115.169 75.99 59.996 95.58 122.489 66.089 146.521-139.456-124.943-254.836-146.521-301.463-146.521-53.777 0-61.223 50.434-46.626 91.222 218.153 71.97 365.394 180.074 365.394 276.119zM6626.002 465.051c17.22 0 29.364-9.689 29.364-21.578 0-43.241-100.488-103.238-215.699-151.218 34.525 79.205 105.396 172.796 186.336 172.796zM8123.626 12.371c0 11.297-5.754 17.728-22.509 17.728h-27.375v-63.72h8.42v28.39h13.582l17.897-28.39h8.843l-18.532 28.39c10.874 0.973 19.674 5.289 19.674 17.601zM8093.374 1.92h-11.212v20.817h17.347c7.701 0 15.316-1.227 15.316-10.155 0-11.889-12.651-10.662-21.451-10.662zM8094.897 53.496c-30.802 0-55.892-25.302-55.892-55.511 0-30.971 25.090-55.892 55.892-55.892 30.379 0 55.215 24.921 55.215 55.892 0 30.252-24.836 55.511-55.215 55.511zM8094.897-49.022c-27.333 0-47.092 19.717-47.092 46.965 0 27.163 19.759 46.626 47.092 46.626 26.825 0 46.669-19.463 46.669-46.626 0-27.248-19.801-46.965-46.669-46.965zM9048.873 53.496c-30.929 0-55.638-25.302-55.638-55.511 0-30.971 24.709-55.892 55.638-55.892 30.506 0 55.469 24.921 55.469 55.892 0 30.252-24.963 55.511-55.469 55.511zM9048.873-49.022c-27.079 0-47.049 19.717-47.049 46.965 0 27.163 19.971 46.626 47.049 46.626 27.206 0 46.838-19.463 46.838-46.626 0.042-27.248-19.632-46.965-46.838-46.965zM9077.772 12.371c0 11.297-5.712 17.728-22.255 17.728h-27.333v-63.72h8.166v28.39h13.497l17.77-28.39h9.181l-19.040 28.39c11.339 0.973 20.013 5.289 20.013 17.601zM9047.52 1.92h-11.17v20.817h17.432c7.616 0 14.893-1.227 14.893-10.155-0.042-11.889-12.439-10.662-21.155-10.662zM7608.114 489.21l-139.456 12.778c-4.443-17.855-6.685-36.683-6.685-56.019 0-59.023 21.451-112.546 56.908-154.095l97.822 186.547c2.2 5.712 1.227 10.028-8.589 10.789zM7698.236 373.322c-1.354 0-2.708-0.635-3.893-2.242l-92.152-141.063c29.364-13.159 61.731-20.563 96.172-20.563 34.356 0 66.681 7.447 96.13 20.563l-92.406 141.063c-1.1 1.608-2.454 2.242-3.85 2.242zM7632.655 672.923c-44.976-13.243-84.41-38.799-114.027-73.366h123.589c2.116 0.508 3.089 3.343 0.973 5.712-13.116 14.089-24.667 44.468-10.535 67.655zM7763.944 672.923c14.089-23.186 2.708-53.565-10.535-67.697-2.539-2.369-1.1-5.204 0.889-5.712h123.505c-29.448 34.61-68.882 60.123-113.858 73.409zM7919.097 946.503h-442.822v-277.769h-278.023v-444.261h278.023v-277.896h442.822v277.896h277.853v444.261h-277.853v277.769zM7423.81 445.969c0 33.975 6.262 66.428 17.601 96.553h-0.169l0.296 0.254c-0.127-0.127-0.127-0.127-0.127-0.254l184.009-17.728c34.779-4.696 38.756-38.418 29.575-58.262l-126.17-237.235v0.762c-63.847 49.926-105.015 128.243-105.015 215.911zM7849.115 216.138l-0.381 0.508c-43.199-28.898-95.072-45.357-150.372-45.357-56.019 0-107.596 16.501-150.837 45.357l-0.381-0.508 0.127 0.762c0 0 0.127-0.127 0.254-0.254l133.617 199.706c9.774 13.878 24.667 13.032 34.102 0l133.49-199.706c0.042 0.127 0.254 0.254 0.381 0.254v-0.762zM7955.315 542.522h-0.042c11.297-30.125 17.305-62.577 17.305-96.553 0-87.625-40.83-165.984-104.888-215.953l0.127-0.762-126.17 237.235c-9.308 19.844-5.077 53.565 29.448 58.262l184.22 17.728c-0.042 0.127-0.042 0.127-0.042 0.254l0.042-0.212zM7946.98 561.858h-195.348c-27.84 0.508-40.153 17.22-40.703 30.252-0.508 15.74 1.777 20.69 14.766 37.699 14.386 18.701 4.443 54.919-27.502 55.427-31.606-0.508-41.634-36.683-27.586-55.427 13.074-16.967 15.697-21.959 14.936-37.699-0.508-13.032-12.651-29.744-40.66-30.252h-195.348c43.622 93.718 138.567 158.538 248.913 158.538 109.754 0 205.079-64.82 248.532-158.538zM7877.675 291.874c35.499 41.507 57.077 95.072 57.077 154.095 0 19.336-2.369 38.164-6.812 56.019l-139.456-12.778c-10.155-0.762-10.705-5.077-8.504-10.789l97.695-186.547zM8730.571 60.435l-0.254 0.254-0.254-0.254zM8677.937 683.204c5.077-4.104 3.85-10.789 11.889-9.562 3.639 0.508 6.135 3.343 9.562 5.712 0.635 0.508 4.781-0.254 5.839-0.762-8.674 8.928-25.598 8.928-36.683 8.928 2.75-5.077 5.881-2.2 9.393-4.316zM8867.403 772.099c-46.245-5.966-91.772-10.408-136.621-11.043h-0.762c-44.934 0.635-90.375 5.077-136.832 11.043-45.992 6.431-90.672 17.093-138.356 29.49-33.595-94.564-26.529-214.303-0.804-320.672 48.403-200.425 169.369-353.039 276.246-420.228 106.961 67.189 227.885 219.761 276.161 420.228 25.767 106.369 32.918 226.108-0.296 320.672-47.938-12.397-92.491-23.059-138.736-29.49zM8703.704 154.28c-1.439-10.281 2.919-14.513 1.735-19.463-1.735-7.954-6.897-5.712-9.731 0-4.273 8.293-6.812 12.016-8.039 24.286-1.777 19.082 7.616 28.263 12.016 32.706 4.654 4.823 9.224 7.066 9.224 7.066l1.439-32.368c0 0.042-5.12-2.073-6.643-12.228zM8747.411 121.786c0-5.585-2.242-9.774-12.27-9.774-8.801-0.381-12.397 2.835-12.82 11.635-1.1 39.307-2.962 113.688-2.962 113.688s11.212-3.596 16.416-6.812c1.565-1.227 7.32-4.823 12.397-9.689 0.931-1.735 2.116-2.116 1.735-4.696-0.635-28.644-2.242-81.829-2.496-94.353zM8779.524 196.168c-8.801-7.574-19.717-10.155-19.717-10.155l0.973 29.364c0 0 3.427 2.962 2.496 6.685-1.565 5.839-22.425 19.59-33.51 24.032-11.466 4.231-26.444 8.547-37.233 13.37-25.302 10.789-34.229 32.96-24.159 57.162 3.85 9.054 13.836 14.766 19.209 17.982 5.966 3.977 14.936 6.558 14.936 6.558l2.708-34.356c0 0-3.469-1.227-4.4-4.231-1.862-6.177 3.512-9.689 5.077-10.155 16.416-7.32 40.491-16.84 58.092-27.29 22.552-13.159 29.871-22.805 29.871-38.545-0.042-14.936-6.093-23.609-14.343-30.421zM8715.805 358.555c16.628-1.989 22.552-2.369 36.302-4.104l-1.1-68.543-15.866 8.547-15.824 7.574-3.512 56.527zM8815.785 343.831c-2.962-12.524-10.832-22.044-23.567-29.998-13.709-8.039-27.713-8.801-27.713-8.801l1.354 41.507c0 0 2.835 0.762 4.95 3.469 2.369 2.623 2.962 4.443 2.369 8.039-0.381 2.369-2.496 5.458-5.754 7.066-4.443 1.862-10.832 2.496-13.455 2.708-20.521 2.496-39.18 4.57-59.108 7.954-36.387 6.093-61.985 26.783-59.869 61.35 1.481 23.186 26.106 30.252 43.157 37.699 5.839-9.901 10.789-20.563 12.778-26.148 3.343-9.181 5.077-15.232 5.077-15.232s-7.87-1.354-7.066-7.827c0.635-5.712 6.812-8.039 10.493-8.674 25.598-3.343 59.066-7.701 77.048-13.624 11.762-4.104 23.694-11.043 30.167-19.844 9.816-14.259 12.439-25.429 9.139-39.645zM8700.615 508.293c0 0 8.758-0.762 29.448-2.242 15.866-0.889 26.529-5.585 26.529-5.585l-2.242-75.355c-16.84 3.089-27.883 5.077-43.495 6.939-5.204 27.502-11.889 36.81-22.763 57.162-2.496 4.358-0.423 6.093 0.508 7.32 1.227 2.623 12.355 5.458 12.355 5.458l-0.338 6.304zM8768.566 433.191c0 0 2.158 36.091 2.539 53.311 9.478 3.85 11.508 13.032 7.743 20.69-1.862 4.231-9.097 7.447-13.074 8.293-19.844 5.077-37.826 6.177-58.389 8.166-17.559 1.989-31.733 4.358-48.361 8.42-33.425 8.547-61.604 24.032-76.54 54.792-18.659 37.572-1.777 84.41 34.272 103.238 27.375 14.259 58.008 11.762 85.51 0.973 9.689-3.596 14.639-12.016 20.436-20.098 2.962-3.723 7.024-5.204 9.054-9.308 1.692-2.242-1.735-3.343-2.708-3.596-6.304-1.735-26.359-1.989-33.087-1.1-8.293 0.889-22.128 0.381-30.379-1.1 8.97-4.95 18.024-10.916 26.91-14.386 5.077-2.242 9.224-2.242 14.132-4.443 2.116-0.973 7.954-2.496 7.954-5.204-0.889-2.835-5.627-3.85-9.097-4.95-7.87-2.116-18.405-2.242-28.306-0.381-15.74 3.723-23.186 13.159-32.96 7.32-6.643-3.723-6.643-12.905-4.443-21.578 3.512-14.132 17.897-19.844 30.379-24.032 43.030-13.624 89.021-5.839 131.163-27.375 16.247-8.547 34.568-25.429 37.91-43.622 14.428-74.847-70.659-84.029-70.659-84.029zM8843.54 665.222c-2.242-7.827-4.146-7.827-9.224-12.397-10.832-9.774-24.921-19.971-38.672-33.341-9.097-8.547-17.855-13.243-24.032-23.567-1.439-2.242-4.95-8.674-4.95-8.674-23.736 4.823-47.557 5.077-66.131 8.928l-1.1 20.224c0 0 23.863 0.127 26.148 14.513 0.169 0.889-0.296 5.077-3.216 7.193-2.962 2.369-10.155 4.95-11.974 5.204 17.982-2.369 34.018-8.928 52.423-17.22 0.973 1.989-1.989 8.801-3.343 10.535-2.496 2.708-5.458 4.95-11.762 6.431-11.297 2.962-38.291 6.177-38.291 6.177s9.774 0.254 22.678 1.1c5.881 0.635 11.889 2.962 13.159 4.823 1.185 2.962-0.508 7.447-4.57 11.762-2.666 2.835-5.458 5.458-7.574 8.293-2.962 3.85-6.177 11.17-11.466 15.613-5.881 7.193-23.736 13.878-23.736 13.878s-1.608 12.143 1.439 18.236c2.285 4.231 11.889 4.696 15.063 3.216 13.497-7.574 28.56-15.866 46.669-18.955 3.977-2.835 3.977-3.596 5.289-9.181 2.496-12.397-1.777-30.125 0.381-38.545 1.1-2.835 3.723-2.369 6.008-1.608 17.093 9.054 28.263 25.048 45.315 32.241 8.124 3.258 30.76-7.997 25.471-24.879zM9077.137 959.492c-109.373-55.173-218.661-84.663-346.566-85.425-128.243-0.635-237.743 30.76-347.285 85.89-71.97-141.698-83.436-371.741-21.028-564 59.954-185.193 176.308-354.012 368.271-460 192.005 105.988 307.979 274.807 368.144 460 62.154 192.301 50.815 421.879-21.536 563.534zM9026.195 418.044c-53.904-158.157-137.848-298.12-295.835-396.281 0.169 0 0.296-0.127 0.423-0.254h-0.762c0.127 0.127 0.296 0.254 0.296 0.254-158.030 98.16-242.016 238.124-295.624 396.281-47.896 140.429-59.7 304.932-7.024 433.218 78.655-27.163 125.028-35.456 168.227-42.141 39.983-6.304 75.736-10.028 134.124-11.043h0.762c58.431 0.973 94.099 4.696 134.167 11.043 42.945 6.685 89.318 14.978 168.142 42.141 52.677-128.286 40.83-292.747-6.897-433.218z"/></svg></a>
+      <nav class="gnav" aria-label="Primary">
+        <a href="#">News</a><a href="#">Programs</a><a href="#" aria-current="page">Tools &amp; Resources</a><a href="#">Forms</a><a href="#">Ethics &amp; Compliance</a>
+      </nav>
+      <div class="me">
+        <button class="ibtn" type="button" aria-label="Notifications, 3 unread"><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 14V9a5 5 0 0 1 10 0v5l1.5 2h-13z"/><path d="M8 17a2 2 0 0 0 4 0"/></svg><span class="dot">3</span></button>
+        <button class="ibtn" type="button" aria-label="Search"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="9"/><path d="M18 18l6.5 6.5"/></svg></button>
+      </div>
+    </div>
+  </div>
+  </header>
+
+  <section class="hero" aria-labelledby="heroH">
+    <div class="wrap">
+      <div class="txt"><h1 id="heroH">Prior Authorization</h1><p>Submit and track authorization requests for your patients, our members.</p></div>
+      <img src="https://files.guidewell.com/m/12d4c01fc883693d/original/providers-hero-600x300.jpg" alt="Two smiling doctors at a hospital" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=900&q=80';">
+    </div>
+  </section>
+
+  <div class="orgbar">
+    <div class="wrap">
+      <span>Acting on behalf of <b>Northside Orthopedics</b></span><span class="sep x-m">|</span><span class="num">NPI 1093817265</span><span class="sep x-m">|</span><span class="num x-m">TIN 36-4471290</span><span class="sep x-m">|</span><span class="x-m">Participating, NetworkBlue and BlueCare</span>
+      <a href="#">Switch organization</a>
+    </div>
+  </div>
+
+  <div class="wrap shell">
+    <button class="menu-btn" type="button" id="menuBtn" aria-expanded="false" aria-controls="rail"><svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M0 1h16M0 6h16M0 11h16" stroke="currentColor" stroke-width="1.8"/></svg>Authorizations menu</button>
+    <nav class="rail" id="rail" aria-label="Authorizations">
+      <h2>Prior Authorization</h2>
+      <a href="#">Dashboard</a>
+      <a href="#" aria-current="page">New request</a>
+      <div class="sub"><a href="#">Imaging</a><a href="#">Surgery</a><a href="#">Therapy &amp; rehab</a><a href="#">Durable medical equipment</a><a href="#">Specialty drugs</a></div>
+      <a href="#">Request status <span class="cnt rev num">7</span></a>
+      <a href="#">Action required <span class="cnt num">12</span></a>
+      <a href="#">Appeals &amp; reconsiderations</a>
+      <a href="#">Gold card program</a>
+      <h2>Reference</h2>
+      <a href="#">Clinical policy library</a>
+      <a href="#">Code lookup</a>
+      <a href="#">CMS-0057-F and the Prior Authorization API</a>
+      <a href="#">Fax and paper forms</a>
+    </nav>
+
+    <main class="content" id="main">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Authorizations</a><span aria-hidden="true">›</span><a href="#">New request</a><span aria-hidden="true">›</span><span aria-current="page">Imaging</span></nav>
+      <div class="titlebar">
+        <h2>New authorization request</h2>
+        <div class="draft"><span>Draft <b class="num">AR-26-118834</b></span><span class="saved">Saved 9:41 am</span></div>
+      </div>
+
+      <ol class="stepper" aria-label="Request steps">
+        <li class="done"><b>Member</b><small>Eligibility verified</small></li>
+        <li class="done"><b>Service</b><small>Procedure and site</small></li>
+        <li class="done"><b>Clinical</b><small>Diagnosis and urgency</small></li>
+        <li class="done"><b>Attachments</b><small>2 documents</small></li>
+        <li class="now" aria-current="step"><b>Review &amp; submit</b><small>Check and send</small></li>
+      </ol>
+
+      <dl class="member" aria-label="Member eligibility">
+        <div><dt>Member</dt><dd id="eligName">Jordan Rivera<small>ID <span class="num">SHP-448210</span> &nbsp; DOB 03/14/1981</small></dd></div>
+        <div><dt>Coverage</dt><dd><span class="pill">Active</span><small>Through Dec 31, 2026</small></dd></div>
+        <div><dt>Plan</dt><dd id="eligPlan">BlueOptions Gold PPO<small>NetworkBlue, group <span class="num">GRP-7781</span></small></dd></div>
+        <div><dt>Primary care</dt><dd id="eligPcp">Amara Okafor, MD<small id="eligRef">No referral required</small></dd></div>
+        <div><dt>Deductible, in network</dt><dd id="eligDed"><span class="num">$1,860 of $3,000</span><div class="meter"><i id="eligBar" style="width:62%"></i></div></dd></div>
+      </dl>
+
+      <div class="cols">
+        <form id="demoForm" class="panel" novalidate>
+          <div class="panel-h"><h2>Review the request</h2><span class="meta">All steps complete. Change anything here before you submit.</span></div>
+
+          <section class="sec" id="s1" aria-labelledby="s1h">
+            <div class="sec-h"><h3 id="s1h"><span>1</span>Member and provider</h3><a href="#s1">Edit step</a></div>
+            <div class="grid">
+              <div class="fld"><label for="memberId">Member<span class="req" aria-hidden="true">*</span></label>
+                <select id="memberId"><option value="SHP-448210" selected>Jordan Rivera, SHP-448210 (BlueOptions Gold PPO)</option><option value="SHP-448377">Priya Natarajan, SHP-448377 (BlueCare Silver HMO)</option></select></div>
+              <div class="fld"><span class="lbl">Requesting provider</span><div class="ro">Lena Park, MD, Orthopedic surgery<span class="npi num">NPI 1467539024</span></div></div>
+              <div class="fld"><span class="lbl">Servicing facility</span><div class="ro">Northside Medical Center, Imaging<span class="npi num">NPI 1205896631</span></div></div>
+              <div class="fld"><span class="lbl">Decision notice to</span><div class="ro">Portal inbox and fax <span class="num">312-555-0190</span></div></div>
+            </div>
+          </section>
+
+          <section class="sec" id="s2" aria-labelledby="s2h">
+            <div class="sec-h"><h3 id="s2h"><span>2</span>Service requested</h3><a href="#s2">Edit step</a></div>
+            <div class="grid svc">
+              <div class="fld"><label for="cpt">Procedure code (CPT)<span class="req" aria-hidden="true">*</span></label>
+                <select id="cpt"><option value="72148" selected>72148 — MRI lumbar spine without contrast</option><option value="29881">29881 — Knee arthroscopy with meniscectomy</option><option value="97110">97110 — Physical therapy, therapeutic exercise</option></select></div>
+              <div class="fld"><span class="lbl">Units and service window</span><div class="ro"><span id="unitsText">1 unit</span><span class="npi">Nov 6 – Dec 6, 2026</span></div></div>
+              <div class="fld full">
+                <span class="lbl" id="posLbl">Place of service<span class="req" aria-hidden="true">*</span></span>
+                <div class="tiles" role="radiogroup" aria-labelledby="posLbl">
+                  <label class="tile"><input type="radio" name="posPick" value="22" checked><b><span class="num">22</span>Outpatient hospital</b><small>Hospital imaging or surgery department</small></label>
+                  <label class="tile"><input type="radio" name="posPick" value="11"><b><span class="num">11</span>Physician office</b><small>In-office imaging or therapy</small></label>
+                  <label class="tile"><input type="radio" name="posPick" value="24"><b><span class="num">24</span>Ambulatory surgical center</b><small>Freestanding surgical facility</small></label>
+                </div>
+                <input type="hidden" id="placeOfService" value="22">
+                <div class="help" id="posHelp">Northside Medical Center bills imaging as place of service 22. Site of care affects which clinical policy applies.</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="sec" id="s3" aria-labelledby="s3h">
+            <div class="sec-h"><h3 id="s3h"><span>3</span>Clinical information</h3><a href="#s3">Edit step</a></div>
+            <div class="grid">
+              <div class="fld"><label for="dx">Primary diagnosis (ICD-10-CM)<span class="req" aria-hidden="true">*</span></label><input id="dx" type="text" value="M54.16 — Radiculopathy, lumbar region"></div>
+              <div class="fld"><span class="lbl">Urgency</span>
+                <div class="radios"><label><input type="radio" name="urgency" value="standard" checked> Standard, decision within 72 hours</label><label><input type="radio" name="urgency" value="expedited"> Expedited, 24 hours</label></div>
+                <div class="help">CMS-0057-F requires a decision within 7 calendar days for standard requests. Florida Blue commits to 72 hours.</div></div>
+              <div class="fld full"><label for="summary">Clinical summary</label>
+                <textarea id="summary" rows="3">Low back pain radiating to the left leg for 11 weeks. Six weeks of supervised physical therapy and NSAIDs without improvement. Decreased left ankle reflex and L5 dermatomal numbness on exam 10/28. Requesting MRI to evaluate for disc herniation before surgical consult.</textarea></div>
+            </div>
+          </section>
+
+          <section class="sec" id="s4" aria-labelledby="s4h">
+            <div class="sec-h"><h3 id="s4h"><span>4</span>Clinical documentation</h3><a href="#s4">Edit step</a></div>
+            <div class="docs">
+              <label class="doc"><input type="checkbox" name="doc" value="6 weeks conservative therapy" checked><span class="name">6 weeks conservative therapy<small>Physical therapy notes, 09/14–10/26, Northside PT</small></span><span class="st"><span class="file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M1 1h8l4 4v10H1z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9 1v4h4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>PDF, 6 pages</span></span></label>
+              <label class="doc"><input type="checkbox" name="doc" value="Neurologic deficit note" checked><span class="name">Neurologic deficit note<small>Office exam, 10/28, Lena Park, MD</small></span><span class="st"><span class="file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M1 1h8l4 4v10H1z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9 1v4h4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>PDF, 2 pages</span></span></label>
+              <label class="doc"><input type="checkbox" name="doc" value="MRI report"><span class="name">MRI report<small>Not yet performed</small></span><span class="st"><span class="need" id="needMri" hidden>Required for this policy</span><span>No file</span></span></label>
+              <label class="doc"><input type="checkbox" name="doc" value="Plan of care"><span class="name">Plan of care<small>Therapy requests only</small></span><span class="st"><span class="need" id="needPoc" hidden>Required for this policy</span><span>No file</span></span></label>
+            </div>
+            <div class="uploader"><span>Drag files here or add from the member's chart. PDF, TIFF and JPG up to 25 MB.</span><button type="button">Add document</button></div>
+          </section>
+
+          <section class="sec" id="s5" aria-labelledby="s5h">
+            <div class="sec-h"><h3 id="s5h"><span>5</span>Review and attest</h3></div>
+            <dl class="review">
+              <dt>Request</dt><dd id="rvService">72148 — MRI lumbar spine without contrast at outpatient hospital</dd>
+              <dt>Member</dt><dd id="rvMember">Jordan Rivera, SHP-448210</dd>
+              <dt>Diagnosis</dt><dd id="rvDx">M54.16 — Radiculopathy, lumbar region</dd>
+              <dt>Documentation</dt><dd id="rvDocs">2 documents attached</dd>
+              <dt>Submitted by</dt><dd id="rvBy">Dana Whitfield, Northside Orthopedics</dd>
+              <dt>Clinical policy</dt><dd id="rvPolicy">MP-IMG-0142, Lumbar spine MRI</dd>
+            </dl>
+            <label class="attest"><input type="checkbox" id="attest" checked><span>I attest that the information in this request is accurate and complete, that the ordering provider has reviewed it, and that the attached records are part of the member's medical record.</span></label>
+          </section>
+
+          <div class="actions">
+            <button type="submit" class="btn" id="submitBtn">Submit for review</button>
+            <button type="button" class="btn btn-2" id="resetBtn">Reset to saved draft</button>
+            <button type="button" class="btn btn-link" id="saveLaterBtn">Save and finish later</button>
+            <span class="note">Determination posts here and to your inbox.</span>
+          </div>
+        </form>
+
+        <aside class="side" aria-label="Decision">
+          <section class="panel runas" aria-labelledby="ra-h">
+            <div class="panel-h"><h2 id="ra-h">Run as</h2><span class="meta">Demo presenter</span></div>
+            <fieldset>
+              <legend class="vh">Presenter identity for the Devin session</legend>
+              <div class="fld"><label for="presenterName">Name</label><input id="presenterName" type="text" autocomplete="name" placeholder="Your name"></div>
+              <div class="fld"><label for="presenterEmail">Devin email</label><input id="presenterEmail" type="email" autocomplete="email" placeholder="you@cognition.ai"></div>
+              <div class="ra-status" id="identityStatus" role="status" aria-live="polite">Enter your Devin email so the fix session runs as you.</div>
+            </fieldset>
+          </section>
+          <section class="panel" aria-labelledby="dec-h">
+            <div class="panel-h"><h2 id="dec-h">Determination</h2><span class="meta" id="pathMeta">Not yet submitted</span></div>
+            <div class="path">
+              <div class="st done" id="step1"><span class="mk" aria-hidden="true"><svg class="ok" width="12" height="10" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="#fff" stroke-width="2"/></svg></span><h3>Eligibility verified</h3><p id="step1Text">Member active, imaging benefit covered in network. No referral required under BlueOptions Gold PPO.</p></div>
+              <div class="st" id="step2"><span class="mk" aria-hidden="true"><svg class="ok" width="12" height="10" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="#fff" stroke-width="2"/></svg><svg class="x" width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="#fff" stroke-width="2"/></svg></span><h3>Clinical criteria</h3><p id="step2Text">The procedure and site of care are matched against Florida Blue's medical policy.</p>
+                <dl><dt>Policy</dt><dd id="polText">MP-IMG-0142, Lumbar spine MRI</dd><dt>Site of care</dt><dd id="sosText">Outpatient hospital</dd></dl></div>
+              <div class="st" id="step3"><span class="mk" aria-hidden="true"><svg class="ok" width="12" height="10" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="#fff" stroke-width="2"/></svg><svg class="x" width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="#fff" stroke-width="2"/></svg></span><h3>Determination</h3><p id="step3Text">Issued instantly when criteria are met, otherwise within the urgency window after nurse review.</p>
+                <div class="result-box" id="result" role="status" aria-live="polite"></div></div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="pol-h">
+            <div class="panel-h"><h2 id="pol-h">Clinical policy</h2><span class="meta" id="polMeta">MP-IMG-0142, effective 01/01/2026</span></div>
+            <div class="pol">
+              <table id="polTable">
+                <thead><tr><th>Site of care</th><th>Documentation required</th><th>Review</th></tr></thead>
+                <tbody></tbody>
+              </table>
+              <p class="pol-foot" id="polFoot">Office-based lumbar MRI that meets conservative-therapy criteria is approved at submission. Hospital-based imaging goes to nurse review for site-of-care appropriateness.</p>
+            </div>
+            <div class="gold"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.5l2.2 4.6 5 .7-3.6 3.5.9 5L9 12.9l-4.5 2.4.9-5L1.8 6.8l5-.7z" fill="#faa83f"/></svg><div><b>Gold card status, imaging:</b> not yet eligible. Northside Orthopedics approved 87% of imaging requests in the last 12 months; 90% unlocks authorization-free ordering.</div></div>
+          </section>
+        </aside>
+      </div>
+
+      <section class="queue" aria-labelledby="q-h">
+        <div class="queue-h"><h2 id="q-h">Your authorization queue</h2><a href="#">View all requests</a></div>
+        <div class="tiles4">
+          <a class="kpi pend" href="#"><b class="num">12</b><span>Action required</span><small>Pended for documentation</small></a>
+          <a class="kpi rev" href="#"><b class="num">7</b><span>In clinical review</span><small>Next decision due today, 4:00 pm</small></a>
+          <a class="kpi ok" href="#"><b class="num">41</b><span>Approved this week</span><small>Average decision 1.8 hours</small></a>
+          <a class="kpi bad" href="#"><b class="num">2</b><span>Denied, appealable</span><small>Peer-to-peer available</small></a>
+        </div>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Reference</th><th>Member</th><th>Service</th><th>Site of care</th><th>Submitted</th><th>Status</th><th>Decision due</th></tr></thead>
+            <tbody>
+              <tr><td><a href="#" class="num">PA-7C21E9A4</a></td><td>Marcus Bell<span class="sub num">SHP-447902</span></td><td>73721 — MRI knee without contrast</td><td>Physician office</td><td>Today, 8:52 am</td><td><span class="chip ok">Approved</span></td><td class="due">Decided</td></tr>
+              <tr><td><a href="#" class="num">PA-3F8D10B7</a></td><td>Elena Vasquez<span class="sub num">SHP-446118</span></td><td>29827 — Arthroscopic rotator cuff repair</td><td>Ambulatory surgical center</td><td>Yesterday, 3:10 pm</td><td><span class="chip rev">In clinical review</span></td><td class="due soon">Today, 4:00 pm</td></tr>
+              <tr><td><a href="#" class="num">PA-9A04C2D1</a></td><td>Theo Lindqvist<span class="sub num">SHP-448055</span></td><td>97110 — Physical therapy, 12 visits</td><td>Physician office</td><td>Oct 30, 11:24 am</td><td><span class="chip pend">Action required</span></td><td class="due">Plan of care needed</td></tr>
+              <tr><td><a href="#" class="num">PA-5B6E77F0</a></td><td>Grace Adeyemi<span class="sub num">SHP-445730</span></td><td>27447 — Total knee arthroplasty</td><td>Inpatient hospital</td><td>Oct 29, 9:05 am</td><td><span class="chip rev">In clinical review</span></td><td class="due">Nov 3, 9:05 am</td></tr>
+              <tr><td><a href="#" class="num">PA-1D93AB62</a></td><td>Samuel Ortiz<span class="sub num">SHP-447211</span></td><td>72148 — MRI lumbar spine without contrast</td><td>Physician office</td><td>Oct 28, 2:41 pm</td><td><span class="chip ok">Approved</span></td><td class="due">Decided</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="help3">
+        <div><h3>Prior Authorization API</h3>Under CMS-0057-F, Florida Blue returns decisions and required-documentation lists through the FHIR Prior Authorization API. <a href="#">Connect your practice system</a></div>
+        <div><h3>Peer-to-peer review</h3>Request a conversation with a Florida Blue medical director within 5 business days of an adverse determination. <a href="#">Schedule a peer-to-peer</a></div>
+        <div><h3>Need help with this request?</h3>Provider Services 1-800-555-0142, Mon–Fri 8 am–6 pm ET, or <a href="#">start a secure chat</a>. Reference your draft number.</div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="fb">
+    <div class="wrap">
+      <div class="top">
+        <div><p class="help">Let us know how we can help.</p><a class="phone num" href="#">1-800-555-0142</a></div>
+        <nav class="social" aria-label="Social media"><a href="#" aria-label="Facebook"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v7h4v-7h3l1-4h-4V8z"/></svg></a><a href="#" aria-label="Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg></a><a href="#" aria-label="X"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20"/></svg></a><a href="#" aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 9v11M5 4.5v.5M10 20v-7a3 3 0 0 1 6 0v7M10 9v11M16 13v7"/></svg></a><a href="#" aria-label="YouTube"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.5v5l4.5-2.5z"/></svg></a></nav>
+      </div>
+      <div class="mid">
+        <a class="flogo" href="#" aria-label="Florida Blue home"><svg viewBox="0 -64 9139 1024" aria-hidden="true"><path fill="currentColor" transform="translate(0,896) scale(1,-1)" d="M659.114 452.654c-66.766 0-205.587-13.243-314.917-26.529 60.081 81.321 110.642 151.218 129.978 205.037 71.336 6.812 145.464 12.27 217.053 12.27 128.032 0 181.47-7.954 197.463-18.363 5.331 5.204 15.993 18.363 15.993 41.761 0 57.5-69.347 115.042-221.496 115.042-218.83 0-443.076-70.532-616.507-75.736-10.662-44.511 2.623-102.011 96.087-102.011 34.356 0 75.567 3.089 120.5 7.447-221.030-328.372-283.269-470.324-283.269-577.158 0-62.704 80.094-60.123 96.087-15.613 37.614 99.387 96.849 194.84 157.776 282.381 126.001 1.1 289.446 13.37 373.264 23.313 85.425 10.535 106.707 39.307 112.165 62.704 7.954 49.715-24.032 65.454-80.178 65.454zM2375.145 498.646c12.355 28.898-2.369 57.627-21.959 72.013-22.171 16.84-49.080 21.578-76.032 4.823-66.258-38.418-213.372-182.443-308.909-273.707l112.758 189.636c14.766 24.032 7.447 62.366-14.766 81.702-24.54 19.082-56.358 19.082-78.359 7.193-115.296-74.509-215.742-132.136-328.626-170.554-7.32 24.032-29.364 48.107-68.543 48.107-66.174 0-127.482-50.434-127.482-98.414 0-40.914 44.13-55.3 83.352-52.804-49.080-100.911-149.61-194.502-201.060-194.502-19.59 0-29.364 12.016-29.364 43.241 0 192.005 166.704 355.239 286.823 324.014 44.13-4.696 44.13 16.84 44.13 28.771 0 26.529-39.307 76.836-107.977 76.836-80.813 0-156.803-38.418-254.836-155.957-250.14-264.145-357.99-307.428-375.083-307.428-9.901 0-12.27 4.95-12.27 14.513 0 83.902 107.977 285.723 389.849 669.734 22.044 28.771 14.639 72.013-17.178 91.222-31.902 21.578-71.082 14.386-93.21-14.386-301.505-386.507-416.674-628.946-416.674-761.082 0-79.205 41.634-112.8 102.899-112.8 76.032 0 154.434 50.434 330.953 218.534-31.86-100.784-12.27-225.727 122.574-225.727 120.12 0 286.823 180.116 335.819 321.687 68.67 19.209 151.98 57.627 247.686 105.734-53.904-105.734-132.39-259.321-171.612-326.511-24.54-43.241 4.908-100.911 56.358-100.911 29.448 0 41.634 12.016 58.769 33.595 105.565 153.714 188.917 242.439 348.174 345.72-17.22-38.418-14.766-91.222 24.54-105.607 34.356-12.016 73.493 2.369 85.763 33.595l73.493 189.721zM2708.595 623.462c53.904 0 125.070 55.3 125.070 117.623 0 36.091-24.54 52.804-61.35 52.804-53.904 0-112.8-62.366-112.8-132.009 0-26.402 12.312-38.418 49.080-38.418zM4194.203 277.742c-147.156-136.705-218.28-156.041-267.36-156.041-12.143 0-16.967 4.95-16.967 16.84 0 43.241 24.413 103.238 80.813 182.443 22.044 35.964 19.632 74.382-12.27 96.087-36.683 23.905-80.813 9.562-107.85-26.402-147.071-199.325-252.509-271.338-301.505-271.338-9.858 0-17.093 7.32-17.093 19.209 0 122.489 257.375 352.912 436.306 321.687 24.498-4.823 39.222 9.689 39.222 24.032 0 26.402-51.577 84.029-142.163 84.029-107.85 0-230.423-69.643-323.633-160.907-242.693-254.498-343.096-285.723-360.359-285.723-9.774 0-12.27 4.95-12.27 14.513 0 83.902 103.026 242.439 416.759 660.087 24.54 31.225 14.766 72.139-19.59 93.718-29.364 19.209-68.67 12.016-90.629-16.84l-252.636-338.4c-26.952 11.889-56.4 23.905-110.304 23.905-100.53 0-205.883-64.82-291.689-148.891-257.375-254.371-372.671-285.596-387.311-285.596-7.362 0-12.355 4.696-12.355 12.016 0 52.804 66.174 160.78 210.833 352.912 22.128 28.771 12.27 74.382-17.093 91.222-39.307 23.905-76.032 11.889-95.622-14.386-174.023-216.165-237.828-362.559-237.828-444.261 0-79.205 39.18-112.8 103.026-112.8 63.635 0 149.483 45.611 291.689 170.427-19.59-86.398-4.908-182.358 98.034-182.358 71.166 0 156.93 50.307 264.779 148.764-12.27-84.029 19.59-136.832 95.622-136.832 56.358 0 125.028 35.964 259.829 156.041-14.682-79.205 0-167.973 102.942-167.973 68.67 0 151.98 45.484 259.956 146.395-7.362-79.205 29.364-134.505 110.177-134.505 103.026 0 188.832 59.996 259.829 122.489 61.35 55.342 93.21 129.682 46.711 146.437zM2845.892 119.332c-7.362 0-14.682 7.32-14.682 21.705 0 103.153 210.833 324.014 362.771 316.821-159.384-247.305-294.228-338.527-348.089-338.527zM5037.494 440.976c0 28.898 311.363 72.013 311.363 204.021 0 86.525-120.247 139.329-262.283 136.832-193.74-2.369-392.303-55.173-451.2-71.886-26.91-7.32-39.18-26.529-34.229-48.107 4.95-24.032 26.91-35.964 44.13-35.964 24.54 0 78.359 26.275 193.613 43.157-63.847-105.607-247.559-398.523-340.769-542.421h-24.498c-34.398 0-61.308-26.529-61.308-62.493 0-48.107 46.626-59.996 127.439-59.996 458.519 0 644.686 98.414 644.686 244.809 0.085 108.019-146.945 170.512-146.945 192.048zM4647.772 114.508c102.899 160.907 306.413 477.728 360.232 566.623h56.527c58.769 0 137.213-16.84 137.213-55.173 0-96.087-311.363-112.927-311.363-213.711 0-79.205 159.299-141.698 159.299-199.325-0.042-110.346-276.965-110.346-401.908-98.414zM6319.589 469.875c22.044 28.771 17.22 69.559-9.774 93.591-27.036 21.578-73.62 21.578-95.58-7.193-242.693-290.42-365.309-434.572-431.525-434.572-14.766 0-14.766 7.193-14.766 19.336 0 47.98 63.847 179.989 181.512 333.703 22.044 28.771 17.22 67.189-7.447 88.768-29.406 26.402-71.039 24.032-95.58 0-105.353-119.993-164.25-184.812-213.203-232.793-213.33-208.972-232.92-220.903-247.686-220.903-9.774 0-12.27 4.696-12.27 14.386 0 86.398 100.53 285.596 394.673 679.423 22.171 31.098 12.27 74.382-17.093 93.591-31.86 24.032-73.493 12.016-95.58-16.84-306.413-388.834-419.213-636.139-419.213-770.517 0-76.836 39.18-112.8 100.403-112.8 83.436 0 125.070 57.5 308.909 232.793-41.634-108.103-44.13-232.793 85.89-232.793 75.99 0 171.569 62.366 294.185 192.005-27.036-98.414 14.766-204.021 112.8-204.021 31.733 0 48.953 12.016 48.953 23.905 0 9.689-31.86 43.241-31.86 124.943 0 110.261 66.216 211.172 164.25 335.988zM6778.108 474.698c0 69.559-46.626 115.169-142.29 115.169-205.883 0-367.636-268.841-367.636-441.638 0-88.894 41.634-156.041 139.709-156.041 78.444 0 183.839 33.595 286.823 115.169 75.99 59.996 95.58 122.489 66.089 146.521-139.456-124.943-254.836-146.521-301.463-146.521-53.777 0-61.223 50.434-46.626 91.222 218.153 71.97 365.394 180.074 365.394 276.119zM6626.002 465.051c17.22 0 29.364-9.689 29.364-21.578 0-43.241-100.488-103.238-215.699-151.218 34.525 79.205 105.396 172.796 186.336 172.796zM8123.626 12.371c0 11.297-5.754 17.728-22.509 17.728h-27.375v-63.72h8.42v28.39h13.582l17.897-28.39h8.843l-18.532 28.39c10.874 0.973 19.674 5.289 19.674 17.601zM8093.374 1.92h-11.212v20.817h17.347c7.701 0 15.316-1.227 15.316-10.155 0-11.889-12.651-10.662-21.451-10.662zM8094.897 53.496c-30.802 0-55.892-25.302-55.892-55.511 0-30.971 25.090-55.892 55.892-55.892 30.379 0 55.215 24.921 55.215 55.892 0 30.252-24.836 55.511-55.215 55.511zM8094.897-49.022c-27.333 0-47.092 19.717-47.092 46.965 0 27.163 19.759 46.626 47.092 46.626 26.825 0 46.669-19.463 46.669-46.626 0-27.248-19.801-46.965-46.669-46.965zM9048.873 53.496c-30.929 0-55.638-25.302-55.638-55.511 0-30.971 24.709-55.892 55.638-55.892 30.506 0 55.469 24.921 55.469 55.892 0 30.252-24.963 55.511-55.469 55.511zM9048.873-49.022c-27.079 0-47.049 19.717-47.049 46.965 0 27.163 19.971 46.626 47.049 46.626 27.206 0 46.838-19.463 46.838-46.626 0.042-27.248-19.632-46.965-46.838-46.965zM9077.772 12.371c0 11.297-5.712 17.728-22.255 17.728h-27.333v-63.72h8.166v28.39h13.497l17.77-28.39h9.181l-19.040 28.39c11.339 0.973 20.013 5.289 20.013 17.601zM9047.52 1.92h-11.17v20.817h17.432c7.616 0 14.893-1.227 14.893-10.155-0.042-11.889-12.439-10.662-21.155-10.662zM7608.114 489.21l-139.456 12.778c-4.443-17.855-6.685-36.683-6.685-56.019 0-59.023 21.451-112.546 56.908-154.095l97.822 186.547c2.2 5.712 1.227 10.028-8.589 10.789zM7698.236 373.322c-1.354 0-2.708-0.635-3.893-2.242l-92.152-141.063c29.364-13.159 61.731-20.563 96.172-20.563 34.356 0 66.681 7.447 96.13 20.563l-92.406 141.063c-1.1 1.608-2.454 2.242-3.85 2.242zM7632.655 672.923c-44.976-13.243-84.41-38.799-114.027-73.366h123.589c2.116 0.508 3.089 3.343 0.973 5.712-13.116 14.089-24.667 44.468-10.535 67.655zM7763.944 672.923c14.089-23.186 2.708-53.565-10.535-67.697-2.539-2.369-1.1-5.204 0.889-5.712h123.505c-29.448 34.61-68.882 60.123-113.858 73.409zM7919.097 946.503h-442.822v-277.769h-278.023v-444.261h278.023v-277.896h442.822v277.896h277.853v444.261h-277.853v277.769zM7423.81 445.969c0 33.975 6.262 66.428 17.601 96.553h-0.169l0.296 0.254c-0.127-0.127-0.127-0.127-0.127-0.254l184.009-17.728c34.779-4.696 38.756-38.418 29.575-58.262l-126.17-237.235v0.762c-63.847 49.926-105.015 128.243-105.015 215.911zM7849.115 216.138l-0.381 0.508c-43.199-28.898-95.072-45.357-150.372-45.357-56.019 0-107.596 16.501-150.837 45.357l-0.381-0.508 0.127 0.762c0 0 0.127-0.127 0.254-0.254l133.617 199.706c9.774 13.878 24.667 13.032 34.102 0l133.49-199.706c0.042 0.127 0.254 0.254 0.381 0.254v-0.762zM7955.315 542.522h-0.042c11.297-30.125 17.305-62.577 17.305-96.553 0-87.625-40.83-165.984-104.888-215.953l0.127-0.762-126.17 237.235c-9.308 19.844-5.077 53.565 29.448 58.262l184.22 17.728c-0.042 0.127-0.042 0.127-0.042 0.254l0.042-0.212zM7946.98 561.858h-195.348c-27.84 0.508-40.153 17.22-40.703 30.252-0.508 15.74 1.777 20.69 14.766 37.699 14.386 18.701 4.443 54.919-27.502 55.427-31.606-0.508-41.634-36.683-27.586-55.427 13.074-16.967 15.697-21.959 14.936-37.699-0.508-13.032-12.651-29.744-40.66-30.252h-195.348c43.622 93.718 138.567 158.538 248.913 158.538 109.754 0 205.079-64.82 248.532-158.538zM7877.675 291.874c35.499 41.507 57.077 95.072 57.077 154.095 0 19.336-2.369 38.164-6.812 56.019l-139.456-12.778c-10.155-0.762-10.705-5.077-8.504-10.789l97.695-186.547zM8730.571 60.435l-0.254 0.254-0.254-0.254zM8677.937 683.204c5.077-4.104 3.85-10.789 11.889-9.562 3.639 0.508 6.135 3.343 9.562 5.712 0.635 0.508 4.781-0.254 5.839-0.762-8.674 8.928-25.598 8.928-36.683 8.928 2.75-5.077 5.881-2.2 9.393-4.316zM8867.403 772.099c-46.245-5.966-91.772-10.408-136.621-11.043h-0.762c-44.934 0.635-90.375 5.077-136.832 11.043-45.992 6.431-90.672 17.093-138.356 29.49-33.595-94.564-26.529-214.303-0.804-320.672 48.403-200.425 169.369-353.039 276.246-420.228 106.961 67.189 227.885 219.761 276.161 420.228 25.767 106.369 32.918 226.108-0.296 320.672-47.938-12.397-92.491-23.059-138.736-29.49zM8703.704 154.28c-1.439-10.281 2.919-14.513 1.735-19.463-1.735-7.954-6.897-5.712-9.731 0-4.273 8.293-6.812 12.016-8.039 24.286-1.777 19.082 7.616 28.263 12.016 32.706 4.654 4.823 9.224 7.066 9.224 7.066l1.439-32.368c0 0.042-5.12-2.073-6.643-12.228zM8747.411 121.786c0-5.585-2.242-9.774-12.27-9.774-8.801-0.381-12.397 2.835-12.82 11.635-1.1 39.307-2.962 113.688-2.962 113.688s11.212-3.596 16.416-6.812c1.565-1.227 7.32-4.823 12.397-9.689 0.931-1.735 2.116-2.116 1.735-4.696-0.635-28.644-2.242-81.829-2.496-94.353zM8779.524 196.168c-8.801-7.574-19.717-10.155-19.717-10.155l0.973 29.364c0 0 3.427 2.962 2.496 6.685-1.565 5.839-22.425 19.59-33.51 24.032-11.466 4.231-26.444 8.547-37.233 13.37-25.302 10.789-34.229 32.96-24.159 57.162 3.85 9.054 13.836 14.766 19.209 17.982 5.966 3.977 14.936 6.558 14.936 6.558l2.708-34.356c0 0-3.469-1.227-4.4-4.231-1.862-6.177 3.512-9.689 5.077-10.155 16.416-7.32 40.491-16.84 58.092-27.29 22.552-13.159 29.871-22.805 29.871-38.545-0.042-14.936-6.093-23.609-14.343-30.421zM8715.805 358.555c16.628-1.989 22.552-2.369 36.302-4.104l-1.1-68.543-15.866 8.547-15.824 7.574-3.512 56.527zM8815.785 343.831c-2.962-12.524-10.832-22.044-23.567-29.998-13.709-8.039-27.713-8.801-27.713-8.801l1.354 41.507c0 0 2.835 0.762 4.95 3.469 2.369 2.623 2.962 4.443 2.369 8.039-0.381 2.369-2.496 5.458-5.754 7.066-4.443 1.862-10.832 2.496-13.455 2.708-20.521 2.496-39.18 4.57-59.108 7.954-36.387 6.093-61.985 26.783-59.869 61.35 1.481 23.186 26.106 30.252 43.157 37.699 5.839-9.901 10.789-20.563 12.778-26.148 3.343-9.181 5.077-15.232 5.077-15.232s-7.87-1.354-7.066-7.827c0.635-5.712 6.812-8.039 10.493-8.674 25.598-3.343 59.066-7.701 77.048-13.624 11.762-4.104 23.694-11.043 30.167-19.844 9.816-14.259 12.439-25.429 9.139-39.645zM8700.615 508.293c0 0 8.758-0.762 29.448-2.242 15.866-0.889 26.529-5.585 26.529-5.585l-2.242-75.355c-16.84 3.089-27.883 5.077-43.495 6.939-5.204 27.502-11.889 36.81-22.763 57.162-2.496 4.358-0.423 6.093 0.508 7.32 1.227 2.623 12.355 5.458 12.355 5.458l-0.338 6.304zM8768.566 433.191c0 0 2.158 36.091 2.539 53.311 9.478 3.85 11.508 13.032 7.743 20.69-1.862 4.231-9.097 7.447-13.074 8.293-19.844 5.077-37.826 6.177-58.389 8.166-17.559 1.989-31.733 4.358-48.361 8.42-33.425 8.547-61.604 24.032-76.54 54.792-18.659 37.572-1.777 84.41 34.272 103.238 27.375 14.259 58.008 11.762 85.51 0.973 9.689-3.596 14.639-12.016 20.436-20.098 2.962-3.723 7.024-5.204 9.054-9.308 1.692-2.242-1.735-3.343-2.708-3.596-6.304-1.735-26.359-1.989-33.087-1.1-8.293 0.889-22.128 0.381-30.379-1.1 8.97-4.95 18.024-10.916 26.91-14.386 5.077-2.242 9.224-2.242 14.132-4.443 2.116-0.973 7.954-2.496 7.954-5.204-0.889-2.835-5.627-3.85-9.097-4.95-7.87-2.116-18.405-2.242-28.306-0.381-15.74 3.723-23.186 13.159-32.96 7.32-6.643-3.723-6.643-12.905-4.443-21.578 3.512-14.132 17.897-19.844 30.379-24.032 43.030-13.624 89.021-5.839 131.163-27.375 16.247-8.547 34.568-25.429 37.91-43.622 14.428-74.847-70.659-84.029-70.659-84.029zM8843.54 665.222c-2.242-7.827-4.146-7.827-9.224-12.397-10.832-9.774-24.921-19.971-38.672-33.341-9.097-8.547-17.855-13.243-24.032-23.567-1.439-2.242-4.95-8.674-4.95-8.674-23.736 4.823-47.557 5.077-66.131 8.928l-1.1 20.224c0 0 23.863 0.127 26.148 14.513 0.169 0.889-0.296 5.077-3.216 7.193-2.962 2.369-10.155 4.95-11.974 5.204 17.982-2.369 34.018-8.928 52.423-17.22 0.973 1.989-1.989 8.801-3.343 10.535-2.496 2.708-5.458 4.95-11.762 6.431-11.297 2.962-38.291 6.177-38.291 6.177s9.774 0.254 22.678 1.1c5.881 0.635 11.889 2.962 13.159 4.823 1.185 2.962-0.508 7.447-4.57 11.762-2.666 2.835-5.458 5.458-7.574 8.293-2.962 3.85-6.177 11.17-11.466 15.613-5.881 7.193-23.736 13.878-23.736 13.878s-1.608 12.143 1.439 18.236c2.285 4.231 11.889 4.696 15.063 3.216 13.497-7.574 28.56-15.866 46.669-18.955 3.977-2.835 3.977-3.596 5.289-9.181 2.496-12.397-1.777-30.125 0.381-38.545 1.1-2.835 3.723-2.369 6.008-1.608 17.093 9.054 28.263 25.048 45.315 32.241 8.124 3.258 30.76-7.997 25.471-24.879zM9077.137 959.492c-109.373-55.173-218.661-84.663-346.566-85.425-128.243-0.635-237.743 30.76-347.285 85.89-71.97-141.698-83.436-371.741-21.028-564 59.954-185.193 176.308-354.012 368.271-460 192.005 105.988 307.979 274.807 368.144 460 62.154 192.301 50.815 421.879-21.536 563.534zM9026.195 418.044c-53.904-158.157-137.848-298.12-295.835-396.281 0.169 0 0.296-0.127 0.423-0.254h-0.762c0.127 0.127 0.296 0.254 0.296 0.254-158.030 98.16-242.016 238.124-295.624 396.281-47.896 140.429-59.7 304.932-7.024 433.218 78.655-27.163 125.028-35.456 168.227-42.141 39.983-6.304 75.736-10.028 134.124-11.043h0.762c58.431 0.973 94.099 4.696 134.167 11.043 42.945 6.685 89.318 14.978 168.142 42.141 52.677-128.286 40.83-292.747-6.897-433.218z"/></svg></a>
+        <div><h2>Quick Links</h2><ul><li><a href="#">Find a Center</a></li><li><a href="#">Find an Agent</a></li><li><a href="#">Find a Doctor</a></li><li><a href="#">Pharmacy</a></li><li><a href="#">Helpful FAQs</a></li></ul></div>
+        <div><h2>About Florida Blue</h2><ul><li><a href="#">About Us</a></li><li><a href="#">Florida Blue Foundation</a></li><li><a href="#">Careers</a></li><li><a href="#">Newsroom</a></li><li><a href="#">Blog</a></li></ul></div>
+        <div class="legaltxt"><p>Health coverage is offered by Blue Cross and Blue Shield of Florida, Inc. DBA Florida Blue. HMO coverage is offered by Health Options, Inc. DBA Florida Blue HMO. These companies are Independent Licensees of the Blue Cross and Blue Shield Association.</p><p>Fictional demo for Devin. Members, providers, reference numbers and phone numbers are synthetic. No PHI.</p><p>&copy; 2026 Blue Cross and Blue Shield of Florida, Inc. DBA Florida Blue. All rights reserved.</p></div>
+      </div>
+      <div class="bot"><span>FBC PROVIDER DEMO</span><nav aria-label="Legal"><a href="#">For Developers</a><a href="#">Privacy Policy and Terms</a><a href="#">Nondiscrimination and Accessibility Notice</a><a href="#">Terms of Use</a></nav></div>
+    </div>
+  </footer>
+
+  <script>
+    const CTA = 'Submit for review';
+    const POS_LABEL = { '22': 'Outpatient hospital', '11': 'Physician office', '24': 'Ambulatory surgical center' };
+    const CPT_LABEL = { '72148': '72148 — MRI lumbar spine without contrast', '29881': '29881 — Knee arthroscopy with meniscectomy', '97110': '97110 — Physical therapy, therapeutic exercise' };
+    const POLICY = {
+      '72148': { id: 'MP-IMG-0142', name: 'Lumbar spine MRI', eff: '01/01/2026', units: '1 unit',
+        rows: [['Physician office', '6 weeks conservative therapy', 'auto'], ['Outpatient hospital', 'Conservative therapy and neurologic deficit note', 'nurse', '72 h']],
+        foot: 'Office-based lumbar MRI that meets conservative-therapy criteria is approved at submission. Hospital-based imaging goes to nurse review for site-of-care appropriateness.' },
+      '29881': { id: 'MP-SUR-0318', name: 'Knee arthroscopy', eff: '01/01/2026', units: '1 procedure',
+        rows: [['Ambulatory surgical center', 'MRI report and ortho consult note', 'nurse', '48 h']],
+        foot: 'Arthroscopic meniscectomy requires imaging confirmation of a meniscal tear and a documented orthopedic evaluation.' },
+      '97110': { id: 'MP-THR-0071', name: 'Outpatient therapy', eff: '01/01/2026', units: '12 visits',
+        rows: [['Physician office', 'Plan of care signed by the ordering provider', 'auto']],
+        foot: 'Therapeutic exercise with a current plan of care is approved at submission for up to 12 visits per episode.' },
+    };
+    const MEMBERS = {
+      'SHP-448210': { name: 'Jordan Rivera', dob: '03/14/1981', plan: 'BlueOptions Gold PPO', net: 'NetworkBlue, group GRP-7781', pcp: 'Amara Okafor, MD', ref: 'No referral required', met: 1860, ded: 3000, elig: 'Member active, imaging benefit covered in network. No referral required under BlueOptions Gold PPO.' },
+      'SHP-448377': { name: 'Priya Natarajan', dob: '07/02/1989', plan: 'BlueCare Silver HMO', net: 'BlueCare network, group GRP-7781', pcp: 'Ben Castillo, MD', ref: 'Referral REF-20931 on file', met: 420, ded: 4500, elig: 'Member active, imaging benefit covered in network. PCP referral REF-20931 on file for BlueCare Silver HMO.' },
+    };
+    const form = document.getElementById('demoForm');
+    const btn = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const pos = document.getElementById('placeOfService');
+    const cptSel = document.getElementById('cpt');
+    const memberSel = document.getElementById('memberId');
+    const dx = document.getElementById('dx');
+    const $ = (id) => document.getElementById(id);
+    const ICON_OK = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M4.5 8l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="1.8"/></svg>';
+    const ICON_WAIT = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M8 4v4.5l3 1.5" fill="none" stroke="#fff" stroke-width="1.8"/></svg>';
+    const ICON_BAD = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M8 4.5v4M8 11v.5" stroke="#fff" stroke-width="1.8"/></svg>';
+
+    const HC_ORG_ID = 'org-ad5cb75ed086403697e4d37f8411936e';
+    function devinFields() {
+      const sameOrg = localStorage.getItem('devinOrgId') === HC_ORG_ID;
+      return { devinUserId: (sameOrg && localStorage.getItem('devinUserId')) || '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
+    }
+    const nameIn = document.getElementById('presenterName');
+    const emailIn = document.getElementById('presenterEmail');
+    const idStatus = document.getElementById('identityStatus');
+    let idToken = 0;
+    let identityReady = Promise.resolve();
+    function setIdStatus(text, ok) { idStatus.textContent = text; idStatus.className = 'ra-status' + (ok ? ' ok' : ''); }
+    function showPresenter() {
+      const n = localStorage.getItem('devinName') || 'Dana Whitfield';
+      document.getElementById('userName').textContent = n;
+      document.getElementById('userAv').textContent = n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('') || 'DW';
+      document.getElementById('rvBy').textContent = n + ', Northside Orthopedics';
+    }
+    function saveIdentity() {
+      const name = nameIn.value.trim();
+      const email = emailIn.value.trim();
+      localStorage.setItem('devinName', name);
+      localStorage.setItem('devinEmail', email);
+      localStorage.setItem('devinOrgId', HC_ORG_ID);
+      localStorage.removeItem('devinUserId');
+      showPresenter();
+      const token = ++idToken;
+      if (!email) { setIdStatus('Enter your Devin email so the fix session runs as you.'); identityReady = Promise.resolve(); return identityReady; }
+      setIdStatus('Looking up ' + email + ' in HC-GTM-AD\u2026');
+      identityReady = fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId: HC_ORG_ID, email }) })
+        .then((r) => r.json().then((p) => ({ ok: r.ok, p })))
+        .then(({ ok, p }) => {
+          if (token !== idToken) return;
+          if (ok && p.userId) { localStorage.setItem('devinUserId', p.userId); setIdStatus('Devin session will run as ' + email + '.', true); }
+          else setIdStatus((p && p.error) || 'Email not found in HC-GTM-AD. The session will use the demo service user.');
+        })
+        .catch(() => { if (token === idToken) setIdStatus('Could not look up this email right now. The session will use the demo service user.'); });
+      return identityReady;
+    }
+    nameIn.value = localStorage.getItem('devinName') || '';
+    emailIn.value = localStorage.getItem('devinEmail') || '';
+    const cachedUserInOrg = localStorage.getItem('devinOrgId') === HC_ORG_ID && localStorage.getItem('devinUserId');
+    showPresenter();
+    if (emailIn.value && cachedUserInOrg) setIdStatus('Devin session will run as ' + emailIn.value + '.', true);
+    else if (emailIn.value) saveIdentity();
+    nameIn.addEventListener('change', saveIdentity);
+    emailIn.addEventListener('change', saveIdentity);
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function buildPayload() {
+      return { memberId: document.getElementById('memberId').value, cpt: document.getElementById('cpt').value, placeOfService: pos.value,
+        diagnosis: document.getElementById('dx').value, attachedDocs: Array.from(document.querySelectorAll('input[name=doc]:checked')).map((c) => c.value) };
+    }
+    function docCount() { return document.querySelectorAll('input[name=doc]:checked').length; }
+
+    function syncPolicy() {
+      const p = POLICY[cptSel.value];
+      const site = POS_LABEL[pos.value] || pos.value;
+      $('polMeta').textContent = p.id + ', effective ' + p.eff;
+      $('polText').textContent = p.id + ', ' + p.name;
+      $('rvPolicy').textContent = p.id + ', ' + p.name;
+      $('polFoot').textContent = p.foot;
+      $('unitsText').textContent = p.units;
+      $('sosText').textContent = site;
+      const tb = document.querySelector('#polTable tbody');
+      tb.innerHTML = p.rows.map((r) => '<tr' + (r[0] === site ? ' class="hi"' : '') + '><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + (r[2] === 'auto' ? '<span class="tag auto">Approved at submission</span>' : '<span class="tag nurse">Nurse review, ' + esc(r[3]) + '</span>') + '</td></tr>').join('');
+      const need = p.rows.flatMap((r) => r[1]);
+      $('needMri').hidden = cptSel.value !== '29881';
+      $('needPoc').hidden = cptSel.value !== '97110';
+      $('posHelp').textContent = pos.value === '22' ? 'Northside Medical Center bills imaging as place of service 22. Site of care affects which clinical policy applies.'
+        : pos.value === '11' ? 'Office-based services that meet policy criteria are decided at submission.' : 'Surgical requests at a freestanding facility are reviewed by a Florida Blue nurse reviewer.';
+    }
+    function syncReview() {
+      const m = MEMBERS[memberSel.value];
+      $('rvService').textContent = CPT_LABEL[cptSel.value] + ' at ' + (POS_LABEL[pos.value] || pos.value).toLowerCase();
+      $('rvMember').textContent = (m ? m.name : '') + ', ' + memberSel.value;
+      $('rvDx').textContent = dx.value;
+      const n = docCount();
+      $('rvDocs').textContent = n === 0 ? 'No documents attached' : n + (n === 1 ? ' document attached' : ' documents attached');
+      document.querySelector('.stepper li:nth-child(4) small').textContent = n + (n === 1 ? ' document' : ' documents');
+    }
+    function syncMember() {
+      const m = MEMBERS[memberSel.value]; if (!m) return;
+      $('eligName').innerHTML = esc(m.name) + '<small>ID <span class="num">' + esc(memberSel.value) + '</span> &nbsp; DOB ' + esc(m.dob) + '</small>';
+      $('eligPlan').innerHTML = esc(m.plan) + '<small>' + esc(m.net) + '</small>';
+      $('eligPcp').innerHTML = esc(m.pcp) + '<small id="eligRef">' + esc(m.ref) + '</small>';
+      $('eligDed').firstChild.textContent = '$' + m.met.toLocaleString() + ' of $' + m.ded.toLocaleString();
+      $('eligBar').style.width = Math.round((m.met / m.ded) * 100) + '%';
+      $('step1Text').textContent = m.elig;
+    }
+    function setPath(state) {
+      step2.className = 'st' + (state.s2 ? ' ' + state.s2 : '');
+      step3.className = 'st' + (state.s3 ? ' ' + state.s3 : '');
+      $('pathMeta').textContent = state.meta;
+      if (state.t2) $('step2Text').textContent = state.t2;
+      if (state.t3) $('step3Text').textContent = state.t3;
+    }
+    function clearResult() { result.className = 'result-box'; result.innerHTML = ''; }
+    function timeNow() { return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+    function siteLabel(s) { return String(s || '').replace(/[-_]/g, ' ').replace(/^\w/, (c) => c.toUpperCase()); }
+
+    function renderSuccess(d) {
+      const status = d.status || '';
+      const cls = { approved: 'success', pended: 'pended', 'in-clinical-review': 'review' }[status] || 'success';
+      const title = { approved: 'Approved', pended: 'Pended, documentation required', 'in-clinical-review': 'In clinical review' }[status] || status;
+      const icon = cls === 'success' ? ICON_OK : ICON_WAIT;
+      const refLabel = cls === 'success' ? 'Authorization number' : 'Reference number';
+      const kv = '<dl class="kv"><dt>Service</dt><dd>' + esc(d.procedure) + '</dd><dt>Site of care</dt><dd>' + esc(siteLabel(d.siteOfService)) + '</dd>'
+        + (cls === 'success' ? '<dt>Valid</dt><dd>Nov 6, 2026 – Feb 4, 2027</dd>' : '') + '</dl>';
+      let body = '<p>' + esc(d.reason) + '.</p>';
+      if (cls === 'success') body += '<p>Recorded on the member file and sent to your Authorizations inbox. Schedule the service and include the authorization number on the claim.</p>';
+      if (cls === 'review') body += '<p>A Florida Blue nurse reviewer has the request. You will be notified here and by fax when a determination is made.</p>';
+      if (cls === 'pended' && d.missing) body += '<p>Upload the following within 14 days to resume review:</p><ul class="missing">' + d.missing.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+      result.className = 'result-box ' + cls;
+      result.innerHTML = '<div class="stamp">' + icon + esc(title) + '</div><div class="rbody">' + body + '<dl class="refno"><dt>' + refLabel + '</dt><dd class="num">' + esc(d.requestId) + '</dd></dl>' + kv + '</div>'
+        + '<div class="ractions"><button type="button" class="btn btn-2">Print determination</button>' + (cls === 'pended' ? '<button type="button" class="btn btn-2">Upload documents</button>' : '') + '</div>';
+      setPath({ s2: 'done', s3: cls === 'success' ? 'done' : cls, meta: 'Decided ' + timeNow(),
+        t2: 'Criteria matched for ' + d.procedure + '.',
+        t3: cls === 'success' ? 'Approved at submission and recorded on the member file.' : cls === 'review' ? 'Routed to nurse review within the urgency window.' : 'Review paused until the missing documentation is received.' });
+    }
+    function renderFailure(data) {
+      result.className = 'result-box error';
+      result.innerHTML = '<div class="stamp">' + ICON_BAD + 'We couldn\u2019t process this authorization request</div><div class="rbody">'
+        + '<p>The request was not submitted and no determination was recorded. Our engineering team has been notified automatically and is looking into it.</p>'
+        + '<p>Your draft is saved. Provider Services can take the request by phone if the member\u2019s service is scheduled within 72 hours.</p>'
+        + '<dl class="refno"><dt>Reference</dt><dd class="num sm">' + esc(data.requestId || data.code) + '</dd></dl>'
+        + '<dl class="kv"><dt>Error code</dt><dd class="num">' + esc(data.code || 'PRIOR_AUTH_FAILED') + '</dd><dt>Time</dt><dd>' + esc(timeNow()) + '</dd></dl></div>'
+        + '<div class="ractions"><button type="button" class="btn btn-2">Call Provider Services</button></div>';
+      setPath({ s2: 'failed', s3: '', meta: 'Failed at clinical criteria', t2: 'The clinical-criteria lookup failed before a determination could be made.', t3: 'No determination issued.' });
+    }
+    function revealResult() {
+      if (window.matchMedia('(max-width:1060px)').matches) result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    document.querySelectorAll('input[name=posPick]').forEach((r) => r.addEventListener('change', () => { pos.value = r.value; syncPolicy(); syncReview(); }));
+    cptSel.addEventListener('change', () => { syncPolicy(); syncReview(); });
+    memberSel.addEventListener('change', () => { syncMember(); syncReview(); });
+    dx.addEventListener('input', syncReview);
+    document.querySelectorAll('input[name=doc]').forEach((c) => c.addEventListener('change', syncReview));
+    document.getElementById('menuBtn').addEventListener('click', (e) => { const open = document.getElementById('rail').classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', String(open)); });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      form.reset(); pos.value = '22'; applyDraft(loadDraft()); clearResult(); syncMember(); syncPolicy(); syncReview(); syncAttest();
+      setPath({ meta: 'Not yet submitted', t2: "The procedure and site of care are matched against Florida Blue's medical policy.", t3: 'Issued instantly when criteria are met, otherwise within the urgency window after nurse review.' });
+    });
+    syncMember(); syncPolicy(); syncReview();
+
+    const attest = document.getElementById('attest');
+    function syncAttest() { btn.disabled = !attest.checked; btn.title = attest.checked ? '' : 'Check the attestation to submit'; }
+    attest.addEventListener('change', syncAttest);
+    const DRAFT_KEY = 'd571c3eb-draft';
+    const DRAFT_TTL_MS = 60 * 60 * 1000;
+    function snapshot() {
+      return { at: Date.now(), memberId: memberSel.value, cpt: cptSel.value, pos: pos.value, dx: dx.value, urgency: (document.querySelector('input[name=urgency]:checked') || {}).value, summary: document.getElementById('summary').value, docs: Array.from(document.querySelectorAll('input[name=doc]:checked')).map((c) => c.value), attest: attest.checked };
+    }
+    function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY)); return d && Date.now() - d.at < DRAFT_TTL_MS ? d : null; } catch (_e) { return null; } }
+    function applyDraft(d) {
+      if (!d) return false;
+      memberSel.value = d.memberId; cptSel.value = d.cpt; pos.value = d.pos; dx.value = d.dx;
+      const pr = document.querySelector('input[name=posPick][value="' + d.pos + '"]'); if (pr) pr.checked = true;
+      const ur = document.querySelector('input[name=urgency][value="' + d.urgency + '"]'); if (ur) ur.checked = true;
+      document.querySelectorAll('input[name=doc]').forEach((c) => { c.checked = d.docs.indexOf(c.value) !== -1; });
+      if (typeof d.summary === 'string') document.getElementById('summary').value = d.summary;
+      attest.checked = !!d.attest;
+      return true;
+    }
+    document.getElementById('saveLaterBtn').addEventListener('click', (e) => {
+      const t = e.currentTarget; const old = t.textContent;
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(snapshot())); } catch (_e) { t.textContent = 'Draft could not be saved in this browser'; setTimeout(() => { t.textContent = old; }, 2600); return; }
+      t.textContent = 'Draft AR-26-118834 saved'; t.disabled = true; setTimeout(() => { t.textContent = old; t.disabled = false; }, 2200);
+    });
+    if (applyDraft(loadDraft())) { syncMember(); syncPolicy(); syncReview(); }
+    syncAttest();
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!attest.checked) { attest.focus(); return; }
+      btn.disabled = true; btn.textContent = 'Checking clinical criteria\u2026';
+      clearResult();
+      setPath({ s2: 'active', meta: 'Submitted ' + timeNow() + ', checking criteria', t2: 'Looking up criteria for ' + cptSel.value + ' at ' + (POS_LABEL[pos.value] || pos.value).toLowerCase() + '.' });
+      try {
+        const res = await fetch("/api/d571c3eb/prior-auth", {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
+        });
+        const data = await res.json();
+        if (!res.ok) { renderFailure(data); } else { renderSuccess(data); try { localStorage.removeItem(DRAFT_KEY); } catch (_e) { /* draft storage unavailable */ } }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="stamp">' + ICON_BAD + 'We couldn\u2019t reach Florida Blue</div><div class="rbody"><p>Check your connection and try again. Your draft is saved.</p></div>';
+        setPath({ s2: 'failed', meta: 'Connection problem' });
+      } finally { btn.disabled = false; btn.textContent = CTA; revealResult(); }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

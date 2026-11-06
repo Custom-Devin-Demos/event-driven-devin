@@ -194,6 +194,29 @@ Customer-branded copy of demo 1 for Highmark. **Unlisted:** not on `/healthcare-
 
 ---
 
+## 10. Florida Blue — payer prior authorization (`/d571c3eb`)
+
+Customer-branded copy of demo 1 for Florida Blue. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/florida-blue-prior-auth` (also `/floridablue-payer`, `/d571c3eb`). The page copies the floridablue.com provider site: the cream audience bar with *For Providers* selected, the blue Florida Blue logo (from the site's logo font, inlined as SVG), Sarabun body text with Libre Baskerville headings, the sky-blue hero with the providers photo (loads from the Florida Blue CDN and falls back to a stock photo), black square buttons and the charcoal footer. The scenario is the same as demo 1: providers, members (`SHP-…` IDs), request numbers and phone numbers are fictional and all data is synthetic.
+
+**Reset:** reload the page. It keeps no state, so the failing outpatient-hospital MRI comes back. Keep Devin's fix PR unmerged if you want to run the demo again.
+
+**Trigger:** open `/florida-blue-prior-auth` → fill in **Run as** (your name and Devin email; the email is looked up in HC-GTM-AD and the name shows in the header and on the review) → leave the defaults (member Jordan Rivera SHP-448210 on BlueOptions Gold PPO, CPT 72148 MRI lumbar spine, place of service *22 Outpatient hospital*, both documents attached) → **Submit for review**.
+**What you see:** “We couldn’t process this authorization request”, with a reference and error code `PRIOR_AUTH_FAILED`, and a note that engineering was notified automatically. The raw `TypeError … 'requiredDocs'` shows up only in Sentry and the Slack card.
+**Contrast:** choose *11 Physician office*. The request is approved right away with a PA number.
+
+**What Devin does next:** the alert points to `app/services/verticals/d571c3eb.js — submitPriorAuth` with CPT 72148, POS 22 and customer `d571c3eb`, and the session runs as the presenter. Devin sees `PLACE_OF_SERVICE[22]` is `outpatient-hospital` while `CLINICAL_CRITERIA` is keyed `72148:outpatient_hospital`, so the lookup misses. It makes the keys match, adds a test and opens a PR.
+
+**Point at on screen:** the failed request and the “Failed at clinical criteria” step → Slack card in `#automated-alerts` → Devin session in HC-GTM-AD, under the presenter's name → PR.
+
+**Talk track (2 min):**
+> “This is the Florida Blue provider site. An orthopedic office is asking for approval for a lumbar MRI at a hospital outpatient department for a BlueOptions member. They fill in the form, attach the notes and submit, and the portal fails. The office has to call Provider Services, and the patient's scan gets pushed back.
+> Nobody opened a ticket. The failure went to Slack on its own and Devin is already looking at it. What it found: the place-of-service code is spelled one way in one table and another way in the rules table, so hospital outpatient MRIs never find their rules. The same MRI in a doctor's office works, which is why testing missed it.
+> The fix is in a pull request waiting for an engineer's review. With the CMS prior authorization rule pushing payers toward fast electronic answers, that's the difference between a backlog of phone calls and a fix before the next office hits submit.”
+
+**Host environment:** set `DEVIN_SERVICE_KEY_D571C3EB` to an HC-GTM-AD service key (see `.env.example`). Nothing else is demo-specific: alerts go to `#automated-alerts` through the customer config, and the org is fixed to HC-GTM-AD on the page.
+
+---
+
 ## What HC-GTM-AD still needs
 
 The loop has two halves, and each needs its own settings:
