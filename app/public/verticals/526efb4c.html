@@ -243,12 +243,24 @@
     function render(html) { view.innerHTML = html; window.scrollTo(0, 0); }
     function alertHtml() { return S.alert ? '<div class="alert" role="alert">' + esc(S.alert) + '</div>' : ''; }
 
+    function fieldById(id) {
+      for (var i = 0; i < S.form.steps.length; i++) {
+        var f = S.form.steps[i].fields.find(function (x) { return x.id === id; });
+        if (f) return f;
+      }
+      return null;
+    }
+
     function isVisible(field) {
       var w = field.showWhen;
       if (!w) return true;
+      var parent = fieldById(w.field);
+      if (parent && parent !== field && !isVisible(parent)) return false;
       var v = S.values[w.field];
       if ('equals' in w) return v === w.equals;
       if ('notEquals' in w) return v !== w.notEquals;
+      if ('in' in w) return w.in.indexOf(v) > -1;
+      if ('notIn' in w) return w.notIn.indexOf(v) === -1;
       return true;
     }
 
@@ -267,6 +279,7 @@
       var i = S.form.intro;
       render(
         '<p class="para">' + esc(i.regulatoryNotice) + '</p>' +
+        (i.privacyNotice ? '<p class="para" data-testid="kyc-privacy-notice">' + esc(i.privacyNotice) + '</p>' : '') +
         '<p class="para">' + esc(i.missingDetails) + '</p>' +
         '<p class="lead-blue">' + esc(i.loginPrompt) + '</p>' +
         '<div class="choice-row">' +

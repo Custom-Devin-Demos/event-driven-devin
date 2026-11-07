@@ -82,6 +82,30 @@ const US_STATES = [
 
 const ACCEPTED_DOCUMENT_TYPES = ['pdf', 'jpg', 'jpeg', 'png'];
 
+const FR_POSTAL_PREFIXES = {
+  FR: /^(?:0[1-9]|[1-8]\d|9[0-5])\d{3}$/,
+  MC: /^980\d{2}$/,
+  GP: /^971\d{2}$/,
+  MQ: /^972\d{2}$/,
+  GF: /^973\d{2}$/,
+  RE: /^974\d{2}$/,
+  PM: /^975\d{2}$/,
+  YT: /^976\d{2}$/,
+  BL: /^977\d{2}$/,
+  MF: /^978\d{2}$/,
+  WF: /^986\d{2}$/,
+  PF: /^987\d{2}$/,
+  NC: /^988\d{2}$/,
+};
+const FR_POSTAL_COUNTRIES = Object.keys(FR_POSTAL_PREFIXES);
+
+const EU_EEA = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT',
+  'LI', 'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];
+
+const COUNTRY_BY_NAME = new Map(COUNTRIES.flatMap(([code, name]) => [[code.toLowerCase(), code], [name.toLowerCase(), code]]));
+
+const PEP_STATUSES = ['pep', 'former-pep', 'family', 'associate'];
+
 const MARKETS = {
   US: {
     code: 'US',
@@ -195,6 +219,199 @@ const MARKETS = {
       ],
     },
   },
+  FR: {
+    code: 'FR',
+    title: 'American Express\u00ae France Corporate Program: Know Your Customer (KYC)',
+    intro: {
+      regulatoryNotice: 'Under Regulation (EU) 2024/1624 on the prevention of the use of the financial system for money laundering or terrorist financing, and the French Monetary and Financial Code (articles L.561-5 to L.561-6), we are required to identify you, verify your identity and keep this information up to date.',
+      privacyNotice: 'Your information is processed only to meet these legal obligations and is kept for 5 years after the end of your card membership (Regulation (EU) 2024/1624, article 77). We never ask for your French social security number (NIR). You can exercise your data-protection rights under the GDPR through our Privacy Statement.',
+      missingDetails: 'We\u2019re missing important details on your account.',
+      loginPrompt: 'Please provide the requested information by logging in to the portal using one of the below options:',
+    },
+    steps: [
+      {
+        id: 'legal-name',
+        title: 'Full Legal Name',
+        subtitle: 'all names and surnames as they appear on your identity document',
+        fields: [
+          { id: 'firstName', label: 'First Name', type: 'text', required: true, rule: 'personName' },
+          { id: 'middleName', label: 'Other Given Names (if applicable)', type: 'text', required: false, rule: 'personName' },
+          { id: 'lastName', label: 'Birth Surname (nom de naissance)', type: 'text', required: true, rule: 'personName' },
+          { id: 'usageName', label: 'Surname of Use (nom d\u2019usage), if different', type: 'text', required: false, rule: 'personName' },
+          { id: 'dateOfBirth', label: 'Date of Birth', type: 'date', required: true, rule: 'adult', section: 'Date and place of birth' },
+          { id: 'birthCity', label: 'Place of Birth: Town / City', type: 'text', required: true, rule: 'placeName' },
+          { id: 'birthCountry', label: 'Place of Birth: Country', type: 'select', required: true, options: COUNTRY_OPTIONS, defaultValue: 'FR' },
+        ],
+      },
+      {
+        id: 'nationality',
+        title: 'Nationality',
+        subtitle: 'tell us every nationality you hold, or your statelessness, refugee or subsidiary protection status',
+        fields: [
+          {
+            id: 'nationalityStatus', label: 'Nationality status', type: 'radio', required: true,
+            options: [
+              { value: 'national', label: 'I am a national of one or more countries' },
+              { value: 'stateless', label: 'I am stateless' },
+              { value: 'refugee', label: 'I have refugee status' },
+              { value: 'subsidiary-protection', label: 'I have subsidiary protection status' },
+            ],
+          },
+          {
+            id: 'nationality', label: 'Nationality', type: 'select', required: true, options: COUNTRY_OPTIONS,
+            showWhen: { field: 'nationalityStatus', equals: 'national' },
+          },
+          {
+            id: 'hasOtherNationality', label: 'Do you hold any other nationality?', type: 'radio', required: true,
+            options: [{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }],
+            showWhen: { field: 'nationalityStatus', equals: 'national' },
+          },
+          {
+            id: 'secondNationality', label: 'Second Nationality', type: 'select', required: true, options: COUNTRY_OPTIONS,
+            rule: { name: 'distinctNationality', from: ['nationality'] },
+            showWhen: { field: 'hasOtherNationality', equals: 'yes' },
+          },
+          {
+            id: 'thirdNationality', label: 'Third Nationality (if applicable)', type: 'select', required: false, options: COUNTRY_OPTIONS,
+            rule: { name: 'distinctNationality', from: ['nationality', 'secondNationality'] },
+            showWhen: { field: 'hasOtherNationality', equals: 'yes' },
+          },
+          {
+            id: 'furtherNationalities', label: 'Any Further Nationalities (country names or codes, separated by commas)', type: 'text',
+            required: false, rule: { name: 'nationalityList', from: ['nationality', 'secondNationality', 'thirdNationality'] },
+            showWhen: { field: 'hasOtherNationality', equals: 'yes' },
+          },
+          {
+            id: 'protectionCountry', label: 'Country That Granted Your Status', type: 'select', required: true, options: COUNTRY_OPTIONS,
+            showWhen: { field: 'nationalityStatus', in: ['refugee', 'subsidiary-protection'] },
+          },
+        ],
+      },
+      {
+        id: 'residential-address',
+        title: 'Usual Place of Residence',
+        subtitle: 'Please note that you cannot use a P.O. Box (boîte postale), CS or TSA number, CEDEX address, poste restante or a domiciliation company as your address',
+        fields: [
+          { id: 'addressLine1', label: 'Address Line 1', type: 'text', required: true, rule: 'noPoBoxFr' },
+          { id: 'addressLine2', label: 'Address Line 2 (If applicable)', type: 'text', required: false, rule: 'noPoBoxFr' },
+          { id: 'city', label: 'Town / City', type: 'text', required: true, rule: 'placeName' },
+          { id: 'country', label: 'Country', type: 'select', required: true, options: COUNTRY_OPTIONS, defaultValue: 'FR' },
+          {
+            id: 'state', label: 'State', type: 'select', required: true, options: US_STATES,
+            showWhen: { field: 'country', equals: 'US' },
+          },
+          {
+            id: 'region', label: 'State / Province / Region', type: 'text', required: true,
+            showWhen: { field: 'country', notIn: ['US', ...FR_POSTAL_COUNTRIES] },
+          },
+          { id: 'postCode', label: 'Post code (code postal)', type: 'text', required: true, rule: 'postalCodeFr' },
+        ],
+      },
+      {
+        id: 'identity-document',
+        title: 'Identity Document',
+        paragraphs: [
+          'Please provide a valid identity document. We verify your identity from this document before your information is accepted.',
+        ],
+        fields: [
+          {
+            id: 'idDocumentType', label: 'Identity Document Type', type: 'select', required: true,
+            options: [
+              { value: 'fr-cni', label: 'French national identity card (carte nationale d\u2019identité)' },
+              { value: 'fr-passport', label: 'French passport' },
+              { value: 'fr-residence-permit', label: 'French residence permit (titre de séjour)' },
+              { value: 'eu-eea-id', label: 'EU / EEA national identity card' },
+              { value: 'foreign-passport', label: 'Foreign passport' },
+            ],
+          },
+          { id: 'idDocumentNumber', label: 'Document Number', type: 'text', required: true, rule: 'frIdDocumentNumber' },
+          {
+            id: 'idIssuingCountry', label: 'Country Of Issuance', type: 'select', required: true, options: COUNTRY_OPTIONS,
+            rule: 'idIssuingCountry',
+            showWhen: { field: 'idDocumentType', in: ['eu-eea-id', 'foreign-passport'] },
+          },
+          { id: 'idIssueDate', label: 'Issuance Date', type: 'date', required: true, rule: 'pastDate' },
+          { id: 'idExpiryDate', label: 'Expiration Date', type: 'date', required: true, rule: { name: 'notExpired', after: 'idIssueDate' } },
+          {
+            id: 'idDocument', label: 'Upload document', type: 'file', required: true, rule: 'documentUpload',
+            accept: ACCEPTED_DOCUMENT_TYPES,
+            note: 'Upload both sides of your identity card, or the photo page of your passport. Only the details requested in this form will be used. For information about how we protect your privacy, please read our Privacy Statement.',
+          },
+          {
+            id: 'taxIdNumber', label: 'French Tax Identification Number (numéro fiscal), if available', type: 'text', required: false,
+            rule: 'frTaxId', sensitive: true, section: 'Tax identification',
+          },
+        ],
+      },
+      {
+        id: 'occupation',
+        title: 'Occupation',
+        subtitle: 'your occupation and the employer that holds the Corporate Card programme',
+        fields: [
+          {
+            id: 'occupation', label: 'Occupation', type: 'select', required: true,
+            options: [
+              { value: 'employee', label: 'Employee' },
+              { value: 'manager', label: 'Manager or executive (cadre)' },
+              { value: 'corporate-officer', label: 'Corporate officer or director (mandataire social)' },
+              { value: 'public-sector', label: 'Public sector employee' },
+              { value: 'self-employed', label: 'Self-employed / independent professional' },
+              { value: 'other', label: 'Other' },
+            ],
+          },
+          { id: 'jobTitle', label: 'Job Title', type: 'text', required: true, rule: 'jobTitle' },
+          { id: 'employerSiren', label: 'Employer SIREN number', type: 'text', required: true, rule: 'siren' },
+        ],
+      },
+      {
+        id: 'pep',
+        title: 'Politically Exposed Person Declaration',
+        paragraphs: [
+          'A politically exposed person (PEP) is someone who is or has been entrusted with a prominent public function, for example a head of state, minister, member of parliament, senior judge, ambassador, senior military officer or member of the management body of a state-owned company.',
+        ],
+        fields: [
+          {
+            id: 'pepStatus', label: 'Which of the following applies to you?', type: 'radio', required: true,
+            options: [
+              { value: 'no', label: 'None of the below applies to me' },
+              { value: 'pep', label: 'I currently hold a prominent public function' },
+              { value: 'former-pep', label: 'I held a prominent public function in the past' },
+              { value: 'family', label: 'I am a family member of a person who holds or held a prominent public function' },
+              { value: 'associate', label: 'I am a known close associate of a person who holds or held a prominent public function' },
+            ],
+          },
+          {
+            id: 'pepRelatedName', label: 'Full Name of the Politically Exposed Person', type: 'text', required: true, rule: 'personName',
+            showWhen: { field: 'pepStatus', in: ['family', 'associate'] },
+          },
+          {
+            id: 'pepFunction', label: 'Prominent Public Function', type: 'text', required: true, rule: 'jobTitle',
+            showWhen: { field: 'pepStatus', in: PEP_STATUSES },
+          },
+          {
+            id: 'pepCountry', label: 'Country of the Function', type: 'select', required: true, options: COUNTRY_OPTIONS,
+            showWhen: { field: 'pepStatus', in: PEP_STATUSES },
+          },
+          {
+            id: 'pepEndDate', label: 'Date the Function Ended', type: 'date', required: true, rule: 'endedDate',
+            showWhen: { field: 'pepStatus', equals: 'former-pep' },
+          },
+        ],
+      },
+    ],
+    signature: {
+      title: 'Sign your KYC Form',
+      instructions: 'Review your answers below, then click Sign Here to add your signature.',
+      methods: ['draw', 'choose'],
+    },
+    thankYou: {
+      heading: 'Thank you for helping to keep your account up to date and secure.',
+      lines: [
+        'Your KYC information has been submitted successfully.',
+        'If we require any additional information, we\u2019ll reach out to you.',
+      ],
+    },
+  },
 };
 
 const CARDMEMBER = {
@@ -223,6 +440,13 @@ const ITIN = /^9\d{2}-?(?:5\d|6[0-5]|7\d|8[0-8]|9[0-2]|9[4-9])-?\d{4}$/;
 const US_ZIP = /^\d{5}$/;
 const POST_CODE = /^[A-Za-z0-9][A-Za-z0-9 -]{1,9}$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const FR_NON_RESIDENTIAL = /(?:^|[\s,])(?:b\.?\s?p\.?|cs|tsa)\s*\d+|\bbo[iî]te\s+postale\b|\bcedex\b|\bposte\s+restante\b/i;
+const FR_ID_FORMATS = {
+  'fr-cni': [/^[A-Z0-9]{9}$/, /^[A-Z0-9]{12}$/],
+  'fr-passport': [/^\d{2}[A-Z]{2}\d{5}$/],
+  'fr-residence-permit': [/^[A-Z0-9]{9,10}$/],
+};
+const FR_TAX_ID = /^[0-3]\d{12}$/;
 
 function getMarket(code) {
   const key = typeof code === 'string' ? code.trim().toUpperCase() : 'US';
@@ -329,12 +553,36 @@ function selectCard(body = {}) {
   return { status: 200, ...sessionView(body.sessionToken, s) };
 }
 
-function isVisible(field, values) {
+/**
+ * `fieldsById` (optional) hides a field whose controlling field is itself hidden.
+ */
+function isVisible(field, values, fieldsById) {
   if (!field.showWhen) return true;
-  const actual = values[field.showWhen.field];
-  if ('equals' in field.showWhen) return actual === field.showWhen.equals;
-  if ('notEquals' in field.showWhen) return actual !== field.showWhen.notEquals;
+  const w = field.showWhen;
+  const parent = fieldsById && fieldsById[w.field];
+  if (parent && parent !== field && !isVisible(parent, values, fieldsById)) return false;
+  const actual = values[w.field];
+  if ('equals' in w) return actual === w.equals;
+  if ('notEquals' in w) return actual !== w.notEquals;
+  if ('in' in w) return w.in.includes(actual);
+  if ('notIn' in w) return !w.notIn.includes(actual);
   return true;
+}
+
+function fieldIndex(market) {
+  const out = {};
+  for (const step of market.steps) for (const field of step.fields) out[field.id] = field;
+  return out;
+}
+
+function luhn(digits) {
+  let sum = 0;
+  for (let i = 0; i < digits.length; i += 1) {
+    let d = Number(digits[digits.length - 1 - i]);
+    if (i % 2) { d *= 2; if (d > 9) d -= 9; }
+    sum += d;
+  }
+  return sum % 10 === 0;
 }
 
 function parseDate(value) {
@@ -389,6 +637,52 @@ const RULES = {
     const ext = v.includes('.') ? v.split('.').pop().toLowerCase() : '';
     return ACCEPTED_DOCUMENT_TYPES.includes(ext) ? null : 'Upload a PDF, JPG or PNG file';
   },
+  placeName: (v) => (/^[\p{L}][\p{L}' .()-]{0,79}$/u.test(v) ? null : 'Use letters, spaces, hyphens and apostrophes only'),
+  jobTitle: (v) => (/^[\p{L}\p{N}][\p{L}\p{N}' .,&/()-]{1,79}$/u.test(v) ? null : 'Enter a valid description (letters, numbers and basic punctuation)'),
+  distinctNationality: (v, values, _today, rule) => (
+    rule.from.some((id) => values[id] === v) ? 'Choose a nationality you have not already entered' : null
+  ),
+  nationalityList: (v, values, _today, rule) => {
+    const seen = new Set(rule.from.map((id) => values[id]).filter(Boolean));
+    for (const entry of v.split(',').map((s) => s.trim())) {
+      if (!entry) return 'Separate each country with a single comma';
+      const code = COUNTRY_BY_NAME.get(entry.toLowerCase());
+      if (!code) return `\u201c${entry}\u201d is not a recognised country`;
+      if (seen.has(code)) return 'Choose a nationality you have not already entered';
+      seen.add(code);
+    }
+    return null;
+  },
+  noPoBoxFr: (v) => (PO_BOX.test(v) || FR_NON_RESIDENTIAL.test(v)
+    ? 'P.O. Boxes (BP), CS / TSA numbers, CEDEX, poste restante and private mailboxes cannot be used as a residential address'
+    : null),
+  postalCodeFr: (v, values) => {
+    if (values.country === 'US') return US_ZIP.test(v) ? null : 'Enter a 5-digit Zip code';
+    const fr = FR_POSTAL_PREFIXES[values.country];
+    if (fr) return fr.test(v) ? null : 'Enter a valid 5-digit French post code for the selected country';
+    return POST_CODE.test(v) ? null : 'Enter a valid post code';
+  },
+  frIdDocumentNumber: (v, values) => {
+    const formats = FR_ID_FORMATS[values.idDocumentType];
+    if (!formats) return RULES.documentNumber(v);
+    const compact = v.replace(/\s/g, '').toUpperCase();
+    return formats.some((re) => re.test(compact)) ? null : 'Enter the document number exactly as printed on your document';
+  },
+  idIssuingCountry: (v, values) => {
+    if (values.idDocumentType === 'eu-eea-id' && !EU_EEA.includes(v)) return 'An EU / EEA identity card must be issued by an EU or EEA country';
+    if (values.idDocumentType === 'foreign-passport' && v === 'FR') return 'Choose \u201cFrench passport\u201d for a passport issued by France';
+    return null;
+  },
+  frTaxId: (v) => (FR_TAX_ID.test(v.replace(/\s/g, '')) ? null : 'Enter your 13-digit numéro fiscal, starting with 0, 1, 2 or 3'),
+  siren: (v) => {
+    const digits = v.replace(/\s/g, '');
+    return /^\d{9}$/.test(digits) && luhn(digits) ? null : 'Enter a valid 9-digit SIREN number';
+  },
+  endedDate: (v, _values, today) => {
+    const d = parseDate(v);
+    if (!d) return 'Enter a valid date';
+    return d > today ? 'The end date cannot be in the future' : null;
+  },
 };
 
 function validateField(field, values, today) {
@@ -426,8 +720,9 @@ function validateStep(marketCode, stepId, rawValues, now = new Date()) {
   const values = normaliseValues(rawValues);
   const today = todayUtc(now);
   const errors = {};
+  const fields = fieldIndex(market);
   for (const field of step.fields) {
-    if (!isVisible(field, values)) continue;
+    if (!isVisible(field, values, fields)) continue;
     const error = validateField(field, values, today);
     if (error) errors[field.id] = error;
   }
@@ -483,9 +778,10 @@ function submit(body = {}, now = new Date()) {
   if (signatureError) return { status: 400, error: signatureError, code: 'SIGNATURE_REQUIRED' };
 
   const answers = {};
+  const fields = fieldIndex(market);
   for (const step of market.steps) {
     for (const field of step.fields) {
-      if (!isVisible(field, values) || !values[field.id]) continue;
+      if (!isVisible(field, values, fields) || !values[field.id]) continue;
       answers[field.id] = field.sensitive ? redact(values[field.id]) : values[field.id];
     }
   }

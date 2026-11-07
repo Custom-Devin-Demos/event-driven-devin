@@ -86,12 +86,22 @@ describe('Amex Corporate KYC form shape (526efb4c)', () => {
     expect(state.options.map((o) => o.value)).toEqual(expect.arrayContaining(['WA', 'DC', 'PR', 'AE']));
   });
 
-  test('FR is not yet available', async () => {
-    const r = await request('GET', '/api/526efb4c/form?market=FR');
+  test('markets other than US and FR are not yet available', async () => {
+    const r = await request('GET', '/api/526efb4c/form?market=DE');
     expect(r.status).toBe(404);
-    expect(r.body).toMatchObject({ code: 'MARKET_NOT_AVAILABLE', error: 'KYC is not yet available for market FR', availableMarkets: ['US'] });
-    expect((await request('GET', '/api/526efb4c/form?market=fr')).status).toBe(404);
+    expect(r.body).toMatchObject({ code: 'MARKET_NOT_AVAILABLE', error: 'KYC is not yet available for market DE', availableMarkets: ['US', 'FR'] });
+    expect((await request('GET', '/api/526efb4c/form?market=de')).status).toBe(404);
     expect((await request('GET', '/api/526efb4c/form?market=FRA')).status).toBe(400);
+  });
+
+  test('US journey keeps exactly the same steps and fields', async () => {
+    const r = await request('GET', '/api/526efb4c/form?market=US');
+    expect(r.body.form.steps.map((s) => [s.id, s.fields.map((f) => f.id)])).toEqual([
+      ['legal-name', ['firstName', 'middleName', 'lastName', 'dateOfBirth']],
+      ['residential-address', ['addressLine1', 'addressLine2', 'city', 'country', 'state', 'region', 'postCode']],
+      ['national-id', ['idType', 'ssn', 'itin', 'govIdType', 'govIdNumber', 'govIdIssueDate', 'govIdExpiryDate', 'govIdCountry', 'govIdDocument']],
+    ]);
+    expect(r.body.form.intro.privacyNotice).toBeUndefined();
   });
 });
 
@@ -126,7 +136,7 @@ describe('login', () => {
   });
 
   test('login for an unavailable market is refused', async () => {
-    const r = await request('POST', '/api/526efb4c/session', { market: 'FR', cardNumber: '378282246310005', cardId: '4321' });
+    const r = await request('POST', '/api/526efb4c/session', { market: 'DE', cardNumber: '378282246310005', cardId: '4321' });
     expect(r.status).toBe(404);
     expect(r.body.code).toBe('MARKET_NOT_AVAILABLE');
   });
@@ -200,7 +210,8 @@ describe('step validation rules', () => {
     expect(r.body.valid).toBe(false);
     expect(Object.keys(r.body.errors)).toEqual(['lastName', 'dateOfBirth']);
     expect((await request('POST', '/api/526efb4c/steps/nope/validate', { values: {} })).status).toBe(404);
-    expect((await request('POST', '/api/526efb4c/steps/legal-name/validate', { market: 'FR', values: {} })).status).toBe(404);
+    expect((await request('POST', '/api/526efb4c/steps/legal-name/validate', { market: 'DE', values: {} })).status).toBe(404);
+    expect((await request('POST', '/api/526efb4c/steps/national-id/validate', { market: 'FR', values: {} })).status).toBe(404);
   });
 });
 
@@ -253,5 +264,173 @@ describe('submission', () => {
     const r = await request('POST', '/api/526efb4c/submissions', { sessionToken: acct.body.sessionToken, values: VALID, signature: SIGNATURE });
     expect(r.status).toBe(400);
     expect(r.body.code).toBe('CARD_NOT_SELECTED');
+  });
+});
+
+const FR_VALID = {
+  firstName: 'Jordan', middleName: 'Avery', lastName: 'Ellis', usageName: 'Martin', dateOfBirth: '1986-04-12',
+  birthCity: 'Lyon', birthCountry: 'FR',
+  nationalityStatus: 'national', nationality: 'FR', hasOtherNationality: 'yes', secondNationality: 'US',
+  addressLine1: '18 rue de la Paix', city: 'Paris', country: 'FR', postCode: '75002',
+  idDocumentType: 'fr-passport', idDocumentNumber: '18AB12345', idIssueDate: '2022-03-01',
+  idExpiryDate: `${new Date().getUTCFullYear() + 5}-03-01`, idDocument: 'passport.pdf', taxIdNumber: '1234567890123',
+  occupation: 'manager', jobTitle: 'Head of Purchasing', employerSiren: '842 917 361',
+  pepStatus: 'no',
+};
+
+describe('France (FR) market', () => {
+  const validate = (stepId, values) => svc.validateStep('FR', stepId, values);
+  const errs = (stepId, values) => validate(stepId, { ...FR_VALID, ...values }).errors;
+
+  test('form has the AMLR-driven steps, EU notice and no US identifiers', async () => {
+    const r = await request('GET', '/api/526efb4c/form?market=fr');
+    expect(r.status).toBe(200);
+    const { form } = r.body;
+    expect(form.code).toBe('FR');
+    expect(form.title).toBe('American Express\u00ae France Corporate Program: Know Your Customer (KYC)');
+    expect(form.intro.regulatoryNotice).toMatch(/Regulation \(EU\) 2024\/1624/);
+    expect(form.intro.regulatoryNotice).not.toMatch(/PATRIOT/);
+    expect(form.intro.privacyNotice).toMatch(/NIR/);
+    expect(form.steps.map((s) => s.id)).toEqual(['legal-name', 'nationality', 'residential-address', 'identity-document', 'occupation', 'pep']);
+    const ids = form.steps.flatMap((s) => s.fields.map((f) => f.id));
+    for (const id of ['usageName', 'birthCity', 'birthCountry', 'nationalityStatus', 'secondNationality', 'furtherNationalities', 'idDocumentType', 'taxIdNumber', 'employerSiren', 'pepStatus']) {
+      expect(ids).toContain(id);
+    }
+    for (const banned of ['ssn', 'itin', 'idType']) expect(ids).not.toContain(banned);
+    const address = form.steps[2].fields;
+    expect(address.find((f) => f.id === 'country').defaultValue).toBe('FR');
+  });
+
+  test('every FR step accepts the reference answers', () => {
+    for (const step of svc.getForm('FR').steps) expect(validate(step.id, FR_VALID)).toEqual({ valid: true, errors: {} });
+  });
+
+  test('legal name: birth surname, place of birth and optional surname of use', () => {
+    expect(validate('legal-name', {}).errors).toMatchObject({
+      firstName: expect.any(String), lastName: expect.any(String), dateOfBirth: expect.any(String),
+      birthCity: expect.any(String), birthCountry: expect.any(String),
+    });
+    expect(errs('legal-name', { usageName: '' }).usageName).toBeUndefined();
+    expect(errs('legal-name', { usageName: 'M4rtin' }).usageName).toMatch(/letters/);
+    expect(errs('legal-name', { birthCity: 'Saint-Étienne' }).birthCity).toBeUndefined();
+    expect(errs('legal-name', { birthCity: '75001' }).birthCity).toMatch(/letters/);
+    expect(errs('legal-name', { birthCountry: 'XX' }).birthCountry).toMatch(/valid/);
+  });
+
+  test('nationality: all nationalities, distinct, or stateless / protection status', () => {
+    expect(validate('nationality', {}).errors).toEqual({ nationalityStatus: 'Nationality status is required' });
+    expect(Object.keys(validate('nationality', { nationalityStatus: 'national' }).errors)).toEqual(['nationality', 'hasOtherNationality']);
+    expect(errs('nationality', { secondNationality: '' }).secondNationality).toMatch(/required/);
+    expect(errs('nationality', { secondNationality: 'FR' }).secondNationality).toMatch(/already/);
+    expect(errs('nationality', { thirdNationality: 'US' }).thirdNationality).toMatch(/already/);
+    expect(errs('nationality', { thirdNationality: 'DE' }).thirdNationality).toBeUndefined();
+    expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'Belgium, it, Switzerland' })).toEqual({});
+    expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'BE, Narnia' }).furtherNationalities).toMatch(/Narnia/);
+    expect(errs('nationality', { thirdNationality: 'CA', furtherNationalities: 'canada' }).furtherNationalities).toMatch(/already/);
+    expect(errs('nationality', { furtherNationalities: 'BE, Belgium' }).furtherNationalities).toMatch(/already/);
+    for (const list of [',,', 'BE,', ', BE', 'BE,, IT']) {
+      expect(errs('nationality', { furtherNationalities: list }).furtherNationalities).toMatch(/single comma/);
+    }
+    expect(validate('nationality', { nationalityStatus: 'national', nationality: 'FR', hasOtherNationality: 'no', secondNationality: 'FR' }).valid).toBe(true);
+    expect(Object.keys(validate('nationality', { nationalityStatus: 'refugee' }).errors)).toEqual(['protectionCountry']);
+    expect(validate('nationality', { nationalityStatus: 'subsidiary-protection', protectionCountry: 'FR' }).valid).toBe(true);
+    expect(validate('nationality', { nationalityStatus: 'stateless' }).valid).toBe(true);
+    expect(validate('nationality', { nationalityStatus: 'dual' }).errors.nationalityStatus).toMatch(/valid/);
+  });
+
+  test('a field whose controlling field is hidden is neither required nor validated', () => {
+    const values = { nationalityStatus: 'stateless', hasOtherNationality: 'yes', secondNationality: 'garbage' };
+    expect(validate('nationality', values).valid).toBe(true);
+    const fields = svc.getForm('FR').steps[1].fields;
+    const byId = Object.fromEntries(fields.map((f) => [f.id, f]));
+    const visible = fields.filter((f) => svc.isVisible(f, values, byId)).map((f) => f.id);
+    expect(visible).toEqual(['nationalityStatus']);
+    expect(validate('nationality', { ...values, furtherNationalities: 'Narnia' }).valid).toBe(true);
+  });
+
+  test('residence: French post codes per territory and no BP / CS / TSA / CEDEX addresses', () => {
+    for (const line of ['BP 45', 'B.P. 12', '10 avenue Foch CS 70001', 'TSA 30001', '75008 Paris Cedex 08', 'Poste restante', 'Boîte postale 7', 'PO Box 9']) {
+      expect(errs('residential-address', { addressLine1: line }).addressLine1).toMatch(/residential address/);
+    }
+    expect(errs('residential-address', { addressLine1: '3 rue des Capucines' }).addressLine1).toBeUndefined();
+    expect(errs('residential-address', { addressLine2: 'CEDEX 9' }).addressLine2).toBeDefined();
+    expect(errs('residential-address', { postCode: '7500' }).postCode).toMatch(/French post code/);
+    expect(errs('residential-address', { postCode: '00123' }).postCode).toBeDefined();
+    expect(errs('residential-address', { postCode: '97110' }).postCode).toBeDefined();
+    expect(errs('residential-address', { postCode: '20000' }).postCode).toBeUndefined();
+    expect(errs('residential-address', { country: 'GP', postCode: '97110' })).toEqual({});
+    expect(errs('residential-address', { country: 'GP', postCode: '75002' }).postCode).toBeDefined();
+    expect(errs('residential-address', { country: 'DE', postCode: '10115' })).toEqual({ region: 'State / Province / Region is required' });
+    expect(errs('residential-address', { country: 'DE', region: 'Berlin', postCode: '10115' })).toEqual({});
+    expect(errs('residential-address', { country: 'US', postCode: '9812' })).toMatchObject({ state: expect.any(String), postCode: 'Enter a 5-digit Zip code' });
+  });
+
+  test('identity document: French document formats, issuing country, dates and upload', () => {
+    expect(errs('identity-document', { idDocumentType: 'fr-cni', idDocumentNumber: 'X4RTBPFW4' }).idDocumentNumber).toBeUndefined();
+    expect(errs('identity-document', { idDocumentType: 'fr-cni', idDocumentNumber: '880692310285' }).idDocumentNumber).toBeUndefined();
+    expect(errs('identity-document', { idDocumentType: 'fr-cni', idDocumentNumber: 'AB12' }).idDocumentNumber).toMatch(/exactly/);
+    expect(errs('identity-document', { idDocumentNumber: '18 ab 12345' }).idDocumentNumber).toBeUndefined();
+    expect(errs('identity-document', { idDocumentNumber: '123456789' }).idDocumentNumber).toMatch(/exactly/);
+    expect(errs('identity-document', { idDocumentType: 'fr-residence-permit', idDocumentNumber: '1234567890' }).idDocumentNumber).toBeUndefined();
+    expect(errs('identity-document', { idDocumentType: 'eu-eea-id', idDocumentNumber: 'T22000129' }).idIssuingCountry).toMatch(/required/);
+    expect(errs('identity-document', { idDocumentType: 'eu-eea-id', idDocumentNumber: 'T22000129', idIssuingCountry: 'US' }).idIssuingCountry).toMatch(/EU or EEA/);
+    expect(errs('identity-document', { idDocumentType: 'eu-eea-id', idDocumentNumber: 'T22000129', idIssuingCountry: 'DE' })).toEqual({});
+    expect(errs('identity-document', { idDocumentType: 'foreign-passport', idDocumentNumber: 'P1234567', idIssuingCountry: 'FR' }).idIssuingCountry).toMatch(/French passport/);
+    expect(errs('identity-document', { idDocumentType: 'foreign-passport', idDocumentNumber: 'P1234567', idIssuingCountry: 'CA' })).toEqual({});
+    expect(errs('identity-document', { idDocumentType: 'driving-licence' }).idDocumentType).toMatch(/valid/);
+    expect(errs('identity-document', { idExpiryDate: '2023-01-01' }).idExpiryDate).toMatch(/expired/);
+    expect(errs('identity-document', { idIssueDate: `${new Date().getUTCFullYear() + 1}-01-01` }).idIssueDate).toMatch(/future/);
+    expect(errs('identity-document', { idDocument: 'scan.heic' }).idDocument).toMatch(/PDF/);
+    expect(errs('identity-document', { taxIdNumber: '' }).taxIdNumber).toBeUndefined();
+    expect(errs('identity-document', { taxIdNumber: '1234 5678 90123' }).taxIdNumber).toBeUndefined();
+    expect(errs('identity-document', { taxIdNumber: '9234567890123' }).taxIdNumber).toMatch(/13-digit/);
+  });
+
+  test('occupation: select, job title and employer SIREN with Luhn check', () => {
+    expect(Object.keys(validate('occupation', {}).errors)).toEqual(['occupation', 'jobTitle', 'employerSiren']);
+    expect(errs('occupation', { occupation: 'astronaut' }).occupation).toMatch(/valid/);
+    expect(errs('occupation', { jobTitle: '<script>' }).jobTitle).toMatch(/valid/);
+    expect(errs('occupation', { employerSiren: '842917360' }).employerSiren).toMatch(/SIREN/);
+    expect(errs('occupation', { employerSiren: '84291736' }).employerSiren).toMatch(/SIREN/);
+  });
+
+  test('PEP declaration: function, country, related person and end date when relevant', () => {
+    expect(validate('pep', {}).errors).toEqual({ pepStatus: 'Which of the following applies to you? is required' });
+    expect(validate('pep', { pepStatus: 'no', pepFunction: '<x>' }).valid).toBe(true);
+    expect(Object.keys(validate('pep', { pepStatus: 'pep' }).errors)).toEqual(['pepFunction', 'pepCountry']);
+    expect(Object.keys(validate('pep', { pepStatus: 'former-pep' }).errors)).toEqual(['pepFunction', 'pepCountry', 'pepEndDate']);
+    expect(Object.keys(validate('pep', { pepStatus: 'family' }).errors)).toEqual(['pepRelatedName', 'pepFunction', 'pepCountry']);
+    expect(validate('pep', { pepStatus: 'former-pep', pepFunction: 'Member of Parliament', pepCountry: 'FR', pepEndDate: `${new Date().getUTCFullYear() + 1}-01-01` }).errors.pepEndDate).toMatch(/future/);
+    expect(validate('pep', { pepStatus: 'associate', pepRelatedName: 'Camille Durand', pepFunction: 'Ambassador', pepCountry: 'BE' }).valid).toBe(true);
+  });
+
+  test('FR card login, end-to-end submission with redacted tax ID and market lock', async () => {
+    const login = await request('POST', '/api/526efb4c/session', { market: 'FR', cardNumber: '378282246310005', cardId: '4321' });
+    expect(login.status).toBe(200);
+    expect(login.body.market).toBe('FR');
+    const token = login.body.sessionToken;
+
+    const mismatch = await request('POST', '/api/526efb4c/submissions', { sessionToken: token, market: 'US', values: VALID, signature: SIGNATURE });
+    expect(mismatch.body.code).toBe('MARKET_MISMATCH');
+
+    const invalid = await request('POST', '/api/526efb4c/submissions', { sessionToken: token, market: 'FR', values: { ...FR_VALID, pepStatus: 'pep' }, signature: SIGNATURE });
+    expect(invalid.status).toBe(400);
+    expect(Object.keys(invalid.body.errors)).toEqual(['pep']);
+
+    const ok = await request('POST', '/api/526efb4c/submissions', {
+      sessionToken: token, market: 'FR', values: { ...FR_VALID, furtherNationalities: 'BE, CA', ssn: '123-45-6789', protectionCountry: 'FR' }, signature: SIGNATURE,
+    });
+    expect(ok.status).toBe(201);
+    expect(ok.body.market).toBe('FR');
+    expect(ok.body.answers).toMatchObject({ birthCity: 'Lyon', secondNationality: 'US', furtherNationalities: 'BE, CA', employerSiren: '842 917 361', taxIdNumber: '***-**-0123' });
+    expect(JSON.stringify(ok.body)).not.toContain('1234567890123');
+    expect(ok.body.answers.ssn).toBeUndefined();
+    expect(ok.body.answers.protectionCountry).toBeUndefined();
+  });
+
+  test('FR step validate endpoint', async () => {
+    const r = await request('POST', '/api/526efb4c/steps/occupation/validate', { market: 'FR', values: { occupation: 'employee', jobTitle: 'Buyer', employerSiren: '123456789' } });
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ valid: false, errors: { employerSiren: 'Enter a valid 9-digit SIREN number' } });
   });
 });
