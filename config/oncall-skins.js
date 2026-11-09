@@ -8946,7 +8946,8 @@ const ONCALL_SKINS = {
     brandMark: 'RA',
     vertical: 'softwarequote',
     oncallOnly: true,
-    alertDestination: 'slack',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     paths: ['/commerce-portal', '/software-portal-oncall'],
     devinSession: {
       auto: true,

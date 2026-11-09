@@ -51,7 +51,7 @@ const CART = [
 describe('36a6a616 myRockwell Commerce Portal on-call skin', () => {
   test('is a native, unlisted softwarequote skin without report or incident surfaces', () => {
     const skin = getOncallSkin('36a6a616');
-    expect(skin).toMatchObject({ vertical: 'softwarequote', oncallOnly: true, alertDestination: 'slack', page: { file: '36a6a616.html', title: TITLE } });
+    expect(skin).toMatchObject({ vertical: 'softwarequote', oncallOnly: true, teamsAlerts: true, alertDestination: 'teams', page: { file: '36a6a616.html', title: TITLE } });
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
     expect(skin.disclaimer).toMatch(/^NOT ACTUALLY A ROCKWELL AUTOMATION SITE/);
