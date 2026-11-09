@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bookbuild | Barrenjoey Front Office</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ochre: #D58A5D;
+      --ochre-dark: #B96F43;
+      --ochre-tint: #F6E7DD;
+      --slate: #2A3037;
+      --slate-2: #333F48;
+      --cream: #F7F4EF;
+      --ink: #212121;
+      --muted: #6B6F73;
+      --line: #E3DED6;
+      --ok: #2F7D5B;
+      --ok-tint: #E6F2EC;
+      --err: #B3261E;
+      --err-tint: #FBEAE9;
+      --serif: "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif;
+      --sans: Montserrat, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font: 14px/1.5 var(--sans); color: var(--ink); background: var(--cream); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+
+    .bj-top { background: var(--slate); color: #fff; }
+    .bj-top-inner { display: flex; align-items: center; gap: 28px; padding: 0 28px; height: 60px; }
+    .bj-brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: #fff; flex: none; }
+    .bj-logo { height: 26px; width: auto; color: #fff; display: block; }
+    .bj-app { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #E9C4AC; border-left: 1px solid rgba(255,255,255,.25); padding-left: 14px; }
+    .bj-nav { display: flex; gap: 4px; height: 100%; overflow-x: auto; scrollbar-width: none; }
+    .bj-nav a { display: flex; align-items: center; padding: 0 14px; height: 100%; font-weight: 600; font-size: 13px; text-decoration: none; color: rgba(255,255,255,.78); border-bottom: 3px solid transparent; white-space: nowrap; }
+    .bj-nav a:hover { color: #fff; }
+    .bj-nav a.is-active { color: #fff; border-bottom-color: var(--ochre); }
+    .bj-right { margin-left: auto; display: flex; align-items: center; gap: 18px; flex: none; font-size: 12px; }
+    .bj-env { font-weight: 700; font-size: 10px; letter-spacing: .1em; border: 1px solid rgba(255,255,255,.35); padding: 2px 7px; border-radius: 3px; }
+    .bj-user { display: flex; align-items: center; gap: 10px; }
+    .bj-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--ochre); display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+    .bj-user small { display: block; color: rgba(255,255,255,.65); font-size: 11px; }
+
+    .bj-sub { background: #fff; border-bottom: 1px solid var(--line); }
+    .bj-sub-inner { display: flex; align-items: center; gap: 16px; padding: 10px 28px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+    .bj-crumbs a { text-decoration: none; }
+    .bj-crumbs strong { color: var(--ink); font-weight: 600; }
+    .bj-clock { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; }
+    .bj-live { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(47,125,91,.18); }
+
+    .bj-shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 160px); }
+    .bj-side { background: #fff; border-right: 1px solid var(--line); padding: 20px 0; }
+    .bj-side h2 { font: 600 11px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 20px 10px; }
+    .bj-deal { display: block; padding: 12px 20px; text-decoration: none; border-left: 3px solid transparent; }
+    .bj-deal:hover { background: var(--cream); }
+    .bj-deal.is-active { background: var(--ochre-tint); border-left-color: var(--ochre); }
+    .bj-deal b { display: block; font-weight: 600; font-size: 13px; }
+    .bj-deal span { display: block; font-size: 12px; color: var(--muted); }
+    .bj-tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; margin-top: 4px; }
+    .bj-tag.open { background: var(--ok-tint); color: var(--ok); }
+    .bj-tag.pre { background: #EEF0F2; color: var(--slate-2); }
+    .bj-tag.closed { background: #F1EEEA; color: var(--muted); }
+    .bj-side hr { border: 0; border-top: 1px solid var(--line); margin: 16px 20px; }
+    .bj-side ul { list-style: none; margin: 0; padding: 0 20px; font-size: 12px; color: var(--slate-2); }
+    .bj-side li { padding: 6px 0; display: flex; justify-content: space-between; }
+
+    .bj-main { padding: 24px 28px 40px; min-width: 0; }
+    .bj-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+    .bj-head h1 { font: 700 30px/1.15 var(--serif); margin: 0; color: var(--slate); }
+    .bj-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .bj-head-actions { display: flex; gap: 8px; }
+    .bj-btn-ghost { background: #fff; border: 1px solid var(--line); color: var(--slate); font-weight: 600; font-size: 12px; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+
+    .bj-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .bj-stat { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; }
+    .bj-stat label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .bj-stat b { display: block; font: 700 24px/1.2 var(--serif); color: var(--slate); margin-top: 4px; }
+    .bj-stat span { font-size: 12px; color: var(--muted); }
+    .bj-stat.accent { border-top: 3px solid var(--ochre); }
+
+    .bj-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+    .bj-card { background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+    .bj-card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+    .bj-card-h h2 { font: 700 18px/1.2 var(--serif); margin: 0; color: var(--slate); }
+    .bj-card-h small { color: var(--muted); font-size: 12px; }
+    .bj-tabs { display: flex; gap: 4px; }
+    .bj-tabs button { border: 0; background: transparent; padding: 5px 10px; border-radius: 3px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
+    .bj-tabs button.is-active { background: var(--slate); color: #fff; }
+    .bj-table-wrap { overflow-x: auto; }
+    table.bj-book { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .bj-book th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; background: #FBFAF7; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .bj-book td { padding: 10px 12px; border-bottom: 1px solid #F0ECE6; white-space: nowrap; }
+    .bj-book tr:last-child td { border-bottom: 0; }
+    .bj-book td:nth-child(2) { white-space: normal; min-width: 150px; }
+    @media (max-width: 1440px) and (min-width: 1181px) { .bj-book th:nth-child(3), .bj-book td:nth-child(3) { display: none; } }
+    .bj-book .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .bj-book tr.is-new td { background: var(--ok-tint); }
+    .bj-jur { display: inline-block; min-width: 30px; text-align: center; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 3px; background: #EEF0F2; color: var(--slate-2); }
+    .bj-ot { font-size: 11px; font-weight: 600; color: var(--ochre-dark); text-transform: uppercase; letter-spacing: .04em; }
+
+    .bj-mix { padding: 16px 18px 18px; border-top: 1px solid var(--line); }
+    .bj-mix h3 { font: 600 11px/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+    .bj-bar { display: grid; grid-template-columns: 130px 1fr 70px; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 8px; }
+    .bj-bar i { display: block; height: 8px; border-radius: 4px; background: var(--ochre); }
+    .bj-bar .track { background: #F1ECE5; border-radius: 4px; }
+    .bj-bar b { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .bj-entry form { padding: 18px; display: grid; gap: 14px; }
+    .bj-field label { display: block; font-size: 12px; font-weight: 600; color: var(--slate-2); margin-bottom: 6px; }
+    .bj-field select, .bj-field input[type=text], .bj-field input[type=number] { width: 100%; height: 40px; border: 1px solid #CFC8BE; border-radius: 4px; padding: 0 10px; background: #fff; color: var(--ink); }
+    .bj-field select:focus, .bj-field input:focus { outline: 2px solid var(--ochre); outline-offset: 0; border-color: var(--ochre); }
+    .bj-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .bj-hint b { color: var(--slate-2); font-weight: 600; }
+    .bj-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .bj-seg { display: flex; border: 1px solid #CFC8BE; border-radius: 4px; overflow: hidden; height: 40px; }
+    .bj-seg label { flex: 1; display: grid; place-items: center; margin: 0; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--slate-2); }
+    .bj-seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .bj-seg input:checked + span { color: #fff; }
+    .bj-seg label:has(input:checked) { background: var(--slate); color: #fff; }
+    .bj-check { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--slate-2); }
+    .bj-check input { margin-top: 2px; accent-color: var(--ochre); }
+    #submitBtn { height: 46px; border: 0; border-radius: 4px; background: var(--ochre); color: #fff; font-weight: 700; font-size: 14px; letter-spacing: .02em; cursor: pointer; }
+    #submitBtn:hover { background: var(--ochre-dark); }
+    #submitBtn:disabled { opacity: .65; cursor: progress; }
+    #result:empty { display: none; }
+    #result { margin: 0 18px 18px; padding: 12px 14px; border-radius: 4px; font-size: 13px; border: 1px solid transparent; }
+    #result.is-ok { background: var(--ok-tint); border-color: #BFDCCB; color: #1E5A40; }
+    #result.is-error { background: var(--err-tint); border-color: #F0C3C0; color: var(--err); }
+    #result strong { display: block; margin-bottom: 2px; }
+    #result code { font-size: 12px; }
+
+    .bj-foot { padding: 18px 28px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); background: #fff; display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
+
+    @media (max-width: 1180px) {
+      .bj-grid { grid-template-columns: minmax(0, 1fr); }
+      .bj-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 860px) {
+      .bj-shell { grid-template-columns: minmax(0, 1fr); }
+      .bj-side { display: none; }
+      .bj-right .bj-user div, .bj-env { display: none; }
+    }
+    @media (max-width: 560px) {
+      .bj-top-inner { padding: 0 16px; gap: 14px; }
+      .bj-app, .bj-nav { display: none; }
+      .bj-sub-inner, .bj-main, .bj-foot { padding-left: 16px; padding-right: 16px; }
+      .bj-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .bj-head h1 { font-size: 24px; }
+      .bj-bar { grid-template-columns: 100px 1fr 56px; }
+      .bj-clock { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bj-top">
+    <div class="bj-top-inner">
+      <a class="bj-brand" href="#" aria-label="Barrenjoey Front Office home">
+        <svg role="img" class="bj-logo" aria-label="Barrenjoey" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 678.28 138.02"><title>Barrenjoey Logo</title><path fill="currentColor" d="M393.32,55.59v1.9c8.65,3.35,9.48,4.13,9.48,10.25v42.61c0,11.43,0,13.39-16.98,23.46l1.84,4.21c24.89-11.37,28.89-15.54,28.89-32.9v-55.39l-23.23,5.87Z"></path><path fill="currentColor" d="M316.58,89.53c-2.56,17.29-13.64,25.45-28.61,25.45-20.45,0-29.34-15.22-29.34-33.24,0-19.24,12.66-32.26,28.73-32.26,12.78,0,25.69,7.43,28.49,28.25h-43.1c.61,17.77,6.94,28.85,19.97,28.85,6.94,0,16.92-3.78,19.36-17.05h4.5ZM272.63,72.73h27.15c-.73-14.12-5.36-19.36-12.66-19.36-6.82,0-13.88,5.97-14.49,19.36Z"></path><path fill="currentColor" d="M459.32,49.48c18.75,0,32.02,14.49,32.02,32.75s-13.27,32.75-32.02,32.75-32.14-14.49-32.14-32.75,13.27-32.75,32.14-32.75ZM459.32,53.86c-10.23,0-15.95,7.06-15.95,28.37s5.72,28.37,15.95,28.37,15.95-7.06,15.95-28.37-5.84-28.37-15.95-28.37Z"></path><path fill="currentColor" d="M557.22,89.53c-2.56,17.29-13.64,25.45-28.61,25.45-20.45,0-29.34-15.22-29.34-33.24,0-19.24,12.66-32.26,28.73-32.26,12.78,0,25.69,7.43,28.49,28.25h-43.1c.61,17.77,6.94,28.85,19.97,28.85,6.94,0,16.92-3.78,19.36-17.05h4.5ZM513.26,72.73h27.15c-.73-14.12-5.36-19.36-12.66-19.36-6.82,0-13.88,5.97-14.49,19.36Z"></path><path fill="currentColor" d="M565.5,55.32h-8.28v-4.38h31.69v4.38h-7.83l16.19,39.2,17.05-39.2h-7.64v-4.38h20.22v4.38h-7.59l-35.25,80.63h-21.79l4.08-10.11h17.05l6.58-14.52-24.47-56Z"></path><path fill="currentColor" d="M187.71,49.48c-10.23,0-16.56,7.06-19.48,16.32v-16.07l-23.22,5.86v1.9c8.64,3.35,9.47,4.13,9.47,10.25v41.64h-7.66v4.38h29.03v-4.38h-7.62v-23.5c0-14.73,5.24-29.34,13.39-30.92-.85,1.22-1.22,2.92-1.22,4.75,0,5.24,4.14,8.77,9.01,8.77,5.24,0,8.89-4.02,8.89-9.01,0-6.21-4.87-9.98-10.59-9.98Z"></path><path fill="currentColor" d="M245.9,49.48c-10.23,0-16.56,7.06-19.48,16.32v-16.07l-23.22,5.86v1.9c8.64,3.35,9.47,4.13,9.47,10.25v41.64h-7.66v4.38h29.03v-4.38h-7.62v-23.5c0-14.73,5.24-29.34,13.39-30.92-.85,1.22-1.22,2.92-1.22,4.75,0,5.24,4.14,8.77,9.01,8.77,5.24,0,8.89-4.02,8.89-9.01,0-6.21-4.87-9.98-10.59-9.98Z"></path><path fill="currentColor" d="M381.43,109.38v-36.77c0-15.7-6.09-23.13-18.87-23.13-10.47,0-16.19,8.89-18.02,13.39h-.12v-13.15l-23.22,5.86v1.9c8.64,3.35,9.47,4.13,9.47,10.25v41.64h-7.62v4.38h29v-4.38h-7.62v-32.75c0-8.04,6.33-22.28,15.22-22.28,5.72,0,8.04,3.9,8.04,19.36v35.67h-7.63v4.38h28.96v-4.38h-7.57Z"></path><path fill="currentColor" d="M408.52,40.04c5.17,0,9.41-4.23,9.41-9.41s-4.23-9.4-9.41-9.4-9.41,4.23-9.41,9.4,4.23,9.41,9.41,9.41Z"></path><path fill="currentColor" d="M119.1,101.58c-1.83,6.94-8.02,12.87-17.52,12.87-12.17,0-20.52-7.06-20.52-17.04,0-11.69,12.92-14.55,24.36-19.17,3.79-1.54,12.7-4.31,12.7-12.44s-5.23-12.91-12.3-12.91c-5.6,0-10.23,2.07-12.3,4.26,4.5,1.1,7.06,4.14,7.06,8.77,0,3.65-3.41,7.67-8.77,7.67s-8.4-3.78-8.4-8.4c0-6.7,8.64-15.71,23.74-15.71,11.93,0,24.84,4.26,24.59,22.04l-.12,37.86h6.67s0,4.38,0,4.38h-19.21v-12.17ZM104.38,109.1c6.33,0,13.74-6.78,13.74-18.59v-14.87c-10.93,10.61-23.39,8.62-23.39,21.65,0,7.62,4.53,11.81,9.64,11.81Z"></path><path fill="currentColor" d="M658.22,0c-11.08,0-20.06,8.98-20.06,20.06s8.98,20.06,20.06,20.06,20.06-8.98,20.06-20.06-8.98-20.06-20.06-20.06ZM664.29,29.63l-6.07-6.01-6.07,6.01.91-8.5-8.49-1,7.21-4.58-4.51-7.26,8.08,2.78,2.86-8.05,2.86,8.05,8.08-2.78-4.51,7.26,7.21,4.58-8.49,1,.91,8.5Z"></path><path fill="currentColor" d="M46.18,64.39c15.56.09,26.47,9.26,26.47,22.95,0,21.1-17.81,26.42-33.18,26.42H0v-4.38h7.69V27.73H0v-4.38h34.33c20.61,0,33.32,6.31,33.32,21.13,0,12.43-9.95,19.75-21.47,19.92h0ZM22.69,27.73v34.61h16.05c7.07,0,13.54-3.7,13.54-17.64s-8.17-16.97-15.24-16.97h-14.35ZM38.74,109.38c9.64,0,17.56-4.03,17.56-20.61s-7.93-22.05-17.56-22.05h-16.05v42.66h16.05Z"></path></svg>
+        <span class="bj-app">Front Office</span>
+      </a>
+      <nav class="bj-nav" aria-label="Front Office">
+        <a href="#">Deals</a>
+        <a href="#" class="is-active" aria-current="page">Bookbuild</a>
+        <a href="#">Allocations</a>
+        <a href="#">Wall-cross log</a>
+        <a href="#">Client coverage</a>
+        <a href="#">Lighthouse research</a>
+      </nav>
+      <div class="bj-right">
+        <span class="bj-env">PROD</span>
+        <div class="bj-user">
+          <span class="bj-avatar" aria-hidden="true">JN</span>
+          <div>Jess Nguyen<small>ECM Syndicate · Sydney</small></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="bj-sub">
+    <div class="bj-sub-inner">
+      <div class="bj-crumbs"><a href="#">ECM</a> › <a href="#">Live books</a> › <strong>Coastline Resources · A$450m placement</strong></div>
+      <div class="bj-clock"><span class="bj-live" aria-hidden="true"></span>Book open · closes 6:30pm AEDT · <span id="dealClock">04:12:33</span></div>
+    </div>
+  </div>
+
+  <div class="bj-shell">
+    <aside class="bj-side" aria-label="Live deals">
+      <h2>Live books</h2>
+      <a class="bj-deal is-active" href="#"><b>Coastline Resources (CSR)</b><span>A$450m institutional placement</span><em class="bj-tag open">Book open</em></a>
+      <a class="bj-deal" href="#"><b>Southern Cross Healthcare (SXH)</b><span>A$1.2bn IPO · institutional offer</span><em class="bj-tag open">Book open</em></a>
+      <a class="bj-deal" href="#"><b>Meridian Ports Group (MPG)</b><span>A$310m accelerated block</span><em class="bj-tag pre">Wall-crossing</em></a>
+      <a class="bj-deal" href="#"><b>Tasman Agri Holdings (TAH)</b><span>A$180m placement + SPP</span><em class="bj-tag closed">Allocated</em></a>
+      <hr>
+      <h2>Desk</h2>
+      <ul>
+        <li><span>Sole Lead Manager</span><b>Barrenjoey</b></li>
+        <li><span>Syndicate desk</span><b>x6100</b></li>
+        <li><span>ECM Platform support</span><b>x6000</b></li>
+      </ul>
+    </aside>
+
+    <main class="bj-main">
+      <div class="bj-head">
+        <div>
+          <h1>Coastline Resources — Institutional Placement</h1>
+          <p>ASX: CSR · Fully underwritten · Barrenjoey Sole Lead Manager &amp; Bookrunner · Settlement T+2 (DvP via CHESS)</p>
+        </div>
+        <div class="bj-head-actions">
+          <button class="bj-btn-ghost" type="button">Export book</button>
+          <button class="bj-btn-ghost" type="button">Issuer view</button>
+        </div>
+      </div>
+
+      <section class="bj-stats" aria-label="Deal summary">
+        <div class="bj-stat accent"><label>Raise</label><b>A$450m</b><span>116.9m new shares</span></div>
+        <div class="bj-stat"><label>Offer price</label><b>A$3.85</b><span>6.1% discount to A$4.10 close</span></div>
+        <div class="bj-stat"><label>Total demand</label><b id="statDemand">A$1,084m</b><span>Strike + limits ≥ A$3.85</span></div>
+        <div class="bj-stat"><label>Coverage</label><b id="statCover">2.41x</b><span>On base deal size</span></div>
+        <div class="bj-stat"><label>Orders</label><b id="statOrders">63</b><span id="statOrdersSub">41 institutions · 4 jurisdictions</span></div>
+      </section>
+
+      <div class="bj-grid">
+        <section class="bj-card" aria-label="Book">
+          <div class="bj-card-h">
+            <div><h2>Book</h2><small>Most recent first · amounts in A$m</small></div>
+            <div class="bj-tabs" role="tablist">
+              <button type="button" class="is-active">All</button>
+              <button type="button">Strike</button>
+              <button type="button">Limit</button>
+            </div>
+          </div>
+          <div class="bj-table-wrap">
+            <table class="bj-book">
+              <thead>
+                <tr><th>Time</th><th>Investor</th><th>Type</th><th>Jur.</th><th class="num">Demand</th><th>Order</th><th>Sales</th></tr>
+              </thead>
+              <tbody id="bookRows">
+                <tr><td>2:16pm</td><td>Harbour Point Super</td><td>Super fund</td><td><span class="bj-jur">AU</span></td><td class="num">85.0</td><td><span class="bj-ot">Strike</span></td><td>M. Lowe</td></tr>
+                <tr><td>2:11pm</td><td>Great Lakes Equity Partners</td><td>Long only</td><td><span class="bj-jur">US</span></td><td class="num">60.0</td><td><span class="bj-ot">Limit 3.80</span></td><td>A. Brennan</td></tr>
+                <tr><td>2:04pm</td><td>Kauri Ridge Capital</td><td>Long only</td><td><span class="bj-jur">NZ</span></td><td class="num">25.0</td><td><span class="bj-ot">Strike</span></td><td>J. Nguyen</td></tr>
+                <tr><td>1:58pm</td><td>Thames Reach Asset Management</td><td>Long only</td><td><span class="bj-jur">UK</span></td><td class="num">45.0</td><td><span class="bj-ot">Limit 3.85</span></td><td>S. Patel</td></tr>
+                <tr><td>1:49pm</td><td>Wattle Grove Investors</td><td>Long only</td><td><span class="bj-jur">AU</span></td><td class="num">70.0</td><td><span class="bj-ot">Strike</span></td><td>M. Lowe</td></tr>
+                <tr><td>1:42pm</td><td>Marina Bay Investments</td><td>Sovereign wealth</td><td><span class="bj-jur">SG</span></td><td class="num">120.0</td><td><span class="bj-ot">Strike</span></td><td>J. Nguyen</td></tr>
+                <tr><td>1:35pm</td><td>Bondi Road Capital</td><td>Hedge fund</td><td><span class="bj-jur">AU</span></td><td class="num">30.0</td><td><span class="bj-ot">Limit 3.75</span></td><td>R. Kaur</td></tr>
+                <tr><td>1:27pm</td><td>Murray Basin Super</td><td>Super fund</td><td><span class="bj-jur">AU</span></td><td class="num">95.0</td><td><span class="bj-ot">Strike</span></td><td>A. Brennan</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="bj-mix">
+            <h3>Demand by investor type</h3>
+            <div class="bj-bar"><span>Long only</span><span class="track"><i style="width:82%"></i></span><b>A$412m</b></div>
+            <div class="bj-bar"><span>Super funds</span><span class="track"><i style="width:64%"></i></span><b>A$318m</b></div>
+            <div class="bj-bar"><span>Hedge funds</span><span class="track"><i style="width:38%"></i></span><b>A$189m</b></div>
+            <div class="bj-bar"><span>Sovereign wealth</span><span class="track"><i style="width:33%"></i></span><b>A$165m</b></div>
+          </div>
+        </section>
+
+        <section class="bj-card bj-entry" aria-label="Enter order">
+          <div class="bj-card-h"><div><h2>Enter order</h2><small>Orders go straight into the live book</small></div></div>
+          <form id="orderForm" novalidate>
+            <div class="bj-field">
+              <label for="dealId">Deal</label>
+              <select id="dealId" name="dealId">
+                <option value="CSR-PLC-2611" selected>Coastline Resources · A$450m placement</option>
+              </select>
+            </div>
+            <div class="bj-field">
+              <label for="investorId">Investor account</label>
+              <select id="investorId" name="investorId">
+                <option value="LPC-HK-0193" data-jur="HK" data-type="Hedge fund" selected>Lantau Peak Capital · LPC-HK-0193</option>
+                <option value="HPS-AU-0042" data-jur="AU" data-type="Super fund">Harbour Point Super · HPS-AU-0042</option>
+                <option value="KRC-NZ-0117" data-jur="NZ" data-type="Long only">Kauri Ridge Capital · KRC-NZ-0117</option>
+                <option value="TRA-UK-0088" data-jur="UK" data-type="Long only">Thames Reach Asset Management · TRA-UK-0088</option>
+                <option value="MBI-SG-0071" data-jur="SG" data-type="Sovereign wealth">Marina Bay Investments · MBI-SG-0071</option>
+                <option value="GLE-US-0205" data-jur="US" data-type="Long only">Great Lakes Equity Partners · GLE-US-0205</option>
+              </select>
+              <div class="bj-hint" id="investorHint">Hedge fund · domiciled <b>Hong Kong</b> · wall-crossed 9:12am by J. Nguyen</div>
+            </div>
+            <div class="bj-row">
+              <div class="bj-field">
+                <label for="demandAud">Demand (A$m)</label>
+                <input type="number" id="demandAud" name="demandAud" value="40" min="0.1" step="0.1" inputmode="decimal">
+              </div>
+              <div class="bj-field">
+                <label for="limitPrice">Limit (A$)</label>
+                <input type="number" id="limitPrice" name="limitPrice" value="3.85" step="0.01" min="0" disabled>
+              </div>
+            </div>
+            <div class="bj-field">
+              <label>Order type</label>
+              <div class="bj-seg" role="radiogroup">
+                <label><input type="radio" name="orderType" value="strike" checked><span>Strike</span></label>
+                <label><input type="radio" name="orderType" value="limit"><span>Limit</span></label>
+              </div>
+            </div>
+            <label class="bj-check"><input type="checkbox" id="confirmed" checked> Order confirmed with the client on a recorded line</label>
+            <button type="submit" id="submitBtn">Submit to book</button>
+          </form>
+          <div id="result" role="status" aria-live="polite"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <footer class="bj-foot">
+    <span>Barrenjoey Markets Pty Limited · Front Office · Internal use only</span>
+    <span>Contains wall-crossed information — handle under the Barrenjoey inside information policy</span>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var JURISDICTIONS = { AU: 'Australia', NZ: 'New Zealand', UK: 'United Kingdom', HK: 'Hong Kong', SG: 'Singapore', US: 'United States' };
+      var form = document.getElementById('orderForm');
+      var dealId = document.getElementById('dealId');
+      var investorId = document.getElementById('investorId');
+      var investorHint = document.getElementById('investorHint');
+      var demandAud = document.getElementById('demandAud');
+      var limitPrice = document.getElementById('limitPrice');
+      var submitBtn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var bookRows = document.getElementById('bookRows');
+      var book = { demand: 1084, orders: 63, size: 450, offerPrice: 3.85 };
+
+      function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      function show(html, kind) { result.className = kind ? 'is-' + kind : ''; result.innerHTML = html; }
+      function orderType() { return form.querySelector('input[name="orderType"]:checked').value; }
+
+      investorId.addEventListener('change', function () {
+        var opt = investorId.selectedOptions[0];
+        investorHint.innerHTML = esc(opt.dataset.type) + ' · domiciled <b>' + esc(JURISDICTIONS[opt.dataset.jur]) + '</b>' +
+          (opt.dataset.jur === 'AU' || opt.dataset.jur === 'NZ' ? '' : ' · wall-crossed 9:12am by J. Nguyen');
+      });
+      form.addEventListener('change', function (e) {
+        if (e.target.name === 'orderType') limitPrice.disabled = orderType() !== 'limit';
+      });
+
+      var close = new Date(); close.setHours(close.getHours() + 4, close.getMinutes() + 12, close.getSeconds() + 33);
+      var clock = document.getElementById('dealClock');
+      setInterval(function () {
+        var s = Math.max(0, Math.floor((close - Date.now()) / 1000));
+        clock.textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(function (n) { return String(n).padStart(2, '0'); }).join(':');
+      }, 1000);
+
+      function addToBook(d) {
+        var t = new Date().toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }).replace(' ', '').toLowerCase();
+        var label = d.orderType === 'limit' ? 'Limit ' + Number(d.limitPrice).toFixed(2) : 'Strike';
+        var jur = (d.jurisdiction || '').split('-')[0];
+        var row = document.createElement('tr');
+        row.className = 'is-new';
+        row.innerHTML = '<td>' + esc(t) + '</td><td>' + esc(d.investor) + '</td><td>' + esc(d.investorType) + '</td><td><span class="bj-jur">' + esc(jur) +
+          '</span></td><td class="num">' + Number(d.demandAud).toFixed(1) + '</td><td><span class="bj-ot">' + esc(label) + '</span></td><td>J. Nguyen</td>';
+        bookRows.insertBefore(row, bookRows.firstChild);
+        if (d.orderType !== 'limit' || Number(d.limitPrice) >= book.offerPrice) book.demand += Number(d.demandAud);
+        book.orders += 1;
+        document.getElementById('statDemand').textContent = 'A$' + Math.round(book.demand).toLocaleString('en-AU') + 'm';
+        document.getElementById('statCover').textContent = (book.demand / book.size).toFixed(2) + 'x';
+        document.getElementById('statOrders').textContent = book.orders;
+      }
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (!document.getElementById('confirmed').checked) {
+          show('<strong>Confirm the order with the client first.</strong>Orders can only be entered once confirmed on a recorded line.', 'error');
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+        show('', '');
+        var type = orderType();
+        try {
+          var res = await fetch('/api/53e4e7e3/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              dealId: dealId.value,
+              investorId: investorId.value,
+              demandAud: Number(demandAud.value),
+              orderType: type,
+              limitPrice: type === 'limit' ? Number(limitPrice.value) : null,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            }),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.status === 400 || res.status === 404) {
+            show('<strong>Order not entered.</strong>' + esc(data.error || 'Check the order details and try again.'), 'error');
+            return;
+          }
+          if (!res.ok || data.success === false) {
+            var err = new Error(data.error || 'order entry failed');
+            err.requestId = data.requestId;
+            throw err;
+          }
+          addToBook(data);
+          show('<strong>In the book — ' + esc(data.investor) + ' A$' + Number(data.demandAud).toFixed(1) + 'm ' + esc(data.orderType) + '</strong>' +
+            esc(data.issuer) + ' · ' + Number(data.shares).toLocaleString('en-AU') + ' shares · eligibility: ' + esc(data.eligibility.investorTest) +
+            ' · ref <code>' + esc(String(data.orderId).slice(0, 8).toUpperCase()) + '</code>', 'ok');
+        } catch (err) {
+          show('<strong>Order not entered — the bookbuild service returned an error.</strong>The order has not been added to the book. Hold it on the desk and retry, or call ECM Platform support on x6000' +
+            (err.requestId ? ' quoting <code>' + esc(err.requestId) + '</code>' : '') + '.', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit to book';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

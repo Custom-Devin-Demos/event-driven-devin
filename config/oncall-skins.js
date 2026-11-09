@@ -8899,6 +8899,40 @@ const ONCALL_SKINS = {
     page: { file: '0bd02f01.html', title: 'The trusted source for open source | Chainguard' },
     disclaimer: 'NOT ACTUALLY A CHAINGUARD SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Chainguard product.',
   },
+  '53e4e7e3': {
+    slug: '53e4e7e3',
+    company: 'Barrenjoey',
+    brandMark: 'B',
+    vertical: 'bookbuild',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/barrenjoey', '/barrenjoey-oncall'],
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Barrenjoey Front Office bookbuild page linked above, an internal tool the ECM syndicate desk uses to enter institutional orders into live books. Its Submit to book button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 Bookbuild order entry", release ecm-bookbuild@2026.11.1, owner team ecm-platform-oncall: Submit to book fails immediately with HTTP 500 for Hong Kong investor accounts while orders from other jurisdictions go into the book.',
+        'Use "Bookbuild" and "order entry" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Tom Whitlam (ecm-platform-oncall)". Tom Whitlam is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: '53e4e7e3.html', title: 'Bookbuild | Barrenjoey Front Office' },
+    alertCard: {
+      title: '5xx rate \u2014 Bookbuild order entry',
+      release: 'ecm-bookbuild@2026.11.1',
+      team: 'ecm-platform-oncall',
+      symptom: 'Submit to book fails immediately with HTTP 500 for Hong Kong investor accounts in the live placement book; the order is not added. Orders from AU, NZ, UK, SG and US accounts go into the book normally. Latency is normal.',
+      impact: 'The syndicate desk cannot enter Hong Kong demand into a live book; orders are held on the desk while the book-close clock runs.',
+    },
+    theme: {
+      '--accent': '#D58A5D',
+      '--ink': '#212121',
+      '--surface': '#F7F4EF',
+      '--chrome-bg': '#2A3037',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'ECM Platform support',
+    disclaimer: 'NOT ACTUALLY A BARRENJOEY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barrenjoey product.',
+  },
 };
 
 function getOncallSkin(slug) {

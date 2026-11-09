@@ -20,6 +20,7 @@ const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
 const { changeoverLine } = require('../services/oncall-verticals/linecontrol');
+const { enterOrder: enterBookbuildOrder } = require('../services/oncall-verticals/bookbuild');
 const { quoteRates } = require('../services/oncall-verticals/shippingrates');
 const { submitAogRequest } = require('../services/oncall-verticals/aogrequest');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
@@ -939,6 +940,32 @@ router.post('/api/oncall/linecontrol/changeover', async (req, res) => {
       error: notFound ? error.message : 'Changeover failed: station recipe download was rejected.',
       errorClass: error.name,
       code: error.code || 'CHANGEOVER_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/bookbuild/orders — enter an institutional order into a live
+ * ECM bookbuild
+ */
+router.post('/api/oncall/bookbuild/orders', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await enterBookbuildOrder({
+      dealId: body.dealId,
+      investorId: body.investorId,
+      demandAud: body.demandAud,
+      orderType: body.orderType,
+      limitPrice: body.limitPrice,
+    }));
+  } catch (error) {
+    const status = { INVALID_ORDER: 400, DEAL_NOT_FOUND: 404, INVESTOR_NOT_FOUND: 404 }[error.code] || 500;
+    res.status(status).json({
+      success: false,
+      error: status === 500 ? 'Order could not be entered into the book.' : error.message,
+      errorClass: error.name,
+      code: error.code || 'BOOKBUILD_ORDER_FAILED',
       requestId: req.requestId,
     });
   }
