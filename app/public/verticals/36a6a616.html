@@ -281,7 +281,7 @@
       var annual = CART.reduce(function (s, c) { return s + c.annualUsd * c.quantity; }, 0);
       var list = annual * t.years;
       var save = list * t.savePct / 100;
-      var due = t.prepaid ? list - save : (annual * (1 - t.savePct / 100));
+      var due = t.prepaid ? list - save : CART.reduce(function (s, c) { return s + Math.round(c.annualUsd * c.quantity * (1 - t.savePct / 100) * 100) / 100; }, 0);
       document.getElementById('totals').innerHTML =
         '<div><span>Annual cost subtotal</span><span>' + usd(annual) + '</span></div>' +
         '<div><span>Term (' + t.years + ' yr) list</span><span>' + usd(list) + '</span></div>' +
@@ -291,7 +291,14 @@
       document.getElementById('termNote').textContent = t.note;
       document.getElementById('dates').value = t.dates;
     }
-    termEl.addEventListener('change', function () { renderTotals(); alertEl.classList.remove('on'); });
+    function clearQuote() {
+      alertEl.classList.remove('on');
+      successEl.classList.remove('on');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submit order';
+      submitBtn.title = 'Generate a quote first';
+    }
+    termEl.addEventListener('change', function () { renderTotals(); clearQuote(); });
     renderTotals();
 
     function setBusy(on) {
@@ -343,6 +350,15 @@
       }
     }
     genBtn.addEventListener('click', generateQuote);
+    submitBtn.addEventListener('click', function () {
+      if (submitBtn.disabled) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Order submitted';
+      var note = document.createElement('div');
+      note.className = 'note';
+      note.textContent = 'Order submitted to Northland Industrial Supply for processing. You will receive an order confirmation email.';
+      successEl.appendChild(note);
+    });
   })();
 </script>
 <script src="/session-cap-banner.js"></script>

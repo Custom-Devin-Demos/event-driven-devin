@@ -960,7 +960,7 @@ router.post('/api/oncall/softwarequote/quote', async (req, res) => {
       country: body.country,
     }));
   } catch (error) {
-    const status = { INVALID_TERM: 400, EMPTY_CART: 400, PRODUCT_NOT_FOUND: 404 }[error.code] || 500;
+    const status = { INVALID_TERM: 400, EMPTY_CART: 400, INVALID_QUANTITY: 400, PRODUCT_NOT_FOUND: 404 }[error.code] || 500;
     res.status(status).json({
       success: false,
       error: status === 500 ? 'We were unable to generate your quote.' : error.message,

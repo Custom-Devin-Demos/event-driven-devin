@@ -50,7 +50,12 @@ function quoteLine(item, term) {
     error.code = 'PRODUCT_NOT_FOUND';
     throw error;
   }
-  const quantity = Math.max(1, Math.min(999, parseInt(item.quantity, 10) || 1));
+  const quantity = Number(item.quantity);
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) {
+    const error = new Error(`Quantity for ${catalog} must be a whole number from 1 to 999`);
+    error.code = 'INVALID_QUANTITY';
+    throw error;
+  }
   const condition = PRICING_CONDITIONS[term.pricingCondition];
   const annualNet = roundUsd(product.annualUsd * quantity * (1 - condition.discountPct / 100));
   return {
@@ -126,7 +131,7 @@ async function generateQuote(request, options = {}) {
     logger.error('Software quote failed', {
       quoteRequestId, error: error.message, errorClass: error.name, code: error.code, durationMs: duration, agreementTerm: termId, lines: items.length,
     });
-    if (!['INVALID_TERM', 'EMPTY_CART', 'PRODUCT_NOT_FOUND'].includes(error.code)) {
+    if (!['INVALID_TERM', 'EMPTY_CART', 'PRODUCT_NOT_FOUND', 'INVALID_QUANTITY'].includes(error.code)) {
       Sentry.captureException(error, {
         tags: { route: ROUTE, service: 'commerce-quote-api', ...(options.synthetic ? { synthetic_probe: 'true' } : {}) },
         extra: { quoteRequestId, agreementTerm: termId, lines: items.length, country },

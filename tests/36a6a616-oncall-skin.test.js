@@ -111,6 +111,12 @@ describe('36a6a616 myRockwell Commerce Portal on-call skin', () => {
     expect(data.dueAtOrderUsd).toBe(data.annualNetUsd);
   });
 
+  test.each([0, -2, 1000, 2.5, 'abc', null])('rejects quantity %p with a 400 instead of repricing the cart', async (quantity) => {
+    const res = await post('/api/oncall/softwarequote/quote', { agreementTerm: 'ANNUAL_1Y', items: [{ catalog: '9324-RLD300SUBENE', quantity }] });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ success: false, code: 'INVALID_QUANTITY' });
+  });
+
   test('invalid terms, empty carts and unknown catalog numbers are client errors', async () => {
     const [term, empty, product] = await Promise.all([
       post('/api/oncall/softwarequote/quote', { agreementTerm: 'FOREVER', items: CART }),
