@@ -494,6 +494,15 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A DUNELM SITE — internal demo only, not affiliated with, endorsed by, or a real Dunelm product.',
   },
+  '3cbaad4b': {
+    slug: '3cbaad4b',
+    company: 'FactSet',
+    vertical: 'hightech',
+    teamsAlerts: true,
+    alertDestination: 'teams',
+    page: { file: '3cbaad4b.html', title: 'FactSet Pricing | Explore FactSet Cost' },
+    disclaimer: 'NOT ACTUALLY A FACTSET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real FactSet product.',
+  },
   '8bdcfab6': {
     slug: '8bdcfab6',
     company: 'Robinhood',
