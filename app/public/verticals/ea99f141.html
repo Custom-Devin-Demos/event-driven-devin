@@ -590,8 +590,9 @@ guarantee</p></article></div></div></div></section></main><footer class="PvSZgW_
     return id;
   }
   function field(name) {
-    var el = document.querySelector('#address-form-banner [name="' + name + '"]');
-    return el ? el.value : '';
+    var els = document.querySelectorAll('form [name="' + name + '"]');
+    for (var i = 0; i < els.length; i++) { if (els[i].value.trim()) return els[i].value.trim(); }
+    return '';
   }
   var signIn = document.getElementById('internet-hero-sign-in');
   if (signIn) signIn.addEventListener('click', function (e) {
@@ -604,7 +605,7 @@ guarantee</p></article></div></div></div></section></main><footer class="PvSZgW_
       body: JSON.stringify({
         entryPoint: 'internet-hero',
         deviceId: deviceId(),
-        serviceZip: field('zipCode') || field('zip'),
+        serviceZip: field('zip'),
         devinUserId: localStorage.getItem('devinUserId') || '',
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || ''
