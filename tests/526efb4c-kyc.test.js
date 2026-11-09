@@ -318,7 +318,7 @@ describe('France (FR) market', () => {
   });
 
   test('nationality: all nationalities, distinct, or stateless / protection status', () => {
-    expect(validate('nationality', {}).errors).toEqual({ nationalityStatus: 'Nationality status is required' });
+    expect(validate('nationality', {}).errors).toEqual({ nationalityStatus: 'Statut de nationalité / Nationality status is required' });
     expect(Object.keys(validate('nationality', { nationalityStatus: 'national' }).errors)).toEqual(['nationality', 'hasOtherNationality']);
     expect(errs('nationality', { secondNationality: '' }).secondNationality).toMatch(/required/);
     expect(errs('nationality', { secondNationality: 'FR' }).secondNationality).toMatch(/already/);
@@ -360,7 +360,7 @@ describe('France (FR) market', () => {
     expect(errs('residential-address', { postCode: '20000' }).postCode).toBeUndefined();
     expect(errs('residential-address', { country: 'GP', postCode: '97110' })).toEqual({});
     expect(errs('residential-address', { country: 'GP', postCode: '75002' }).postCode).toBeDefined();
-    expect(errs('residential-address', { country: 'DE', postCode: '10115' })).toEqual({ region: 'State / Province / Region is required' });
+    expect(errs('residential-address', { country: 'DE', postCode: '10115' })).toEqual({ region: 'État, province ou région / State, Province or Region is required' });
     expect(errs('residential-address', { country: 'DE', region: 'Berlin', postCode: '10115' })).toEqual({});
     expect(errs('residential-address', { country: 'US', postCode: '9812' })).toMatchObject({ state: expect.any(String), postCode: 'Enter a 5-digit Zip code' });
   });
@@ -395,7 +395,7 @@ describe('France (FR) market', () => {
   });
 
   test('PEP declaration: function, country, related person and end date when relevant', () => {
-    expect(validate('pep', {}).errors).toEqual({ pepStatus: 'Which of the following applies to you? is required' });
+    expect(validate('pep', {}).errors).toEqual({ pepStatus: 'Laquelle des situations suivantes vous concerne ? / Which of the following applies to you? is required' });
     expect(validate('pep', { pepStatus: 'no', pepFunction: '<x>' }).valid).toBe(true);
     expect(Object.keys(validate('pep', { pepStatus: 'pep' }).errors)).toEqual(['pepFunction', 'pepCountry']);
     expect(Object.keys(validate('pep', { pepStatus: 'former-pep' }).errors)).toEqual(['pepFunction', 'pepCountry', 'pepEndDate']);
