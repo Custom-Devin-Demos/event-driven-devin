@@ -229,9 +229,9 @@
           <div class="bj-card-h">
             <div><h2>Book</h2><small>Most recent first · amounts in A$m</small></div>
             <div class="bj-tabs" role="tablist">
-              <button type="button" class="is-active">All</button>
-              <button type="button">Strike</button>
-              <button type="button">Limit</button>
+              <button type="button" class="is-active" data-filter="all" aria-pressed="true">All</button>
+              <button type="button" data-filter="strike" aria-pressed="false">Strike</button>
+              <button type="button" data-filter="limit" aria-pressed="false">Limit</button>
             </div>
           </div>
           <div class="bj-table-wrap">
@@ -253,10 +253,10 @@
           </div>
           <div class="bj-mix">
             <h3>Demand by investor type</h3>
-            <div class="bj-bar"><span>Long only</span><span class="track"><i style="width:82%"></i></span><b>A$412m</b></div>
-            <div class="bj-bar"><span>Super funds</span><span class="track"><i style="width:64%"></i></span><b>A$318m</b></div>
-            <div class="bj-bar"><span>Hedge funds</span><span class="track"><i style="width:38%"></i></span><b>A$189m</b></div>
-            <div class="bj-bar"><span>Sovereign wealth</span><span class="track"><i style="width:33%"></i></span><b>A$165m</b></div>
+            <div class="bj-bar" data-type="Long only" data-demand="412"><span>Long only</span><span class="track"><i style="width:82%"></i></span><b>A$412m</b></div>
+            <div class="bj-bar" data-type="Super fund" data-demand="318"><span>Super funds</span><span class="track"><i style="width:64%"></i></span><b>A$318m</b></div>
+            <div class="bj-bar" data-type="Hedge fund" data-demand="189"><span>Hedge funds</span><span class="track"><i style="width:38%"></i></span><b>A$189m</b></div>
+            <div class="bj-bar" data-type="Sovereign wealth" data-demand="165"><span>Sovereign wealth</span><span class="track"><i style="width:33%"></i></span><b>A$165m</b></div>
           </div>
         </section>
 
@@ -355,6 +355,25 @@
         clock.textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(function (n) { return String(n).padStart(2, '0'); }).join(':');
       }, 1000);
 
+      var bookFilter = 'all';
+      var tabs = document.querySelectorAll('.bj-tabs button');
+      function applyFilter() {
+        Array.prototype.forEach.call(bookRows.rows, function (tr) {
+          var kind = /^limit/i.test(tr.querySelector('.bj-ot').textContent) ? 'limit' : 'strike';
+          tr.hidden = bookFilter !== 'all' && kind !== bookFilter;
+        });
+      }
+      Array.prototype.forEach.call(tabs, function (btn) {
+        btn.addEventListener('click', function () {
+          bookFilter = btn.dataset.filter;
+          Array.prototype.forEach.call(tabs, function (b) {
+            b.classList.toggle('is-active', b === btn);
+            b.setAttribute('aria-pressed', String(b === btn));
+          });
+          applyFilter();
+        });
+      });
+
       function addToBook(d) {
         var t = new Date().toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }).replace(' ', '').toLowerCase();
         var label = d.orderType === 'limit' ? 'Limit ' + Number(d.limitPrice).toFixed(2) : 'Strike';
@@ -364,7 +383,17 @@
         row.innerHTML = '<td>' + esc(t) + '</td><td>' + esc(d.investor) + '</td><td>' + esc(d.investorType) + '</td><td><span class="bj-jur">' + esc(jur) +
           '</span></td><td class="num">' + Number(d.demandAud).toFixed(1) + '</td><td><span class="bj-ot">' + esc(label) + '</span></td><td>J. Nguyen</td>';
         bookRows.insertBefore(row, bookRows.firstChild);
-        if (d.orderType !== 'limit' || Number(d.limitPrice) >= book.offerPrice) book.demand += Number(d.demandAud);
+        applyFilter();
+        if (d.orderType !== 'limit' || Number(d.limitPrice) >= book.offerPrice) {
+          book.demand += Number(d.demandAud);
+          var bar = document.querySelector('.bj-bar[data-type="' + d.investorType + '"]');
+          if (bar) {
+            var amt = Number(bar.dataset.demand) + Number(d.demandAud);
+            bar.dataset.demand = amt;
+            bar.querySelector('b').textContent = 'A$' + Math.round(amt).toLocaleString('en-AU') + 'm';
+            bar.querySelector('i').style.width = Math.min(100, Math.round(amt / 5)) + '%';
+          }
+        }
         book.orders += 1;
         document.getElementById('statDemand').textContent = 'A$' + Math.round(book.demand).toLocaleString('en-AU') + 'm';
         document.getElementById('statCover').textContent = (book.demand / book.size).toFixed(2) + 'x';
