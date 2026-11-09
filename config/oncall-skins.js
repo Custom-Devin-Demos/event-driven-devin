@@ -8913,6 +8913,14 @@ const ONCALL_SKINS = {
     supportCenter: 'Commerce Portal support',
     disclaimer: 'NOT ACTUALLY A ROCKWELL AUTOMATION SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rockwell Automation product. Customer, distributor, catalog and pricing data are illustrative.',
   },
+  '991042b6': {
+    slug: '991042b6',
+    company: 'Afore Capital',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '991042b6.html', title: 'Afore Capital' },
+    disclaimer: 'NOT ACTUALLY AN AFORE CAPITAL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Afore Capital product.',
+  },
 };
 
 function getOncallSkin(slug) {
