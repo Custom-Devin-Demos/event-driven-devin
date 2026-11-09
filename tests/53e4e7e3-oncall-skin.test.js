@@ -117,6 +117,7 @@ describe('53e4e7e3 bookbuild order entry on-call skin', () => {
       ...ORDER, investorId: 'GLE-US-0205', orderType: 'limit', limitPrice: 3.5,
     })).status).toBe(400);
     expect((await post('/api/oncall/bookbuild/orders', { ...ORDER, investorId: 'HPS-AU-0042', demandAud: 0 })).status).toBe(400);
+    expect((await post('/api/oncall/bookbuild/orders', { ...ORDER, investorId: 'HPS-AU-0042', orderType: 'market' })).status).toBe(400);
     expect((await post('/api/oncall/bookbuild/orders', { ...ORDER, investorId: 'XXX-AU-0001' })).status).toBe(404);
     expect((await post('/api/oncall/bookbuild/orders', { ...ORDER, dealId: 'NOPE', investorId: 'HPS-AU-0042' })).status).toBe(404);
   });

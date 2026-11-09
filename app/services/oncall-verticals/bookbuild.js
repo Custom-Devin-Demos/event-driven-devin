@@ -60,7 +60,7 @@ async function enterOrder(order, options = {}) {
   const dealId = String(order.dealId || '');
   const investorId = String(order.investorId || '').toUpperCase();
   const demandAud = Number(order.demandAud);
-  const orderType = order.orderType === 'limit' ? 'limit' : 'strike';
+  const orderType = order.orderType == null || order.orderType === '' ? 'strike' : String(order.orderType);
   const limitPrice = orderType === 'limit' ? Number(order.limitPrice) : null;
 
   logger.info('Bookbuild order entry', {
@@ -74,6 +74,9 @@ async function enterOrder(order, options = {}) {
     if (!investor) throw rejectOrder('INVESTOR_NOT_FOUND', `Investor account ${investorId} is not in the client master.`);
     if (!Number.isFinite(demandAud) || demandAud <= 0) {
       throw rejectOrder('INVALID_ORDER', 'Enter the demand in A$m.');
+    }
+    if (orderType !== 'strike' && orderType !== 'limit') {
+      throw rejectOrder('INVALID_ORDER', 'Order type must be strike or limit.');
     }
     if (orderType === 'limit' && !(limitPrice >= deal.floorPrice)) {
       throw rejectOrder('INVALID_ORDER', `Limit must be at or above the A$${deal.floorPrice.toFixed(2)} floor.`);
