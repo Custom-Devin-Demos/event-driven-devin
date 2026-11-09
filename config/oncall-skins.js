@@ -8940,6 +8940,40 @@ const ONCALL_SKINS = {
     supportCenter: 'ECM Platform support',
     disclaimer: 'NOT ACTUALLY A BARRENJOEY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barrenjoey product.',
   },
+  '36a6a616': {
+    slug: '36a6a616',
+    company: 'Rockwell Automation',
+    brandMark: 'RA',
+    vertical: 'softwarequote',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/commerce-portal', '/software-portal-oncall'],
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the myRockwell Commerce Portal checkout page linked above, where customers and distributors quote and order FactoryTalk and Studio 5000 software subscriptions. Its Generate quote button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 Commerce Portal: Generate quote", release commerce-portal@2026.11.3, owner team commerce-portal-oncall: Generate quote fails immediately with HTTP 500 when the agreement term is 3 years, prepaid, while 1-year and 3-year annually billed quotes generate normally.',
+        'Use "Generate quote" and "3-year prepaid" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Priya Raman (commerce-portal-oncall)". Priya Raman is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: '36a6a616.html', title: 'Checkout | Commerce Portal | myRockwell' },
+    alertCard: {
+      title: '5xx rate \u2014 Commerce Portal: Generate quote',
+      release: 'commerce-portal@2026.11.3',
+      team: 'commerce-portal-oncall',
+      symptom: 'Generate quote at checkout fails immediately with HTTP 500 when the agreement term is 3 years, prepaid; no quote is created. 1-year and 3-year annually billed quotes for the same cart generate normally. Latency is normal.',
+      impact: 'Customers and distributors cannot quote or order 3-year prepaid FactoryTalk and Studio 5000 subscriptions online; prepaid renewals are falling back to manual quotes from sales.',
+    },
+    theme: {
+      '--accent': '#CD163F',
+      '--ink': '#2D2D2D',
+      '--surface': '#F4F4F4',
+      '--chrome-bg': '#FFFFFF',
+      '--chrome-text': '#2D2D2D',
+    },
+    supportCenter: 'Commerce Portal support',
+    disclaimer: 'NOT ACTUALLY A ROCKWELL AUTOMATION SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rockwell Automation product. Customer, distributor, catalog and pricing data are illustrative.',
+  },
 };
 
 function getOncallSkin(slug) {

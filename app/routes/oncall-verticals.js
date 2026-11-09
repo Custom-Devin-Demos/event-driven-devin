@@ -20,6 +20,7 @@ const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { evaluateReleaseGate } = require('../services/oncall-verticals/releasegate');
 const { changeoverLine } = require('../services/oncall-verticals/linecontrol');
+const { generateQuote } = require('../services/oncall-verticals/softwarequote');
 const { enterOrder: enterBookbuildOrder } = require('../services/oncall-verticals/bookbuild');
 const { quoteRates } = require('../services/oncall-verticals/shippingrates');
 const { submitAogRequest } = require('../services/oncall-verticals/aogrequest');
@@ -940,6 +941,31 @@ router.post('/api/oncall/linecontrol/changeover', async (req, res) => {
       error: notFound ? error.message : 'Changeover failed: station recipe download was rejected.',
       errorClass: error.name,
       code: error.code || 'CHANGEOVER_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/softwarequote/quote — price the cart under the selected
+ * agreement term and create a software quote
+ */
+router.post('/api/oncall/softwarequote/quote', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await generateQuote({
+      agreementTerm: body.agreementTerm,
+      items: body.items,
+      customerPo: body.customerPo,
+      country: body.country,
+    }));
+  } catch (error) {
+    const status = { INVALID_TERM: 400, EMPTY_CART: 400, PRODUCT_NOT_FOUND: 404 }[error.code] || 500;
+    res.status(status).json({
+      success: false,
+      error: status === 500 ? 'We were unable to generate your quote.' : error.message,
+      errorClass: error.name,
+      code: error.code || 'QUOTE_FAILED',
       requestId: req.requestId,
     });
   }

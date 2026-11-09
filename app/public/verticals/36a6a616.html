@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout | Commerce Portal | myRockwell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+  :root { --red: #CD163F; --red-dk: #A8102F; --ink: #2D2D2D; --ink2: #555; --mute: #767676; --line: #D8D8D8; --line2: #ECECEC; --bg: #F4F4F4; --blue: #1968B3; --ok: #1B7F3B; --okbg: #EAF6EE; --errbg: #FDECEF; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: Barlow, Arial, sans-serif; color: var(--ink); background: var(--bg); font-size: 15px; line-height: 1.4; }
+  a { color: var(--blue); text-decoration: none; }
+  button { font-family: inherit; }
+  .cookie { background: #333; color: #ddd; font-size: 12px; padding: 6px 16px; text-align: center; }
+  .cookie a { color: #fff; text-decoration: underline; margin: 0 4px; }
+  .cookie b { color: #fff; margin-left: 10px; cursor: pointer; font-weight: 600; }
+  header.top { background: #fff; border-bottom: 1px solid var(--line2); }
+  .top-in { max-width: 1280px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 18px; }
+  .top-in img { height: 34px; display: block; }
+  .portal { border-left: 1px solid var(--line); padding-left: 16px; font-size: 18px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .who { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--ink2); }
+  .who .acct { text-align: right; line-height: 1.25; }
+  .who .acct b { display: block; color: var(--ink); font-weight: 600; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: #3A3A3A; color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+  nav.tabs { background: #fff; border-bottom: 3px solid var(--red); }
+  .tabs-in { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 4px; }
+  .tabs-in .t { padding: 13px 14px 11px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: var(--ink); text-transform: uppercase; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -3px; }
+  .tabs-in .t.on { background: var(--red); color: #fff; border-color: var(--red); }
+  .tabs-in .sp { flex: 1; }
+  .search { display: flex; align-items: center; }
+  .search input { height: 32px; width: 260px; border: 1px solid var(--line); border-right: 0; padding: 0 10px; font-family: inherit; font-size: 13px; }
+  .search button { height: 32px; border: 0; background: var(--red); color: #fff; font-weight: 600; font-size: 12px; letter-spacing: .05em; padding: 0 14px; cursor: pointer; }
+  .ts { margin-left: 12px; height: 32px; border: 1px solid var(--blue); background: #fff; color: var(--blue); font-weight: 600; font-size: 12px; padding: 0 12px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+  main { max-width: 1280px; margin: 0 auto; padding: 18px 24px 48px; }
+  .crumb { font-size: 13px; color: var(--mute); }
+  .crumb a { color: var(--ink2); }
+  .back { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: var(--blue); }
+  h1 { font-size: 30px; font-weight: 600; margin: 6px 0 16px; }
+  .alert { display: none; border: 1px solid var(--red); border-left-width: 6px; background: var(--errbg); padding: 14px 16px; margin-bottom: 16px; border-radius: 2px; }
+  .alert.on { display: block; }
+  .alert b { color: var(--red-dk); font-size: 16px; display: block; margin-bottom: 2px; }
+  .alert small { color: var(--mute); display: block; margin-top: 6px; font-size: 12px; }
+  .success { display: none; border: 1px solid var(--ok); border-left-width: 6px; background: var(--okbg); padding: 14px 16px; margin-bottom: 16px; border-radius: 2px; }
+  .success.on { display: block; }
+  .success b.h { color: var(--ok); font-size: 16px; display: block; margin-bottom: 6px; }
+  .success table { border-collapse: collapse; font-size: 13px; margin-top: 6px; width: 100%; max-width: 640px; }
+  .success td { padding: 3px 12px 3px 0; }
+  .success td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 20px; align-items: start; }
+  .card { background: #fff; border: 1px solid var(--line2); margin-bottom: 16px; }
+  .card .hd { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: #EDEDED; font-weight: 600; font-size: 16px; }
+  .card .hd a { font-size: 12px; font-weight: 600; letter-spacing: .04em; }
+  .card .bd { padding: 14px 16px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .addr { font-size: 14px; color: var(--ink2); line-height: 1.5; }
+  .addr b { color: var(--ink); }
+  .lbl { display: block; font-size: 12px; font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .lbl i { color: var(--red); font-style: normal; }
+  select, input.f, textarea { width: 100%; height: 36px; border: 1px solid #BDBDBD; border-radius: 2px; padding: 0 10px; font-family: inherit; font-size: 14px; color: var(--ink); background: #fff; }
+  textarea { height: 64px; padding: 8px 10px; resize: vertical; }
+  .row { margin-bottom: 14px; }
+  .radio { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; margin-bottom: 12px; }
+  .radio label { display: flex; align-items: center; gap: 6px; }
+  .note { font-size: 12px; color: var(--mute); margin-top: 4px; }
+  .note.r { color: var(--red-dk); }
+  .po { display: flex; gap: 10px; }
+  .po input { flex: 1; }
+  .btn { height: 36px; padding: 0 16px; border-radius: 2px; font-weight: 600; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+  .btn.red { background: var(--red); border: 1px solid var(--red); color: #fff; }
+  .btn.red:hover { background: var(--red-dk); }
+  .btn.out { background: #fff; border: 1px solid var(--red); color: var(--red); }
+  .btn.out:hover { background: #FFF5F7; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .dist { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 10px; }
+  .sum { position: sticky; top: 12px; }
+  .item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line2); }
+  .item:first-child { padding-top: 0; }
+  .box { width: 52px; height: 60px; flex: none; border-radius: 2px; background: linear-gradient(160deg, #2E2E2E 0%, #4A4A4A 60%, var(--red) 60%, var(--red) 64%, #4A4A4A 64%); color: #fff; font-size: 8px; font-weight: 700; padding: 5px; line-height: 1.1; text-transform: uppercase; }
+  .item .d { flex: 1; min-width: 0; font-size: 13px; }
+  .item .d b { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .item .d span { color: var(--mute); display: block; }
+  .item .p { text-align: right; font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .item .p small { display: block; color: var(--mute); }
+  .tot { font-size: 14px; padding-top: 10px; }
+  .tot div { display: flex; justify-content: space-between; padding: 3px 0; font-variant-numeric: tabular-nums; }
+  .tot .save { color: var(--ok); }
+  .tot .grand { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; font-size: 18px; font-weight: 700; }
+  .promo { display: flex; gap: 8px; margin: 12px 0 4px; }
+  .promo input { flex: 1; }
+  .agree { display: flex; gap: 8px; font-size: 12px; color: var(--ink2); margin: 14px 0; align-items: flex-start; }
+  .agree input { margin-top: 2px; }
+  .actions { display: flex; gap: 10px; }
+  .actions .btn { flex: 1; }
+  .spin { display: inline-block; width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  footer.ft { background: #2D2D2D; color: #BDBDBD; font-size: 13px; }
+  .ft-in { max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+  .ft-in a { color: #E0E0E0; }
+  .ft-in .r { margin-left: auto; }
+  @media (max-width: 980px) {
+    .grid { grid-template-columns: 1fr; }
+    .sum { position: static; }
+    .search, .ts span { display: none; }
+  }
+  @media (max-width: 640px) {
+    .top-in { padding: 10px 14px; gap: 10px; }
+    .top-in img { height: 26px; }
+    .portal { font-size: 14px; padding-left: 10px; }
+    .who .acct { display: none; }
+    .tabs-in { padding: 0 8px; overflow-x: auto; scrollbar-width: none; }
+    .tabs-in::-webkit-scrollbar { display: none; }
+    main { padding: 14px 14px 36px; }
+    h1 { font-size: 24px; }
+    .two { grid-template-columns: 1fr; }
+    .po { flex-direction: column; }
+    .actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="cookie" id="cookie">Our website uses cookies to enhance your experience. By continuing to use this site you agree to our use of cookies.<a href="#">Privacy and cookie policy</a><b onclick="this.parentNode.remove()">CLOSE</b></div>
+<header class="top">
+  <div class="top-in">
+    <img src="/verticals/36a6a616/ra-logo.svg" alt="Rockwell Automation">
+    <div class="portal">Commerce Portal</div>
+    <div class="who">
+      <div class="acct"><b>Great Lakes Packaging Co.</b>BPID 0001042871 · Milwaukee, WI</div>
+      <div class="avatar" title="Mark Kowalski">MK</div>
+    </div>
+  </div>
+</header>
+<nav class="tabs">
+  <div class="tabs-in">
+    <a class="t" href="#">Products</a>
+    <a class="t" href="#">My Subscriptions</a>
+    <a class="t" href="#">My Orders</a>
+    <a class="t" href="#">Help &amp; Support</a>
+    <a class="t" href="#">My Tickets</a>
+    <a class="t on" href="#">My Cart (4)</a>
+    <div class="sp"></div>
+    <div class="search"><input placeholder="Search catalog number or product"><button type="button">SEARCH</button></div>
+    <button class="ts" type="button">&#9881; <span>Transaction Settings</span></button>
+  </div>
+</nav>
+<main>
+  <div class="crumb"><a href="#">Home</a> › <a href="#">Your Cart</a> › Checkout</div>
+  <a class="back" href="#">‹ UPDATE CART</a>
+  <h1>Checkout</h1>
+
+  <div class="alert" id="alert" role="alert">
+    <b>We were unable to generate your quote.</b>
+    <span id="alertMsg">Something went wrong while pricing your cart. Please try again later, or contact Customer Care and quote the reference below.</span>
+    <small id="alertRef"></small>
+  </div>
+  <div class="success" id="success" role="status"></div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="hd"><span>Shipping &amp; Billing</span><a href="#">✎ EDIT</a></div>
+        <div class="bd two">
+          <div class="addr"><span class="lbl">Shipping</span><b>Great Lakes Packaging Co.</b><br>Attn: Controls Engineering<br>2210 W. Canal St.<br>Milwaukee, WI 53233, United States<br><span class="note">Ship-to BPID 0001042871</span></div>
+          <div class="addr"><span class="lbl">Billing</span><b>Great Lakes Packaging Co.</b><br>Accounts Payable<br>2210 W. Canal St.<br>Milwaukee, WI 53233, United States<br><span class="note">✓ Same as shipping address</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><span>Contract Details</span><a href="#">✎ EDIT</a></div>
+        <div class="bd">
+          <div class="dist"><input type="checkbox" checked disabled> Complete transaction through distributor: <b>Northland Industrial Supply (Milwaukee)</b></div>
+          <div class="radio">
+            <label><input type="radio" name="align" checked> Align with contract anniversary</label>
+            <label><input type="radio" name="align"> Align with a previous order</label>
+          </div>
+          <div class="two">
+            <div class="row">
+              <label class="lbl" for="term">Agreement term <i>*</i></label>
+              <select id="term">
+                <option value="ANNUAL_1Y">1 year, billed annually</option>
+                <option value="ANNUAL_3Y">3 years, billed annually (save 5%)</option>
+                <option value="PREPAID_3Y" selected>3 years, prepaid (save 12%)</option>
+              </select>
+              <div class="note" id="termNote"></div>
+            </div>
+            <div class="row">
+              <label class="lbl">Contract anniversary</label>
+              <input class="f" value="12/01/2026 – 11/30/2029" id="dates" readonly>
+              <div class="note">Contract SC-00417726 · renewal of 18 seats</div>
+            </div>
+          </div>
+          <div class="note r">Thank you for aligning your software with your company's contract anniversary date. Prorated pricing has been applied to add-on seats.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><span>Purchase Order</span></div>
+        <div class="bd">
+          <div class="row">
+            <label class="lbl" for="po">Customer PO number <i>*</i></label>
+            <div class="po"><input class="f" id="po" value="GLP-PO-2026-4471"><button class="btn red" type="button">Attach your PO</button></div>
+            <div class="note">GLP-PO-2026-4471.pdf attached · 182 KB</div>
+          </div>
+          <div class="row" style="margin-bottom:0">
+            <label class="lbl" for="si">Special instructions</label>
+            <textarea id="si" maxlength="250">Please send the quote to Northland Industrial Supply and cc controls-eng@greatlakespkg.example.</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="sum">
+      <div class="card">
+        <div class="hd"><span>Order Summary</span><span style="font-size:13px;font-weight:500;color:var(--mute)">4 items · USD</span></div>
+        <div class="bd">
+          <div id="items"></div>
+          <div class="promo"><input class="f" placeholder="Promo code"><button class="btn out" type="button">Apply</button></div>
+          <div class="tot" id="totals"></div>
+          <label class="agree"><input type="checkbox" id="agree" checked> I have read and agree to the Rockwell Automation Software Agreement and Terms &amp; Conditions of Sale.</label>
+          <div class="actions">
+            <button class="btn out" type="button" id="genQuote">Generate quote</button>
+            <button class="btn red" type="button" id="submitOrder" disabled title="Generate a quote first">Submit order</button>
+          </div>
+          <div class="note" style="margin-top:8px">Quotes are valid for 30 days and can be assigned to another user for checkout.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+<footer class="ft">
+  <div class="ft-in">
+    <a href="#">Contact Customer Care</a><a href="#">Software Agreement</a><a href="#">Terms &amp; Conditions of Sale</a><a href="#">Privacy</a>
+    <span class="r">Commerce Portal 2026.11.3</span>
+  </div>
+</footer>
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+  function devinIdentity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+    };
+  }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  (function () {
+    var CART = [
+      { catalog: '9324-RLD300SUBENE', name: 'Studio 5000 Logix Designer Standard Edition', family: 'Studio 5000', meta: 'Subscription · single user', quantity: 12, annualUsd: 1670.89 },
+      { catalog: '9324-RLDGLXSUBENE', name: 'Studio 5000 GuardLogix Safety Editor', family: 'Studio 5000', meta: 'Add-on · prorated to anniversary', quantity: 4, annualUsd: 288.12 },
+      { catalog: '9541-OPXSTDPROSUB', name: 'FactoryTalk Optix Studio Pro', family: 'FactoryTalk Optix', meta: 'Subscription · single user', quantity: 2, annualUsd: 2450.0 },
+      { catalog: 'TC-SW-STD-SUB', name: 'TechConnect Standard Support', family: 'Support', meta: 'Included with subscription', quantity: 1, annualUsd: 0 },
+    ];
+    var TERMS = {
+      ANNUAL_1Y: { years: 1, savePct: 0, prepaid: false, dates: '12/01/2026 – 11/30/2027', note: 'Invoiced annually on the contract anniversary.' },
+      ANNUAL_3Y: { years: 3, savePct: 5, prepaid: false, dates: '12/01/2026 – 11/30/2029', note: '3-year commitment, invoiced annually.' },
+      PREPAID_3Y: { years: 3, savePct: 12, prepaid: true, dates: '12/01/2026 – 11/30/2029', note: 'Full 3-year term invoiced at order. Recommended for renewals.' },
+    };
+    var termEl = document.getElementById('term');
+    var genBtn = document.getElementById('genQuote');
+    var submitBtn = document.getElementById('submitOrder');
+    var alertEl = document.getElementById('alert');
+    var successEl = document.getElementById('success');
+    var busy = false;
+    function usd(n) { return '$USD ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    document.getElementById('items').innerHTML = CART.map(function (c) {
+      return '<div class="item"><div class="box">' + esc(c.family) + '</div><div class="d"><b>' + esc(c.name) + '</b><span>' + esc(c.catalog) + '</span><span>' + esc(c.meta) + ' · Qty ' + c.quantity + '</span></div>' +
+        '<div class="p">' + (c.annualUsd ? usd(c.annualUsd * c.quantity) + '<small>per year</small>' : 'Included') + '</div></div>';
+    }).join('');
+
+    function renderTotals() {
+      var t = TERMS[termEl.value];
+      var annual = CART.reduce(function (s, c) { return s + c.annualUsd * c.quantity; }, 0);
+      var list = annual * t.years;
+      var save = list * t.savePct / 100;
+      var due = t.prepaid ? list - save : (annual * (1 - t.savePct / 100));
+      document.getElementById('totals').innerHTML =
+        '<div><span>Annual cost subtotal</span><span>' + usd(annual) + '</span></div>' +
+        '<div><span>Term (' + t.years + ' yr) list</span><span>' + usd(list) + '</span></div>' +
+        (save ? '<div class="save"><span>Agreement savings (' + t.savePct + '%)</span><span>– ' + usd(save) + '</span></div>' : '') +
+        '<div><span>One-time cost subtotal</span><span>' + usd(0) + '</span></div>' +
+        '<div class="grand"><span>' + (t.prepaid ? 'Cart total (due at order)' : 'Due at order (year 1)') + '</span><span>' + usd(due) + '</span></div>';
+      document.getElementById('termNote').textContent = t.note;
+      document.getElementById('dates').value = t.dates;
+    }
+    termEl.addEventListener('change', function () { renderTotals(); alertEl.classList.remove('on'); });
+    renderTotals();
+
+    function setBusy(on) {
+      busy = on;
+      genBtn.disabled = on;
+      genBtn.innerHTML = on ? '<span class="spin"></span>Generating…' : 'Generate quote';
+    }
+
+    async function generateQuote() {
+      if (busy) return;
+      if (!document.getElementById('agree').checked) { alert('Please accept the Software Agreement to continue.'); return; }
+      alertEl.classList.remove('on');
+      successEl.classList.remove('on');
+      submitBtn.disabled = true;
+      setBusy(true);
+      try {
+        var res = await fetch('/api/36a6a616/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({
+            agreementTerm: termEl.value,
+            customerPo: document.getElementById('po').value,
+            country: 'US',
+            items: CART.map(function (c) { return { catalog: c.catalog, quantity: c.quantity }; }),
+          }, devinIdentity())),
+        });
+        var d = await res.json().catch(function () { return {}; });
+        if (!res.ok || d.success === false) {
+          var err = new Error(d.error || 'Quote failed');
+          err.ref = d.requestId || ('CP-' + Date.now().toString(36).toUpperCase());
+          err.status = res.status;
+          throw err;
+        }
+        await new Promise(function (r) { setTimeout(r, 700); });
+        setBusy(false);
+        successEl.innerHTML = '<b class="h">✓ Quote ' + esc(d.quoteNumber) + ' created</b>' +
+          'Status <b>Quote</b> · ' + esc(d.termLabel) + ' · valid until ' + esc(d.validUntil) + ' · PO ' + esc(d.customerPo || '—') +
+          '<table>' + d.lines.map(function (l) { return '<tr><td>' + esc(l.name) + ' × ' + l.quantity + '</td><td class="n">' + usd(l.termNetUsd) + '</td></tr>'; }).join('') +
+          '<tr><td><b>Due at order</b></td><td class="n"><b>' + usd(d.dueAtOrderUsd) + '</b></td></tr></table>' +
+          '<div class="note">A copy has been sent to Northland Industrial Supply. Find it under My Subscriptions › Manage Quote &amp; Contract.</div>';
+        successEl.classList.add('on');
+        submitBtn.disabled = false;
+        submitBtn.title = '';
+      } catch (e) {
+        setBusy(false);
+        document.getElementById('alertRef').textContent = 'Reference: ' + (e.ref || 'unavailable') + (e.status ? ' · HTTP ' + e.status : '');
+        alertEl.classList.add('on');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+    genBtn.addEventListener('click', generateQuote);
+  })();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
