@@ -962,11 +962,11 @@
         result.textContent = message;
       }
 
-      function showPaymentFailed() {
+      function showPaymentFailed(heading) {
         result.className = "result-box error failure";
         result.innerHTML =
           '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#b42318"/><path d="M12 6.5v7" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.4" fill="#fff"/></svg>' +
-          "<div><strong>Payment not sent</strong><span>We couldn't make this payment and no money has left your account. Please try again later or call us on 0345 300 0000.</span></div>";
+          "<div><strong>" + heading + "</strong><span>Check your recent transactions before you try again, or call us on 0345 300 0000.</span></div>";
         result.focus();
       }
 
@@ -1024,14 +1024,14 @@
             await res.json();
           } catch (_) {}
           if (!res.ok) {
-            showPaymentFailed();
+            showPaymentFailed("Payment not sent");
           } else {
             result.className = "result-box success";
             result.textContent = `Payment sent. £${submittedAmount} to ${submittedTo} should arrive within two hours.`;
             ack.checked = false;
           }
         } catch (_) {
-          showPaymentFailed();
+          showPaymentFailed("We couldn't confirm your payment");
         } finally {
           btn.disabled = false;
           btn.textContent = label;
