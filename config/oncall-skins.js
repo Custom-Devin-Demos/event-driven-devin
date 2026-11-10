@@ -8984,6 +8984,35 @@ const ONCALL_SKINS = {
     page: { file: '991042b6.html', title: 'Afore Capital' },
     disclaimer: 'NOT ACTUALLY AN AFORE CAPITAL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Afore Capital product.',
   },
+  'e302af0c': {
+    slug: 'e302af0c',
+    company: 'Origin',
+    brandMark: 'O',
+    vertical: 'hightech',
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    page: { file: 'e302af0c.html', title: 'New report | Reports | Origin' },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 Origin platform: Run report',
+      service: 'report-builder-api',
+      release: 'origin-platform@2026.11.2',
+      team: 'report-builder-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:report-builder-api,resource:POST /api/oncall/licenses/provision}',
+      baseline: '~350ms (7-day p95, before origin-platform@2026.11.2)',
+      symptom: 'Run report on the report builder got slow after the last release and takes longer with every request. Process memory trends up alongside latency.',
+      impact: 'Advertisers and agencies wait several seconds for every report request to be accepted, and the wait grows under sustained use.',
+    },
+    theme: {
+      '--accent': '#EE2A7B',
+      '--ink': '#1C3B51',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1C3B51',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Origin Support',
+    disclaimer: 'NOT ACTUALLY AN ORIGIN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Origin product. Campaign and report data are synthetic.',
+  },
 };
 
 function getOncallSkin(slug) {
