@@ -75,6 +75,19 @@ describe('CIBC My Accounts on-call skin', () => {
       const html = await response.text();
       expect(html).toContain('<title>My Accounts | CIBC Online Banking</title>');
       expect(html).toContain('NOT ACTUALLY A CIBC SITE');
+      expect(html.match(/NOT ACTUALLY A CIBC SITE/g)).toHaveLength(1);
+      const brandingScript = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+        .find((script) => script[1].includes('var disclaimer ='))[1];
+      const firstChild = {};
+      const document = {
+        querySelector: () => null,
+        createElement: () => ({ style: {} }),
+        body: { firstChild, insertBefore: jest.fn() },
+      };
+      vm.runInNewContext(brandingScript, { document });
+      expect(document.body.insertBefore).toHaveBeenCalledWith(
+        expect.objectContaining({ textContent: getOncallSkin(SLUG).disclaimer }), firstChild,
+      );
       expect(html).toContain('const oncallApiPath = "/api/oncall/cibc/transfers"');
       expect(html).toContain('const alertOnStatus = [500]');
       expect(html).toContain('var skinAlertDestination = "slack"');
