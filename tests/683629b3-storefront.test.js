@@ -3,9 +3,17 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
 }));
 
+jest.mock('../app/services/devin-api', () => ({
+  listOrgUsers: jest.fn(() => Promise.resolve([
+    { user_id: 'member-1', email: 'someone@cognition.ai' },
+    { user_id: 'wes-user-1', email: 'Wes.Convery@cognition.ai' },
+  ])),
+  listEnterpriseAdmins: jest.fn(() => Promise.resolve([])),
+}));
+
 jest.mock('../app/services/slack', () => ({
   postMessage: jest.fn(() => Promise.resolve('1730000000.000100')),
-  findChannelByNameFragment: jest.fn(() => Promise.resolve({ id: 'C0FEEDBACK1', name: 'dell-com-feedback' })),
+  findChannelByName: jest.fn(() => Promise.resolve({ id: 'C0FEEDBACK1', name: 'dell-com-feedback' })),
 }));
 
 jest.mock('../app/telemetry/sentry', () => ({
@@ -23,7 +31,10 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const { createSessionAndAlert } = require('../app/services/devin-session');
-const { postMessage, findChannelByNameFragment } = require('../app/services/slack');
+const { postMessage, findChannelByName } = require('../app/services/slack');
+const { listOrgUsers } = require('../app/services/devin-api');
+const { selectedAlertDestination } = require('../app/services/alert-destination');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { Sentry } = require('../app/telemetry/sentry');
 const service = require('../app/services/verticals/683629b3');
 const router = require('../app/routes/verticals/683629b3');
@@ -96,6 +107,8 @@ afterAll((done) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  createSessionAndAlert.mockImplementation(() => Promise.resolve({ triggered: true }));
+  process.env.DEVIN_ORG_ID = 'org_test';
   delete process.env.SLACK_BOT_TOKEN;
   delete process.env[FEEDBACK_CHANNEL.envVar];
   service.resetIncidentWindow();
@@ -243,15 +256,47 @@ describe('683629b3 Dell.com storefront — Place order on-call trigger', () => {
       service: `customer-${CUSTOMER}-web`,
       verticalLabel: 'Dell.com storefront',
       errorType: 'TypeError',
+      devinUserId: 'wes-user-1',
       devinEmail: OWNER.email,
+      devinOrgId: 'org_test',
       slackMemberIdFallback: OWNER.slackMemberId,
       promptAppendix: REMEDIATION_DIRECTIVE,
       level: 'error',
     });
+    expect(listOrgUsers).toHaveBeenCalledWith('org_test', expect.any(Object));
     expect(getCustomerConfig(alert.customer).slackChannelId).toBe(ONCALL_CHANNEL.id);
+    // The Sentry issue webhook for this culprit must not raise a second alert.
+    expect(isInstantPathEvent({ issueTitle: alert.issueTitle, culprit: alert.culprit, tags: [] })).toBe(true);
     expect(REMEDIATION_DIRECTIVE).toContain('COG-GTM/event-driven-devin');
     expect(REMEDIATION_DIRECTIVE).toContain(`tests/${CUSTOMER}-storefront.test.js`);
     expect(REMEDIATION_DIRECTIVE).not.toMatch(/cto-na|leadDays/);
+  });
+
+  test('the alert is always routed to Slack even when the browser picked Teams', async () => {
+    createSessionAndAlert.mockImplementation(() => Promise.resolve({ triggered: true, destination: selectedAlertDestination() }));
+    let caught;
+    try {
+      await service.placeOrder({ items: [cartItem()] }, { hold: 0 });
+    } catch (error) {
+      caught = error;
+    }
+    const result = await caught.sessionPromise;
+    expect(result.destination).toBe('slack');
+  });
+
+  test('an undelivered alert reopens the window so the next checkout pages again', async () => {
+    createSessionAndAlert.mockImplementationOnce(() => Promise.resolve(null));
+    createSessionAndAlert.mockImplementationOnce(() => Promise.reject(new Error('slack down')));
+    for (let i = 0; i < 3; i += 1) {
+      let caught;
+      try {
+        await service.placeOrder({ items: [cartItem()] }, { hold: 0 });
+      } catch (error) {
+        caught = error;
+      }
+      await caught.sessionPromise;
+    }
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(3);
   });
 
   test('repeat failures within the incident window join the open incident instead of paging again', async () => {
@@ -301,7 +346,7 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
       expect(res.body.code).toBe('FEEDBACK_REJECTED');
     });
     expect(postMessage).not.toHaveBeenCalled();
-    expect(findChannelByNameFragment).not.toHaveBeenCalled();
+    expect(findChannelByName).not.toHaveBeenCalled();
   });
 
   test('without a bot token the report is a dry run and the UI is told so', async () => {
@@ -320,16 +365,21 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
     expect(first.status).toBe(201);
     expect(first.body).toEqual({ status: 'sent', channel: '#dell-com-feedback' });
     expect(second.status).toBe(201);
-    expect(findChannelByNameFragment).toHaveBeenCalledTimes(1);
-    expect(findChannelByNameFragment).toHaveBeenCalledWith('xoxb-test', 'dell-com-feedback');
+    expect(findChannelByName).toHaveBeenCalledTimes(1);
+    expect(findChannelByName).toHaveBeenCalledWith('xoxb-test', 'dell-com-feedback');
     expect(postMessage).toHaveBeenCalledTimes(2);
     const [token, channel, text, blocks] = postMessage.mock.calls[1];
     expect(token).toBe('xoxb-test');
     expect(channel).toBe('C0FEEDBACK1');
     expect(channel).not.toBe(ONCALL_CHANNEL.id);
-    expect(text).toContain('Bug report');
+    expect(text).toBe('Dell.com demo \u2014 new bug report');
+    expect(text).not.toContain('<');
     expect(blocks.every((block) => (block.text ? block.text.type === 'plain_text' : block.elements.every((e) => e.type === 'plain_text')))).toBe(true);
     expect(blocks[1].text.text).toBe('Second <b>report</b> *markup*');
+    const channelPing = await request('POST', FEEDBACK_ROUTE, { ...report, title: '<!channel> everyone look' });
+    expect(channelPing.status).toBe(201);
+    expect(postMessage.mock.calls[2][2]).not.toContain('<!channel>');
+    expect(postMessage.mock.calls[2][3][1].text).toEqual({ type: 'plain_text', text: '<!channel> everyone look' });
     expect(blocks[3].elements[0].text).toContain('Page: /cart');
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
@@ -343,7 +393,7 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
     const ok = await request('POST', FEEDBACK_ROUTE, report);
     expect(ok.status).toBe(201);
     expect(postMessage.mock.calls[0][1]).toBe('C0CONFIGURED');
-    expect(findChannelByNameFragment).not.toHaveBeenCalled();
+    expect(findChannelByName).not.toHaveBeenCalled();
 
     process.env[FEEDBACK_CHANNEL.envVar] = ONCALL_CHANNEL.id;
     const refused = await request('POST', FEEDBACK_ROUTE, report);
@@ -354,7 +404,7 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
 
   test('an unresolvable channel or a Slack failure is reported honestly and not retried', async () => {
     process.env.SLACK_BOT_TOKEN = 'xoxb-test';
-    findChannelByNameFragment.mockResolvedValueOnce(null);
+    findChannelByName.mockResolvedValueOnce(null);
     const unresolved = await request('POST', FEEDBACK_ROUTE, report);
     expect(unresolved.status).toBe(503);
     expect(unresolved.body.error).toBe('Bug reporting is not connected to #dell-com-feedback on this server.');

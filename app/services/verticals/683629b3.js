@@ -3,7 +3,9 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { postMessage, findChannelByNameFragment } = require('../slack');
+const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
+const { runWithAlertDestination } = require('../alert-destination');
+const { postMessage, findChannelByName } = require('../slack');
 const { getCustomerConfig } = require('../../../config/customers');
 const { PRODUCTS, MEMORY_OPTIONS, STORAGE_OPTIONS, DEMO_ACCOUNT } = require('./683629b3-catalog');
 
@@ -150,6 +152,35 @@ function resetIncidentWindow() {
   lastIncidentAt = 0;
 }
 
+/**
+ * Resolve the demo owner's email to a Devin user id so the session is
+ * created as Wes rather than the server-wide DEVIN_USER_ID. '' when nobody
+ * matches (createSessionAndAlert then falls back to the customer config).
+ */
+async function resolveUserIdByEmail(email, orgId, apiKey) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized || !orgId) return '';
+  try {
+    const auth = apiKey ? { apiKey } : {};
+    const members = await listOrgUsers(orgId, auth);
+    const member = members.find((u) => (u.email || '').toLowerCase() === normalized);
+    if (member) return member.user_id;
+    const admins = await listEnterpriseAdmins(auth);
+    const admin = admins.find((u) => (u.email || '').toLowerCase() === normalized);
+    if (admin) return admin.user_id;
+    logger.warn('Dell.com demo owner not found in org', { orgId });
+  } catch (err) {
+    logger.warn('Dell.com demo owner lookup failed', { error: err.message, orgId });
+  }
+  return '';
+}
+
+/**
+ * First failure per window pages #dell-oncall (always Slack, whatever the
+ * browser's alert-destination cookie says) and starts the Devin session;
+ * later failures join that incident. A window only stays open when the
+ * alert was actually delivered.
+ */
 function raiseIncident(error, quote, requestId) {
   const now = Date.now();
   if (now - lastIncidentAt < INCIDENT_WINDOW_MS) {
@@ -157,6 +188,9 @@ function raiseIncident(error, quote, requestId) {
     return Promise.resolve(null);
   }
   lastIncidentAt = now;
+  const reopenWindow = () => {
+    if (lastIncidentAt === now) lastIncidentAt = 0;
+  };
 
   const tags = {
     route: ROUTE,
@@ -172,14 +206,16 @@ function raiseIncident(error, quote, requestId) {
   });
 
   const config = getCustomerConfig(CUSTOMER);
-  return createSessionAndAlert({
+  const devinOrgId = config.devinOrgId || process.env.DEVIN_ORG_ID || '';
+  const raiseAlert = (devinUserId) => runWithAlertDestination('slack', () => createSessionAndAlert({
     issueTitle: `${error.name}: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: `app/services/verticals/${CUSTOMER}.js \u2014 reserveFulfillment`,
     errorType: error.name || 'Error',
     errorValue: error.message,
+    devinUserId,
     devinEmail: OWNER.email,
-    devinOrgId: config.devinOrgId || process.env.DEVIN_ORG_ID || undefined,
+    devinOrgId: devinOrgId || undefined,
     slackMemberIdFallback: OWNER.slackMemberId,
     service: SERVICE,
     verticalLabel: 'Dell.com storefront',
@@ -197,13 +233,22 @@ function raiseIncident(error, quote, requestId) {
     release: process.env.SENTRY_RELEASE || `${SERVICE}@2026.11.1`,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
-  }).catch((alertError) => {
-    logger.error('Failed to create Devin session for Dell.com checkout failure', {
-      error: alertError.message,
-      requestId,
+  }));
+
+  return resolveUserIdByEmail(OWNER.email, devinOrgId, config.apiKey)
+    .then((userId) => raiseAlert(userId || undefined))
+    .then((result) => {
+      if (!result) reopenWindow();
+      return result;
+    })
+    .catch((alertError) => {
+      logger.error('Failed to create Devin session for Dell.com checkout failure', {
+        error: alertError.message,
+        requestId,
+      });
+      reopenWindow();
+      return null;
     });
-    return null;
-  });
 }
 
 /**
@@ -297,9 +342,9 @@ async function resolveFeedbackChannel(token) {
     return configured;
   }
   if (!feedbackChannelPromise) {
-    feedbackChannelPromise = findChannelByNameFragment(token, FEEDBACK_CHANNEL.name)
+    feedbackChannelPromise = findChannelByName(token, FEEDBACK_CHANNEL.name)
       .then((match) => {
-        if (!match || match.name !== FEEDBACK_CHANNEL.name || match.id === ONCALL_CHANNEL.id) {
+        if (!match || match.id === ONCALL_CHANNEL.id) {
           throw new Error(`${FEEDBACK_CHANNEL.label} not found`);
         }
         return match.id;
@@ -347,7 +392,8 @@ async function submitFeedback(input) {
     { type: 'context', elements: [{ type: 'plain_text', text: `Page: ${page} \u00b7 Internal demonstration` }] },
   ];
   try {
-    const ts = await postMessage(token, channel, `Dell.com demo \u2014 Bug report: ${title}`, blocks);
+    // Fallback text is fixed: reporter text only ever travels in plain_text blocks.
+    const ts = await postMessage(token, channel, 'Dell.com demo \u2014 new bug report', blocks);
     logger.info('Dell.com bug report posted', { channel, ts, route: FEEDBACK_ROUTE });
   } catch (error) {
     logger.error('Dell.com bug report failed', { error: error.message, route: FEEDBACK_ROUTE });
