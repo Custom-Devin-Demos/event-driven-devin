@@ -47,7 +47,7 @@ router.post(ROUTE, async (req, res) => {
     });
     return res.json(result);
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       error: error.message,
       errorClass: error.name,
