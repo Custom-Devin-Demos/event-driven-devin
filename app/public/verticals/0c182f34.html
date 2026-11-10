@@ -306,6 +306,7 @@
       var form = document.getElementById('transferForm');
       var btn = document.getElementById('submitBtn');
       var result = document.getElementById('result');
+      var resetBtn = document.getElementById('resetBtn');
       var ars = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       function money(n) { return '$ ' + ars.format(Number(n) || 0); }
       function label(id) { var s = document.getElementById(id); return s.options[s.selectedIndex] ? s.options[s.selectedIndex].text : ''; }
@@ -333,7 +334,7 @@
         e.preventDefault();
         var amount = parseFloat(document.getElementById('amount').value);
         if (!(amount > 0)) { show('error', 'Revisá el importe', 'Ingresá un importe mayor a $ 0.'); return; }
-        btn.disabled = true; btn.textContent = 'Procesando...';
+        btn.disabled = true; resetBtn.disabled = true; btn.textContent = 'Procesando...';
         show('pending', 'Estamos procesando tu transferencia', 'No cierres esta ventana.');
         try {
           var res = await fetch('/api/banking/transfer', {
@@ -358,7 +359,7 @@
         } catch (err) {
           show('error', 'No pudimos completar la transferencia', 'Revisá tu conexión e intentá de nuevo.');
         } finally {
-          btn.disabled = false; btn.textContent = 'Transferir';
+          btn.disabled = false; resetBtn.disabled = false; btn.textContent = 'Transferir';
         }
       });
     })();
