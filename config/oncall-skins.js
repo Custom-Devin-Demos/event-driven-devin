@@ -95,6 +95,45 @@
  */
 
 const ONCALL_SKINS = {
+  '5abd65f5': {
+    slug: '5abd65f5',
+    company: 'CIBC',
+    brandMark: 'CIBC',
+    vertical: 'cibctransfers',
+    oncallOnly: true,
+    paths: ['/cibc', '/cibc-oncall'],
+    alertDestination: 'slack',
+    onCallSlackMemberId: 'U0BQZBHCNMA',
+    incidentInviteUserIds: ['U0BQZBHCNMA'],
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Quick Transfer on CIBC My Accounts posts to POST /api/oncall/cibc/transfers. Investigate only app/services/oncall-verticals/cibc-transfers.js (cibc-account-transfers-api), not the separate e-Transfer SEV-1 service cibc-etransfer.js.',
+        'Reproduce locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Never submit the live page; give testing agents the same restriction.',
+        'Keep business validation and confirmation fields. Add a regression test, post findings and the PR link in the alert thread. Do not merge or deploy.',
+      ].join('\n'),
+    },
+    page: { file: '5abd65f5.html', title: 'My Accounts | CIBC Online Banking' },
+    theme: {
+      '--accent': '#c41f3e',
+      '--ink': '#414141',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#861c40',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'CIBC Digital Banking support',
+    alertCard: {
+      title: '5xx rate — CIBC Quick Transfer posting',
+      service: 'cibc-account-transfers-api',
+      team: 'cibc-account-transfers-oncall',
+      release: 'cibc-transfers@2026.11.3',
+      symptom: 'Quick Transfer confirmation returns HTTP 500 for valid CAD transfers. Interac e-Transfer has a separate incident.',
+      impact: 'Online Banking clients cannot move money between their deposit accounts.',
+    },
+    disclaimer: 'NOT ACTUALLY A CIBC SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real CIBC product.',
+  },
+
   '5922e7ff': {
     slug: '5922e7ff',
     company: 'Morgan Stanley',

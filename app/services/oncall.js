@@ -49,6 +49,18 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  cibctransfers: {
+    vertical: 'cibctransfers', page: '5abd65f5.html',
+    apiPath: '/api/5abd65f5/transfers', oncallApiPath: '/api/oncall/cibc/transfers',
+    owner: 'CIBC Digital Banking On-Call', brand: 'CIBC Online Banking',
+    service: 'cibc-account-transfers-api', endpoint: 'POST /api/oncall/cibc/transfers',
+    monitor: '5xx rate — CIBC Quick Transfer',
+    metricQuery: 'sum:trace.express.request.errors{resource:POST /api/oncall/cibc/transfers,http.status_code:500}',
+    metricValue: '100% of valid CAD transfers returning 500', threshold: '> 1%', baseline: '<0.1% (7-day)',
+    release: 'cibc-transfers@2026.11.3',
+    symptom: 'Quick Transfer confirmation fails immediately following the posting profile release.',
+    impact: 'Clients cannot transfer between deposit accounts.', alertOnStatus: [500], unlisted: true,
+  },
   wealthorders: {
     vertical: 'wealthorders',
     page: '5922e7ff.html',
