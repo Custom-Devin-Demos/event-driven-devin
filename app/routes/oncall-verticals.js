@@ -53,7 +53,17 @@ const { createSession: createMemberSession } = require('../services/oncall-verti
 const { prepareFulfillment, listCollection } = require('../services/oncall-verticals/nftcheckout');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
+const { processTransfer: processCibcTransfer } = require('../services/oncall-verticals/cibc-transfers');
 const router = express.Router();
+
+router.post('/api/oncall/cibc/transfers', async (req, res) => {
+  try {
+    res.json(await processCibcTransfer(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_TRANSFER';
+    res.status(invalid ? 400 : 500).json({ success: false, code: error.code || 'TRANSFER_POSTING_FAILED', error: invalid ? error.message : 'Your transfer could not be completed. No money was moved.' });
+  }
+});
 
 router.post('/api/oncall/wealthorders/orders', async (req, res) => {
   try {

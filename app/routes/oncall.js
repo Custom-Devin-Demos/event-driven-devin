@@ -17,6 +17,7 @@ const { normalizeAlertDestination } = require('../services/alert-destination');
 const { BATCH: STATESTREET_BATCH, releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
 const { BATCH: REGIONS_BILLS, submitBillPayments } = require('../services/oncall-verticals/regions');
 const { BATCH: WEALTH_REBALANCE, submitRebalance } = require('../services/oncall-verticals/wealthrebalance');
+const { BATCH: CIBC_PAYMENT, sendMoney } = require('../services/oncall-verticals/cibc-etransfer');
 const { isTeamsWebhookUrl } = require('../services/teams');
 const {
   FLEET,
@@ -84,6 +85,7 @@ const ONCALL_HOURLY_CAPS = {
   settlement: 50,
   regionsBillPay: 50,
   wealthRebalance: 50,
+  cibcEtransfer: 50,
   alert: 50,
   infra: 50,
   config: 120,
@@ -642,6 +644,14 @@ router.post('/api/oncall/statestreet/settlement-batches/release', (req, res, nex
     logger.error('State Street batch release failed', { error: error.message });
     res.status(500).json({ success: false, error: 'Unable to release the settlement batch.' });
   }
+});
+
+router.post('/api/oncall/cibc/etransfer/send', (req, res, next) => {
+  if (!req.body || req.body.batchId !== CIBC_PAYMENT.id) return res.status(400).json({ success: false, code: 'INVALID_ETRANSFER', error: 'Choose a CAD contact payment.' });
+  next();
+}, oncallCap('cibcEtransfer'), async (req, res) => {
+  const result = await sendMoney(req.body);
+  res.status(result.statusCode).json(result.body);
 });
 
 router.post('/api/oncall/wealthrebalance/submit', (req, res, next) => {
