@@ -114,6 +114,13 @@ describe('gov.il biometric passport replica (/passport)', () => {
     expect(publicFee('renewal', 'adult', SUMMER)).toBe(290);
   });
 
+  test('is clearly labelled as a mock website', () => {
+    expect(PAGE).toMatch(/<title>\[MOCK/);
+    expect(PAGE).toContain('MOCK WEBSITE');
+    expect(PAGE).toContain('class="mock-badge"');
+    expect(PAGE).toContain('תשלום מדומה');
+  });
+
   test('keeps the planted defect: a passport renewal has no 2026 fee schedule entry', () => {
     const { buildPaymentOrder } = loadFeeRules();
     expect(() => buildPaymentOrder({ documentType: 'passport', reason: 'renewal', ageBand: 'adult' }, WINTER))
