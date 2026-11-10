@@ -2312,22 +2312,6 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
   },
-  '30922028': {
-    slug: '30922028',
-    company: 'GovTech Singapore',
-    brandMark: 'P',
-    vertical: 'banking',
-    oncallOnly: true,
-    page: { file: '30922028.html', title: 'Pay | PaySG' },
-    theme: {
-      '--accent': '#1E51D4',
-      '--ink': '#333A4A',
-      '--surface': '#FFFFFF',
-      '--chrome-bg': '#151D31',
-      '--chrome-text': '#FFFFFF',
-    },
-    disclaimer: 'NOT ACTUALLY A GOVTECH SINGAPORE SITE — internal demo only, not affiliated with, endorsed by, or a real GovTech Singapore product.',
-  },
   '696c04ec': {
     slug: '696c04ec',
     company: 'Careem',
@@ -9090,6 +9074,14 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Origin Support',
     disclaimer: 'NOT ACTUALLY AN ORIGIN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Origin product. Campaign and report data are synthetic.',
+  },
+  'fe89e4fd': {
+    slug: 'fe89e4fd',
+    company: 'GovTech Singapore',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'fe89e4fd.html', title: 'Who we are | Government Technology Agency of Singapore (GovTech Singapore)' },
+    disclaimer: 'NOT ACTUALLY A GOVTECH SINGAPORE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real GovTech Singapore product.',
   },
 };
 
