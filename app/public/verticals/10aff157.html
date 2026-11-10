@@ -713,7 +713,7 @@
                   <label for="amount">Amount</label>
                   <div class="amount-wrap">
                     <span aria-hidden="true">£</span>
-                    <input id="amount" type="number" min="1" step="any" value="1250" required />
+                    <input id="amount" type="number" min="1" max="25000" step="0.01" value="1250" required />
                   </div>
                 </div>
                 <div class="field">
@@ -952,6 +952,11 @@
         }
         if (!(parseFloat(amount.value) > 0)) {
           showError("Enter an amount to pay.");
+          amount.focus();
+          return;
+        }
+        if (!/^\d+(\.\d{1,2})?$/.test(amount.value.trim())) {
+          showError("Enter the amount in pounds and pence, for example 25.50.");
           amount.focus();
           return;
         }
