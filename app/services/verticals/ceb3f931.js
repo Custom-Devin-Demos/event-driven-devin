@@ -50,6 +50,15 @@ const RESPONSE_MODES = {
 };
 
 /**
+ * Builder-facing names that map onto a persisted mode identifier. The
+ * create-form dialog labels `encrypt` as "Storage mode", so clients may send
+ * `storage`.
+ */
+const RESPONSE_MODE_ALIASES = Object.freeze({
+  storage: 'encrypt',
+});
+
+/**
  * Starter field set applied to every newly launched form.
  */
 const STARTER_FIELDS = [
@@ -71,8 +80,16 @@ const REMEDIATION_DIRECTIVE = [
 ].join(' ');
 
 function resolveResponseMode(mode) {
-  const key = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
-  return RESPONSE_MODES[key];
+  const raw = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
+  const key = Object.prototype.hasOwnProperty.call(RESPONSE_MODE_ALIASES, raw) ? RESPONSE_MODE_ALIASES[raw] : raw;
+  return Object.prototype.hasOwnProperty.call(RESPONSE_MODES, key) ? RESPONSE_MODES[key] : undefined;
+}
+
+function unknownResponseModeError(mode) {
+  const error = new Error(`Unknown response mode: ${String(mode)}`);
+  error.code = 'UNKNOWN_RESPONSE_MODE';
+  error.statusCode = 400;
+  return error;
 }
 
 function buildEncryptionPolicy(profile) {
@@ -135,8 +152,18 @@ async function launchForm(data) {
     service: SERVICE,
   });
 
+  const profile = resolveResponseMode(data.responseMode);
+  if (!profile) {
+    logger.warn('Form launch rejected: unknown response mode', {
+      referenceNumber,
+      action: data.action,
+      responseMode: data.responseMode,
+      service: SERVICE,
+    });
+    throw unknownResponseModeError(data.responseMode);
+  }
+
   try {
-    const profile = resolveResponseMode(data.responseMode);
     const manifest = buildLaunchManifest(form, profile);
     const duration = Date.now() - start;
 
@@ -222,6 +249,7 @@ module.exports = {
   resolveResponseMode,
   buildLaunchManifest,
   RESPONSE_MODES,
+  RESPONSE_MODE_ALIASES,
   STARTER_FIELDS,
   OWNER,
   REMEDIATION_DIRECTIVE,
