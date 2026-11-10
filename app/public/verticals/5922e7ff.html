@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Advisor Desk | Morgan Stanley Wealth Management</title>
+  <style>
+    :root {
+      --navy: #002952; --navy2: #003061; --blue: #2075cc; --blue2: #115aa4; --sky: #aed4fc; --sky2: #81bcfd;
+      --bg: #0f1d2c; --panel: #132436; --panel2: #13304f; --rule: #1d2c3d; --rule2: #2a4a70; --field: #06203f;
+      --text: #e7e7ea; --muted: #9aa3ad; --up: #4cc38a; --dn: #ff6b7f; --amber: #f2c94c;
+      --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
+    h1, h2, h3, p { margin: 0; }
+    button { font: inherit; cursor: pointer; }
+    input, select { font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--rule2); border-radius: 3px; background: var(--field); color: #fff; width: 100%; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 9px 10px; color: var(--sky2); border-bottom: 1px solid var(--rule2); }
+    td { padding: 10px; border-bottom: 1px solid var(--rule); }
+    td.r, th.r { text-align: right; }
+    tr:hover td { background: var(--panel); }
+    .up { color: var(--up); } .dn { color: var(--dn); }
+
+    .hdr { display: flex; align-items: center; gap: 18px; background: var(--navy); padding: 12px 24px; border-bottom: 1px solid #1d3a5c; }
+    .wordmark { font-size: 19px; letter-spacing: .5px; color: #fff; font-weight: 400; white-space: nowrap; }
+    .prod { font-size: 13px; color: var(--sky); border-left: 1px solid #3a5a80; padding-left: 14px; white-space: nowrap; }
+    .hdr nav { display: flex; gap: 18px; font-size: 13px; color: #cdd1d7; }
+    .hdr nav span.on { color: #fff; border-bottom: 2px solid var(--blue); padding-bottom: 4px; }
+    .hdr .sp { flex: 1; }
+    .hdr input { width: 260px; background: #06203f; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; flex: none; }
+
+    .grid { display: grid; grid-template-columns: 290px 1fr 330px; gap: 1px; background: var(--rule); min-height: calc(100vh - 56px); }
+    .pane { background: var(--bg); padding: 16px; min-width: 0; }
+    .pane h3 { margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--sky2); font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+    .pane h3 .aside { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+    .ctx { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+
+    .cl { padding: 10px; border-radius: 3px; cursor: pointer; border: 1px solid transparent; margin-bottom: 6px; background: var(--panel); }
+    .cl.on { border-color: var(--blue); background: var(--panel2); }
+    .cl .row { display: flex; justify-content: space-between; gap: 8px; }
+    .cl .n { font-weight: 600; font-size: 13px; color: #fff; }
+    .cl .m { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .flag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 2px; margin-top: 6px; font-weight: 600; }
+    .flag.a { background: #3a2d0a; color: var(--amber); } .flag.r { background: #3a0f16; color: #ff8a9a; } .flag.b { background: #0f2a4a; color: var(--sky2); }
+
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .kpis div { background: var(--panel); padding: 12px; border-radius: 3px; }
+    .kpis .l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .kpis .v { font-size: 20px; color: #fff; margin-top: 4px; font-weight: 300; }
+
+    .section { margin-top: 22px; }
+    .rebal { background: var(--panel); border-radius: 3px; padding: 14px; }
+    .rebal__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .rebal__title { font-size: 14px; color: #fff; font-weight: 600; }
+    .rebal__meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #0f2a4a; color: var(--sky2); }
+    .pill.warn { background: #3a0f16; color: #ff8a9a; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 3px; padding: 9px 16px; font-size: 13px; border: 1px solid var(--blue); background: var(--blue); color: #fff; min-height: 38px; }
+    .btn:hover { background: var(--blue2); border-color: var(--blue2); }
+    .btn.ghost { background: transparent; color: var(--sky); border-color: var(--rule2); }
+    .btn[disabled] { opacity: .65; cursor: progress; }
+    .btn.block { width: 100%; }
+
+    .ot label { display: block; font-size: 11px; color: var(--muted); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: .05em; }
+    .seg { display: flex; }
+    .seg button { flex: 1; padding: 8px; border: 1px solid var(--rule2); background: var(--field); color: #cdd1d7; font-size: 13px; }
+    .seg button.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .review { margin-top: 14px; border: 1px solid var(--rule2); border-radius: 3px; padding: 12px; background: #0b1828; }
+    .review dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0 0 12px; font-size: 13px; }
+    .review dt { color: var(--muted); } .review dd { margin: 0; text-align: right; color: #fff; }
+    .review .actions { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+
+    .alert { background: var(--panel); border-left: 3px solid var(--amber); padding: 10px; margin-bottom: 8px; font-size: 12px; border-radius: 2px; }
+    .alert.r { border-left-color: var(--dn); } .alert.b { border-left-color: #5ca4f0; }
+
+    .result { display: none; margin-top: 12px; padding: 10px 12px; border-radius: 3px; font-size: 13px; line-height: 18px; }
+    .result.is-visible { display: block; }
+    .result--ok { background: #0f2e22; border: 1px solid #1f6b4b; }
+    .result--warn { background: #33280a; border: 1px solid #6b5313; }
+    .result--error { background: #3a0f16; border: 1px solid #7a2433; }
+    .result strong { display: block; color: #fff; margin-bottom: 4px; }
+    .result code { display: block; font-size: 12px; color: #ffc2cb; word-break: break-word; }
+    .result .ref { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    .outage { display: flex; gap: 10px; align-items: flex-start; background: #3a0f16; border: 1px solid #7a2433; color: #ffd6dc; border-radius: 3px; padding: 10px 12px; margin-bottom: 14px; font-size: 13px; }
+    .outage strong { color: #fff; }
+
+    .overlay { position: fixed; inset: 0; background: rgba(2, 10, 20, .7); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+    .overlay[hidden] { display: none; }
+    .modal { background: #0f1d2c; border: 1px solid var(--rule2); border-radius: 4px; width: 100%; max-width: 560px; padding: 20px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+    .modal h2 { font-size: 17px; font-weight: 500; color: #fff; margin-bottom: 4px; }
+    .modal .sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+    .modal .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .modal label.chk { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+    .modal label.chk input { width: auto; }
+
+    .toast { position: fixed; right: 20px; bottom: 20px; max-width: 360px; background: #3a0f16; border: 1px solid #7a2433; color: #ffd6dc; padding: 12px 14px; border-radius: 4px; font-size: 13px; z-index: 60; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+    .toast[hidden] { display: none; }
+    .toast strong { display: block; color: #fff; margin-bottom: 2px; }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .hdr nav, .hdr input { display: none; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <span class="wordmark">Morgan Stanley</span>
+    <span class="prod">Advisor Desk</span>
+    <nav><span class="on">Clients</span><span>Trading</span><span>Models</span><span>Research</span></nav>
+    <span class="sp"></span>
+    <input placeholder="Search clients, accounts, symbols" aria-label="Search">
+    <div class="avatar" title="Financial Advisor">JR</div>
+  </header>
+
+  <div class="grid">
+    <aside class="pane">
+      <h3><span>Client book</span><span class="aside" id="book-count"></span></h3>
+      <div id="clients"></div>
+    </aside>
+
+    <main class="pane">
+      <div class="outage" id="outage-banner" hidden role="alert">
+        <span>&#9888;</span>
+        <div><strong>Model rebalancing is unavailable.</strong> Proposed rebalances are paused and no block trades have been sent. Single-account order entry is unaffected by this notice.</div>
+      </div>
+      <div id="center"></div>
+
+      <div class="section">
+        <h3><span>Model rebalance</span><span class="aside">Growth 70/30 &middot; grw-7030 v12</span></h3>
+        <div class="rebal">
+          <div class="rebal__head">
+            <div>
+              <div class="rebal__title">3 households drifted beyond the 3% band</div>
+              <div class="rebal__meta" id="rebal-meta">42 proposed trades &middot; $4.86M notional &middot; 15:30 ET block window</div>
+            </div>
+            <button class="btn" id="open-rebalance">Rebalance households</button>
+          </div>
+          <table>
+            <thead><tr><th>Household</th><th class="r">Accounts</th><th class="r">Equity / FI</th><th class="r">Drift</th><th class="r">Status</th></tr></thead>
+            <tbody id="drift-rows"></tbody>
+          </table>
+          <div class="result" id="rebalance-result" role="status"></div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="pane">
+      <h3><span>Order ticket</span><span class="aside" id="ot-client"></span></h3>
+      <form class="ot" id="order-form" novalidate>
+        <div class="seg" role="group" aria-label="Side">
+          <button type="button" class="on" data-side="buy">Buy</button>
+          <button type="button" data-side="sell">Sell</button>
+        </div>
+        <label for="ot-account">Account</label>
+        <select id="ot-account"></select>
+        <div class="two">
+          <div><label for="ot-symbol">Symbol</label><input id="ot-symbol" value="MSFT" autocomplete="off"></div>
+          <div><label for="ot-qty">Quantity</label><input id="ot-qty" value="100" inputmode="numeric"></div>
+        </div>
+        <div class="two">
+          <div><label for="ot-type">Order type</label><select id="ot-type"><option value="limit">Limit</option><option value="market">Market</option></select></div>
+          <div><label for="ot-limit">Limit price</label><input id="ot-limit" value="430.00" inputmode="decimal"></div>
+        </div>
+        <label for="ot-tif">Time in force</label>
+        <select id="ot-tif"><option value="day">Day</option><option value="gtc">GTC</option></select>
+        <div style="margin-top:16px"><button type="submit" class="btn block" id="review-order">Review order</button></div>
+
+        <div class="review" id="order-review" hidden>
+          <dl>
+            <dt>Account</dt><dd id="rv-account"></dd>
+            <dt>Action</dt><dd id="rv-action"></dd>
+            <dt>Price</dt><dd id="rv-price"></dd>
+            <dt>Est. principal</dt><dd id="rv-principal"></dd>
+            <dt>Routing</dt><dd>Smart order router</dd>
+          </dl>
+          <div class="actions">
+            <button type="button" class="btn ghost" id="edit-order">Edit</button>
+            <button type="button" class="btn" id="submit-order">Submit order</button>
+          </div>
+        </div>
+        <div class="result" id="order-result" role="status"></div>
+      </form>
+
+      <h3 style="margin-top:22px"><span>Alerts</span></h3>
+      <div class="alert r">Lin &amp; Patel LLC: NVDA concentration 31% of portfolio</div>
+      <div class="alert">Harper household: Trust account ...0158 is 32% cash</div>
+      <div class="alert b">D. Okafor IRA: RMD due Dec 31</div>
+    </aside>
+  </div>
+
+  <div class="overlay" id="rebalance-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rb-title">
+      <h2 id="rb-title">Rebalance to Growth 70/30</h2>
+      <div class="sub">Proposal RB-GRW7030-1110 &middot; trades are aggregated into one block and allocated to accounts after execution.</div>
+      <div id="rb-households"></div>
+      <table style="margin-top:12px">
+        <tbody>
+          <tr><td>Proposed trades</td><td class="r">42</td></tr>
+          <tr><td>Notional</td><td class="r">$4,860,000</td></tr>
+          <tr><td>Execution</td><td class="r">15:30 ET block window</td></tr>
+          <tr><td>Tax-loss harvesting</td><td class="r">On &middot; wash-sale check</td></tr>
+        </tbody>
+      </table>
+      <div class="actions">
+        <button class="btn ghost" id="cancel-rebalance">Cancel</button>
+        <button class="btn" id="submit-rebalance">Submit rebalance</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden role="alert"></div>
+
+  <script>
+    (function () {
+      var ORDER_ENDPOINT = '/api/5922e7ff/orders';
+      var REBALANCE_ENDPOINT = '/api/oncall/wealthrebalance/submit';
+      var REBALANCE_ID = 'RB-GRW7030-1110';
+      var DEVIN_EMAIL = localStorage.getItem('devinEmail') || '';
+
+      var H = {
+        MSFT: { d: 'Microsoft Corp', p: 431.20, c: 289.40, dc: 0.82 },
+        AAPL: { d: 'Apple Inc', p: 226.75, c: 151.10, dc: -0.41 },
+        NVDA: { d: 'NVIDIA Corp', p: 138.90, c: 92.50, dc: 1.94 },
+        JPM: { d: 'JPMorgan Chase & Co', p: 241.30, c: 198.60, dc: 0.21 },
+        VTI: { d: 'Vanguard Total Stock Market ETF', p: 288.15, c: 212.00, dc: 0.33 },
+        MUB: { d: 'iShares National Muni Bond ETF', p: 107.40, c: 109.80, dc: -0.08 }
+      };
+      var CLIENTS = [
+        { n: 'Harper household', a: '$32.8M', m: '2 accounts \u00b7 Moderate growth', f: ['a', 'Trust account 32% cash'], ytd: '+10.9%', last: 'Oct 22',
+          accounts: [['HRP-TR-0158', 'Harper Family Trust ...0158'], ['HRP-JT-0412', 'Harper Joint Brokerage ...0412']],
+          h: [['MSFT', 4200], ['AAPL', 5850], ['JPM', 2900], ['VTI', 9100], ['MUB', 14200]] },
+        { n: 'Lin & Patel LLC', a: '$6.8M', m: '1 account \u00b7 Aggressive growth', f: ['r', 'NVDA 31% concentration'], ytd: '+18.2%', last: 'Nov 3',
+          accounts: [['LPL-CO-0730', 'Lin & Patel LLC Operating ...0730']], h: [['NVDA', 15200], ['MSFT', 1800], ['VTI', 2400]] },
+        { n: 'D. Okafor IRA', a: '$2.1M', m: '1 account \u00b7 Income', f: ['b', 'RMD due Dec 31'], ytd: '+5.4%', last: 'Oct 30',
+          accounts: [['OKF-IR-0281', 'Okafor Rollover IRA ...0281']], h: [['MUB', 9800], ['JPM', 1100], ['VTI', 1300]] },
+        { n: 'Chen Foundation', a: '$22.6M', m: '1 account \u00b7 Endowment', f: null, ytd: '+9.7%', last: 'Nov 6',
+          accounts: [['CHF-EN-0905', 'Chen Foundation Endowment ...0905']], h: [['VTI', 31000], ['MUB', 52000], ['AAPL', 3300]] },
+        { n: 'S. & R. Whitfield', a: '$3.4M', m: '4 accounts \u00b7 Moderate', f: null, ytd: '+8.1%', last: 'Oct 17',
+          accounts: [['WHF-JT-0614', 'Whitfield Joint Brokerage ...0614']], h: [['AAPL', 2100], ['JPM', 1900], ['VTI', 3800]] }
+      ];
+      var DRIFT = [
+        ['Harper household', 2, '76 / 24', '+6.1%'],
+        ['Chen Foundation', 1, '64 / 36', '-4.3%'],
+        ['S. & R. Whitfield', 4, '74 / 26', '+3.8%']
+      ];
+
+      var selected = 0;
+      var side = 'buy';
+      var inFlight = false;
+      var toastTimer = null;
+      var $ = function (id) { return document.getElementById(id); };
+
+      function esc(v) {
+        return String(v).replace(/[&<>"']/g, function (ch) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+      }
+      function money(v, cents) {
+        return (v < 0 ? '-' : '') + '$' + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+      }
+      function showResult(el, kind, title, detail, ref) {
+        el.className = 'result is-visible result--' + kind;
+        el.innerHTML = '<strong>' + esc(title) + '</strong>' + (detail ? '<code>' + esc(detail) + '</code>' : '') + (ref ? '<div class="ref">' + esc(ref) + '</div>' : '');
+      }
+      function toast(title, body) {
+        var t = $('toast');
+        t.innerHTML = '<strong>' + esc(title) + '</strong>' + esc(body);
+        t.hidden = false;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.hidden = true; }, 6000);
+      }
+
+      function renderBook() {
+        $('book-count').textContent = CLIENTS.length + ' households';
+        $('clients').innerHTML = CLIENTS.map(function (c, i) {
+          return '<div class="cl' + (i === selected ? ' on' : '') + '" data-i="' + i + '"><div class="row"><span class="n">' + esc(c.n) + '</span><span class="n" style="font-weight:400">' + c.a + '</span></div>'
+            + '<div class="m">' + esc(c.m) + '</div>' + (c.f ? '<span class="flag ' + c.f[0] + '">' + esc(c.f[1]) + '</span>' : '') + '</div>';
+        }).join('');
+      }
+      function renderClient() {
+        var c = CLIENTS[selected];
+        var rows = c.h.map(function (row) {
+          var s = H[row[0]], q = row[1], mv = q * s.p, gl = mv - q * s.c;
+          return '<tr><td style="color:var(--sky2);font-weight:600">' + row[0] + '</td><td>' + esc(s.d) + '</td><td class="r">' + q.toLocaleString('en-US') + '</td><td class="r">' + money(mv) + '</td>'
+            + '<td class="r ' + (s.dc >= 0 ? 'up' : 'dn') + '">' + (s.dc > 0 ? '+' : '') + s.dc.toFixed(2) + '%</td><td class="r ' + (gl >= 0 ? 'up' : 'dn') + '">' + money(gl) + '</td></tr>';
+        }).join('');
+        $('center').innerHTML = '<h3><span>' + esc(c.n) + '</span><span class="aside">' + esc(c.m) + '</span></h3>'
+          + '<div class="ctx">Holdings, order ticket and research follow the selected client.</div>'
+          + '<div class="kpis"><div><div class="l">AUM</div><div class="v">' + c.a + '</div></div><div><div class="l">Today</div><div class="v up">+0.24%</div></div>'
+          + '<div><div class="l">YTD</div><div class="v up">' + c.ytd + '</div></div><div><div class="l">Last contact</div><div class="v">' + c.last + '</div></div></div>'
+          + '<table><thead><tr><th>Symbol</th><th>Description</th><th class="r">Qty</th><th class="r">Market value</th><th class="r">Day</th><th class="r">Unrealized G/L</th></tr></thead><tbody>' + rows + '</tbody></table>';
+        $('ot-client').textContent = c.n;
+        $('ot-account').innerHTML = c.accounts.map(function (a) { return '<option value="' + a[0] + '">' + esc(a[1]) + '</option>'; }).join('');
+        $('order-review').hidden = true;
+      }
+      function renderDrift(status) {
+        $('drift-rows').innerHTML = DRIFT.map(function (d) {
+          return '<tr><td>' + esc(d[0]) + '</td><td class="r">' + d[1] + '</td><td class="r">' + d[2] + '</td><td class="r dn">' + d[3] + '</td><td class="r"><span class="pill' + (status === 'blocked' ? ' warn' : '') + '">' + (status === 'blocked' ? 'Blocked' : 'Proposed') + '</span></td></tr>';
+        }).join('');
+        $('rb-households').innerHTML = DRIFT.map(function (d) {
+          return '<label class="chk"><input type="checkbox" checked disabled> ' + esc(d[0]) + ' <span style="color:var(--muted)">\u00b7 ' + d[1] + ' accounts \u00b7 drift ' + d[3] + '</span></label>';
+        }).join('');
+      }
+
+      function readOrder() {
+        return {
+          accountId: $('ot-account').value,
+          symbol: $('ot-symbol').value.trim().toUpperCase(),
+          side: side,
+          quantity: Number($('ot-qty').value.replace(/,/g, '')),
+          orderType: $('ot-type').value,
+          limitPrice: $('ot-type').value === 'limit' ? Number($('ot-limit').value) : null,
+          timeInForce: $('ot-tif').value
+        };
+      }
+      function reviewOrder(event) {
+        event.preventDefault();
+        var o = readOrder();
+        var px = o.orderType === 'limit' ? o.limitPrice : (H[o.symbol] ? H[o.symbol].p : NaN);
+        $('order-result').className = 'result';
+        if (!o.symbol || !Number.isInteger(o.quantity) || o.quantity <= 0 || !(px > 0)) {
+          showResult($('order-result'), 'warn', 'Check the order', 'Enter a symbol, a whole-share quantity and a positive limit price.');
+          return;
+        }
+        $('rv-account').textContent = $('ot-account').selectedOptions[0].textContent;
+        $('rv-action').textContent = (side === 'buy' ? 'Buy ' : 'Sell ') + o.quantity.toLocaleString('en-US') + ' ' + o.symbol;
+        $('rv-price').textContent = (o.orderType === 'limit' ? 'Limit ' + money(px, true) : 'Market') + ' \u00b7 ' + o.timeInForce.toUpperCase();
+        $('rv-principal').textContent = money(o.quantity * px, true);
+        $('order-review').hidden = false;
+      }
+      function submitOrder() {
+        if (inFlight) return;
+        inFlight = true;
+        var btn = $('submit-order');
+        btn.disabled = true;
+        btn.textContent = 'Submitting\u2026';
+        var body = readOrder();
+        body.devinEmail = DEVIN_EMAIL;
+        fetch(ORDER_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, status: r.status, payload: p }; }); })
+          .then(function (res) {
+            var p = res.payload || {};
+            if (res.ok && p.success) {
+              $('order-review').hidden = true;
+              showResult($('order-result'), 'ok', 'Order routed \u2014 ' + p.confirmation, (p.side === 'buy' ? 'Buy ' : 'Sell ') + p.quantity + ' ' + p.symbol + ' for ' + p.accountId + ' via ' + p.venue + '.');
+              return;
+            }
+            var kind = res.status === 400 ? 'warn' : 'error';
+            showResult($('order-result'), kind, res.status === 400 ? 'Order not submitted' : 'Order could not be submitted',
+              (p.errorClass || 'Error') + ': ' + (p.error || 'Unknown error'),
+              (p.code || 'ORDER_ROUTING_FAILED') + (p.requestId ? ' \u00b7 Request ' + p.requestId : ''));
+            if (kind === 'error') toast('Order routing error', 'The order was not sent. Trading support has been notified.');
+          })
+          .catch(function (error) {
+            showResult($('order-result'), 'error', 'Order could not be submitted', (error.name || 'Error') + ': ' + error.message, 'NETWORK_ERROR');
+          })
+          .then(function () {
+            inFlight = false;
+            btn.disabled = false;
+            btn.textContent = 'Submit order';
+          });
+      }
+
+      async function submitRebalance() {
+        var btn = $('submit-rebalance');
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.textContent = 'Submitting\u2026';
+        var result = $('rebalance-result');
+        result.className = 'result';
+        try {
+          var response = await fetch(REBALANCE_ENDPOINT, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ batchId: REBALANCE_ID, devinEmail: DEVIN_EMAIL })
+          });
+          var data = await response.json();
+          var incident = data.incident || {};
+          $('rebalance-modal').hidden = true;
+          if (data.code === 'REBALANCE_UNAVAILABLE') {
+            $('outage-banner').hidden = false;
+            $('open-rebalance').disabled = true;
+            $('rebal-meta').textContent = '42 proposed trades \u00b7 $4.86M notional \u00b7 rebalancing paused';
+            renderDrift('blocked');
+            var note = incident.status === 'declared'
+              ? 'SEV-1 incident #' + incident.publicId + (incident.reused ? ' is already open.' : ' declared.') + ' Follow the sev-1-incident channel in Slack.'
+              : 'Incident was not declared. Check the Datadog incident configuration and retry.';
+            showResult(result, 'error', 'Rebalance not submitted \u2014 HTTP ' + response.status, data.error, note + (incident.runRef ? ' \u00b7 ' + incident.runRef : ''));
+          } else if (response.ok) {
+            showResult(result, 'ok', 'Rebalance submitted', data.tradeCount + ' trades sent to the block desk.');
+          } else {
+            showResult(result, 'warn', 'Rebalance not submitted', data.error || 'The rebalance could not be submitted.');
+          }
+        } catch (_error) {
+          $('rebalance-modal').hidden = true;
+          showResult(result, 'error', 'Unable to reach the rebalance engine', 'No confirmation was received; check the proposal before retrying.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Submit rebalance';
+        }
+      }
+
+      $('clients').addEventListener('click', function (e) {
+        var el = e.target.closest('[data-i]');
+        if (!el) return;
+        selected = Number(el.getAttribute('data-i'));
+        renderBook();
+        renderClient();
+        $('order-result').className = 'result';
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (b) {
+        b.addEventListener('click', function () {
+          side = b.getAttribute('data-side');
+          Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (x) { x.classList.toggle('on', x === b); });
+          $('order-review').hidden = true;
+        });
+      });
+      $('order-form').addEventListener('submit', reviewOrder);
+      $('edit-order').addEventListener('click', function () { $('order-review').hidden = true; });
+      $('submit-order').addEventListener('click', submitOrder);
+      $('open-rebalance').addEventListener('click', function () { $('rebalance-modal').hidden = false; });
+      $('cancel-rebalance').addEventListener('click', function () { $('rebalance-modal').hidden = true; });
+      $('submit-rebalance').addEventListener('click', submitRebalance);
+
+      renderBook();
+      renderClient();
+      renderDrift('proposed');
+    })();
+  </script>
+</body>
+</html>

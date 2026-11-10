@@ -1,6 +1,7 @@
 const express = require('express');
 const { processTransfer } = require('../services/oncall-verticals/banking');
 const { processCashTransfer } = require('../services/oncall-verticals/statestreet-transfers');
+const { submitOrder: submitWealthOrder } = require('../services/oncall-verticals/wealthorders');
 const { ACCOUNTS: REGIONS_ACCOUNTS, processCashTransfer: processRegionsTransfer } = require('../services/oncall-verticals/regions-transfers');
 const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
@@ -53,6 +54,22 @@ const { prepareFulfillment, listCollection } = require('../services/oncall-verti
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
+
+router.post('/api/oncall/wealthorders/orders', async (req, res) => {
+  try {
+    res.json(await submitWealthOrder(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_ORDER';
+    if (!invalid) logger.error('Advisor Desk order routing failed', { error: error.message, errorClass: error.name });
+    res.status(invalid ? 400 : 500).json({
+      success: false,
+      code: error.code || 'ORDER_ROUTING_FAILED',
+      error: invalid ? error.message : 'The order could not be routed.',
+      errorClass: error.name,
+      requestId: req.requestId,
+    });
+  }
+});
 
 router.get('/api/oncall/regions/accounts', (_req, res) => {
   res.json({
