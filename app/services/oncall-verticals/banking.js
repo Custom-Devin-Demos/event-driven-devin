@@ -174,7 +174,7 @@ async function screenTransaction(txn) {
  * transaction in the window must clear before the transfer proceeds.
  * Premium accounts use the pre-cleared counterparty cache path.
  */
-async function runComplianceScreening(fromAccount, accountTier) {
+async function runComplianceScreening(fromAccount, accountTier, { holdExpiresAt = null } = {}) {
   const tierKey = String(accountTier || '').toLowerCase();
   if (tierKey === 'premium') {
     await new Promise((resolve) => setTimeout(resolve, 25 + Math.random() * 25));
@@ -185,6 +185,9 @@ async function runComplianceScreening(fromAccount, accountTier) {
   const window = ACCOUNT_HISTORY.filter((txn) => txn.daysAgo <= screeningWindowDays);
   const results = [];
   for (let i = 0; i < window.length; i += screeningConcurrency) {
+    if (holdExpiresAt && Date.now() > holdExpiresAt) {
+      throw holdExpiredError('Authorization hold released during compliance screening');
+    }
     const batch = window.slice(i, i + screeningConcurrency);
     results.push(...await Promise.all(batch.map((txn) => screenTransaction(txn))));
   }
@@ -346,7 +349,9 @@ async function processTransfer(data, options = {}) {
     const riskMs = Date.now() - stepStart1;
 
     const stepStart2 = Date.now();
-    await runComplianceScreening(data.fromAccount, data.accountTier);
+    await runComplianceScreening(data.fromAccount, data.accountTier, {
+      holdExpiresAt: options.releaseHoldEarly && options.holdTtlMs ? startTime + options.holdTtlMs : null,
+    });
     const screeningMs = Date.now() - stepStart2;
 
     // The issuer releases the authorization hold after options.holdTtlMs;

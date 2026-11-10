@@ -87,6 +87,8 @@
  * failAfterHang: true (banking | telco | hightech) makes the slow primary action
  * end in a 504 instead of eventually succeeding, and words the alert card as a
  * 5xx rate. The page must show a calm "try again later" message on failure.
+ * failAfterMs: <ms> (banking only) ends that hang with the 504 after roughly
+ * <ms> instead of the default ~9s.
  *
  * Skins are direct-URL only: the stock /oncall hub never lists customers,
  * and each skin is reachable solely by its own /oncall/c/<slug> URL. Skins on a
@@ -1711,6 +1713,7 @@ const ONCALL_SKINS = {
     brandMark: 'L',
     vertical: 'banking',
     failAfterHang: true,
+    failAfterMs: 5000,
     teamsAlerts: true,
     alertDestination: 'teams',
     page: {
@@ -1724,8 +1727,8 @@ const ONCALL_SKINS = {
       metricValue: '504 on ~100% of new payee payments',
       threshold: '> 5% error rate',
       baseline: '<0.1% (7-day, before olb-payments@2026.11.1)',
-      symptom: 'Make payment submissions to new payees hang ~9s, then fail with a gateway timeout. The payment is not sent.',
-      impact: 'Customers cannot pay someone new in Internet Banking; every payment waits ~9 seconds and then fails, and customers are calling to make the payment by phone.',
+      symptom: 'Make payment submissions to new payees hang ~5s, then fail with a gateway timeout. The payment is not sent.',
+      impact: 'Customers cannot pay someone new in Internet Banking; every payment waits ~5 seconds and then fails, and customers are calling to make the payment by phone.',
     },
     theme: {
       '--accent': '#11B67A',

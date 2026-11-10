@@ -50,6 +50,19 @@ describe('failAfterHang skins', () => {
     expect(body.error).not.toMatch(/hold|ms\b/i);
   });
 
+  test('banking: failAfterMs ends the hang with a 504 after ~5s', async () => {
+    expect(getOncallSkin('10aff157')).toMatchObject({ vertical: 'banking', failAfterHang: true, failAfterMs: 5000 });
+    const started = Date.now();
+    const res = await post('/api/oncall/banking/transfer', {
+      fromAccount: 'ACCT-1001', toAccount: 'ACCT-1002', amount: 50, accountTier: 'standard',
+    }, { 'X-Oncall-Skin': '10aff157' });
+    const elapsed = Date.now() - started;
+    expect(res.status).toBe(504);
+    expect((await res.json()).code).toBe('HOLD_EXPIRED');
+    expect(elapsed).toBeGreaterThan(5000);
+    expect(elapsed).toBeLessThan(6500);
+  });
+
   test('hightech: the failAfterHang skin hangs, then gets a calm 504', async () => {
     const res = await post('/api/oncall/licenses/provision', {
       orgName: 'enterprise_suite', planName: 'enterprise', seats: 25, billingCycle: 'annual',

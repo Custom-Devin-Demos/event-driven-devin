@@ -142,9 +142,10 @@ const UPSTREAM_HOLD_TTL_MS = { banking: 5000, telco: 5000, hightech: 4000 };
 
 function upstreamHold(req, vertical) {
   const skin = getOncallSkin(req.get('x-oncall-skin'));
-  return skin && skin.failAfterHang && skin.vertical === vertical
-    ? { holdTtlMs: UPSTREAM_HOLD_TTL_MS[vertical] }
-    : {};
+  if (!skin || !skin.failAfterHang || skin.vertical !== vertical) return {};
+  return Number(skin.failAfterMs) > 0
+    ? { holdTtlMs: Number(skin.failAfterMs), releaseHoldEarly: true }
+    : { holdTtlMs: UPSTREAM_HOLD_TTL_MS[vertical] };
 }
 
 function sendHoldExpired(req, res, error, message) {
