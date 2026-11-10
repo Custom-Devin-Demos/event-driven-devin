@@ -8984,6 +8984,13 @@ const ONCALL_SKINS = {
     page: { file: '991042b6.html', title: 'Afore Capital' },
     disclaimer: 'NOT ACTUALLY AN AFORE CAPITAL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Afore Capital product.',
   },
+  '0d030f26': {
+    slug: '0d030f26',
+    company: 'PZU',
+    vertical: 'insurance',
+    page: { file: '0d030f26.html', title: 'PZU Group' },
+    disclaimer: 'NOT ACTUALLY A PZU SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real PZU product.',
+  },
   'e302af0c': {
     slug: 'e302af0c',
     company: 'Origin',
