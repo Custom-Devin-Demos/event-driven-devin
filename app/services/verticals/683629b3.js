@@ -26,6 +26,7 @@ const SCENARIO = 'checkout-unavailable';
 const CHECKOUT_ERROR = 'unable to process your order';
 const CHECKOUT_HOLD_MS = 500;
 const INCIDENT_WINDOW_MS = 60 * 1000;
+const OWNER_LOOKUP_TIMEOUT_MS = 3000;
 const FEEDBACK_LIMIT = { max: 5, windowMs: 60 * 1000 };
 
 const ONCALL_CHANNEL = { id: 'C0CAX4SHG6M', name: '#dell-oncall' };
@@ -181,7 +182,14 @@ async function resolveUserIdByEmail(email, orgId, apiKey) {
  * later failures join that incident. A window only stays open when the
  * alert was actually delivered.
  */
-function raiseIncident(error, quote, requestId) {
+/** Cap the owner lookup so a stalled Devin API never delays paging #dell-oncall. */
+function withTimeout(promise, ms, fallback) {
+  let timer;
+  const timeout = new Promise((resolve) => { timer = setTimeout(() => resolve(fallback), ms); });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function raiseIncident(error, quote, requestId, { ownerLookupTimeoutMs = OWNER_LOOKUP_TIMEOUT_MS } = {}) {
   const now = Date.now();
   if (now - lastIncidentAt < INCIDENT_WINDOW_MS) {
     logger.info('Dell.com checkout failure joined the open incident', { requestId, scenario: SCENARIO });
@@ -235,7 +243,7 @@ function raiseIncident(error, quote, requestId) {
     triggeredRule: '',
   }));
 
-  return resolveUserIdByEmail(OWNER.email, devinOrgId, config.apiKey)
+  return withTimeout(resolveUserIdByEmail(OWNER.email, devinOrgId, config.apiKey), ownerLookupTimeoutMs, '')
     .then((userId) => raiseAlert(userId || undefined))
     .then((result) => {
       if (!result) reopenWindow();
@@ -256,7 +264,7 @@ function raiseIncident(error, quote, requestId) {
  * trip, then reserve fulfillment. A failure is captured to Sentry and raised
  * as a #dell-oncall alert + Devin session before it is rethrown.
  */
-async function placeOrder(data, { hold = CHECKOUT_HOLD_MS } = {}) {
+async function placeOrder(data, { hold = CHECKOUT_HOLD_MS, ownerLookupTimeoutMs } = {}) {
   const startTime = Date.now();
   const requestId = `DCO-${uuidv4().slice(0, 8).toUpperCase()}`;
   const quote = quoteCart(data && data.items);
@@ -287,7 +295,7 @@ async function placeOrder(data, { hold = CHECKOUT_HOLD_MS } = {}) {
       errorClass: error.name,
       service: SERVICE,
     });
-    error.sessionPromise = raiseIncident(error, quote, requestId);
+    error.sessionPromise = raiseIncident(error, quote, requestId, { ownerLookupTimeoutMs });
     error.requestId = requestId;
     error.code = 'CHECKOUT_UNAVAILABLE';
     error.statusCode = 503;
@@ -425,6 +433,7 @@ module.exports = {
   CHECKOUT_ERROR,
   CHECKOUT_HOLD_MS,
   INCIDENT_WINDOW_MS,
+  OWNER_LOOKUP_TIMEOUT_MS,
   ONCALL_CHANNEL,
   FEEDBACK_CHANNEL,
   OWNER,

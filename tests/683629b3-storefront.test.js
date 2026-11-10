@@ -272,6 +272,22 @@ describe('683629b3 Dell.com storefront — Place order on-call trigger', () => {
     expect(REMEDIATION_DIRECTIVE).not.toMatch(/cto-na|leadDays/);
   });
 
+  test('a stalled owner lookup never delays paging: the alert goes out with the fallback identity', async () => {
+    listOrgUsers.mockImplementationOnce(() => new Promise(() => {}));
+    let caught;
+    try {
+      await service.placeOrder({ items: [cartItem()] }, { hold: 0, ownerLookupTimeoutMs: 20 });
+    } catch (error) {
+      caught = error;
+    }
+    const started = Date.now();
+    await caught.sessionPromise;
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert.mock.calls[0][0]).toMatchObject({ devinUserId: undefined, devinEmail: OWNER.email, slackMemberIdFallback: OWNER.slackMemberId });
+    expect(service.OWNER_LOOKUP_TIMEOUT_MS).toBeLessThanOrEqual(5000);
+  });
+
   test('the alert is always routed to Slack even when the browser picked Teams', async () => {
     createSessionAndAlert.mockImplementation(() => Promise.resolve({ triggered: true, destination: selectedAlertDestination() }));
     let caught;
