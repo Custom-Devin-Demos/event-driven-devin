@@ -100,6 +100,15 @@ describe('Advisor Desk on-call skin', () => {
     expect(html).not.toMatch(/<svg|<img|Cognition|demo replica|planted|humza|cognition\.ai|FDC3/i);
   });
 
+  test('initially hidden panels with their own display rule also hide via [hidden]', () => {
+    const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/5922e7ff.html'), 'utf8');
+    const hiddenClasses = [...html.matchAll(/<[a-z]+[^>]*class="([^"]+)"[^>]*\shidden[\s>]/g)]
+      .flatMap((m) => m[1].split(/\s+/));
+    const displayed = hiddenClasses.filter((c) => new RegExp(`\\.${c}\\s*\\{[^}]*display:`).test(html));
+    expect(displayed).toContain('outage');
+    for (const c of displayed) expect(html).toMatch(new RegExp(`\\.${c}\\[hidden\\]\\s*\\{\\s*display:\\s*none`));
+  });
+
   test('order routing alert immediately starts an investigation and replies with its session link, without declaring an incident', async () => {
     const skin = getOncallSkin(SLUG);
     expect(skin.datadogIncident).toBeUndefined();
