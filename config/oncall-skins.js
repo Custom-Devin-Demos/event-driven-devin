@@ -8998,7 +8998,7 @@ const ONCALL_SKINS = {
       service: 'report-builder-api',
       release: 'origin-platform@2026.11.2',
       team: 'report-builder-oncall',
-      metricQuery: 'p95:trace.express.request.duration{service:report-builder-api,resource:POST /api/oncall/licenses/provision}',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/licenses/provision}',
       baseline: '~350ms (7-day p95, before origin-platform@2026.11.2)',
       symptom: 'Run report on the report builder got slow after the last release and takes longer with every request. Process memory trends up alongside latency.',
       impact: 'Advertisers and agencies wait several seconds for every report request to be accepted, and the wait grows under sustained use.',
