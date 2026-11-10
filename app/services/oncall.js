@@ -497,6 +497,27 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  brandstore: {
+    vertical: 'brandstore',
+    page: '2a7359ff.html',
+    apiPath: '/api/2a7359ff/checkout',
+    oncallApiPath: '/api/oncall/brandstore/checkout',
+    owner: 'Priya Natarajan (d2c-commerce-oncall)',
+    brand: 'Direct-to-Consumer Brand Store (Basket)',
+    service: 'basket-checkout-api',
+    endpoint: 'POST /api/oncall/brandstore/checkout',
+    monitor: 'p95 latency — POST /api/oncall/brandstore/checkout',
+    metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/brandstore/checkout}',
+    metricValue: '8.0s (504s on loyalty-redemption orders)',
+    threshold: '> 2s',
+    baseline: '~300ms (7-day p95)',
+    release: 'basket-web@4.18.0',
+    symptom: 'Basket checkouts that redeem loyalty points hang ~8s and then fail with 504 Gateway Timeout. Checkouts without a redemption are normal. Onset coincides with the basket-web 4.18.0 loyalty release.',
+    impact: 'Loyalty members redeeming their points cannot complete checkout; every redemption order sits on a spinner and then errors.',
+    triggerWhen: { redeemPointz: true },
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   homeimprovement: {
     vertical: 'homeimprovement',
     page: '856a4087.html',

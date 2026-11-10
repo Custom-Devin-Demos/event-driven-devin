@@ -38,6 +38,7 @@ const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncal
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
 const { checkoutOrder: checkoutHomeImprovementOrder } = require('../services/oncall-verticals/homeimprovement');
+const { checkoutBasket: checkoutBrandStoreBasket } = require('../services/oncall-verticals/brandstore');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
 const { submitCardPayment } = require('../services/oncall-verticals/cardpayment');
 const { createSessionAndAlert } = require('../services/devin-session');
@@ -689,6 +690,33 @@ router.post('/api/oncall/storepickup/checkout', async (req, res) => {
       success: false,
       error: isTimeout
         ? 'Your order timed out while reserving items at your store. Please try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/brandstore/checkout — place a brand-store basket checkout
+ */
+router.post('/api/oncall/brandstore/checkout', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await checkoutBrandStoreBasket({
+      items: body.items,
+      redeemPointz: body.redeemPointz === true,
+      memberId: body.memberId,
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'POINTZ_REDEMPTION_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_BASKET' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'We couldn\u2019t apply your Pointz right now. Please try again in a few minutes.'
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'CHECKOUT_FAILED',
