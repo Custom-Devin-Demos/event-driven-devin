@@ -9091,6 +9091,7 @@ const ONCALL_SKINS = {
     brandMark: 'G',
     vertical: 'banking',
     page: { file: '0c182f34.html', title: 'Transferir | Online Banking Galicia' },
+    oncallOnly: true,
     theme: {
       '--accent': '#C85000',
       '--ink': '#2B2B2B',
