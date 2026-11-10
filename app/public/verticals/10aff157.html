@@ -424,6 +424,26 @@
         background: #fff4f2;
         color: #7a1a12;
       }
+      .result-box.failure {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        border-left-width: 6px;
+        padding: 18px 16px;
+      }
+      .result-box.failure svg {
+        flex: none;
+        margin-top: 2px;
+      }
+      .result-box.failure strong {
+        display: block;
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+      .result-box.failure span {
+        font-weight: 400;
+        color: var(--ink);
+      }
       .side h2 {
         margin: 0 0 12px;
         font-size: 22px;
@@ -760,7 +780,7 @@
               </label>
             </fieldset>
             <button class="btn" id="submitBtn" type="submit">Make payment</button>
-            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <div id="result" class="result-box" role="status" aria-live="polite" tabindex="-1"></div>
           </form>
         </section>
         <aside class="side">
@@ -942,6 +962,14 @@
         result.textContent = message;
       }
 
+      function showPaymentFailed(heading) {
+        result.className = "result-box error failure";
+        result.innerHTML =
+          '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#b42318"/><path d="M12 6.5v7" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.4" fill="#fff"/></svg>' +
+          "<div><strong>" + heading + "</strong><span>Check your recent transactions before you try again, or call us on 0345 300 0000.</span></div>";
+        result.focus();
+      }
+
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         result.className = "result-box";
@@ -996,16 +1024,14 @@
             await res.json();
           } catch (_) {}
           if (!res.ok) {
-            showError(
-              "We can't make this payment right now. Please try again later or call us on 0345 300 0000."
-            );
+            showPaymentFailed("Payment not sent");
           } else {
             result.className = "result-box success";
             result.textContent = `Payment sent. £${submittedAmount} to ${submittedTo} should arrive within two hours.`;
             ack.checked = false;
           }
         } catch (_) {
-          showError("We can't make this payment right now. Please try again later or call us on 0345 300 0000.");
+          showPaymentFailed("We couldn't confirm your payment");
         } finally {
           btn.disabled = false;
           btn.textContent = label;

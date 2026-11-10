@@ -1671,6 +1671,7 @@ const ONCALL_SKINS = {
     company: 'Lloyds Bank',
     brandMark: 'L',
     vertical: 'banking',
+    failAfterHang: true,
     teamsAlerts: true,
     alertDestination: 'teams',
     page: {
@@ -1678,11 +1679,14 @@ const ONCALL_SKINS = {
       title: 'Pay someone new | Internet Banking – Lloyds Bank',
     },
     alertCard: {
-      title: 'p95 latency \u2014 new payee payments',
+      title: '5xx rate \u2014 new payee payments',
       release: 'olb-payments@2026.11.1',
       team: 'economic-crime-prevention-oncall',
-      symptom: 'Make payment submissions to new payees hang ~9s before the payment is confirmed. Error rate is normal \u2014 payments eventually go through.',
-      impact: 'Every customer paying someone new waits on a spinner for ~9 seconds; some press Make payment again or call to check whether the payment went through.',
+      metricValue: '504 on ~100% of new payee payments',
+      threshold: '> 5% error rate',
+      baseline: '<0.1% (7-day, before olb-payments@2026.11.1)',
+      symptom: 'Make payment submissions to new payees hang ~9s, then fail with a gateway timeout. The payment is not sent.',
+      impact: 'Customers cannot pay someone new in Internet Banking; every payment waits ~9 seconds and then fails, and customers are calling to make the payment by phone.',
     },
     theme: {
       '--accent': '#11B67A',
