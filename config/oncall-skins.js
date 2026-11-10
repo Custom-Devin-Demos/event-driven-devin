@@ -9085,6 +9085,23 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     page: { file: 'fe89e4fd.html', title: 'Who we are | Government Technology Agency of Singapore (GovTech Singapore)' },
     disclaimer: 'NOT ACTUALLY A GOVTECH SINGAPORE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real GovTech Singapore product.',
+  },  '0c182f34': {
+    slug: '0c182f34',
+    company: 'Banco Galicia',
+    brandMark: 'G',
+    vertical: 'banking',
+    page: { file: '0c182f34.html', title: 'Transferir | Online Banking Galicia' },
+    theme: {
+      '--accent': '#C85000',
+      '--ink': '#2B2B2B',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#C85000',
+      '--chrome-text': '#ffffff',
+    },
+    devinSession: { auto: true },
+    sonarPR: { auto: true },
+    supportCenter: 'Centro de Ayuda Galicia',
+    disclaimer: 'NOT ACTUALLY A BANCO GALICIA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco Galicia product.',
   },
 };
 
