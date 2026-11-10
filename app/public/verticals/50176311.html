@@ -326,17 +326,17 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
-        const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
           result.innerHTML = `<div class="error-title">We couldn't start your return</div><div class="error-detail">Error ${res.status}${res.statusText ? ' ' + res.statusText : ''}. Please try again in a few minutes or contact Customer Service.</div>`;
         } else {
+          const data = await res.json();
           result.className = 'result-box success';
           result.innerHTML = `<div class="error-title">Your return has started</div><div class="error-detail">Return #${data.claimId} &mdash; Refund: $${data.payout}</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+        result.innerHTML = `<div class="error-title">We couldn't start your return</div><div class="error-detail">Please check your connection and try again, or contact Customer Service.</div>`;
       } finally { btn.disabled = false; btn.textContent = 'Start a Free Return'; }
     });
   </script>

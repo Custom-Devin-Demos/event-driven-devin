@@ -1,6 +1,7 @@
 const express = require('express');
 const { processTransfer } = require('../services/oncall-verticals/banking');
 const { processCashTransfer } = require('../services/oncall-verticals/statestreet-transfers');
+const { submitOrder: submitWealthOrder } = require('../services/oncall-verticals/wealthorders');
 const { ACCOUNTS: REGIONS_ACCOUNTS, processCashTransfer: processRegionsTransfer } = require('../services/oncall-verticals/regions-transfers');
 const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
@@ -37,6 +38,7 @@ const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncal
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
 const { checkoutOrder: checkoutHomeImprovementOrder } = require('../services/oncall-verticals/homeimprovement');
+const { checkoutBasket: checkoutBrandStoreBasket } = require('../services/oncall-verticals/brandstore');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
 const { submitCardPayment } = require('../services/oncall-verticals/cardpayment');
 const { createSessionAndAlert } = require('../services/devin-session');
@@ -52,7 +54,33 @@ const { createSession: createMemberSession } = require('../services/oncall-verti
 const { prepareFulfillment, listCollection } = require('../services/oncall-verticals/nftcheckout');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
+const { processTransfer: processCibcTransfer } = require('../services/oncall-verticals/cibc-transfers');
 const router = express.Router();
+
+router.post('/api/oncall/cibc/transfers', async (req, res) => {
+  try {
+    res.json(await processCibcTransfer(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_TRANSFER';
+    res.status(invalid ? 400 : 500).json({ success: false, code: error.code || 'TRANSFER_POSTING_FAILED', error: invalid ? error.message : 'Your transfer could not be completed. No money was moved.' });
+  }
+});
+
+router.post('/api/oncall/wealthorders/orders', async (req, res) => {
+  try {
+    res.json(await submitWealthOrder(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_ORDER';
+    if (!invalid) logger.error('Advisor Desk order routing failed', { error: error.message, errorClass: error.name });
+    res.status(invalid ? 400 : 500).json({
+      success: false,
+      code: error.code || 'ORDER_ROUTING_FAILED',
+      error: invalid ? error.message : 'The order could not be routed.',
+      errorClass: error.name,
+      requestId: req.requestId,
+    });
+  }
+});
 
 router.get('/api/oncall/regions/accounts', (_req, res) => {
   res.json({
@@ -115,9 +143,10 @@ const UPSTREAM_HOLD_TTL_MS = { banking: 5000, telco: 5000, hightech: 4000 };
 
 function upstreamHold(req, vertical) {
   const skin = getOncallSkin(req.get('x-oncall-skin'));
-  return skin && skin.failAfterHang && skin.vertical === vertical
-    ? { holdTtlMs: UPSTREAM_HOLD_TTL_MS[vertical] }
-    : {};
+  if (!skin || !skin.failAfterHang || skin.vertical !== vertical) return {};
+  return Number(skin.failAfterMs) > 0
+    ? { holdTtlMs: Number(skin.failAfterMs), releaseHoldEarly: true }
+    : { holdTtlMs: UPSTREAM_HOLD_TTL_MS[vertical] };
 }
 
 function sendHoldExpired(req, res, error, message) {
@@ -661,6 +690,33 @@ router.post('/api/oncall/storepickup/checkout', async (req, res) => {
       success: false,
       error: isTimeout
         ? 'Your order timed out while reserving items at your store. Please try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/brandstore/checkout — place a brand-store basket checkout
+ */
+router.post('/api/oncall/brandstore/checkout', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await checkoutBrandStoreBasket({
+      items: body.items,
+      redeemPointz: body.redeemPointz === true,
+      memberId: body.memberId,
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'POINTZ_REDEMPTION_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_BASKET' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'We couldn\u2019t apply your Pointz right now. Please try again in a few minutes.'
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'CHECKOUT_FAILED',

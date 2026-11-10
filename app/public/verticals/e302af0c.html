@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New report | Reports | Origin</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1c3b51;
+      --pink: #ee2a7b;
+      --pink-soft: #fbd3e3;
+      --cyan: #00bbff;
+      --v1: #fec000;
+      --v2: #1f6eb5;
+      --v3: #ac1527;
+      --line: #dfe5ea;
+      --mist: #e4eaef;
+      --muted: rgba(28, 59, 81, 0.68);
+      --font: "Noto Sans", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--font); color: var(--navy); background: #ffffff; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+    /* header */
+    .site-header { background: #ffffff; border-bottom: 1px solid var(--line); position: relative; z-index: 2; }
+    .site-header .wrap { display: flex; align-items: center; gap: 40px; height: 96px; }
+    .logo { display: inline-flex; align-items: center; text-decoration: none; min-height: 44px; }
+    .logo svg { width: 132px; height: 48px; display: block; }
+    .nav { display: flex; gap: 8px; margin-left: auto; align-items: center; }
+    .nav a { text-decoration: none; font-size: 17px; font-weight: 600; padding: 10px 14px; min-height: 44px; display: inline-flex; align-items: center; border-radius: 22px; }
+    .nav a.active { background: var(--pink-soft); }
+    .nav a:hover { color: var(--pink); }
+    .acct { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 14px; }
+    .menu-btn { display: none; }
+
+    /* hero band */
+    .band { position: relative; color: #ffffff; background: linear-gradient(110deg, #1c3b51 0%, #1c3b51 35%, #7a2a63 70%, #ee2a7b 100%); overflow: hidden; }
+    .band img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .band::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(28, 59, 81, 0.88) 0%, rgba(28, 59, 81, 0.6) 55%, rgba(28, 59, 81, 0.15) 100%); }
+    .band .wrap { position: relative; z-index: 1; padding-top: 40px; padding-bottom: 44px; }
+    .crumbs { font-size: 14px; opacity: 0.85; }
+    .crumbs a { text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    .band h1 { font-size: 44px; line-height: 1.1; font-weight: 600; margin: 10px 0 10px; }
+    .band p { font-size: 18px; max-width: 760px; margin: 0; opacity: 0.92; }
+
+    /* layout */
+    main .wrap > div { min-width: 0; }
+    main .wrap { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 32px; padding-top: 32px; padding-bottom: 64px; align-items: start; }
+    .card { background: #ffffff; border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+    .card + .card { margin-top: 24px; }
+    .card h2 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+    .card .sub { font-size: 14px; color: var(--muted); margin: 0 0 20px; }
+    .step { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pink); margin: 22px 0 10px; }
+    .step:first-of-type { margin-top: 0; }
+    .step b { width: 22px; height: 22px; border-radius: 50%; background: var(--pink); color: #fff; display: grid; place-items: center; font-size: 12px; letter-spacing: 0; }
+    label.f { display: block; font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+    select, input[type=number], input[type=search] {
+      width: 100%; min-height: 48px; padding: 10px 14px; font: inherit; font-size: 15px; color: var(--navy);
+      border: 1px solid #b9c6d0; border-radius: 10px; background: #ffffff;
+    }
+    select:focus, input:focus, button:focus-visible, a:focus-visible { outline: 3px solid rgba(238, 42, 123, 0.35); outline-offset: 1px; border-color: var(--pink); }
+    .row { display: grid; grid-template-columns: 1fr 120px; gap: 12px; }
+    .field { margin-bottom: 14px; }
+    .hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { position: relative; }
+    .chip input { position: absolute; opacity: 0; inset: 0; }
+    .chip span { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1px solid #b9c6d0; border-radius: 22px; font-size: 14px; font-weight: 500; cursor: pointer; background: #fff; }
+    .chip input:checked + span { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .chip input:focus-visible + span { outline: 3px solid rgba(238, 42, 123, 0.35); }
+    .vtr { display: none; margin-top: 10px; }
+    .vtr.show { display: block; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 56px; margin-top: 22px; padding: 0 28px; border: 0; border-radius: 30px; background: var(--pink); color: #fff; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+    .btn:hover { background: #d91f6c; }
+    .btn[disabled] { opacity: 0.75; cursor: progress; }
+    .spin { width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: s 0.8s linear infinite; display: none; }
+    .btn[disabled] .spin { display: inline-block; }
+    @keyframes s { to { transform: rotate(360deg); } }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 12px; font-size: 14px; }
+    .result-box.success { display: block; background: #e8f6fd; border: 1px solid #9fdcf6; }
+    .result-box.error { display: block; background: #fdecf3; border: 1px solid #f6a9c8; }
+    .result-box .t { font-weight: 700; margin-bottom: 2px; }
+
+    /* summary of selections */
+    .summary { margin-top: 20px; padding: 16px; border-radius: 14px; background: var(--mist); font-size: 14px; }
+    .summary dl { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 0; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; }
+
+    /* reports table */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; padding: 10px 12px; border-bottom: 2px solid var(--navy); white-space: nowrap; }
+    td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    td.id { font-family: ui-monospace, Menlo, monospace; font-size: 13px; white-space: nowrap; }
+    .status { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; white-space: nowrap; }
+    .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #2e9e5b; }
+    .status.proc::before { background: var(--cyan); }
+    .dl { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--pink); text-decoration: none; white-space: nowrap; }
+    .dl.off { color: var(--muted); pointer-events: none; }
+
+    /* preview */
+    .pv-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    .tag { font-size: 12px; font-weight: 700; color: var(--pink); border: 1px solid var(--pink); padding: 4px 10px; border-radius: 14px; white-space: nowrap; }
+    .headline { font-size: 22px; font-weight: 600; margin: 18px 0 20px; line-height: 1.35; }
+    .headline em { font-style: normal; color: var(--pink); }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .kpi { background: var(--mist); border-radius: 14px; padding: 14px 16px; }
+    .kpi .v { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .kpi .v small { font-size: 15px; font-weight: 600; }
+    .kpi .l { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .kpi.hl { background: var(--pink-soft); }
+    .vend th:not(:first-child), .vend td:not(:first-child) { text-align: right; }
+    .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+    .vend tfoot td { font-weight: 700; border-top: 2px solid var(--navy); border-bottom: 0; }
+    .chart-t { font-size: 14px; font-weight: 700; color: var(--pink); margin: 26px 0 0; }
+    .chart-s { font-size: 12px; font-style: italic; color: var(--muted); margin: 0 0 8px; }
+    .chart svg { width: 100%; height: auto; display: block; }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; margin-top: 8px; }
+    .legend i { display: inline-block; width: 18px; height: 3px; margin-right: 6px; vertical-align: 4px; }
+    .note { font-size: 12px; color: var(--muted); margin-top: 16px; }
+
+    /* footer */
+    .site-footer { background: var(--navy); color: #fff; }
+    .site-footer .grad { height: 120px; background: linear-gradient(100deg, #1c3b51 0%, #1c3b51 30%, #8a2a66 60%, #ee2a7b 100%); }
+    .site-footer .wrap { display: grid; grid-template-columns: 200px 1fr 1.4fr 1fr; gap: 32px; padding-top: 40px; padding-bottom: 40px; }
+    .site-footer h4 { font-size: 16px; font-weight: 700; margin: 0 0 12px; }
+    .site-footer ul { list-style: none; margin: 0; padding: 0; }
+    .site-footer li a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 14px; }
+    .site-footer li a:hover { color: var(--pink-soft); }
+    .site-footer address { font-style: normal; font-size: 14px; line-height: 1.8; }
+    .site-footer .logo svg text { fill: #fff; }
+    .copy { border-top: 1px solid rgba(255,255,255,0.15); font-size: 13px; opacity: 0.8; }
+    .copy .wrap { display: block; padding-top: 16px; padding-bottom: 20px; }
+
+    @media (max-width: 1080px) {
+      main .wrap { grid-template-columns: minmax(0, 1fr); }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .wrap { padding: 0 18px; }
+      .site-header .wrap { height: 72px; gap: 12px; }
+      .logo svg { width: 100px; height: 40px; }
+      .nav, .acct span { display: none; }
+      .acct { margin-left: auto; }
+      .menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 22px; background: #fff; color: var(--navy); }
+      .band h1 { font-size: 32px; }
+      .band p { font-size: 16px; }
+      .card { padding: 20px; border-radius: 16px; }
+      .row { grid-template-columns: 1fr 96px; }
+      .summary dl { grid-template-columns: 1fr; gap: 0; }
+      .summary dd { margin-bottom: 8px; }
+      .headline { font-size: 19px; }
+      .kpi .v { font-size: 22px; }
+      .site-footer .wrap { grid-template-columns: 1fr 1fr; }
+      .site-footer .brand-col { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Origin home">
+        <svg viewBox="0 0 132 48" aria-hidden="true"><path d="M58 9 a8 8 0 0 1 12 0" fill="none" stroke="#ee2a7b" stroke-width="3.2" stroke-linecap="round"/><text x="0" y="40" font-family="Noto Sans, sans-serif" font-size="38" font-weight="600" fill="#1c3b51" letter-spacing="-0.5">origin</text></svg>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#">Campaigns</a>
+        <a href="#" class="active" aria-current="page">Reports</a>
+        <a href="#">Use Cases</a>
+        <a href="#">Help</a>
+      </nav>
+      <div class="acct"><span>Media agency user</span><div class="avatar" aria-hidden="true">JS</div></div>
+      <button class="menu-btn" type="button" aria-label="Open menu"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+  </header>
+
+  <section class="band">
+    <img src="https://originmediameasurement.com/img/build/assets/hero-banner.fd7a1620.jpg?q=75&w=2500&s=e1f1ca083897e76ebcb2b70ed590c553" alt="" onerror="this.remove()">
+    <div class="wrap">
+      <div class="crumbs"><a href="#">Reports</a> / New report</div>
+      <h1>New report</h1>
+      <p>Measure the deduplicated reach and frequency of your cross-media campaign. Reports are returned as an Excel workbook, and we email you when yours is ready to download.</p>
+    </div>
+  </section>
+
+  <main>
+    <div class="wrap">
+      <div>
+        <section class="card" aria-labelledby="paramsTitle">
+          <h2 id="paramsTitle">Report parameters</h2>
+          <p class="sub">Choose the campaign, period, audience and impression filter to report on.</p>
+          <form id="provisionForm" novalidate>
+            <div class="step"><b>1</b>Campaign</div>
+            <div class="field">
+              <label class="f" for="product">Campaign</label>
+              <select id="product">
+                <option value="CMP-24-0917" data-name="Autumn Brand 2024" selected>Autumn Brand 2024 &middot; CMP-24-0917</option>
+                <option value="CMP-24-1104" data-name="Christmas Range 2024">Christmas Range 2024 &middot; CMP-24-1104</option>
+                <option value="CMP-25-0203" data-name="Spring Launch 2025">Spring Launch 2025 &middot; CMP-25-0203</option>
+                <option value="CMP-25-0512" data-name="Summer Always-on 2025">Summer Always-on 2025 &middot; CMP-25-0512</option>
+              </select>
+            </div>
+
+            <div class="step"><b>2</b>Measurement period</div>
+            <div class="row field">
+              <div>
+                <label class="f" for="period">Period</label>
+                <select id="period">
+                  <option value="11" data-label="19/09/2024 &ndash; 29/11/2024" selected>19/09/2024 &ndash; 29/11/2024</option>
+                  <option value="6" data-label="19/09/2024 &ndash; 30/10/2024">19/09/2024 &ndash; 30/10/2024</option>
+                  <option value="4" data-label="01/11/2024 &ndash; 29/11/2024">01/11/2024 &ndash; 29/11/2024</option>
+                </select>
+              </div>
+              <div>
+                <label class="f" for="seats">Weeks</label>
+                <input type="number" id="seats" value="11" min="1" max="52" readonly>
+              </div>
+            </div>
+
+            <div class="step"><b>3</b>Audience</div>
+            <div class="field">
+              <label class="f" for="audience">Target audience</label>
+              <select id="audience">
+                <option selected>All Adults 16+</option>
+                <option>Adults 16&ndash;34</option>
+                <option>Females 16&ndash;34</option>
+                <option>ABC1 Adults</option>
+              </select>
+            </div>
+
+            <div class="step"><b>4</b>Campaign assets</div>
+            <div class="field">
+              <div class="chips" role="group" aria-label="Measured entities">
+                <label class="chip"><input type="checkbox" name="vendor" value="Vendor 1" checked><span>Vendor 1</span></label>
+                <label class="chip"><input type="checkbox" name="vendor" value="Vendor 2" checked><span>Vendor 2</span></label>
+                <label class="chip"><input type="checkbox" name="vendor" value="Vendor 3" checked><span>Vendor 3</span></label>
+              </div>
+              <div class="hint">Unique reach needs more than one measured entity.</div>
+            </div>
+
+            <div class="step"><b>5</b>Impression filter</div>
+            <div class="field">
+              <div class="chips" role="radiogroup" aria-label="Impression filter">
+                <label class="chip"><input type="radio" name="filter" value="AMI" checked><span>All Measurable Impressions</span></label>
+                <label class="chip"><input type="radio" name="filter" value="MRC"><span>MRC standard</span></label>
+                <label class="chip"><input type="radio" name="filter" value="Custom"><span>Custom</span></label>
+              </div>
+              <div class="vtr" id="vtrWrap">
+                <label class="f" for="vtr">Video completion status</label>
+                <select id="vtr">
+                  <option>25% VTR</option><option>50% VTR</option><option>75% VTR</option><option selected>100% VTR</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="step"><b>6</b>Output</div>
+            <div class="field">
+              <label class="f" for="planTier">Report template</label>
+              <select id="planTier">
+                <option value="professional">Core report &mdash; reach, frequency, impressions</option>
+                <option value="business" selected>Enhanced report &mdash; adds unique &amp; cumulative reach</option>
+                <option value="enterprise">Full report &mdash; adds 15+ frequency distribution &amp; GRPs</option>
+              </select>
+            </div>
+
+            <div class="summary" aria-live="polite">
+              <dl>
+                <dt>Campaign</dt><dd id="sumCampaign"></dd>
+                <dt>Period</dt><dd id="sumPeriod"></dd>
+                <dt>Audience</dt><dd id="sumAudience"></dd>
+                <dt>Assets</dt><dd id="sumAssets"></dd>
+                <dt>Filter</dt><dd id="sumFilter"></dd>
+              </dl>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn"><span class="spin" aria-hidden="true"></span><span id="btnLabel">Run report</span></button>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+      </div>
+
+      <div>
+        <section class="card" aria-labelledby="recentTitle">
+          <h2 id="recentTitle">My reports</h2>
+          <p class="sub">Reports you have requested in the last 30 days.</p>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Report</th><th>Campaign</th><th>Audience</th><th>Status</th><th></th></tr></thead>
+              <tbody id="reportRows">
+                <tr><td class="id">RPT-48213</td><td>Autumn Brand 2024</td><td>All Adults 16+</td><td><span class="status">Ready</span></td><td><a class="dl" href="#" aria-label="Download RPT-48213">.xlsx</a></td></tr>
+                <tr><td class="id">RPT-48177</td><td>Autumn Brand 2024</td><td>Adults 16&ndash;34</td><td><span class="status">Ready</span></td><td><a class="dl" href="#" aria-label="Download RPT-48177">.xlsx</a></td></tr>
+                <tr><td class="id">RPT-47902</td><td>Summer Always-on 2025</td><td>ABC1 Adults</td><td><span class="status">Ready</span></td><td><a class="dl" href="#" aria-label="Download RPT-47902">.xlsx</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="pvTitle">
+          <div class="pv-head">
+            <div>
+              <h2 id="pvTitle">RPT-48213 &middot; Autumn Brand 2024</h2>
+              <p class="sub" style="margin:0">All Adults 16+ &middot; All Measurable Impressions &middot; 11 weeks [19/09/2024 to 29/11/2024]</p>
+            </div>
+            <span class="tag">Synthetic data</span>
+          </div>
+          <p class="headline">Your campaign reached <em>40.1m (69%)</em> individuals <em>@ 4.64 OTS</em> vs. All Adults</p>
+          <div class="kpis">
+            <div class="kpi hl"><div class="v">40.1m</div><div class="l">Total Net Campaign Reach (1+)</div></div>
+            <div class="kpi"><div class="v">4.64</div><div class="l">Average frequency (OTS)</div></div>
+            <div class="kpi"><div class="v">49.7m</div><div class="l">Siloed Gross Reach</div></div>
+            <div class="kpi"><div class="v">9.5m <small>19.2%</small></div><div class="l">Duplicated audience</div></div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="vend">
+              <thead><tr><th>Measured entity</th><th>Reach (inc. duplicated)</th><th>Unique reach</th><th>Impressions</th><th>Avg. frequency</th></tr></thead>
+              <tbody>
+                <tr><td><span class="sw" style="background:var(--v1)"></span>Vendor 1</td><td>31.0m</td><td>22.2m</td><td>147.3m</td><td>4.99</td></tr>
+                <tr><td><span class="sw" style="background:var(--v2)"></span>Vendor 2</td><td>5.2m</td><td>2.3m</td><td>5.2m</td><td>1.07</td></tr>
+                <tr><td><span class="sw" style="background:var(--v3)"></span>Vendor 3</td><td>13.5m</td><td>6.6m</td><td>25.0m</td><td>1.94</td></tr>
+              </tbody>
+              <tfoot><tr><td>Total net campaign</td><td>40.1m</td><td>31.1m</td><td>177.5m</td><td>4.64</td></tr></tfoot>
+            </table>
+          </div>
+
+          <p class="chart-t">Cumulative Audience Reached</p>
+          <p class="chart-s">Adults Millions, Cumulative Reach (+1)</p>
+          <div class="chart">
+            <svg viewBox="0 0 640 240" role="img" aria-label="Cumulative reach by week: deduplicated total campaign reaches 40 million by week 11">
+              <g font-family="Noto Sans, sans-serif" font-size="10" fill="#5a7183">
+                <g stroke="#e4eaef"><line x1="36" y1="20" x2="630" y2="20"/><line x1="36" y1="65" x2="630" y2="65"/><line x1="36" y1="110" x2="630" y2="110"/><line x1="36" y1="155" x2="630" y2="155"/><line x1="36" y1="200" x2="630" y2="200"/></g>
+                <text x="26" y="24" text-anchor="end">40</text><text x="26" y="69" text-anchor="end">30</text><text x="26" y="114" text-anchor="end">20</text><text x="26" y="159" text-anchor="end">10</text><text x="26" y="204" text-anchor="end">0</text>
+                <text x="50" y="222" text-anchor="middle">WK 1</text><text x="104" y="222" text-anchor="middle">WK 2</text><text x="158" y="222" text-anchor="middle">WK 3</text><text x="212" y="222" text-anchor="middle">WK 4</text><text x="266" y="222" text-anchor="middle">WK 5</text><text x="320" y="222" text-anchor="middle">WK 6</text><text x="374" y="222" text-anchor="middle">WK 7</text><text x="428" y="222" text-anchor="middle">WK 8</text><text x="482" y="222" text-anchor="middle">WK 9</text><text x="536" y="222" text-anchor="middle">WK 10</text><text x="590" y="222" text-anchor="middle">WK 11</text>
+              </g>
+              <polyline fill="none" stroke="#1c3b51" stroke-width="2.5" stroke-dasharray="2 4" stroke-linecap="round" points="50,137 104,105.5 158,74 212,65 266,33.5 320,33.5 374,24.5 428,24.5 482,20 536,20 590,20"/>
+              <polyline fill="none" stroke="#fec000" stroke-width="2.5" points="50,146 104,128 158,110 212,101 266,87.5 320,78.5 374,69.5 428,69.5 482,60.5 536,60.5 590,60.5"/>
+              <polyline fill="none" stroke="#ac1527" stroke-width="2.5" points="50,191 104,182 158,168.5 212,159.5 266,146 320,137 374,137 428,137 482,137 536,137 590,137"/>
+              <polyline fill="none" stroke="#1f6eb5" stroke-width="2.5" points="50,200 104,195.5 158,191 212,186.5 266,182 320,177.5 374,177.5 428,177.5 482,177.5 536,177.5 590,177.5"/>
+              <g font-family="Noto Sans, sans-serif" font-size="10" font-weight="700" fill="#1c3b51" text-anchor="middle"><text x="50" y="129">14</text><text x="158" y="66">28</text><text x="266" y="25">37</text><text x="428" y="16">39</text><text x="590" y="12">40</text></g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i style="background:#1c3b51"></i>Deduplicated Total Campaign</span>
+            <span><i style="background:#fec000"></i>Vendor 1 (duplicated)</span>
+            <span><i style="background:#1f6eb5"></i>Vendor 2 (duplicated)</span>
+            <span><i style="background:#ac1527"></i>Vendor 3 (duplicated)</span>
+          </div>
+          <p class="note">Vendor values include duplicates (gross). **Synthetic data for illustrative purposes.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="grad" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="brand-col">
+        <a class="logo" href="#" aria-label="Origin home"><svg viewBox="0 0 132 48" aria-hidden="true"><path d="M58 9 a8 8 0 0 1 12 0" fill="none" stroke="#ee2a7b" stroke-width="3.2" stroke-linecap="round"/><text x="0" y="40" font-family="Noto Sans, sans-serif" font-size="38" font-weight="600" letter-spacing="-0.5">origin</text></svg></a>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul><li><a href="#">What is Origin?</a></li><li><a href="#">How does Origin work?</a></li><li><a href="#">Use Cases</a></li><li><a href="#">FAQs</a></li></ul>
+      </div>
+      <div>
+        <h4>Legals</h4>
+        <ul><li><a href="#">Platform Terms and Conditions</a></li><li><a href="#">Privacy Notice for Origin Platform Users</a></li><li><a href="#">Service Level Agreement</a></li><li><a href="#">Privacy Notice</a></li></ul>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <ul><li><a href="#">Origin Support</a></li><li><a href="#">Report guides</a></li></ul>
+      </div>
+    </div>
+    <div class="copy"><div class="wrap">&copy; Origin 2025</div></div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('provisionForm');
+      var product = document.getElementById('product');
+      var period = document.getElementById('period');
+      var seats = document.getElementById('seats');
+      var audience = document.getElementById('audience');
+      var vtr = document.getElementById('vtr');
+      var vtrWrap = document.getElementById('vtrWrap');
+      var result = document.getElementById('result');
+
+      function selected(sel) { return sel.options[sel.selectedIndex]; }
+      function checkedVendors() {
+        return Array.prototype.map.call(form.querySelectorAll('input[name=vendor]:checked'), function (i) { return i.value; });
+      }
+      function filterLabel() {
+        var f = form.querySelector('input[name=filter]:checked').value;
+        if (f === 'AMI') return 'All Measurable Impressions';
+        if (f === 'MRC') return 'MRC standard';
+        return 'Custom (' + vtr.value + ')';
+      }
+      function refresh() {
+        seats.value = period.value;
+        vtrWrap.classList.toggle('show', form.querySelector('input[name=filter]:checked').value === 'Custom');
+        document.getElementById('sumCampaign').textContent = selected(product).getAttribute('data-name') + ' (' + product.value + ')';
+        document.getElementById('sumPeriod').textContent = selected(period).textContent + ' \u00b7 ' + period.value + ' weeks';
+        document.getElementById('sumAudience').textContent = audience.value;
+        var v = checkedVendors();
+        document.getElementById('sumAssets').textContent = v.length ? v.join(', ') : 'None selected';
+        document.getElementById('sumFilter').textContent = filterLabel();
+      }
+      form.addEventListener('change', function () { result.className = 'result-box'; result.textContent = ''; refresh(); });
+      form.addEventListener('reset', function () { setTimeout(refresh, 0); });
+      refresh();
+
+      function addRow(id, campaign, aud) {
+        var tr = document.createElement('tr');
+        var cells = [id, campaign, aud];
+        cells.forEach(function (text, i) {
+          var td = document.createElement('td');
+          if (i === 0) td.className = 'id';
+          td.textContent = text;
+          tr.appendChild(td);
+        });
+        var st = document.createElement('td');
+        st.innerHTML = '<span class="status proc">Processing</span>';
+        tr.appendChild(st);
+        var dl = document.createElement('td');
+        dl.innerHTML = '<span class="dl off">Emailed when ready</span>';
+        tr.appendChild(dl);
+        var body = document.getElementById('reportRows');
+        body.insertBefore(tr, body.firstChild);
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var btn = document.getElementById('submitBtn');
+        var label = document.getElementById('btnLabel');
+        if (!checkedVendors().length) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="t">Select at least one campaign asset</div><div>Choose the measured entities to include in this report.</div>';
+          return;
+        }
+        var campaign = selected(product).getAttribute('data-name');
+        var aud = audience.value;
+        btn.disabled = true; label.textContent = 'Building report\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orgName: product.value, planName: document.getElementById('planTier').value, seats: parseInt(seats.value, 10), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          });
+          var data = await res.json();
+          if (!res.ok || !data.success) {
+            result.className = 'result-box error';
+            result.innerHTML = '<div class="t">We couldn\u2019t start your report</div><div>Please try again in a few minutes. If this keeps happening, contact Origin Support.</div>';
+          } else {
+            var id = 'RPT-' + String(parseInt(String(data.licenseId || '').replace(/[^0-9a-f]/gi, '').slice(0, 6), 16) % 90000 + 10000);
+            addRow(id, campaign, aud);
+            result.className = 'result-box success';
+            result.innerHTML = '<div class="t">Report requested</div><div></div>';
+            result.lastChild.textContent = id + ' for ' + campaign + ' (' + aud + ', ' + data.seats + ' weeks) is processing. We\u2019ll email you when the Excel workbook is ready to download.';
+          }
+        } catch (err) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="t">We couldn\u2019t reach Origin</div><div>Check your connection and try again.</div>';
+        } finally {
+          btn.disabled = false; label.textContent = 'Run report';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
