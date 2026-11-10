@@ -95,6 +95,45 @@
  */
 
 const ONCALL_SKINS = {
+  '5922e7ff': {
+    slug: '5922e7ff',
+    company: 'Morgan Stanley',
+    brandMark: 'MS',
+    vertical: 'wealthorders',
+    oncallOnly: true,
+    paths: ['/morgan-stanley', '/morgan-stanley-oncall'],
+    alertDestination: 'slack',
+    onCallSlackMemberId: 'U0BQZBHCNMA',
+    incidentInviteUserIds: ['U0BQZBHCNMA'],
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Advisor Desk page linked above, the workstation financial advisors use to trade client accounts. Its order ticket Submit order button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'Investigate the order routing failure from its own service telemetry (wm-order-routing-api). It is separate from the Advisor Desk model rebalance outage (wm-rebalance-engine), which has its own SEV-1 incident; do not combine those investigations.',
+        'Reproduce only locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Do not submit the live page, and give testing agents the same restriction.',
+        'Preserve order validation, venue selection, clip sizing and the confirmation fields; do not hide the issue by removing instruments from the security master or catching the error and returning success. Add a regression test, post findings and the PR link in this alert thread, and do not merge or deploy.',
+      ].join('\n'),
+    },
+    page: { file: '5922e7ff.html', title: 'Advisor Desk | Morgan Stanley Wealth Management' },
+    theme: {
+      '--accent': '#2075cc',
+      '--ink': '#e7e7ea',
+      '--surface': '#0f1d2c',
+      '--chrome-bg': '#002952',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Wealth Management Technology support',
+    alertCard: {
+      title: '5xx rate \u2014 Advisor Desk equity order routing',
+      service: 'wm-order-routing-api',
+      team: 'wm-order-routing-oncall',
+      release: 'wm-order-routing@2026.11.2',
+      symptom: 'Submit order fails immediately with HTTP 500 for every advisor equity and ETF order; nothing reaches the smart order router. Latency is normal. Model rebalancing is tracked separately.',
+      impact: 'Advisors cannot place client orders from the Advisor Desk and are phoning orders through to the trading desk.',
+    },
+    disclaimer: 'NOT ACTUALLY A MORGAN STANLEY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Morgan Stanley product.',
+  },
   '5e57909d': {
     slug: '5e57909d',
     company: 'Regions Bank',

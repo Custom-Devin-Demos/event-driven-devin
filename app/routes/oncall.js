@@ -16,6 +16,7 @@ const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 const { normalizeAlertDestination } = require('../services/alert-destination');
 const { BATCH: STATESTREET_BATCH, releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
 const { BATCH: REGIONS_BILLS, submitBillPayments } = require('../services/oncall-verticals/regions');
+const { BATCH: WEALTH_REBALANCE, submitRebalance } = require('../services/oncall-verticals/wealthrebalance');
 const { isTeamsWebhookUrl } = require('../services/teams');
 const {
   FLEET,
@@ -82,6 +83,7 @@ const ONCALL_HOURLY_CAPS = {
   trigger: 50,
   settlement: 50,
   regionsBillPay: 50,
+  wealthRebalance: 50,
   alert: 50,
   infra: 50,
   config: 120,
@@ -639,6 +641,21 @@ router.post('/api/oncall/statestreet/settlement-batches/release', (req, res, nex
   } catch (error) {
     logger.error('State Street batch release failed', { error: error.message });
     res.status(500).json({ success: false, error: 'Unable to release the settlement batch.' });
+  }
+});
+
+router.post('/api/oncall/wealthrebalance/submit', (req, res, next) => {
+  if (!req.body || req.body.batchId !== WEALTH_REBALANCE.id) {
+    return res.status(400).json({ success: false, code: 'INVALID_REBALANCE', error: 'Choose a proposed model rebalance.' });
+  }
+  next();
+}, oncallCap('wealthRebalance'), async (req, res) => {
+  try {
+    const result = await submitRebalance(req.body || {});
+    res.status(result.statusCode).json(result.body);
+  } catch (error) {
+    logger.error('Advisor Desk rebalance failed', { error: error.message });
+    res.status(500).json({ success: false, error: 'Unable to submit the model rebalance.' });
   }
 });
 

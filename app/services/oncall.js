@@ -49,6 +49,26 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  wealthorders: {
+    vertical: 'wealthorders',
+    page: '5922e7ff.html',
+    apiPath: '/api/5922e7ff/orders',
+    oncallApiPath: '/api/oncall/wealthorders/orders',
+    owner: 'Wealth Order Routing On-Call',
+    brand: 'Advisor Desk (Order entry)',
+    service: 'wm-order-routing-api',
+    endpoint: 'POST /api/oncall/wealthorders/orders',
+    monitor: '5xx rate \u2014 Advisor Desk equity order routing',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/wealthorders/orders,http.status_code:500}',
+    metricValue: '100% of advisor equity and ETF orders returning 500',
+    threshold: '> 1% error rate',
+    baseline: '<0.1% (7-day)',
+    release: 'wm-order-routing@2026.11.2',
+    symptom: 'Submit order on the Advisor Desk order ticket fails immediately with HTTP 500 for every equity and ETF order. Latency is normal. Onset coincides with the security master v2 cutover. Model rebalancing is a separate service.',
+    impact: 'Financial advisors cannot place client equity or ETF orders from the Advisor Desk; orders are being phoned through to the trading desk.',
+    alertOnStatus: [500],
+    unlisted: true,
+  },
   regions: {
     vertical: 'regions',
     page: '5e57909d.html',
