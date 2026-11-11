@@ -1,19 +1,11 @@
 /* global describe, expect, test, jest, beforeEach, beforeAll, afterAll */
-jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
-}));
-
-jest.mock('../app/services/devin-api', () => ({
-  listOrgUsers: jest.fn(() => Promise.resolve([
-    { user_id: 'member-1', email: 'someone@cognition.ai' },
-    { user_id: 'wes-user-1', email: 'Wes.Convery@cognition.ai' },
-  ])),
-  listEnterpriseAdmins: jest.fn(() => Promise.resolve([])),
-}));
-
 jest.mock('../app/services/slack', () => ({
   postMessage: jest.fn(() => Promise.resolve('1730000000.000100')),
-  findChannelByName: jest.fn(() => Promise.resolve({ id: 'C0FEEDBACK1', name: 'dell-com-feedback' })),
+  findChannelByName: jest.fn(() => Promise.resolve({ id: 'C0FEEDBACK1', name: 'dell-feedback' })),
+  joinChannel: jest.fn(() => Promise.resolve()),
+  buildAlertBlocks: jest.fn(() => [{ type: 'header', text: { type: 'plain_text', text: 'alert' } }]),
+  buildAlertText: jest.fn((alertData) => `:rotating_light: ${alertData.issueTitle}`),
+  resolveOnCallMember: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('../app/telemetry/sentry', () => ({
@@ -30,10 +22,9 @@ const express = require('express');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
-const { createSessionAndAlert } = require('../app/services/devin-session');
-const { postMessage, findChannelByName } = require('../app/services/slack');
-const { listOrgUsers } = require('../app/services/devin-api');
-const { selectedAlertDestination } = require('../app/services/alert-destination');
+const {
+  postMessage, findChannelByName, joinChannel, buildAlertBlocks, resolveOnCallMember,
+} = require('../app/services/slack');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { Sentry } = require('../app/telemetry/sentry');
 const service = require('../app/services/verticals/683629b3');
@@ -42,7 +33,7 @@ const { getCustomerConfig, listAliases } = require('../config/customers');
 
 const {
   CUSTOMER, API_BASE, ROUTE, FEEDBACK_ROUTE, APP_WEB_PATH, CHECKOUT_ERROR, ONCALL_CHANNEL, FEEDBACK_CHANNEL,
-  PRODUCTS, MEMORY_OPTIONS, STORAGE_OPTIONS, FULFILLMENT_LANES, REMEDIATION_DIRECTIVE, OWNER,
+  PRODUCTS, MEMORY_OPTIONS, STORAGE_OPTIONS, FULFILLMENT_LANES, RESPONDER_NOTES, OWNER,
 } = service;
 
 const APP_DIR = path.join(__dirname, '..', 'app', 'public', 'verticals', `${CUSTOMER}-app`);
@@ -107,9 +98,9 @@ afterAll((done) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  createSessionAndAlert.mockImplementation(() => Promise.resolve({ triggered: true }));
-  process.env.DEVIN_ORG_ID = 'org_test';
+  postMessage.mockImplementation(() => Promise.resolve('1730000000.000100'));
   delete process.env.SLACK_BOT_TOKEN;
+  delete process.env.SLACK_ONCALL_BOT_TOKEN;
   delete process.env[FEEDBACK_CHANNEL.envVar];
   service.resetIncidentWindow();
   service.resetFeedbackState();
@@ -167,7 +158,7 @@ describe('683629b3 Dell.com storefront — registration and hosting', () => {
     expect(catalog.body.products.map((p) => p.id)).toEqual(['dell-14-plus', 'dell-15', 'dell-16', 'xps-13']);
     expect(account.body.profile.fullName).toBe('Alex Morgan');
     expect(account.body.orders.map((o) => o.id)).toEqual(['DEMO-10482', 'DEMO-10463']);
-    expect(config.body).toMatchObject({ scenario: 'checkout-unavailable', channel: '#dell-oncall', feedbackChannel: '#dell-com-feedback', feedbackMode: 'dry-run' });
+    expect(config.body).toMatchObject({ scenario: 'checkout-unavailable', channel: '#dell-oncall', feedbackChannel: '#dell-feedback', feedbackMode: 'dry-run' });
     expect(health.body).toEqual({ ok: true, service: `customer-${CUSTOMER}-web` });
     expect(missing.status).toBe(404);
   });
@@ -196,7 +187,7 @@ describe('683629b3 Dell.com storefront — pricing and account', () => {
       expect(res.status).toBe(400);
       expect(res.body.code).toBe('INVALID_CART');
     });
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(postMessage).not.toHaveBeenCalled();
   });
 
   test('order status refresh stays healthy for sample orders and 404s otherwise', async () => {
@@ -206,7 +197,7 @@ describe('683629b3 Dell.com storefront — pricing and account', () => {
     expect(typeof ok.body.refreshedAt).toBe('string');
     const missing = await request('POST', `${API_BASE}/account/orders/DEMO-1/status`, {});
     expect(missing.status).toBe(404);
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(postMessage).not.toHaveBeenCalled();
   });
 });
 
@@ -239,93 +230,80 @@ describe('683629b3 Dell.com storefront — Place order on-call trigger', () => {
     expect(JSON.stringify(res.body)).not.toMatch(SECRET_PATTERN);
   });
 
-  test('the failure is captured and raised as a #dell-oncall alert + Devin session for the demo owner', async () => {
+  async function failOnce(opts = {}) {
     let caught;
     try {
-      await service.placeOrder({ items: [cartItem()] }, { hold: 0 });
+      await service.placeOrder({ items: [cartItem()] }, { hold: 0, ...opts });
     } catch (error) {
       caught = error;
     }
-    await caught.sessionPromise;
+    return caught;
+  }
+
+  test('without a Slack token the failure is captured but no card is posted and no session is started', async () => {
+    const caught = await failOnce();
+    expect(await caught.alertPromise).toBeNull();
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException.mock.calls[0][1].tags).toMatchObject({ route: ROUTE, service: `customer-${CUSTOMER}-web`, alert_path: 'instant' });
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert).toMatchObject({
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('the failure posts one alert-only card to #dell-oncall for the responder (no app-side Devin session)', async () => {
+    process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+    process.env.SLACK_CHANNEL_ID = 'C0SHAREDALERTS';
+    try {
+      const caught = await failOnce();
+      expect(await caught.alertPromise).toMatchObject({ ok: true, channel: ONCALL_CHANNEL.id });
+    } finally {
+      delete process.env.SLACK_CHANNEL_ID;
+    }
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    const [token, channel, text, blocks] = postMessage.mock.calls[0];
+    expect(token).toBe('xoxb-test');
+    expect(channel).toBe(ONCALL_CHANNEL.id);
+    expect(text).toContain('TypeError');
+    expect(text).toContain(RESPONDER_NOTES);
+    expect(blocks[blocks.length - 1]).toMatchObject({ type: 'context' });
+    expect(buildAlertBlocks).toHaveBeenCalledWith(expect.objectContaining({
       customer: CUSTOMER,
       service: `customer-${CUSTOMER}-web`,
       verticalLabel: 'Dell.com storefront',
       errorType: 'TypeError',
-      devinUserId: 'wes-user-1',
       devinEmail: OWNER.email,
-      devinOrgId: 'org_test',
       slackMemberIdFallback: OWNER.slackMemberId,
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      level: 'error',
-    });
-    expect(listOrgUsers).toHaveBeenCalledWith('org_test', expect.any(Object));
-    expect(getCustomerConfig(alert.customer).slackChannelId).toBe(ONCALL_CHANNEL.id);
-    // The Sentry issue webhook for this culprit must not raise a second alert.
+      customerConfig: expect.objectContaining({ slackChannelId: ONCALL_CHANNEL.id }),
+    }), { includeDevinOnCall: false });
+    expect(resolveOnCallMember).toHaveBeenCalledTimes(1);
+    const alert = buildAlertBlocks.mock.calls[0][0];
+    expect(JSON.stringify(alert)).not.toContain('promptAppendix');
+    expect(RESPONDER_NOTES).toContain('COG-GTM/event-driven-devin');
+    expect(RESPONDER_NOTES).not.toMatch(/cto-na|leadDays/);
+    // The Sentry issue webhook for this culprit must not raise a legacy-pipeline session either.
     expect(isInstantPathEvent({ issueTitle: alert.issueTitle, culprit: alert.culprit, tags: [] })).toBe(true);
-    expect(REMEDIATION_DIRECTIVE).toContain('COG-GTM/event-driven-devin');
-    expect(REMEDIATION_DIRECTIVE).toContain(`tests/${CUSTOMER}-storefront.test.js`);
-    expect(REMEDIATION_DIRECTIVE).not.toMatch(/cto-na|leadDays/);
   });
 
-  test('a stalled owner lookup never delays paging: the alert goes out with the fallback identity', async () => {
-    listOrgUsers.mockImplementationOnce(() => new Promise(() => {}));
-    let caught;
-    try {
-      await service.placeOrder({ items: [cartItem()] }, { hold: 0, ownerLookupTimeoutMs: 20 });
-    } catch (error) {
-      caught = error;
-    }
-    const started = Date.now();
-    await caught.sessionPromise;
-    expect(Date.now() - started).toBeLessThan(1000);
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    expect(createSessionAndAlert.mock.calls[0][0]).toMatchObject({ devinUserId: undefined, devinEmail: OWNER.email, slackMemberIdFallback: OWNER.slackMemberId });
-    expect(service.OWNER_LOOKUP_TIMEOUT_MS).toBeLessThanOrEqual(5000);
+  test('the on-call bot token is preferred and a not_in_channel reply joins #dell-oncall and retries once', async () => {
+    process.env.SLACK_BOT_TOKEN = 'xoxb-legacy';
+    process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-sre-bot';
+    postMessage.mockImplementationOnce(() => Promise.reject(new Error('Slack API error: not_in_channel')));
+    const caught = await failOnce();
+    expect(await caught.alertPromise).toMatchObject({ ok: true, channel: ONCALL_CHANNEL.id });
+    expect(joinChannel).toHaveBeenCalledWith('xoxb-sre-bot', ONCALL_CHANNEL.id);
+    expect(postMessage).toHaveBeenCalledTimes(2);
+    expect(postMessage.mock.calls[1][0]).toBe('xoxb-sre-bot');
   });
 
-  test('the alert is always routed to Slack even when the browser picked Teams', async () => {
-    createSessionAndAlert.mockImplementation(() => Promise.resolve({ triggered: true, destination: selectedAlertDestination() }));
-    let caught;
-    try {
-      await service.placeOrder({ items: [cartItem()] }, { hold: 0 });
-    } catch (error) {
-      caught = error;
-    }
-    const result = await caught.sessionPromise;
-    expect(result.destination).toBe('slack');
-  });
-
-  test('an undelivered alert reopens the window so the next checkout pages again', async () => {
-    createSessionAndAlert.mockImplementationOnce(() => Promise.resolve(null));
-    createSessionAndAlert.mockImplementationOnce(() => Promise.reject(new Error('slack down')));
-    for (let i = 0; i < 3; i += 1) {
-      let caught;
-      try {
-        await service.placeOrder({ items: [cartItem()] }, { hold: 0 });
-      } catch (error) {
-        caught = error;
-      }
-      await caught.sessionPromise;
-    }
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(3);
+  test('an undelivered card reopens the window so the next checkout pages again', async () => {
+    process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+    postMessage.mockImplementationOnce(() => Promise.reject(new Error('Slack API error: channel_not_found')));
+    for (let i = 0; i < 2; i += 1) await (await failOnce()).alertPromise;
+    expect(postMessage).toHaveBeenCalledTimes(2);
   });
 
   test('repeat failures within the incident window join the open incident instead of paging again', async () => {
-    for (let i = 0; i < 3; i += 1) {
-      let caught;
-      try {
-        await service.placeOrder({ items: [cartItem()] }, { hold: 0 });
-      } catch (error) {
-        caught = error;
-      }
-      await caught.sessionPromise;
-    }
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+    for (let i = 0; i < 3; i += 1) await (await failOnce()).alertPromise;
+    expect(postMessage).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
   });
 
@@ -338,7 +316,7 @@ describe('683629b3 Dell.com storefront — Place order on-call trigger', () => {
       expect(res.body).toMatchObject({ demo: true, subtotalCents: 269997, totalCents: 291597 });
       expect(res.body.fulfillment).toHaveLength(2);
       expect(res.body.fulfillment[0]).toMatchObject({ productId: 'dell-14-plus', estimatedDays: 7 });
-      expect(createSessionAndAlert).not.toHaveBeenCalled();
+      expect(postMessage).not.toHaveBeenCalled();
     } finally {
       delete FULFILLMENT_LANES['cto-na-v2'];
     }
@@ -368,25 +346,25 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
   test('without a bot token the report is a dry run and the UI is told so', async () => {
     const res = await request('POST', FEEDBACK_ROUTE, report);
     expect(res.status).toBe(202);
-    expect(res.body).toEqual({ status: 'dry-run', channel: '#dell-com-feedback' });
+    expect(res.body).toEqual({ status: 'dry-run', channel: '#dell-feedback' });
     expect(postMessage).not.toHaveBeenCalled();
     const config = await request('GET', `${API_BASE}/config`);
     expect(config.body.feedbackMode).toBe('dry-run');
   });
 
-  test('live reports resolve #dell-com-feedback once and post plain-text blocks there — never #dell-oncall', async () => {
+  test('live reports post plain-text blocks to #dell-feedback (built-in id, no lookup) — never #dell-oncall', async () => {
     process.env.SLACK_BOT_TOKEN = 'xoxb-test';
     const first = await request('POST', FEEDBACK_ROUTE, report);
     const second = await request('POST', FEEDBACK_ROUTE, { ...report, title: 'Second <b>report</b> *markup*' });
     expect(first.status).toBe(201);
-    expect(first.body).toEqual({ status: 'sent', channel: '#dell-com-feedback' });
+    expect(first.body).toEqual({ status: 'sent', channel: '#dell-feedback' });
     expect(second.status).toBe(201);
-    expect(findChannelByName).toHaveBeenCalledTimes(1);
-    expect(findChannelByName).toHaveBeenCalledWith('xoxb-test', 'dell-com-feedback');
+    expect(findChannelByName).not.toHaveBeenCalled();
     expect(postMessage).toHaveBeenCalledTimes(2);
     const [token, channel, text, blocks] = postMessage.mock.calls[1];
     expect(token).toBe('xoxb-test');
-    expect(channel).toBe('C0FEEDBACK1');
+    expect(channel).toBe(FEEDBACK_CHANNEL.id);
+    expect(FEEDBACK_CHANNEL.id).toBe('C0CGM2LF6AJ');
     expect(channel).not.toBe(ONCALL_CHANNEL.id);
     expect(text).toBe('Dell.com demo \u2014 new bug report');
     expect(text).not.toContain('<');
@@ -397,7 +375,7 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
     expect(postMessage.mock.calls[2][2]).not.toContain('<!channel>');
     expect(postMessage.mock.calls[2][3][1].text).toEqual({ type: 'plain_text', text: '<!channel> everyone look' });
     expect(blocks[3].elements[0].text).toContain('Page: /cart');
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(buildAlertBlocks).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
     const config = await request('GET', `${API_BASE}/config`);
     expect(config.body.feedbackMode).toBe('live');
@@ -414,24 +392,30 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
     process.env[FEEDBACK_CHANNEL.envVar] = ONCALL_CHANNEL.id;
     const refused = await request('POST', FEEDBACK_ROUTE, report);
     expect(refused.status).toBe(503);
-    expect(refused.body.error).toContain('#dell-com-feedback');
+    expect(refused.body.error).toContain('#dell-feedback');
     expect(postMessage).toHaveBeenCalledTimes(1);
   });
 
-  test('an unresolvable channel or a Slack failure is reported honestly and not retried', async () => {
+  test('a Slack failure is reported honestly and not retried', async () => {
     process.env.SLACK_BOT_TOKEN = 'xoxb-test';
-    findChannelByName.mockResolvedValueOnce(null);
-    const unresolved = await request('POST', FEEDBACK_ROUTE, report);
-    expect(unresolved.status).toBe(503);
-    expect(unresolved.body.error).toBe('Bug reporting is not connected to #dell-com-feedback on this server.');
-    expect(postMessage).not.toHaveBeenCalled();
 
     postMessage.mockRejectedValueOnce(new Error('Slack API error: channel_not_found'));
     const failed = await request('POST', FEEDBACK_ROUTE, report);
     expect(failed.status).toBe(502);
-    expect(failed.body.error).toBe('Unable to confirm delivery. Check #dell-com-feedback before retrying.');
+    expect(failed.body.error).toBe('Unable to confirm delivery. Check #dell-feedback before retrying.');
     expect(failed.body.error).not.toContain('channel_not_found');
     expect(postMessage).toHaveBeenCalledTimes(1);
+  });
+
+  test('a bug report joins #dell-feedback when the bot is not a member yet', async () => {
+    process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-sre-bot';
+    postMessage.mockImplementationOnce(() => Promise.reject(new Error('Slack API error: not_in_channel')));
+    const res = await request('POST', FEEDBACK_ROUTE, report);
+    expect(res.status).toBe(201);
+    expect(joinChannel).toHaveBeenCalledWith('xoxb-sre-bot', FEEDBACK_CHANNEL.id);
+    expect(postMessage).toHaveBeenCalledTimes(2);
+    const config = await request('GET', `${API_BASE}/config`);
+    expect(config.body.feedbackMode).toBe('live');
   });
 
   test('limits bug reports to five per minute per process', async () => {

@@ -2,10 +2,9 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { createSessionAndAlert } = require('../devin-session');
-const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
-const { runWithAlertDestination } = require('../alert-destination');
-const { postMessage, findChannelByName } = require('../slack');
+const {
+  postMessage, findChannelByName, joinChannel, buildAlertBlocks, buildAlertText, resolveOnCallMember,
+} = require('../slack');
 const { getCustomerConfig } = require('../../../config/customers');
 const { PRODUCTS, MEMORY_OPTIONS, STORAGE_OPTIONS, DEMO_ACCOUNT } = require('./683629b3-catalog');
 
@@ -14,7 +13,7 @@ const { PRODUCTS, MEMORY_OPTIONS, STORAGE_OPTIONS, DEMO_ACCOUNT } = require('./6
  * build of that repo is served at /683629b3/app and talks to the JSON API
  * under /api/683629b3: catalog, always-signed-in sample account, configuration
  * quotes, Place order and the Contact Us bug report. Place order is the on-call
- * trigger; the bug report goes to #dell-com-feedback and never pages anyone.
+ * trigger; the bug report goes to #dell-feedback and never pages anyone.
  */
 const CUSTOMER = '683629b3';
 const API_BASE = `/api/${CUSTOMER}`;
@@ -26,11 +25,10 @@ const SCENARIO = 'checkout-unavailable';
 const CHECKOUT_ERROR = 'unable to process your order';
 const CHECKOUT_HOLD_MS = 500;
 const INCIDENT_WINDOW_MS = 60 * 1000;
-const OWNER_LOOKUP_TIMEOUT_MS = 3000;
 const FEEDBACK_LIMIT = { max: 5, windowMs: 60 * 1000 };
 
 const ONCALL_CHANNEL = { id: 'C0CAX4SHG6M', name: '#dell-oncall' };
-const FEEDBACK_CHANNEL = { name: 'dell-com-feedback', label: '#dell-com-feedback', envVar: 'SLACK_DELL_COM_FEEDBACK_CHANNEL_ID' };
+const FEEDBACK_CHANNEL = { id: 'C0CGM2LF6AJ', name: 'dell-feedback', label: '#dell-feedback', envVar: 'SLACK_DELL_FEEDBACK_CHANNEL_ID' };
 const DISCLAIMER = 'This is not a Dell Technologies website. Internal demonstration only; no real orders, accounts or payments.';
 
 /** Demo owner: on-call and session owner for every checkout incident. */
@@ -39,22 +37,14 @@ const OWNER = {
   email: 'wes.convery@cognition.ai',
 };
 
-const REMEDIATION_DIRECTIVE = [
-  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
-  '',
-  'The failing code path is Place order on the Dell.com storefront demo:',
-  `- Service: \`app/services/verticals/${CUSTOMER}.js\` (\`placeOrder\` \u2192 \`reserveFulfillment\`)`,
-  `- Demo data: \`app/services/verticals/${CUSTOMER}-catalog.js\``,
-  `- Route: \`app/routes/verticals/${CUSTOMER}.js\``,
-  `- Page: the prebuilt app in \`app/public/verticals/${CUSTOMER}-app/\` (served at \`${APP_WEB_PATH}\`, alias \`/dell-com\`); do not edit the build`,
-  '',
-  'Every valid cart (any laptop, memory, storage, color and quantity) must place a mock order; today every',
-  'Place order fails with HTTP 503 "unable to process your order" after a short loading state.',
-  'Fix the data mismatch at its source, make `reserveFulfillment` fail with a descriptive error for a lane it',
-  'cannot resolve instead of dereferencing undefined, and add a test that every catalog configuration checks out.',
-  `Run \`npx jest tests/${CUSTOMER}-storefront.test.js --runInBand\` and \`npm run lint\`.`,
-  `Verify Cart \u2192 Place order at \`${APP_WEB_PATH}\` shows the mock receipt for every laptop.`,
-  'Open a pull request against `main` with the fix.',
+/**
+ * Where the responder should look. The card is alert-only: the Dell Alert
+ * Responder (Devin Oncall on #dell-oncall) triages it, dedupes repeats and
+ * opens the fix PR, so no app-side Devin session is created here.
+ */
+const RESPONDER_NOTES = [
+  'Repo: https://github.com/COG-GTM/event-driven-devin',
+  `Code path: app/services/verticals/${CUSTOMER}.js (placeOrder \u2192 reserveFulfillment); demo page ${APP_WEB_PATH} (alias /dell-com), Cart \u2192 Place order.`,
 ].join('\n');
 
 /**
@@ -74,6 +64,25 @@ const FULFILLMENT_REGION = 'na';
  */
 function laneCodeFor(_item) {
   return `cto-${FULFILLMENT_REGION}-v2`;
+}
+
+/**
+ * The on-call bot (SRE Bot, SLACK_ONCALL_BOT_TOKEN) is the one that lives in
+ * #dell-oncall; the legacy SLACK_BOT_TOKEN only as a fallback.
+ */
+function slackToken(env = process.env) {
+  return env.SLACK_ONCALL_BOT_TOKEN || env.SLACK_BOT_TOKEN || '';
+}
+
+/** Post once; if the bot is not yet in the (public) channel, join and retry once. */
+async function postJoining(token, channel, text, blocks) {
+  try {
+    return await postMessage(token, channel, text, blocks);
+  } catch (error) {
+    if (!/not_in_channel/.test(error.message || '')) throw error;
+    await joinChannel(token, channel);
+    return postMessage(token, channel, text, blocks);
+  }
 }
 
 function validationError(message, code = 'INVALID_CART') {
@@ -154,42 +163,12 @@ function resetIncidentWindow() {
 }
 
 /**
- * Resolve the demo owner's email to a Devin user id so the session is
- * created as Wes rather than the server-wide DEVIN_USER_ID. '' when nobody
- * matches (createSessionAndAlert then falls back to the customer config).
+ * First failure per window posts one alert card to #dell-oncall (alert-only:
+ * the Dell Alert Responder owns triage, grouping and the fix PR); later
+ * failures join that incident. A window only stays open when the card was
+ * actually delivered.
  */
-async function resolveUserIdByEmail(email, orgId, apiKey) {
-  const normalized = String(email || '').trim().toLowerCase();
-  if (!normalized || !orgId) return '';
-  try {
-    const auth = apiKey ? { apiKey } : {};
-    const members = await listOrgUsers(orgId, auth);
-    const member = members.find((u) => (u.email || '').toLowerCase() === normalized);
-    if (member) return member.user_id;
-    const admins = await listEnterpriseAdmins(auth);
-    const admin = admins.find((u) => (u.email || '').toLowerCase() === normalized);
-    if (admin) return admin.user_id;
-    logger.warn('Dell.com demo owner not found in org', { orgId });
-  } catch (err) {
-    logger.warn('Dell.com demo owner lookup failed', { error: err.message, orgId });
-  }
-  return '';
-}
-
-/**
- * First failure per window pages #dell-oncall (always Slack, whatever the
- * browser's alert-destination cookie says) and starts the Devin session;
- * later failures join that incident. A window only stays open when the
- * alert was actually delivered.
- */
-/** Cap the owner lookup so a stalled Devin API never delays paging #dell-oncall. */
-function withTimeout(promise, ms, fallback) {
-  let timer;
-  const timeout = new Promise((resolve) => { timer = setTimeout(() => resolve(fallback), ms); });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-}
-
-function raiseIncident(error, quote, requestId, { ownerLookupTimeoutMs = OWNER_LOOKUP_TIMEOUT_MS } = {}) {
+function raiseIncident(error, quote, requestId) {
   const now = Date.now();
   if (now - lastIncidentAt < INCIDENT_WINDOW_MS) {
     logger.info('Dell.com checkout failure joined the open incident', { requestId, scenario: SCENARIO });
@@ -214,21 +193,18 @@ function raiseIncident(error, quote, requestId, { ownerLookupTimeoutMs = OWNER_L
   });
 
   const config = getCustomerConfig(CUSTOMER);
-  const devinOrgId = config.devinOrgId || process.env.DEVIN_ORG_ID || '';
-  const raiseAlert = (devinUserId) => runWithAlertDestination('slack', () => createSessionAndAlert({
+  const alertData = {
     issueTitle: `${error.name}: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: `app/services/verticals/${CUSTOMER}.js \u2014 reserveFulfillment`,
     errorType: error.name || 'Error',
     errorValue: error.message,
-    devinUserId,
     devinEmail: OWNER.email,
-    devinOrgId: devinOrgId || undefined,
     slackMemberIdFallback: OWNER.slackMemberId,
     service: SERVICE,
     verticalLabel: 'Dell.com storefront',
-    promptAppendix: REMEDIATION_DIRECTIVE,
     customer: CUSTOMER,
+    customerConfig: config,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: { requestId, products: quote.items.map((item) => item.productId) },
     level: 'error',
@@ -241,30 +217,49 @@ function raiseIncident(error, quote, requestId, { ownerLookupTimeoutMs = OWNER_L
     release: process.env.SENTRY_RELEASE || `${SERVICE}@2026.11.1`,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
-  }));
+  };
 
-  return withTimeout(resolveUserIdByEmail(OWNER.email, devinOrgId, config.apiKey), ownerLookupTimeoutMs, '')
-    .then((userId) => raiseAlert(userId || undefined))
+  return postAlertCard(alertData, requestId)
     .then((result) => {
       if (!result) reopenWindow();
       return result;
     })
     .catch((alertError) => {
-      logger.error('Failed to create Devin session for Dell.com checkout failure', {
-        error: alertError.message,
-        requestId,
-      });
+      logger.error('Failed to post Dell.com checkout alert', { error: alertError.message, requestId });
       reopenWindow();
       return null;
     });
 }
 
 /**
- * Place order: price the cart, hold for the payment authorization round
- * trip, then reserve fulfillment. A failure is captured to Sentry and raised
- * as a #dell-oncall alert + Devin session before it is rethrown.
+ * Post the alert card to #dell-oncall only (the customer's slackChannelId,
+ * never the shared SLACK_CHANNEL_ID) without the "Devin AI (auto-investigating)"
+ * line: the channel's responder decides whether to investigate.
  */
-async function placeOrder(data, { hold = CHECKOUT_HOLD_MS, ownerLookupTimeoutMs } = {}) {
+async function postAlertCard(alertData, requestId) {
+  const token = slackToken();
+  const channel = alertData.customerConfig.slackChannelId;
+  if (!token || !channel) {
+    logger.warn('Slack not configured \u2014 skipping Dell.com checkout alert post', { requestId });
+    return null;
+  }
+  await resolveOnCallMember(alertData);
+  const text = `${buildAlertText(alertData)}\n${RESPONDER_NOTES}`;
+  const blocks = [
+    ...buildAlertBlocks(alertData, { includeDevinOnCall: false }),
+    { type: 'context', elements: [{ type: 'mrkdwn', text: RESPONDER_NOTES }] },
+  ];
+  const ts = await postJoining(token, channel, text, blocks);
+  logger.info('Dell.com checkout alert posted', { channel, ts, requestId });
+  return { ok: true, channel, ts };
+}
+
+/**
+ * Place order: price the cart, hold for the payment authorization round
+ * trip, then reserve fulfillment. A failure is captured to Sentry and posted
+ * as a #dell-oncall alert card before it is rethrown.
+ */
+async function placeOrder(data, { hold = CHECKOUT_HOLD_MS } = {}) {
   const startTime = Date.now();
   const requestId = `DCO-${uuidv4().slice(0, 8).toUpperCase()}`;
   const quote = quoteCart(data && data.items);
@@ -295,7 +290,7 @@ async function placeOrder(data, { hold = CHECKOUT_HOLD_MS, ownerLookupTimeoutMs 
       errorClass: error.name,
       service: SERVICE,
     });
-    error.sessionPromise = raiseIncident(error, quote, requestId, { ownerLookupTimeoutMs });
+    error.alertPromise = raiseIncident(error, quote, requestId);
     error.requestId = requestId;
     error.code = 'CHECKOUT_UNAVAILABLE';
     error.statusCode = 503;
@@ -315,7 +310,7 @@ function refreshOrderStatus(orderId) {
 }
 
 /* ----------------------------------------------------------------------------
- * Contact Us → bug report → #dell-com-feedback
+ * Contact Us → bug report → #dell-feedback
  * ------------------------------------------------------------------------- */
 
 const feedbackWindow = [];
@@ -327,7 +322,7 @@ function resetFeedbackState() {
 }
 
 function feedbackMode(env = process.env) {
-  return env.SLACK_BOT_TOKEN ? 'live' : 'dry-run';
+  return slackToken(env) ? 'live' : 'dry-run';
 }
 
 function reserveFeedbackSlot(now = Date.now()) {
@@ -339,10 +334,10 @@ function reserveFeedbackSlot(now = Date.now()) {
 
 /**
  * The feedback channel is never the on-call channel: a configured id is used
- * as-is, otherwise the bot looks #dell-com-feedback up by name once.
+ * as-is, otherwise the bot looks #dell-feedback up by name once.
  */
 async function resolveFeedbackChannel(token) {
-  const configured = (process.env[FEEDBACK_CHANNEL.envVar] || '').trim();
+  const configured = (process.env[FEEDBACK_CHANNEL.envVar] || FEEDBACK_CHANNEL.id || '').trim();
   if (configured) {
     if (configured === ONCALL_CHANNEL.id) {
       throw new Error(`${FEEDBACK_CHANNEL.envVar} must not be the on-call channel`);
@@ -378,9 +373,9 @@ async function submitFeedback(input) {
   if (typeof page !== 'string' || page.length > 200 || !/^\/[a-zA-Z0-9/_-]*$/.test(page)) {
     throw feedbackError('Report the bug from a valid page in this demo.');
   }
-  const token = process.env.SLACK_BOT_TOKEN;
+  const token = slackToken();
   if (!token) {
-    logger.warn('Dell.com bug report not sent \u2014 SLACK_BOT_TOKEN not configured', { route: FEEDBACK_ROUTE });
+    logger.warn('Dell.com bug report not sent \u2014 no Slack bot token configured', { route: FEEDBACK_ROUTE });
     return { status: 'dry-run', channel: FEEDBACK_CHANNEL.label };
   }
   if (!reserveFeedbackSlot()) {
@@ -401,7 +396,7 @@ async function submitFeedback(input) {
   ];
   try {
     // Fallback text is fixed: reporter text only ever travels in plain_text blocks.
-    const ts = await postMessage(token, channel, 'Dell.com demo \u2014 new bug report', blocks);
+    const ts = await postJoining(token, channel, 'Dell.com demo \u2014 new bug report', blocks);
     logger.info('Dell.com bug report posted', { channel, ts, route: FEEDBACK_ROUTE });
   } catch (error) {
     logger.error('Dell.com bug report failed', { error: error.message, route: FEEDBACK_ROUTE });
@@ -433,11 +428,10 @@ module.exports = {
   CHECKOUT_ERROR,
   CHECKOUT_HOLD_MS,
   INCIDENT_WINDOW_MS,
-  OWNER_LOOKUP_TIMEOUT_MS,
   ONCALL_CHANNEL,
   FEEDBACK_CHANNEL,
   OWNER,
-  REMEDIATION_DIRECTIVE,
+  RESPONDER_NOTES,
   FULFILLMENT_LANES,
   PRODUCTS,
   MEMORY_OPTIONS,
