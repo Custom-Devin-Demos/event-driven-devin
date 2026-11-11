@@ -48,6 +48,18 @@ async function scoreMigrationPath(fromPlan, toPlan) {
   };
 }
 
+/**
+ * Validate a requested upgrade by ranking it against every migration path
+ * available from the subscriber's current plan across the full catalog.
+ */
+async function rankMigrationPaths(currentPlan) {
+  const paths = [];
+  for (const candidate of PLAN_CATALOG) {
+    paths.push(await scoreMigrationPath(currentPlan, candidate));
+  }
+  return paths.sort((a, b) => b.score - a.score);
+}
+
 function holdExpiredError(message) {
   const err = new Error(message);
   err.code = 'HOLD_EXPIRED';
@@ -99,8 +111,9 @@ async function upgradePlan(data, options = {}) {
       throw err;
     }
 
-    const requestedPath = await scoreMigrationPath(currentPlan, targetPlan);
-    if (!requestedPath.eligible) {
+    const rankedPaths = await rankMigrationPaths(currentPlan);
+    const requestedPath = rankedPaths.find((p) => p.to === targetPlan.id);
+    if (!requestedPath || !requestedPath.eligible) {
       const err = new Error(`Plan ${targetPlan.id} is not eligible from ${currentPlan.id}`);
       err.code = 'INELIGIBLE_PLAN';
       throw err;
@@ -131,7 +144,7 @@ async function upgradePlan(data, options = {}) {
     logger.info('Plan upgrade completed', {
       upgradeId,
       durationMs: duration,
-      pathsEvaluated: 1,
+      pathsEvaluated: rankedPaths.length,
       service: 'telco-api',
     });
 
