@@ -51,6 +51,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jira.isConfigured.mockReturnValue(true);
   rc._featureRequests.clear();
+  rc._ticketFilings.clear();
   rc._incidents.length = 0;
 });
 
@@ -175,6 +176,12 @@ describe('incident dedupe and org-scoped polling', () => {
     const second = await request('POST', '/api/cbe0ee4c/sms', { fromNumberId: 'sales', conversationId: 'cv-northwind', text: 'two' });
     expect(jira.createIssue).toHaveBeenCalledTimes(1);
     expect(second.body.jira.key).toBe('MBA-901');
+  });
+
+  test('concurrent Sales-line failures file a single Jira ticket', async () => {
+    const body = (text) => ({ fromNumberId: 'sales', conversationId: 'cv-northwind', text });
+    await Promise.all([request('POST', '/api/cbe0ee4c/sms', body('a')), request('POST', '/api/cbe0ee4c/sms', body('b'))]);
+    expect(jira.createIssue).toHaveBeenCalledTimes(1);
   });
 
   test('feature request remembers the org it was created in', async () => {

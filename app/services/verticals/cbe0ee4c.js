@@ -15,6 +15,7 @@ const REPO = 'COG-GTM/event-driven-devin';
 const JIRA_PROJECT_KEY = process.env.RC_JIRA_PROJECT_KEY || 'MBA';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TICKET_DEDUPE_MS = 15 * 60 * 1000;
+const ticketFilings = new Map();
 
 const ACCOUNT = {
   company: 'Summit Ridge Outfitters',
@@ -225,11 +226,19 @@ async function reportSmsIncident(error, data, context) {
     session: null,
     state: 'filing-ticket',
   };
-  const openTicket = incidents.find((i) => i.jira && i.campaignId === number.campaignId && incident.createdAt - i.createdAt < TICKET_DEDUPE_MS);
   incidents.unshift(incident);
   incidents.length = Math.min(incidents.length, 20);
 
-  const issue = openTicket ? openTicket.jira : await fileJiraTicket({ error, number, campaign, messageId, sentryUrl });
+  let filing = ticketFilings.get(number.campaignId);
+  if (!filing || incident.createdAt - filing.at >= TICKET_DEDUPE_MS) {
+    filing = { at: incident.createdAt };
+    filing.promise = fileJiraTicket({ error, number, campaign, messageId, sentryUrl }).then((issue) => {
+      if (!issue && ticketFilings.get(number.campaignId) === filing) ticketFilings.delete(number.campaignId);
+      return issue;
+    });
+    ticketFilings.set(number.campaignId, filing);
+  }
+  const issue = await filing.promise;
   incident.jira = issue ? { key: issue.key, url: issue.url } : null;
   incident.state = 'starting-devin';
 
@@ -557,4 +566,5 @@ module.exports = {
   dailyCap,
   _featureRequests: featureRequests,
   _incidents: incidents,
+  _ticketFilings: ticketFilings,
 };
