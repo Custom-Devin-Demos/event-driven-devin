@@ -190,3 +190,46 @@ describe('incident dedupe and org-scoped polling', () => {
     expect([...rc._featureRequests.values()][0].orgId).toBe('org-other');
   });
 });
+
+describe('voice QA from call recordings', () => {
+  test('lists recordings with audio, waveform and timed transcript', async () => {
+    const res = await request('GET', '/api/cbe0ee4c/recordings');
+    expect(res.status).toBe(200);
+    const qa = res.body.recordings.find((r) => r.id === 'qa-sales-sms');
+    expect(qa.audio).toBe('/verticals/cbe0ee4c-audio/qa-sales-sms.mp3');
+    expect(qa.peaks.length).toBeGreaterThan(50);
+    expect(qa.segments[0]).toEqual(expect.objectContaining({ speaker: 'Alex Rivera', start: 0 }));
+    expect(qa.segments.map((s) => s.text).join(' ')).toMatch(/Sales main line/);
+  });
+
+  test('every recording audio file exists', () => {
+    const fs = require('fs');
+    const path = require('path');
+    rc.listRecordings().forEach((r) => {
+      expect(fs.existsSync(path.join(__dirname, '..', 'app', 'public', r.audio))).toBe(true);
+    });
+  });
+
+  test('starts a scoped Devin QA session from a recording', async () => {
+    const res = await request('POST', '/api/cbe0ee4c/recordings/qa-sales-sms/qa', { name: 'Jordan Ellis' });
+    expect(res.status).toBe(200);
+    expect(res.body.request).toEqual(expect.objectContaining({ mode: 'voice-qa', recordingId: 'qa-sales-sms', state: 'working' }));
+    const [prompt, opts] = createDevinSession.mock.calls[0];
+    expect(opts.title).toBe('RingCentral QA: Alex Rivera call → regression tests');
+    expect(opts.repos).toEqual(['COG-GTM/event-driven-devin']);
+    expect(prompt).toContain('app/public/verticals/cbe0ee4c-audio/qa-sales-sms.mp3');
+    expect(prompt).toMatch(/transcribe the audio yourself/i);
+    expect(prompt).toContain('tests/cbe0ee4c-voice-qa.test.js');
+    expect(prompt).toContain('test.failing');
+    expect(prompt).toMatch(/Do not fix product code/);
+  });
+
+  test('rejects unknown recordings and shares the daily cap', async () => {
+    expect((await request('POST', '/api/cbe0ee4c/recordings/nope/qa', {})).status).toBe(400);
+    for (let i = 0; i < rc.dailyCap(); i += 1) {
+      await request('POST', '/api/cbe0ee4c/recordings/priya-quote/qa', {});
+    }
+    const res = await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews' });
+    expect(res.status).toBe(429);
+  });
+});

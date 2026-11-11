@@ -6,6 +6,8 @@ const {
   createFeatureRequest,
   getFeatureRequest,
   listFeatureRequests,
+  listRecordings,
+  createVoiceQaRequest,
 } = require('../../services/verticals/cbe0ee4c');
 
 const router = express.Router();
@@ -68,6 +70,20 @@ router.post('/api/cbe0ee4c/feature-requests', async (req, res) => {
     res.json({ success: true, request });
   } catch (error) {
     sendError(res, req, error, 'FEATURE_REQUEST_FAILED');
+  }
+});
+
+router.get('/api/cbe0ee4c/recordings', (_req, res) => {
+  res.json({ success: true, recordings: listRecordings() });
+});
+
+router.post('/api/cbe0ee4c/recordings/:id/qa', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const request = await createVoiceQaRequest({ recordingId: clip(req.params.id, 64), name: clip(body.name, 80), ...devinFields(body) });
+    res.json({ success: true, request });
+  } catch (error) {
+    sendError(res, req, error, 'VOICE_QA_FAILED');
   }
 });
 
