@@ -99,6 +99,17 @@ describe('repeat alerts from one skin group into the open incident', () => {
     expect(createDevinSession).toHaveBeenCalledTimes(4);
   });
 
+  test('fa7ec024 opens a fresh incident on every alert', async () => {
+    const skin = getOncallSkin('fa7ec024');
+    expect(skin.alertRepeatWindowMs).toBe(0);
+    await postOncallAlert(skin.vertical, { skin });
+    jest.advanceTimersByTime(60 * 1000);
+    const again = await postOncallAlert(skin.vertical, { skin });
+    expect(again.ok).toBe(true);
+    expect(again.grouped).toBeUndefined();
+    expect(lastAlertText()).toMatch(/\*Incident Ref:\* run-[0-9a-f]{12}/);
+  });
+
   test('two alerts landing together share one incident and one session', async () => {
     const [first, second] = await Promise.all([
       postOncallAlert(SKIN.vertical, { skin: SKIN }),
