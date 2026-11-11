@@ -147,7 +147,7 @@ function search(query, limit = 6) {
     .map(({ p, score }) => ({ doc: docMeta(p.docId), text: p.text, score: Math.round(score * 100) / 100 }));
 }
 
-const ECO_NAMES_AR = { tte: ['السياحة', 'الترفيه'], urban: ['التطوير العمراني', 'جودة الحياة'], ami: ['التصنيع', 'الابتكار'], ind: ['الصناعة', 'الخدمات اللوجستية', 'التعدين'], energy: ['الطاقة', 'المياه'], neom: ['نيوم', 'أوكساجون'] };
+const ECO_NAMES_AR = { neom: ['نيوم', 'أوكساجون'] };
 const ECO_KEYWORDS = {
   tte: ['tourism', 'travel', 'entertainment', 'airline', 'hospitality'],
   urban: ['urban', 'real estate', 'housing', 'livability', 'cities'],
@@ -156,12 +156,13 @@ const ECO_KEYWORDS = {
   energy: ['energy', 'renewable', 'water', 'hydrogen', 'solar', 'power'],
   neom: ['oxagon'],
 };
+const ECO_KEYWORDS_AR = { tte: ['السياحة', 'الترفيه'], urban: ['التطوير العمراني', 'جودة الحياة'], ami: ['التصنيع', 'الابتكار'], ind: ['الصناعة', 'الخدمات اللوجستية', 'التعدين'], energy: ['الطاقة', 'المياه'] };
 
 // Named ecosystems and companies win over generic topic keywords ("AI financing in NEOM" is NEOM).
 function detectEcosystem(text) {
   const t = String(text || '').toLowerCase();
-  const named = ECOSYSTEMS.find((e) => [e.name.toLowerCase(), ...e.companies.map((c) => c.toLowerCase()), ...(ECO_NAMES_AR[e.id] || [])].some((k) => t.includes(k)));
-  return named || ECOSYSTEMS.find((e) => (ECO_KEYWORDS[e.id] || []).some((k) => t.includes(k))) || null;
+  const named = ECOSYSTEMS.find((e) => [e.name.toLowerCase(), ...e.companies.map((c) => c.toLowerCase()), e.nameAr, ...(ECO_NAMES_AR[e.id] || [])].filter(Boolean).some((k) => t.includes(k)));
+  return named || ECOSYSTEMS.find((e) => [...(ECO_KEYWORDS[e.id] || []), ...(ECO_KEYWORDS_AR[e.id] || [])].some((k) => t.includes(k))) || null;
 }
 
 const THEME_KEYS = {

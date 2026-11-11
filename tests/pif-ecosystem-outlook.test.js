@@ -107,6 +107,8 @@ describe('PIF Ecosystem Outlook PoC', () => {
   test('named ecosystems win over generic topic keywords', () => {
     expect(pif.detectEcosystem('AI financing in NEOM').id).toBe('neom');
     expect(pif.detectEcosystem('ما الذي درسناه عن نيوم؟').id).toBe('neom');
+    expect(pif.detectEcosystem('السياحة في نيوم').id).toBe('neom');
+    expect(pif.detectEcosystem('ما هي توقعات السياحة؟').id).toBe('tte');
     expect(pif.detectEcosystem('compute capacity outlook').id).toBe('ami');
   });
 
