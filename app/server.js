@@ -13,6 +13,7 @@ initSentry();
 
 // Routes
 const healthRoutes = require('./routes/health');
+const dynatraceDemoMcpRoutes = require('./routes/dynatrace-demo-mcp');
 const loginRoutes = require('./routes/login');
 const searchRoutes = require('./routes/search');
 const checkoutRoutes = require('./routes/checkout');
@@ -114,6 +115,7 @@ app.use((req, res, next) => {
 
 // Mount routes
 app.use(healthRoutes);
+app.use(dynatraceDemoMcpRoutes);
 app.use(loginRoutes);
 app.use(searchRoutes);
 app.use(checkoutRoutes);
