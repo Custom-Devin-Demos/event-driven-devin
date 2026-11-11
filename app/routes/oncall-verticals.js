@@ -1322,38 +1322,34 @@ router.post('/api/oncall/examscheduling/appointments', async (req, res) => {
 });
 
 const ASSESSMENT_SCHEDULING_STATUS = {
-  INVALID_REQUEST: 400,
-  CENTRE_NOT_FOUND: 404,
+  VALIDATION: 400,
+  CENTER_NOT_FOUND: 404,
   SESSION_NOT_FOUND: 404,
   SESSION_NOT_OPEN: 409,
   DUPLICATE_BOOKING: 409,
   NO_ACCOMMODATION_SEAT: 409,
-  CAPACITY_BELOW_COMMITTED: 409,
+  CAPACITY_BELOW_ACCOMMODATION_FLOOR: 409,
 };
 
+// Same error body as scheduling-service's ApiExceptionHandler: {"error","message","legacyCode"}.
 function sendAssessmentSchedulingError(req, res, error, fallbackCode) {
   const status = ASSESSMENT_SCHEDULING_STATUS[error.code] || 500;
+  if (status === 500) logger.error('scheduling-service replica error', { error: error.message, requestId: req.requestId });
   res.status(status).json({
-    success: false,
-    error: status === 500 ? 'scheduling-service could not process the request.' : error.message,
-    code: status === 500 ? fallbackCode : error.code,
-    requestId: req.requestId,
+    error: status === 500 ? fallbackCode : error.code,
+    message: status === 500 ? 'scheduling-service could not process the request' : error.message,
+    legacyCode: status === 500 ? null : (error.legacyCode ?? null),
   });
 }
 
 // Mounted in server.js on the assessmentscheduling prefix: malformed JSON bodies
-// answer 400 INVALID_REQUEST instead of the global 500.
+// answer 400 BAD_REQUEST (as scheduling-service does) instead of the global 500.
 function assessmentSchedulingBodyErrorHandler(err, req, res, next) {
   if (err && err.type === 'entity.parse.failed') {
     // The request-ID middleware runs after the body parser, so set it here.
     const requestId = req.requestId || req.headers['x-request-id'] || randomUUID();
     res.setHeader('x-request-id', requestId);
-    return res.status(400).json({
-      success: false,
-      error: 'Request body must be valid JSON.',
-      code: 'INVALID_REQUEST',
-      requestId,
-    });
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'Malformed JSON request body', legacyCode: null });
   }
   return next(err);
 }
@@ -1383,7 +1379,7 @@ router.post('/api/oncall/assessmentscheduling/bookings', (req, res) => {
 router.post('/api/oncall/assessmentscheduling/sessions/capacity', (req, res) => {
   const body = req.body || {};
   try {
-    res.json(changeCapacity({ sessionId: body.sessionId, capacity: body.capacity, reason: body.reason }));
+    res.json(changeCapacity({ sessionId: body.sessionId, newCapacity: body.newCapacity, actor: body.actor, reason: body.reason }));
   } catch (error) {
     sendAssessmentSchedulingError(req, res, error, 'CAPACITY_CHANGE_FAILED');
   }

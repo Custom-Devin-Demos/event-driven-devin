@@ -155,26 +155,26 @@
     <section class="card" aria-labelledby="searchTitle">
       <div class="card-head">
         <h2 id="searchTitle">Find sessions</h2>
-        <p>GET /api/v1/sessions</p>
+        <p>GET /api/v2/centers/{centerCode}/sessions</p>
       </div>
       <div class="card-body">
         <form class="search-grid" id="searchForm">
           <div class="field">
             <label for="centerCode">Test centre</label>
             <select id="centerCode">
-              <option value="NW-CHI-01" selected>NW-CHI-01 · Chicago Loop</option>
-              <option value="NW-DAL-02">NW-DAL-02 · Dallas North</option>
-              <option value="NW-ATL-01">NW-ATL-01 · Atlanta Midtown</option>
-              <option value="NW-DEN-01">NW-DEN-01 · Denver Tech Center</option>
+              <option value="BOS01" selected>BOS01 · Harborview Testing Centre</option>
+              <option value="NYC02">NYC02 · Midtown Assessment Suites</option>
+              <option value="ATL01">ATL01 · Peachtree Exam Centre</option>
+              <option value="DEN01">DEN01 · Front Range Exam Centre</option>
             </select>
           </div>
           <div class="field">
             <label for="examCode">Exam</label>
             <select id="examCode">
               <option value="" selected>All exams</option>
-              <option value="NWA-NET-310">NWA-NET-310 · Network Operations Professional</option>
-              <option value="NWA-PM-210">NWA-PM-210 · Project Coordination Associate</option>
-              <option value="NWA-CLN-120">NWA-CLN-120 · Clinical Data Specialist</option>
+              <option value="CTA-SEC2">CTA-SEC2 · Security Operations Associate</option>
+              <option value="BCB-PM100">BCB-PM100 · Project Management Practitioner</option>
+              <option value="MHL-PHT">MHL-PHT · Pharmacy Technician Certificate</option>
             </select>
           </div>
           <div class="field">
@@ -203,7 +203,7 @@
       <section class="card" id="booking" aria-labelledby="bookingTitle">
         <div class="card-head">
           <h2 id="bookingTitle">Book a seat</h2>
-          <p>POST /api/v1/bookings</p>
+          <p>POST /api/v2/bookings</p>
         </div>
         <div class="card-body">
           <form class="form-grid" id="bookingForm">
@@ -236,7 +236,7 @@
       <section class="card" id="capacity" aria-labelledby="capacityTitle">
         <div class="card-head">
           <h2 id="capacityTitle">Change session capacity</h2>
-          <p>PUT /api/v1/sessions/{id}/capacity</p>
+          <p>PUT /api/v2/sessions/{sessionId}/capacity</p>
         </div>
         <div class="card-body">
           <form class="form-grid" id="capacityForm">
@@ -343,6 +343,12 @@
           node.appendChild(strong);
         }
         node.appendChild(document.createTextNode(text));
+      }
+
+      function errorTitle(response) {
+        var d = response.data || {};
+        return response.status + ' ' + (STATUS_TEXT[response.status] || '') + ' · ' + (d.error || 'ERROR')
+          + (d.legacyCode ? ' · legacy ' + d.legacyCode : '');
       }
 
       function clear(kind) {
@@ -495,9 +501,9 @@
         searchBtn.disabled = true;
         searchBtn.textContent = 'Searching…';
         clear('search');
-        var query = 'centerCode=' + centerSelect.value + (examSelect.value ? '&examCode=' + examSelect.value : '')
-          + '&from=' + fromInput.value + '&to=' + toInput.value;
-        call('GET', '/api/v1/sessions?' + query, API + '/sessions/search', {
+        var query = (examSelect.value ? 'examCode=' + examSelect.value + '&' : '')
+          + 'from=' + fromInput.value + '&to=' + toInput.value;
+        call('GET', '/api/v2/centers/' + centerSelect.value + '/sessions?' + query, API + '/sessions/search', {
           action: 'search-sessions',
           centerCode: centerSelect.value,
           examCode: examSelect.value,
@@ -506,7 +512,7 @@
         }).then(function (response) {
           if (seq !== searchSeq) return;
           if (!response.ok) {
-            show('search', 'error', response.status + ' · ' + (response.data.code || 'ERROR'), response.data.error || 'Sessions could not be loaded.');
+            show('search', 'error', errorTitle(response), response.data.message || 'Sessions could not be loaded.');
             return;
           }
           sessions = response.data.sessions;
@@ -552,14 +558,14 @@
         updateForms();
         bookBtn.textContent = 'Booking…';
         show('booking', 'pending', '', 'Booking a seat in session #' + session.sessionId + '…');
-        call('POST', '/api/v1/bookings', API + '/bookings', {
+        call('POST', '/api/v2/bookings', API + '/bookings', {
           action: 'book-seat',
           sessionId: session.sessionId,
           candidateNumber: candidateNumber,
           accommodationCode: document.getElementById('accommodationCode').value || null,
         }).then(function (response) {
           if (!response.ok) {
-            show('booking', 'error', response.status + ' · ' + (response.data.code || 'ERROR'), response.data.error || 'The seat could not be booked.');
+            show('booking', 'error', errorTitle(response), response.data.message || 'The seat could not be booked.');
             return;
           }
           var b = response.data.booking;
@@ -583,41 +589,36 @@
         var session = selected;
         var raw = newCapacityInput.value.trim();
         var capacity = Number(raw);
-        if (!/^\d+$/.test(raw) || capacity < 1 || capacity > 200) {
-          show('capacity', 'error', '', 'Enter a whole number of seats between 1 and 200.');
+        if (!/^\d+$/.test(raw) || capacity > 200) {
+          show('capacity', 'error', '', 'Enter a whole number of seats between 0 and 200.');
           return;
         }
         if (capacity === session.capacity) {
           show('capacity', 'error', '', 'Capacity is already ' + capacity + '.');
           return;
         }
-        if (capacity < session.booked) {
-          show('capacity', 'error', '', 'Capacity can\u2019t be lower than the ' + session.booked + ' seats already booked. Move candidates to another session first.');
-          return;
-        }
-        if (capacity < session.accommodationCapacity) {
-          show('capacity', 'error', '', 'Capacity can\u2019t be lower than the ' + session.accommodationCapacity + ' accommodation seats in this session.');
-          return;
-        }
         busy.capacity = true;
         updateForms();
         capacityBtn.textContent = 'Saving…';
         show('capacity', 'pending', '', 'Updating capacity for session #' + session.sessionId + '…');
-        call('PUT', '/api/v1/sessions/' + session.sessionId + '/capacity', API + '/sessions/capacity', {
+        call('PUT', '/api/v2/sessions/' + session.sessionId + '/capacity', API + '/sessions/capacity', {
           action: 'change-capacity',
           sessionId: session.sessionId,
-          capacity: capacity,
+          newCapacity: capacity,
+          actor: 'jordan.ellis@BOS01',
           reason: document.getElementById('capacityReason').value.trim(),
         }).then(function (response) {
           if (!response.ok) {
-            show('capacity', 'error', response.status + ' ' + (STATUS_TEXT[response.status] || '') + ' · ' + (response.data.code || 'ERROR'),
-              response.data.error || 'The capacity change was not saved.');
+            show('capacity', 'error', errorTitle(response), response.data.message || 'The capacity change was not saved.');
             return;
           }
+          var bumpedCount = (response.data.bumpedBookingIds || []).length;
           replaceSession(response.data.session);
           show('capacity', 'success', '200 OK · ' + response.data.outbox.event,
             'Capacity for session #' + session.sessionId + ' changed from ' + response.data.previousCapacity + ' to ' + response.data.session.capacity
-            + '. Seats available: ' + response.data.session.seatsAvailable + '. Legacy portal update queued.');
+            + '. Seats available: ' + response.data.session.seatsAvailable + '.'
+            + (bumpedCount ? ' ' + bumpedCount + (bumpedCount === 1 ? ' booking' : ' bookings') + ' moved to waitlist.' : '')
+            + ' Legacy portal update queued.');
         }).catch(function () {
           show('capacity', 'error', '', 'scheduling-service could not be reached. Try again.');
         }).then(function () {

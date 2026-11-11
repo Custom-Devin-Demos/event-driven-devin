@@ -48,7 +48,7 @@ function post(path, body) {
   });
 }
 
-async function findSession(sessionId, centerCode = 'NW-CHI-01') {
+async function findSession(sessionId, centerCode = 'BOS01') {
   const res = await post(`${API}/sessions/search`, { centerCode });
   const data = await res.json();
   return data.sessions.find((s) => s.sessionId === sessionId);
@@ -73,7 +73,10 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
       branch: 'assessment-delivery-demo',
       url: 'https://github.com/COG-GTM/SampleMvcWebApp/tree/assessment-delivery-demo',
     });
-    expect(skin.devinSession.promptAppendix).toContain('scheduling-service/');
+    expect(skin.devinSession.promptAppendix).toContain('folder services/scheduling-service/');
+    expect(skin.devinSession.promptAppendix).toContain('mvn -B verify');
+    expect(skin.devinSession.promptAppendix).toContain('scripts/run-scheduling-service.sh');
+    expect(skin.devinSession.promptAppendix).toContain('docs/adr/0002-ported-rule-decisions.md');
     expect(skin.devinSession.promptAppendix).toContain('assessment-delivery-demo');
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
@@ -87,9 +90,14 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
       alertOnStatus: [409],
       unlisted: true,
     });
+    expect(skin.alertCard).toMatchObject({
+      title: 'Capacity change rejections \u2014 scheduling-service PUT /api/v2/sessions/{sessionId}/capacity',
+      metricQuery: 'sum:scheduling_service.capacity_change.rejected{service:scheduling-service,error:capacity_below_accommodation_floor}.as_count()',
+    });
+    expect(skin.alertCard.metricValue).toContain('HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR');
     // Monitor-shaped only: nothing about how the floor is computed.
     const copy = JSON.stringify(scenario) + JSON.stringify(skin.alertCard) + skin.devinSession.promptAppendix;
-    expect(copy).not.toMatch(/\.js|\.java|floor|on top of|booked \+|accommodationCapacity/i);
+    expect(copy).not.toMatch(/\.js|\.java|on top of|booked \+|accommodationCapacity|standard|non-ET|COMMITTED/i);
   });
 
   test('skin URL, direct slug and aliases serve the same shimmed page with one disclaimer', async () => {
@@ -126,23 +134,27 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
   });
 
   test('session search lists capacity, accommodation seats, booked and derived seats available', async () => {
-    const res = await post(`${API}/sessions/search`, { action: 'search-sessions', centerCode: 'NW-CHI-01' });
+    const res = await post(`${API}/sessions/search`, { action: 'search-sessions', centerCode: 'BOS01' });
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data.centre).toMatchObject({ code: 'NW-CHI-01', name: 'Chicago Loop' });
+    expect(data.centre).toMatchObject({ code: 'BOS01', name: 'Harborview Testing Centre', city: 'Boston' });
     const demo = data.sessions.find((s) => s.sessionId === 41872);
     expect(demo).toMatchObject({
-      examCode: 'NWA-NET-310', room: 'Room B', capacity: 30, accommodationCapacity: 4, booked: 22, seatsAvailable: 8,
-      note: '6 workstations out of service',
+      centerCode: 'BOS01', examCode: 'CTA-SEC2', room: 'Room B', capacity: 30, accommodationCapacity: 4, booked: 22,
+      accommodationUsed: 0, seatsAvailable: 8, waitlistCount: 0, note: '6 workstations out of service',
     });
     data.sessions.forEach((s) => expect(s.seatsAvailable).toBe(Math.max(0, s.capacity - s.booked)));
 
-    const filtered = await (await post(`${API}/sessions/search`, { centerCode: 'NW-CHI-01', examCode: 'NWA-PM-210' })).json();
+    const filtered = await (await post(`${API}/sessions/search`, { centerCode: 'BOS01', examCode: 'BCB-PM100' })).json();
     expect(filtered.sessions.length).toBeGreaterThan(0);
-    filtered.sessions.forEach((s) => expect(s.examCode).toBe('NWA-PM-210'));
+    filtered.sessions.forEach((s) => expect(s.examCode).toBe('BCB-PM100'));
 
-    const unknown = await post(`${API}/sessions/search`, { centerCode: 'NW-XXX-01' });
+    const names = await Promise.all(['NYC02', 'ATL01', 'DEN01'].map(async (code) => (await (await post(`${API}/sessions/search`, { centerCode: code })).json()).centre.name));
+    expect(names).toEqual(['Midtown Assessment Suites', 'Peachtree Exam Centre', 'Front Range Exam Centre']);
+
+    const unknown = await post(`${API}/sessions/search`, { centerCode: 'NW-CHI-01' });
     expect(unknown.status).toBe(404);
+    expect(await unknown.json()).toMatchObject({ error: 'CENTER_NOT_FOUND', legacyCode: null });
   });
 
   test('booking a seat succeeds and validates candidate numbers and accommodation codes', async () => {
@@ -152,93 +164,119 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
     expect(res.status).toBe(201);
     const data = await res.json();
     expect(data.booking).toMatchObject({ sessionId: 41873, candidateNumber: 'NW20481736', accommodationCode: 'ET25', status: 'BOOKED' });
-    expect(data.session).toMatchObject({ booked: 10, accommodationBooked: 2, seatsAvailable: 14 });
+    expect(data.session).toMatchObject({ booked: 10, accommodationUsed: 2, seatsAvailable: 14 });
 
     const duplicate = await post(`${API}/bookings`, { sessionId: 41873, candidateNumber: 'NW20481736' });
     expect(duplicate.status).toBe(409);
-    expect((await duplicate.json()).code).toBe('DUPLICATE_BOOKING');
+    expect(await duplicate.json()).toMatchObject({ error: 'DUPLICATE_BOOKING', legacyCode: 50002 });
+
+    const noSeat = await post(`${API}/bookings`, { sessionId: 41873, candidateNumber: 'NW20481739', accommodationCode: 'ET50' });
+    expect(noSeat.status).toBe(409);
+    expect(await noSeat.json()).toMatchObject({ error: 'NO_ACCOMMODATION_SEAT', legacyCode: 50003 });
 
     const badNumber = await post(`${API}/bookings`, { sessionId: 41873, candidateNumber: 'PSV1234567' });
     expect(badNumber.status).toBe(400);
+    expect((await badNumber.json()).error).toBe('VALIDATION');
     const badCode = await post(`${API}/bookings`, { sessionId: 41873, candidateNumber: 'NW20481737', accommodationCode: 'XX' });
     expect(badCode.status).toBe(400);
 
     const full = await post(`${API}/bookings`, { sessionId: 41875, candidateNumber: 'NW20481738' });
     expect(full.status).toBe(201);
-    expect((await full.json()).booking.status).toBe('WAITLISTED');
+    expect((await full.json()).booking).toMatchObject({ status: 'WAITLISTED', waitlistPosition: 1 });
   });
 
-  test('reducing capacity on a session with accommodation seats is rejected with 409 CAPACITY_BELOW_COMMITTED', async () => {
+  test('30 -> 24 on #41872 is rejected with 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR (legacyCode 50005)', async () => {
     const res = await post(`${API}/sessions/capacity`, {
-      action: 'change-capacity', sessionId: 41872, capacity: 24, reason: '6 workstations out of service',
+      action: 'change-capacity', sessionId: 41872, newCapacity: 24, actor: 'jordan.ellis@BOS01', reason: '6 workstations out of service',
     });
     expect(res.status).toBe(409);
-    const data = await res.json();
-    expect(data).toMatchObject({
-      success: false,
-      code: 'CAPACITY_BELOW_COMMITTED',
-      error: 'Capacity 24 is below committed seats (26) for session 41872',
+    expect(await res.json()).toEqual({
+      error: 'CAPACITY_BELOW_ACCOMMODATION_FLOOR',
+      message: 'New capacity 24 is below the accommodation floor 26',
+      legacyCode: 50005,
     });
-    expect(await findSession(41872)).toMatchObject({ capacity: 30, seatsAvailable: 8 });
+    expect(await findSession(41872)).toMatchObject({ capacity: 30, seatsAvailable: 8, waitlistCount: 0 });
+  });
+
+  test('30 -> 27 on #41872 (above the 26 floor) succeeds without bumping anyone', async () => {
+    const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', sessionId: 41872, newCapacity: 27 });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      previousCapacity: 30,
+      session: { sessionId: 41872, capacity: 27, booked: 22, seatsAvailable: 5 },
+      bumpedBookingIds: [],
+    });
   });
 
   test('increasing capacity succeeds and queues the outbox event', async () => {
-    const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', sessionId: 41872, capacity: 34 });
+    const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', sessionId: 41872, newCapacity: 34 });
     expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data).toMatchObject({
+    expect(await res.json()).toMatchObject({
       success: true,
       previousCapacity: 30,
       session: { sessionId: 41872, capacity: 34, seatsAvailable: 12 },
+      bumpedBookingIds: [],
       outbox: { event: 'SessionCapacityChanged', status: 'QUEUED' },
     });
   });
 
-  test('reducing capacity on a session without accommodation seats succeeds', async () => {
-    const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', sessionId: 41871, capacity: 20 });
+  test('reducing a session without accommodation seats below the seats held succeeds and waitlists the newest bookings', async () => {
+    const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', sessionId: 41871, newCapacity: 12 });
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data.session).toMatchObject({ sessionId: 41871, capacity: 20, accommodationCapacity: 0, booked: 15, seatsAvailable: 5 });
+    expect(data.bumpedBookingIds).toEqual([41871013, 41871014, 41871015]);
+    expect(data.session).toMatchObject({ sessionId: 41871, capacity: 12, accommodationCapacity: 0, booked: 12, seatsAvailable: 0, waitlistCount: 3 });
+
+    const smaller = await post(`${API}/sessions/capacity`, { action: 'change-capacity', sessionId: 41871, newCapacity: 0 });
+    expect(smaller.status).toBe(200);
+    expect((await smaller.json()).bumpedBookingIds).toHaveLength(12);
+  });
+
+  test('negative capacity is 400 VALIDATION', async () => {
+    const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', sessionId: 41871, newCapacity: -1 });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'VALIDATION', message: 'newCapacity must be zero or more', legacyCode: 50005 });
   });
 
   test('unchanged demo state is reseeded on a new day so the demo session stays searchable', () => {
     const day0 = new Date('2026-11-11T12:00:00Z');
     const day3 = new Date('2026-11-14T12:00:00Z');
-    const demo = (now) => searchSessions({ centerCode: 'NW-CHI-01' }, now).sessions.find((s) => s.sessionId === 41872);
+    const demo = (now) => searchSessions({ centerCode: 'BOS01' }, now).sessions.find((s) => s.sessionId === 41872);
     expect(demo(day0).date).toBe('2026-11-13');
     expect(demo(day3).date).toBe('2026-11-16');
   });
 
   test('a recent capacity change is kept within the idle window', () => {
-    changeCapacity({ sessionId: 41872, capacity: 34 });
-    expect(searchSessions({ centerCode: 'NW-CHI-01' }).sessions.find((s) => s.sessionId === 41872).capacity).toBe(34);
+    changeCapacity({ sessionId: 41872, newCapacity: 34 });
+    expect(searchSessions({ centerCode: 'BOS01' }).sessions.find((s) => s.sessionId === 41872).capacity).toBe(34);
   });
 
   test.each([
-    ['boolean capacity', { sessionId: 41872, capacity: true }],
-    ['array capacity', { sessionId: 41872, capacity: [25] }],
-    ['trailing garbage capacity', { sessionId: 41872, capacity: '25abc' }],
-    ['fractional capacity', { sessionId: 41872, capacity: 25.5 }],
-    ['empty capacity', { sessionId: 41872, capacity: '' }],
-    ['boolean sessionId', { sessionId: true, capacity: 25 }],
-    ['array sessionId', { sessionId: [41872], capacity: 25 }],
-    ['trailing garbage sessionId', { sessionId: '41872abc', capacity: 25 }],
-    ['fractional sessionId', { sessionId: 41872.5, capacity: 25 }],
-  ])('rejects %s with 400 INVALID_REQUEST', async (_label, body) => {
+    ['boolean newCapacity', { sessionId: 41872, newCapacity: true }],
+    ['array newCapacity', { sessionId: 41872, newCapacity: [25] }],
+    ['trailing garbage newCapacity', { sessionId: 41872, newCapacity: '25abc' }],
+    ['fractional newCapacity', { sessionId: 41872, newCapacity: 25.5 }],
+    ['empty newCapacity', { sessionId: 41872, newCapacity: '' }],
+    ['legacy capacity field only', { sessionId: 41872, capacity: 34 }],
+    ['boolean sessionId', { sessionId: true, newCapacity: 25 }],
+    ['array sessionId', { sessionId: [41872], newCapacity: 25 }],
+    ['trailing garbage sessionId', { sessionId: '41872abc', newCapacity: 25 }],
+    ['fractional sessionId', { sessionId: 41872.5, newCapacity: 25 }],
+  ])('rejects %s with 400 VALIDATION', async (_label, body) => {
     const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', ...body });
     expect(res.status).toBe(400);
-    expect((await res.json()).code).toBe('INVALID_REQUEST');
+    expect((await res.json()).error).toBe('VALIDATION');
     expect(await findSession(41872)).toMatchObject({ capacity: 30 });
   });
 
   test('rejects a non-integer sessionId on bookings with 400', async () => {
     const res = await post(`${API}/bookings`, { sessionId: [41873], candidateNumber: 'NW20481736' });
     expect(res.status).toBe(400);
-    expect((await res.json()).code).toBe('INVALID_REQUEST');
+    expect((await res.json()).error).toBe('VALIDATION');
   });
 
   test('accepts digit-only string ids and capacities', async () => {
-    const res = await post(`${API}/sessions/capacity`, { sessionId: '41872', capacity: '34' });
+    const res = await post(`${API}/sessions/capacity`, { sessionId: '41872', newCapacity: '34' });
     expect(res.status).toBe(200);
     expect((await res.json()).session.capacity).toBe(34);
   });
@@ -247,27 +285,29 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
     const res = await fetch(`${baseUrl}${API}/sessions/capacity`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{"sessionId": 41872, "capacity": ',
+      body: '{"sessionId": 41872, "newCapacity": ',
     });
     expect(res.status).toBe(400);
-    const data = await res.json();
-    expect(data).toMatchObject({ success: false, code: 'INVALID_REQUEST' });
-    expect(data.requestId).toMatch(/^[0-9a-f-]{36}$/);
-    expect(res.headers.get('x-request-id')).toBe(data.requestId);
+    expect(await res.json()).toEqual({ error: 'BAD_REQUEST', message: 'Malformed JSON request body', legacyCode: null });
+    expect(res.headers.get('x-request-id')).toMatch(/^[0-9a-f-]{36}$/);
   });
 
-  test('page reserves room under the content for the floating demo ribbon', async () => {
+  test('page shows the v2 contract, BOS01 centres and the waitlist outcome', async () => {
     const html = await (await fetch(`${baseUrl}/oncall/c/${SLUG}`)).text();
     expect(html).toContain('body { padding-bottom: 112px; }');
     expect(html).toContain('value="6 workstations out of service"');
+    expect(html).toContain('<option value="BOS01" selected>BOS01 · Harborview Testing Centre</option>');
+    expect(html).toContain('GET /api/v2/centers/{centerCode}/sessions');
+    expect(html).toContain('POST /api/v2/bookings');
+    expect(html).toContain('PUT /api/v2/sessions/{sessionId}/capacity');
+    expect(html).toContain('newCapacity: capacity');
+    expect(html).toContain("' moved to waitlist.'");
+    expect(html).not.toMatch(/COMMITTED|\/api\/v1\/|NW-CHI-01/);
   });
 
-  test('invalid capacity requests are 400 and unknown sessions 404', async () => {
-    const [bad, unknown] = await Promise.all([
-      post(`${API}/sessions/capacity`, { sessionId: 41871, capacity: 'lots' }),
-      post(`${API}/sessions/capacity`, { sessionId: 99999, capacity: 20 }),
-    ]);
-    expect(bad.status).toBe(400);
+  test('unknown sessions are 404 SESSION_NOT_FOUND', async () => {
+    const unknown = await post(`${API}/sessions/capacity`, { sessionId: 99999, newCapacity: 20 });
     expect(unknown.status).toBe(404);
+    expect((await unknown.json()).error).toBe('SESSION_NOT_FOUND');
   });
 });
