@@ -8616,6 +8616,7 @@ const ONCALL_SKINS = {
     vertical: 'insurance',
     oncallOnly: true,
     alertDestination: 'slack',
+    alertRepeatWindowMs: 0,
     page: { file: 'fa7ec024.html', title: 'Home insurance quote | Allianz' },
     theme: {
       '--accent': '#05813C',
