@@ -327,6 +327,7 @@ async function askQ(){const q=$('#question').value.trim();if(!q)return;$('#askBt
     $('#answer').innerHTML=`<div class="lab">${r.mode==='ai'?'Answer':(r.aiOffline?'Answer — AI synthesis unavailable, composed from source passages':'Answer — composed from source passages')}${r.ecosystem?` · ${esc(r.ecosystem)}`:''}</div><div class="answer" dir="${LANG==='ar'&&r.mode==='ai'?'rtl':'ltr'}">${ans}</div>
     ${r.sources.length?`<div class="lab" style="margin-top:30px">Sources</div><div class="srcs">${r.sources.map((s,i)=>`<div class="srcrow" id="src${i+1}"><div class="i">${i+1}</div><div><a class="ul" href="${esc(s.doc.url)}" target="_blank" rel="noopener">${esc(s.doc.title)}</a><div class="m">${esc(s.doc.type)} · ${fmt(s.doc.date)}</div><div class="x">${esc(s.text.length>260?s.text.slice(0,260)+'…':s.text)}</div></div></div>`).join('')}</div>`:''}
     ${r.gaps.length?`<div class="lab" style="margin-top:30px">Not yet studied — suggested next research</div>${r.gaps.map(g=>`<div class="find"><div class="k st-amb">${esc(g.ecosystem)} · ${esc(g.theme)}</div><div class="f">${esc(g.study)}</div></div>`).join('')}`:''}`;
+    COVSEL=r.focus&&r.focus.cells.length===1?[r.focus.cells[0].ecosystem,r.focus.cells[0].theme]:null;
     renderCoverage(r.focus);
     $$('#answer sup').forEach(s=>s.onclick=()=>$('#src'+s.dataset.s)?.scrollIntoView({behavior:'smooth',block:'center'}));
   }catch(e){if(e.message!=='locked')$('#answer').innerHTML=`<span class="st-red">${esc(e.message)}</span>`}finally{$('#askBtn').disabled=false}}
@@ -354,7 +355,7 @@ function renderCoverage(f){if(f!==undefined)COVF=f;if(!LIB||!ECO)return;f=COVF;c
   <div class="hmleg"><i style="background:var(--cream);box-shadow:inset 0 0 0 1px #e6c9c5"></i>Not yet studied <i class="l1" style="background:#dbe8e4;margin-inline-start:8px"></i><i style="background:#a9cbc2"></i><i style="background:#5e9a8c"></i><i style="background:var(--g)"></i>More studies${f&&Object.keys(cited).length?'<span style="margin-inline-start:8px"><i style="width:7px;height:7px;border-radius:50%;background:var(--gold);vertical-align:middle"></i> cited in this answer</span>':''}</div>
   <p class="muted" style="font-size:11px;margin-top:6px">${f?'Highlighting follows your latest question. ':''}Click any tile to see what's behind it.</p><div id="cellInfo"></div>`;
   $$('#coverage .tile').forEach(b=>b.onclick=()=>{COVSEL=[b.dataset.e,b.dataset.t];renderCoverage();showCell(...COVSEL)});
-  if(COVSEL)showCell(...COVSEL)}
+  if(COVSEL)showCell(...COVSEL);else $('#cellInfo').innerHTML=''}
 function showCell(eid,tid){const d=LIB,e=ECO.find(x=>x.id===eid),t=d.themes.find(x=>x.id===tid),ids=d.coverage[eid][tid],docs=d.documents.filter(x=>ids.includes(x.id));
   const q=`What have we studied on ${t.name.toLowerCase()} in ${e.name}?`;
   $('#cellInfo').innerHTML=`<div class="cell${docs.length?'':' gap'}"><h4>${esc(e.name)} × ${esc(t.name)}</h4>
