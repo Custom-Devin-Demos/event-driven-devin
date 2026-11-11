@@ -362,7 +362,7 @@ async function askQ(pin){const q=$('#question').value.trim();if(!q)return;if(MAP
     renderCoverage(r.focus);
     $$('#answer sup').forEach(s=>s.onclick=()=>$('#src'+s.dataset.s)?.scrollIntoView({behavior:'smooth',block:'center'}));
   }catch(e){if(e.message!=='locked')$('#answer').innerHTML=`<span class="st-red">${esc(e.message)}</span>`}finally{$('#askBtn').disabled=false}}
-let libLoaded=false;async function loadResearch(){if(libLoaded)return;libLoaded=true;const [d,tr]=await Promise.all([api('/library'),api('/trends')]);await loadEcoList();
+let libLoaded=false;async function loadResearch(){if(libLoaded)return;libLoaded=true;const [d,tr]=await Promise.all([api('/library'),api('/trends').catch(()=>({trends:[]}))]);await loadEcoList();
   TRS=tr.trends||[];LIB=d;renderCoverage(null);
   $('#library').innerHTML=d.documents.map(x=>`<div class="doc"><a class="ul" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a><div class="m">${esc(x.type)} · ${fmt(x.date)}</div></div>`).join('')}
 let LIB=null;
