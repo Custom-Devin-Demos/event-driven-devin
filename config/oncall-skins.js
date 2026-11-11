@@ -9206,6 +9206,38 @@ const ONCALL_SKINS = {
     supportCenter: 'Centro de Ayuda Galicia',
     disclaimer: 'NOT ACTUALLY A BANCO GALICIA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco Galicia product.',
   },
+  'a48c4d64': {
+    slug: 'a48c4d64',
+    company: 'Endava',
+    brandMark: 'e',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    page: { file: 'a48c4d64.html', title: 'Contact Us | Endava' },
+    alertCard: {
+      title: 'p95 latency \u2014 Contact Us: Submit enquiry',
+      service: 'web-enquiry-api',
+      release: 'web-forms@2026.11.2',
+      team: 'digital-web-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.1s',
+      threshold: '> 2s',
+      baseline: '~350ms (7-day p95, before web-forms@2026.11.2)',
+      symptom: 'Contact Us enquiries hang ~9s after the visitor selects Submit before the confirmation appears. Error rate is normal \u2014 requests eventually complete.',
+      impact: 'Every prospective client sending an enquiry waits about 9 seconds on a spinner; some leave before it confirms and the enquiry never reaches the sales team.',
+    },
+    theme: {
+      '--accent': '#FF5640',
+      '--ink': '#192B37',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#192B37',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Endava Contact Us',
+    disclaimer: 'NOT ACTUALLY AN ENDAVA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Endava product.',
+  },
 };
 
 function getOncallSkin(slug) {
