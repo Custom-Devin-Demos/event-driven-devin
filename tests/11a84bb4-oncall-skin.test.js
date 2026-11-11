@@ -250,7 +250,10 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
       body: '{"sessionId": 41872, "capacity": ',
     });
     expect(res.status).toBe(400);
-    expect(await res.json()).toMatchObject({ success: false, code: 'INVALID_REQUEST' });
+    const data = await res.json();
+    expect(data).toMatchObject({ success: false, code: 'INVALID_REQUEST' });
+    expect(data.requestId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(res.headers.get('x-request-id')).toBe(data.requestId);
   });
 
   test('page reserves room under the content for the floating demo ribbon', async () => {

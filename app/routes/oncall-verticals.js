@@ -1,3 +1,4 @@
+const { randomUUID } = require('crypto');
 const express = require('express');
 const { processTransfer } = require('../services/oncall-verticals/banking');
 const { processCashTransfer } = require('../services/oncall-verticals/statestreet-transfers');
@@ -1344,11 +1345,14 @@ function sendAssessmentSchedulingError(req, res, error, fallbackCode) {
 // answer 400 INVALID_REQUEST instead of the global 500.
 function assessmentSchedulingBodyErrorHandler(err, req, res, next) {
   if (err && err.type === 'entity.parse.failed') {
+    // The request-ID middleware runs after the body parser, so set it here.
+    const requestId = req.requestId || req.headers['x-request-id'] || randomUUID();
+    res.setHeader('x-request-id', requestId);
     return res.status(400).json({
       success: false,
       error: 'Request body must be valid JSON.',
       code: 'INVALID_REQUEST',
-      requestId: req.requestId,
+      requestId,
     });
   }
   return next(err);
