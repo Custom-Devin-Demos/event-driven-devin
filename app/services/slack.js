@@ -642,6 +642,33 @@ async function findChannelByNameFragment(token, fragment) {
 }
 
 /**
+ * Find a public channel by its exact name (e.g. 'dell-com-feedback'), so a
+ * similarly named channel listed first is never mistaken for it.
+ */
+async function findChannelByName(token, name) {
+  let cursor;
+  do {
+    const response = await axios.get(`${SLACK_API_BASE}/conversations.list`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        types: 'public_channel',
+        exclude_archived: true,
+        limit: 200,
+        ...(cursor ? { cursor } : {}),
+      },
+      timeout: 10000,
+    });
+    if (!response.data.ok) {
+      throw new Error(`Slack API error: ${response.data.error}`);
+    }
+    const match = (response.data.channels || []).find((c) => c.name === name);
+    if (match) return { id: match.id, name: match.name };
+    cursor = response.data.response_metadata && response.data.response_metadata.next_cursor;
+  } while (cursor);
+  return null;
+}
+
+/**
  * Join a public channel. Requires the `channels:join` scope.
  */
 async function joinChannel(token, channelId) {
@@ -814,6 +841,7 @@ module.exports = {
   resolveOnCallMember,
   postMessage,
   findChannelByNameFragment,
+  findChannelByName,
   joinChannel,
   postPersonaMessage,
   postAlertToSlack,
