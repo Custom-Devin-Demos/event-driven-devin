@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[MOCK] Logowanie do Millenetu - Bank Millennium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --mag:#bd004f; --mag2:#9a0040; --ink:#2e2e2e; --soft:#737373; --line:#e6e6e6; --page:#f0f0f0; --red:#d0021b; --redsoft:#fdecee; --blue:#1c5cad; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Roboto, Arial, sans-serif; color:var(--ink); background:var(--page); }
+  .demo-strip { background:#fff4c2; border-bottom:1px solid #e9d27a; font-size:13px; padding:7px 40px; }
+  header { background:#fff; border-bottom:1px solid var(--line); }
+  .top { display:flex; align-items:center; gap:28px; padding:14px 40px; max-width:1280px; margin:0 auto; }
+  .logo { background:var(--mag); color:#fff; padding:6px 18px 6px 14px; line-height:1; text-decoration:none; }
+  .logo b { display:block; font-size:24px; letter-spacing:.2px; }
+  .logo span { font-size:12px; margin-left:2px; }
+  .mock-badge { background:#ffd600; color:#000; font-weight:700; font-size:12px; padding:2px 8px; border-radius:3px; }
+  nav a { color:var(--soft); text-decoration:none; margin-right:24px; font-size:15px; }
+  nav a.on { color:var(--ink); font-weight:700; border-bottom:3px solid var(--mag); padding-bottom:16px; }
+  .top .right { margin-left:auto; color:var(--soft); font-size:14px; }
+  main { max-width:1280px; margin:0 auto; padding:48px 40px; min-height:calc(100vh - 170px); }
+  .card { background:#fff; border:1px solid var(--line); padding:36px 40px; }
+  .login { max-width:520px; margin:0 auto; }
+  h1 { font-weight:300; font-size:30px; margin:0 0 26px; }
+  label { display:block; font-size:13px; color:var(--soft); margin-top:6px; }
+  input[type=text], input[type=password] { width:100%; font:inherit; font-size:20px; padding:10px 4px; border:0; border-bottom:2px solid #969696; outline:none; background:transparent; letter-spacing:1px; }
+  input:focus { border-bottom-color:var(--mag); }
+  .hint { font-size:12px; color:var(--soft); margin:6px 0 14px; }
+  .link { color:var(--mag); font-size:14px; text-decoration:underline; cursor:pointer; background:none; border:0; padding:0; font-family:inherit; }
+  .btn { background:var(--mag); color:#fff; border:0; font:inherit; font-weight:700; font-size:15px; padding:12px 30px; cursor:pointer; letter-spacing:.5px; }
+  .btn:hover { background:var(--mag2); }
+  .row { display:flex; align-items:center; gap:22px; margin-top:22px; }
+  .error { display:none; background:var(--redsoft); border-left:4px solid var(--red); color:var(--red); font-weight:500; padding:12px 14px; margin-bottom:18px; font-size:14px; }
+  .error.show { display:block; }
+  .field-error input { border-bottom-color:var(--red) !important; }
+  .step { display:none; } .step.on { display:block; }
+  .spinner { height:4px; background:linear-gradient(90deg, var(--mag) 0 30%, #f3c4d7 30% 100%); background-size:200% 100%; animation:move 1s linear infinite; margin-top:14px; }
+  @keyframes move { to { background-position:-200% 0; } }
+  .status { font-size:11px; color:var(--soft); margin-top:18px; }
+  .dash h1 { margin-bottom:4px; }
+  .dash .sub { color:var(--soft); margin-bottom:24px; }
+  .acct { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:22px 26px; }
+  .acct b { font-size:17px; } .acct small { display:block; color:var(--soft); margin-top:4px; }
+  .acct .bal { font-size:22px; font-weight:700; }
+  .tx { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); }
+  .tx:last-child { border-bottom:0; }
+  h2 { font-size:20px; margin:22px 0 12px; }
+  footer { background:#fff; border-top:1px solid var(--line); font-size:12px; color:var(--soft); padding:12px 40px; }
+</style>
+</head>
+<body>
+<div class="demo-strip" role="note"><b>MOCK</b> — Wersja demonstracyjna — to nie jest serwis Banku Millennium. Nie wpisuj prawdziwych danych. (Devin demo, not affiliated with Bank Millennium.)</div>
+<header>
+  <div class="top">
+    <a class="logo" href="#" aria-label="Bank Millennium"><b>Millennium</b><span>bank</span></a>
+    <span class="mock-badge">MOCK</span>
+    <nav><a class="on" href="#">Klienci Indywidualni</a><a href="#">Firmy</a><a href="#">Private Banking</a><a href="#">Pomoc</a></nav>
+    <div class="right" id="sessionLabel">Millenet — przeglądarka</div>
+  </div>
+</header>
+<main>
+  <section id="loginView" class="card login">
+    <h1>Logowanie do Millenetu</h1>
+    <div id="error" class="error" role="alert"></div>
+    <form id="stepMillekod" class="step on" autocomplete="off">
+      <label for="millekod">Millekod</label>
+      <input id="millekod" type="text" inputmode="numeric" maxlength="8" value="48213907">
+      <div class="hint">8 cyfr, znajdziesz go w umowie lub w aplikacji</div>
+      <button type="button" class="link">Nie pamiętam Millekodu</button>
+      <div class="row"><button id="next" class="btn" type="submit">DALEJ</button></div>
+    </form>
+    <form id="stepPassword" class="step" autocomplete="off">
+      <div id="millekodEcho" style="font-size:14px;margin-bottom:14px"></div>
+      <div id="passwordField">
+        <label for="password">Hasło</label>
+        <input id="password" type="password" value="Demo2026!">
+      </div>
+      <div style="margin-top:12px"><button type="button" class="link">Nie pamiętam hasła</button></div>
+      <div class="row"><button id="signIn" class="btn" type="submit">ZALOGUJ</button><button id="back" type="button" class="link">Wróć</button></div>
+    </form>
+    <div id="stepAuthorize" class="step">
+      <div style="font-size:18px;font-weight:500;margin-bottom:10px">Potwierdź logowanie w aplikacji mobilnej</div>
+      <div id="authorizeDetail" style="color:var(--soft)"></div>
+      <div class="spinner"></div>
+    </div>
+    <div id="reportStatus" class="status"></div>
+  </section>
+  <section id="dashView" class="dash" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h1 id="greeting"></h1><div class="sub" id="policyLine"></div></div>
+      <button id="logout" class="btn">WYLOGUJ</button>
+    </div>
+    <h2>Pulpit</h2>
+    <div id="accounts"></div>
+    <h2>Ostatnie operacje</h2>
+    <div class="card" id="transactions" style="padding:18px 26px"></div>
+  </section>
+</main>
+<footer>Wersja demonstracyjna — to nie jest serwis Banku Millennium. Nie wpisuj prawdziwych danych. · Millenet · infolinia 801 331 331 (mock)</footer>
+<script>
+/* SIGN_IN_POLICIES:start — Millenet sign-in rules, kept in sync with BankMillenniumCore/SignInPolicies.swift
+   and windows/BankMillennium/BankMillennium.Core/SignInPolicies.cs */
+var POLICY_VERSION = '2026-10';
+var ERROR_CODE = 'MIL-AUTH-4031';
+var DEMO_PASSWORD = 'Demo2026!';
+
+// Demo customer directory as returned by the identity service (IAM v3).
+var CUSTOMERS = [
+  { millekod: '48213907', firstName: 'Anna', lastName: 'Kowalska', segment: 'MILLENNIUM_PRESTIGE' },
+  { millekod: '31570264', firstName: 'Piotr', lastName: 'Nowak', segment: 'STANDARD' },
+  { millekod: '55018342', firstName: 'Marta', lastName: 'Wiśniewska', segment: 'PRIVATE_BANKING' }
+];
+
+var SIGN_IN_POLICIES = {
+  STANDARD: { secondFactor: 'MOBILE_AUTHORIZATION', sessionMinutes: 10 },
+  PRESTIGE: { secondFactor: 'MOBILE_AUTHORIZATION', sessionMinutes: 15 },
+  PRIVATE_BANKING: { secondFactor: 'MOBILE_AUTHORIZATION', sessionMinutes: 15 }
+};
+
+function SignInPolicyError(segment, millekodMasked, channel) {
+  this.name = 'SignInPolicyError.segmentNotInPolicy';
+  this.code = ERROR_CODE;
+  this.segment = segment;
+  this.millekodMasked = millekodMasked;
+  this.channel = channel;
+  this.message = 'No sign-in policy for segment ' + segment + ' (Millekod ' + millekodMasked + ', channel ' + channel + ')';
+  this.stack = this.name + ': ' + this.message + '\n    at policyFor (bf98154e.html)';
+}
+SignInPolicyError.prototype = Object.create(Error.prototype);
+
+function LoginValidationError() {
+  this.name = 'LoginValidationError';
+  this.message = 'Nieprawidłowy Millekod lub hasło.';
+}
+LoginValidationError.prototype = Object.create(Error.prototype);
+
+function maskMillekod(millekod) { return millekod.slice(0, 4) + '****'; }
+function isValidMillekod(millekod) { return /^\d{8}$/.test(millekod); }
+function findCustomer(millekod) {
+  for (var i = 0; i < CUSTOMERS.length; i++) if (CUSTOMERS[i].millekod === millekod) return CUSTOMERS[i];
+  return null;
+}
+
+function policyFor(customer, channel) {
+  var policy = Object.prototype.hasOwnProperty.call(SIGN_IN_POLICIES, customer.segment) ? SIGN_IN_POLICIES[customer.segment] : null;
+  if (!policy) throw new SignInPolicyError(customer.segment, maskMillekod(customer.millekod), channel);
+  return policy;
+}
+
+function signIn(millekod, password, channel) {
+  millekod = String(millekod || '').trim();
+  if (!isValidMillekod(millekod) || password !== DEMO_PASSWORD) throw new LoginValidationError();
+  var customer = findCustomer(millekod);
+  if (!customer) throw new LoginValidationError();
+  return { customer: customer, policy: policyFor(customer, channel) };
+}
+/* SIGN_IN_POLICIES:end */
+
+var ACCOUNTS = {
+  '48213907': [['Konto 360°', 'PL61 1160 2202 0000 0004 8213 9071', 12480.55], ['Konto Oszczędnościowe Profit', 'PL27 1160 2202 0000 0004 8213 9188', 48900.00]],
+  '55018342': [['Konto Prestige', 'PL83 1160 2202 0000 0005 5018 3421', 86302.17], ['Lokata', 'PL09 1160 2202 0000 0005 5018 3512', 120000.00]],
+  '31570264': [['Konto 360°', 'PL44 1160 2202 0000 0003 1570 2641', 3214.90]]
+};
+var TRANSACTIONS = [['Biedronka Warszawa', -86.40], ['Przelew od: Jan Kowalski', 1200.00], ['Orlen Stacja 412', -254.13]];
+
+var REPORT_PATH = '/api/bankmillennium/login/error';
+var REPORTS_ON = new URLSearchParams(location.search).get('reports') !== 'off';
+var APP_VERSION = '2026.4.2';
+
+function $(id) { return document.getElementById(id); }
+function pln(v) { return v.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' PLN'; }
+function show(step) { ['stepMillekod', 'stepPassword', 'stepAuthorize'].forEach(function (s) { $(s).classList.toggle('on', s === step); }); }
+function showError(msg, policyFailure) { $('error').textContent = msg; $('error').classList.add('show'); $('passwordField').classList.toggle('field-error', !!policyFailure); }
+function clearError() { $('error').classList.remove('show'); $('passwordField').classList.remove('field-error'); }
+
+function reportFailure(err) {
+  if (!REPORTS_ON) { $('reportStatus').textContent = 'Raporty błędów: wyłączone (?reports=off)'; return; }
+  fetch(REPORT_PATH, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source: 'bank-millennium/web', service: 'customer-bank-millennium', platform: 'web',
+      screen: 'Login', action: 'signIn', errorType: err.name, errorMessage: err.message, errorCode: err.code,
+      stackTrace: err.stack, millekodMasked: err.millekodMasked, segment: err.segment, channel: err.channel,
+      policyVersion: POLICY_VERSION, appVersion: APP_VERSION, device: navigator.platform || 'browser',
+      osVersion: navigator.userAgent.slice(0, 64), release: 'bank-millennium-web@' + APP_VERSION,
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || ''
+    })
+  }).then(function (r) { return r.json(); }).then(function (ack) {
+    $('reportStatus').textContent = ack && ack.reference ? 'Zgłoszenie wysłane: ' + ack.reference : '';
+  }).catch(function () {});
+}
+
+function showDashboard(customer, policy) {
+  $('loginView').hidden = true; $('dashView').hidden = false;
+  $('greeting').textContent = 'Dzień dobry, ' + customer.firstName;
+  $('policyLine').textContent = 'Zalogowano: ' + customer.firstName + ' ' + customer.lastName + ' · sesja ' + policy.sessionMinutes + ' min · polityka ' + POLICY_VERSION;
+  $('sessionLabel').textContent = customer.firstName + ' ' + customer.lastName + ' · Millekod ' + maskMillekod(customer.millekod);
+  $('accounts').innerHTML = '';
+  (ACCOUNTS[customer.millekod] || []).forEach(function (a) {
+    var el = document.createElement('div'); el.className = 'card acct';
+    el.innerHTML = '<div><b></b><small></small></div><div class="bal"></div>';
+    el.querySelector('b').textContent = a[0]; el.querySelector('small').textContent = a[1]; el.querySelector('.bal').textContent = pln(a[2]);
+    $('accounts').appendChild(el);
+  });
+  $('transactions').innerHTML = '';
+  TRANSACTIONS.forEach(function (t) {
+    var el = document.createElement('div'); el.className = 'tx';
+    el.innerHTML = '<span></span><b></b>';
+    el.querySelector('span').textContent = t[0]; el.querySelector('b').textContent = (t[1] > 0 ? '+' : '') + pln(t[1]);
+    $('transactions').appendChild(el);
+  });
+}
+
+$('stepMillekod').addEventListener('submit', function (e) {
+  e.preventDefault(); clearError();
+  var m = $('millekod').value.trim();
+  if (!isValidMillekod(m)) return showError('Nieprawidłowy Millekod lub hasło.', false);
+  $('millekodEcho').textContent = 'Millekod: ' + m;
+  show('stepPassword'); $('password').focus();
+});
+$('back').addEventListener('click', function () { clearError(); show('stepMillekod'); });
+$('stepPassword').addEventListener('submit', function (e) {
+  e.preventDefault(); clearError();
+  try {
+    var result = signIn($('millekod').value, $('password').value, 'web');
+    show('stepAuthorize');
+    $('authorizeDetail').textContent = 'Wysłaliśmy powiadomienie do aplikacji Bank Millennium na telefonie klienta ' + result.customer.firstName + ' ' + result.customer.lastName + '.';
+    setTimeout(function () { showDashboard(result.customer, result.policy); }, 1500);
+  } catch (err) {
+    if (err instanceof SignInPolicyError) {
+      showError('Nie możemy Cię teraz zalogować. Spróbuj ponownie później. Kod błędu: ' + ERROR_CODE, true);
+      reportFailure(err);
+    } else {
+      showError(err.message, false);
+    }
+  }
+});
+$('logout').addEventListener('click', function () {
+  $('dashView').hidden = true; $('loginView').hidden = false; clearError(); show('stepMillekod');
+  $('password').value = DEMO_PASSWORD; $('sessionLabel').textContent = 'Millenet — przeglądarka';
+});
+if (!REPORTS_ON) $('reportStatus').textContent = 'Raporty błędów: wyłączone (?reports=off)';
+</script>
+</body>
+</html>
