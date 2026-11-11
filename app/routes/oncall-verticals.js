@@ -59,7 +59,22 @@ const { prepareFulfillment, listCollection } = require('../services/oncall-verti
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const { processTransfer: processCibcTransfer } = require('../services/oncall-verticals/cibc-transfers');
+const { placeOrder: placeWalmartOrder } = require('../services/oncall-verticals/walmartorders');
 const router = express.Router();
+
+router.post('/api/oncall/walmartorders/orders', async (req, res) => {
+  try {
+    res.json(await placeWalmartOrder(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_ORDER';
+    res.status(invalid ? 400 : 500).json({
+      success: false,
+      code: error.code || 'ORDER_NOT_PLACED',
+      error: invalid ? error.message : "We couldn't place your order. You haven't been charged.",
+      requestId: req.requestId,
+    });
+  }
+});
 
 router.post('/api/oncall/cibc/transfers', async (req, res) => {
   try {
