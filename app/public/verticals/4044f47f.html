@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay or transfer | BNZ Internet Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #007dbc;
+      --navy: #002f6b;
+      --link: #00679a;
+      --login: #20882e;
+      --header: #f2f2f2;
+      --page: #f6f6f6;
+      --info: #edf6fa;
+      --line: #d9e0e9;
+      --field: #8b9bb0;
+      --gold: #faa819;
+      --red: #c8102e;
+      --green: #20882e;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: #fff; color: var(--navy); font: 16px/1.5 'Source Sans 3', Tahoma, 'Arial Unicode MS', sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    .topline { height: 4px; background: var(--navy); }
+    .header { background: var(--header); height: 55px; }
+    .header-inner { max-width: 1440px; margin: 0 auto; height: 100%; padding: 0 32px; display: flex; align-items: stretch; gap: 20px; }
+    .logo { display: flex; align-items: center; justify-content: center; width: 96px; background: var(--navy); color: #fff; flex-shrink: 0; }
+    .logo svg { width: 71px; height: 35px; }
+    .header nav { display: flex; align-items: center; gap: 30px; margin-left: 4px; }
+    .header nav a { text-decoration: none; font-size: 16px; }
+    .header nav a.current { font-weight: 700; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+    .hello { font-size: 15px; }
+    .btn-outline { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 16px; border: 1px solid var(--link); border-radius: 3px; background: #fff; color: var(--link); font-weight: 700; text-decoration: none; }
+    .subnav { background: #fff; border-bottom: 1px solid var(--line); }
+    .subnav-inner { max-width: 1160px; margin: 0 auto; padding: 0 32px; display: flex; gap: 34px; }
+    .subnav a { display: inline-block; padding: 16px 0 13px; text-decoration: none; border-bottom: 3px solid transparent; }
+    .subnav a.current { font-weight: 700; border-bottom-color: var(--navy); }
+    main { background: linear-gradient(#fff, var(--page) 420px); padding: 40px 32px 80px; }
+    .wrap { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 32px; align-items: start; }
+    .crumbs { max-width: 1160px; margin: 0 auto 18px; font-size: 14px; }
+    .crumbs a { color: var(--link); }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 44px 56px 48px; }
+    h1 { margin: 0 0 6px; font-size: 32px; line-height: 1.2; font-weight: 700; }
+    .lede { margin: 0 0 28px; font-size: 16px; }
+    .seg { display: flex; border: 1px solid var(--accent); border-radius: 3px; overflow: hidden; margin-bottom: 30px; }
+    .seg button { flex: 1; height: 40px; border: 0; background: #fff; color: var(--accent); font-weight: 700; cursor: pointer; }
+    .seg button.on { background: var(--accent); color: #fff; }
+    .field { margin-bottom: 22px; }
+    .field label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 16px; }
+    .field .hint { display: block; margin-top: 4px; font-size: 14px; color: #4d6585; }
+    .field select, .field input { width: 100%; height: 40px; padding: 9px 14px; border: 1px solid var(--field); border-radius: 3px; background: #fff; color: var(--navy); }
+    .field select { appearance: none; -webkit-appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23002f6b' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .field select:focus, .field input:focus { outline: none; border: 2px solid var(--accent); padding-left: 13px; }
+    .money { position: relative; }
+    .money span { position: absolute; left: 14px; top: 8px; font-weight: 700; }
+    .money input { padding-left: 30px; }
+    .money input:focus { padding-left: 29px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .when { display: flex; gap: 22px; margin-top: 4px; }
+    .when label { display: inline-flex; align-items: center; gap: 8px; font-weight: 400; margin: 0; }
+    .when input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .cta { width: 100%; height: 44px; margin-top: 10px; border: 0; border-radius: 3px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .cta:hover { background: #006aa0; }
+    .cta:disabled { opacity: .75; cursor: progress; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; display: none; }
+    .cta:disabled .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status { margin: 12px 0 0; font-size: 14px; color: #4d6585; text-align: center; }
+    .result-box { display: none; margin-top: 18px; padding: 16px 18px 16px 48px; border-radius: 3px; position: relative; font-size: 15px; }
+    .result-box::before { content: ''; position: absolute; left: 18px; top: 18px; width: 18px; height: 18px; border-radius: 50%; }
+    .result-box.success { display: block; background: #eef7ef; border: 1px solid #9fcfa5; }
+    .result-box.success::before { background: var(--green); }
+    .result-box.notice { display: block; background: #fdf0f2; border: 1px solid #ecaab5; }
+    .result-box.notice::before { background: var(--red); }
+    .links { margin-top: 22px; font-size: 14px; display: flex; gap: 18px; }
+    .links a { color: var(--navy); }
+    aside { display: grid; gap: 20px; }
+    .info { background: var(--info); border-radius: 3px; padding: 22px 24px 22px 50px; position: relative; font-size: 15px; }
+    .info::before { content: 'i'; position: absolute; left: 20px; top: 24px; width: 17px; height: 17px; border-radius: 50%; background: var(--accent); color: #fff; font: 700 12px/17px Georgia, serif; text-align: center; }
+    .info h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+    .info p { margin: 0 0 10px; }
+    .info a { color: var(--accent); }
+    .acct { background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 22px 24px; }
+    .acct h3 { margin: 0 0 12px; font-size: 18px; font-weight: 700; }
+    .acct ul { list-style: none; margin: 0; padding: 0; }
+    .acct li { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .acct li:first-child { border-top: 0; }
+    .acct small { display: block; color: #4d6585; font-size: 13px; }
+    .acct strong { font-weight: 700; white-space: nowrap; }
+    .scam { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 18px; }
+    .scam img { width: 96px; height: 96px; object-fit: cover; border-radius: 3px; }
+    .scam h3 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
+    .scam p { margin: 0 0 6px; font-size: 14px; }
+    .scam a { color: var(--accent); font-size: 14px; }
+    footer { background: #fff; }
+    .foot-cols { max-width: 1160px; margin: 0 auto; padding: 56px 32px 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .foot-cols h4 { margin: 0 0 16px; font-size: 20px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+    .foot-cols h5 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+    .foot-cols a { display: block; margin-bottom: 8px; font-size: 15px; }
+    .ok { display: inline-flex !important; align-items: center; gap: 8px; margin-top: 10px; }
+    .ok::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+    .legal { background: var(--header); border-bottom: 6px solid var(--navy); }
+    .legal-inner { max-width: 1440px; margin: 0 auto; padding: 14px 40px; display: flex; flex-wrap: wrap; align-items: center; gap: 26px; font-size: 15px; }
+    .legal-inner a { text-decoration: none; }
+    .legal-inner span { margin-left: auto; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    @media (max-width: 900px) {
+      .header nav, .hello { display: none; }
+      .header-inner { padding: 0 16px 0 0; }
+      .subnav-inner { padding: 0 16px; gap: 22px; overflow-x: auto; white-space: nowrap; }
+      main { padding: 24px 16px 56px; }
+      .wrap { grid-template-columns: 1fr; }
+      .card { padding: 28px 20px 32px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .foot-cols { grid-template-columns: 1fr; padding: 40px 16px 24px; }
+      .legal-inner { padding: 14px 16px; gap: 14px; }
+      .legal-inner span { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topline"></div>
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="#" aria-label="BNZ Internet Banking home"><svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="71" height="35" viewBox="0 0 49 24"><title>BNZ Logo</title><path fill="currentColor" d="M5.29 13.87c.6-.68 1.78-1.13 2.79-1.09 2.23.09 3.63 1.32 3.63 3.73 0 4.63-2.75 7.23-6.84 7.23-1.6 0-3.44-.35-4.87-.89l2.38-13.4c.19-1.1.62-1.53 1.96-1.53h1.99zm-1.21 6.92c.37.1.45.11.93.11 1.69 0 2.87-1.61 2.87-3.86 0-1.03-.48-1.42-1.31-1.42-.72 0-1.62.64-1.75.91zm19.46 2.42c.12.26.43.54 1.14.53.81 0 1.73-.13 2.72-.13 1.56 0 2.11.1 4.14.13.8.01 1.23-.27 1.41-1.12.11-.49.22-1.07.34-1.89-.82.08-1.62.03-2.3-.01-.95-.06-1.95-.12-2.74-.05.36-.56.95-1.29 1.94-2.23.47-.44 1.31-1.15 2.21-2.12.9-.98 1.94-2.11 1.62-3.55-.99.07-1.7.1-3.01.1-1.62 0-3.64-.1-4.72-.1-.92 0-1.35.3-1.53 1.05-.15.63-.4 2-.4 2 .16-.05.88-.09 1.49-.09.61.01 2.26.04 2.61.09-.15.46-1.61 1.54-2.52 2.55-.57.63-1.52 1.71-2.01 2.53-1.26.67-1.98.47-1.86-.51l.52-2.92c.05-.56.21-1.17.18-1.7-.1-1.9-1.32-3.06-3.41-3.06-1.14 0-1.97.58-2.59 1.11 0 0-.16-.88-1.34-.94l-2.03-.01-1.64 9.32c-.23 1.22.2 1.4 1.29 1.39h2.07l1.25-6.99c.15-.33.89-1.05 1.8-1.05.59 0 1.1.29.98 1.05l-.64 3.76c-.16 1.21.25 2.18.66 2.55.54.56 1.3.81 2.07.84.87.05 1.83-.16 2.3-.53"></path><path fill="#fAA819" d="m42.21 0 .26 1.69c.03.16.17.28.33.27h1.78l-1.61 1.05c-.16.1-.24.29-.22.44l.26 1.69-1.26-1.04c-.12-.1-.32-.1-.47 0l-1.62 1.05.84-1.69c.08-.16.05-.35-.07-.45l-1.26-1.05h1.78c.18-.01.34-.11.42-.27zm-5.53 3.5.26 1.69c.03.16.17.28.33.27h1.78l-1.61 1.05c-.15.09-.24.27-.22.45l.26 1.69-1.27-1.05c-.12-.1-.32-.1-.47 0l-1.62 1.05.83-1.69c.08-.16.05-.35-.07-.45l-1.26-1.05h1.78c.18-.01.34-.11.42-.27zm9.82 0 .26 1.69c.03.16.17.28.33.27h1.78l-1.61 1.05a.48.48 0 0 0-.22.45l.26 1.69-1.26-1.05c-.12-.1-.32-.1-.47 0l-1.62 1.05.84-1.69c.08-.16.05-.35-.07-.45l-1.26-1.05h1.78c.18-.01.34-.11.42-.27zm-6.32 7.27.26 1.69c.03.16.17.28.33.27h1.78l-1.61 1.05a.5.5 0 0 0-.22.45l.26 1.69-1.26-1.04c-.12-.1-.32-.1-.47 0l-1.62 1.05.84-1.69c.08-.16.05-.35-.07-.44l-1.26-1.05h1.78c.18-.01.34-.11.42-.27z"></path></svg></a>
+      <nav aria-label="Banking type">
+        <a class="current" href="#">Personal Banking</a>
+        <a href="#">Business</a>
+        <a href="#">Client Fund Service</a>
+        <a href="#">WealthNet</a>
+      </nav>
+      <div class="header-right">
+        <span class="hello">Kia ora, Alex</span>
+        <a class="btn-outline" href="#">Log out</a>
+      </div>
+    </div>
+  </header>
+  <div class="subnav">
+    <div class="subnav-inner">
+      <a href="#">Accounts</a>
+      <a class="current" href="#" aria-current="page">Pay or transfer</a>
+      <a href="#">Payees</a>
+      <a href="#">Manage</a>
+      <a href="#">Apply</a>
+      <a href="#">Help</a>
+    </div>
+  </div>
+  <main>
+    <div class="crumbs"><a href="#">Accounts</a> &nbsp;›&nbsp; Pay or transfer</div>
+    <div class="wrap">
+      <section class="card" aria-labelledby="ptTitle">
+        <h1 id="ptTitle">Pay or transfer</h1>
+        <p class="lede">Move money between your BNZ accounts. Transfers between your own accounts are instant.</p>
+        <div class="seg" role="tablist" aria-label="Payment type">
+          <button type="button" class="on" role="tab" aria-selected="true">Transfer between my accounts</button>
+          <button type="button" role="tab" aria-selected="false">Pay someone</button>
+        </div>
+        <form id="transferForm" autocomplete="off">
+          <div class="field">
+            <label for="fromAccount">From</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">Everyday · 02-0108-0412345-00 · $4,218.63 available</option>
+              <option value="ACCT-1002">Online Saver · 02-0108-0412345-01 · $18,904.10 available</option>
+              <option value="ACCT-1003">Rapid Save · 02-0108-0412345-02 · $6,350.00 available</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="toAccount">To</label>
+            <select id="toAccount">
+              <option value="ACCT-1002">Online Saver · 02-0108-0412345-01</option>
+              <option value="ACCT-1001">Everyday · 02-0108-0412345-00</option>
+              <option value="ACCT-1003">Rapid Save · 02-0108-0412345-02</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="money"><span>$</span><input type="number" id="amount" min="1" step="0.01" value="250.00" required inputmode="decimal"></div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="particulars">Particulars <span style="font-weight:400">(optional)</span></label>
+              <input id="particulars" maxlength="12" value="Savings">
+            </div>
+            <div class="field">
+              <label for="reference">Reference <span style="font-weight:400">(optional)</span></label>
+              <input id="reference" maxlength="12" value="Nov">
+            </div>
+          </div>
+          <div class="field">
+            <label>When</label>
+            <div class="when">
+              <label><input type="radio" name="when" checked> Now</label>
+              <label><input type="radio" name="when"> Later</label>
+              <label><input type="radio" name="when"> Regularly</label>
+            </div>
+          </div>
+          <label class="sr" for="accountTier">Account type</label>
+          <select id="accountTier" class="sr" tabindex="-1" aria-hidden="true">
+            <option value="standard" selected>Standard</option>
+            <option value="premium">Premium</option>
+          </select>
+          <button type="submit" id="submitBtn" class="cta"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Transfer</span></button>
+          <p class="status" id="transferStatus" role="status" aria-live="polite">Fees may apply. See our <a href="#">fee guide</a>.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+        <div class="links"><a href="#">View scheduled payments</a><a href="#">Transfer limits</a></div>
+      </section>
+      <aside>
+        <div class="acct">
+          <h3>Your accounts</h3>
+          <ul>
+            <li><span>Everyday<small>02-0108-0412345-00</small></span><strong>$4,218.63</strong></li>
+            <li><span>Online Saver<small>02-0108-0412345-01</small></span><strong>$18,904.10</strong></li>
+            <li><span>Rapid Save<small>02-0108-0412345-02</small></span><strong>$6,350.00</strong></li>
+          </ul>
+        </div>
+        <div class="info">
+          <h3>Update your BNZ app to keep using two-step authentication</h3>
+          <p>To keep using two-step authentication for Internet Banking, update your app to the latest version.</p>
+          <a href="#">More about two-step authentication</a>
+        </div>
+        <div class="scam">
+          <img src="https://www.bnz.co.nz/assets/bnz/about-us/Cyber/Scammer-Screen-Minor-feature-1x.jpg?6a204439c9823668a73c7bf9c1f2f1378ccf558e" alt="Example of a scam message on a phone" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1563986768609-322da13575f3?w=200&h=200&fit=crop'">
+          <div><h3>Watch out for new scams</h3><p>BNZ will never ask you to move money to keep it safe.</p><a href="#">View the latest scams</a></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <footer>
+    <div class="foot-cols">
+      <div><h4>Help &amp; Support</h4><h5>Most popular</h5><a href="#">Identification requirements</a><a href="#">International payments to NZ</a></div>
+      <div><h4>Life Moments</h4><h5>Quick links</h5><a href="#">Invest your money</a><a href="#">Home and property</a></div>
+      <div><h4>Contact us</h4><h5>Quick links</h5><a href="#">Branch and ATM finder</a><a href="#">Important phone numbers</a><a href="#">Send us a message</a><a class="ok" href="#">All Systems Operational</a></div>
+    </div>
+    <div class="legal">
+      <div class="legal-inner">
+        <a href="#">About us</a><a href="#">Careers</a><a href="#">Terms &amp; conditions</a><a href="#">Disclosure statements</a><a href="#">Privacy</a><a href="#">Contact us</a>
+        <span>© 2026 Bank of New Zealand</span>
+      </div>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const label = document.getElementById('submitLabel');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    function accountName(select) { return select.selectedOptions[0].text.split(' · ')[0]; }
+    function keepAccountsDistinct(changed, other) {
+      if (changed.value !== other.value) return;
+      const alternative = Array.from(other.options).find((option) => option.value !== changed.value);
+      if (alternative) other.value = alternative.value;
+    }
+    fromAccount.addEventListener('change', () => keepAccountsDistinct(fromAccount, toAccount));
+    toAccount.addEventListener('change', () => keepAccountsDistinct(toAccount, fromAccount));
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose two different accounts to make a transfer.';
+        return;
+      }
+      button.disabled = true;
+      label.textContent = 'Processing…';
+      status.textContent = 'Transfer in progress. Please don’t refresh the page.';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error('Transfer could not be completed.');
+        const amount = Number((data.receipt && data.receipt.amount) || document.getElementById('amount').value).toFixed(2);
+        result.className = 'result-box success';
+        result.textContent = 'Transfer complete. $' + amount + ' moved from ' + accountName(fromAccount) + ' to ' + accountName(toAccount) + '.';
+        status.textContent = 'Transfer completed.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'Sorry, we couldn’t complete your transfer. Please try again or call us on 0800 275 269.';
+        status.textContent = 'Transfer unavailable.';
+      } finally {
+        button.disabled = false;
+        label.textContent = 'Transfer';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
