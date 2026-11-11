@@ -178,9 +178,10 @@ function detectThemes(text) {
   return THEMES.filter((th) => THEME_KEYS[th.id].test(t)).map((th) => th.id);
 }
 
-function questionFocus(eco, themes, hits) {
+function questionFocus(eco, themes, hits, answer) {
   const cells = coverage();
-  const cited = new Set(hits.map((h) => h.doc && h.doc.id));
+  const refs = new Set([...String(answer || '').matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1])));
+  const cited = new Set(hits.filter((h, i) => refs.has(i + 1)).map((h) => h.doc && h.doc.id));
   const rows = eco ? [eco] : [];
   const focus = [];
   for (const e of rows) {
@@ -266,7 +267,7 @@ async function ask(question, { lang = 'en' } = {}) {
     if (answer) mode = 'ai';
   }
   if (!answer) answer = extractiveAnswer(q, hits);
-  return { question: q, answer, mode, aiOffline: hits.length > 0 && mode === 'extractive' && Boolean(llmProvider()), sources: hits, ecosystem: eco ? eco.name : null, focus: questionFocus(eco, themes, hits), gaps: researchGaps(eco) };
+  return { question: q, answer, mode, aiOffline: hits.length > 0 && mode === 'extractive' && Boolean(llmProvider()), sources: hits, ecosystem: eco ? eco.name : null, focus: questionFocus(eco, themes, hits, answer), gaps: researchGaps(eco) };
 }
 
 function libraryIndex() {
