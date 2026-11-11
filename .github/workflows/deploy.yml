@@ -137,6 +137,27 @@ jobs:
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
             'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
+      # Optional: PIF Ecosystem Outlook PoC (/pif). Actions secrets with the same
+      # names map to the host .env: PIF_ACCESS_CODE (the gate stays locked
+      # without it) and PIF_OPENAI_API_KEY / PIF_FIREWORKS_API_KEY (live AI
+      # answers). Appends to the file staged above; unset secrets are skipped.
+      - name: Stage PIF PoC config for host .env
+        env:
+          PIF_ACCESS_CODE: ${{ secrets.PIF_ACCESS_CODE }}
+          PIF_OPENAI_API_KEY: ${{ secrets.PIF_OPENAI_API_KEY }}
+          PIF_FIREWORKS_API_KEY: ${{ secrets.PIF_FIREWORKS_API_KEY }}
+        run: |
+          sync=""
+          for key in PIF_ACCESS_CODE PIF_OPENAI_API_KEY PIF_FIREWORKS_API_KEY; do
+            if [ -n "${!key}" ]; then sync+="$key=${!key}"$'\n'; fi
+          done
+          if [ -z "$sync" ]; then
+            echo "No PIF secrets set; PIF .env keys left unchanged"; exit 0
+          fi
+          printf '%s' "$sync" | \
+            ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+
       # Everything below happens on the host through scripts/deploy-ec2.sh
       # (taken from the release being deployed): lock, backup, mirror the tree
       # while preserving verticals + host-only files, build, health, smoke every
