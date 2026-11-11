@@ -940,6 +940,21 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
   },
+  'b9b900c4': {
+    slug: 'b9b900c4',
+    company: 'Otter.ai',
+    vertical: 'voice',
+    page: { file: 'b9b900c4.html', title: 'Otter Meeting Agent - AI Notetaker, Transcription, Insights' },
+    alertCard: {
+      title: 'Otter transcript finalize p95 climbing \u2014 POST /api/oncall/voice/transcribe',
+      release: 'otter-transcribe@3.12.0',
+      team: 'otter-transcription-oncall',
+      baseline: '~240ms (7-day p95, before otter-transcribe@3.12.0)',
+      symptom: 'After otter-transcribe@3.12.0, finalizing a meeting transcript takes several seconds and gets slower with every utterance saved in the session. Process RSS trends up alongside it. Error rate is normal.',
+      impact: 'Every saved Otter transcript waits seconds for its finalized text, and the wait keeps growing the longer a meeting runs.',
+    },
+    disclaimer: 'NOT ACTUALLY AN OTTER.AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Otter.ai product.',
+  },
   '9a51c8ce': {
     slug: '9a51c8ce',
     company: 'Happen Bank',
