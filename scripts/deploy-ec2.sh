@@ -103,17 +103,21 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 # the lock and after the backup above, so rollback restores the previous .env.
 # The staged file holds one `KEY=value` line per allowlisted key; each value
 # must match its key's format (Teams webhooks: single-line https URL; FCTO
-# Slack app: signing secret, xoxb- bot token, channel ID). Invalid or duplicate
+# Slack app: signing secret, xoxb- bot token, channel ID; PIF PoC: 4–12 char
+# access code, LLM API keys). Invalid or duplicate
 # lines are logged and skipped; a file with more lines than allowlisted keys is
 # ignored entirely (deploy continues with the current .env).
 ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI
   ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE LOWES_TEAMS_WEBHOOK_URL
-  FCTO_SLACK_SIGNING_SECRET FCTO_SLACK_BOT_TOKEN FCTO_CHANNEL_ID)
+  FCTO_SLACK_SIGNING_SECRET FCTO_SLACK_BOT_TOKEN FCTO_CHANNEL_ID
+  PIF_ACCESS_CODE PIF_OPENAI_API_KEY PIF_FIREWORKS_API_KEY)
 env_sync_value_ok() {
   case "$1" in
     FCTO_SLACK_SIGNING_SECRET) [[ "$2" =~ ^[A-Za-z0-9]{16,128}$ ]] ;;
     FCTO_SLACK_BOT_TOKEN) [[ "$2" =~ ^xoxb-[A-Za-z0-9-]{10,250}$ ]] ;;
     FCTO_CHANNEL_ID) [[ "$2" =~ ^[CG][A-Z0-9]{6,20}$ ]] ;;
+    PIF_ACCESS_CODE) [[ "$2" =~ ^[A-Za-z0-9]{4,12}$ ]] ;;
+    PIF_OPENAI_API_KEY|PIF_FIREWORKS_API_KEY) [[ "$2" =~ ^[A-Za-z0-9_-]{20,250}$ ]] ;;
     *) [[ "$2" =~ ^https://[^[:space:]\"\'\$]+$ ]] ;;
   esac
 }
