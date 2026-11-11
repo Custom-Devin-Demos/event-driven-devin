@@ -940,6 +940,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
   },
+  'b9b900c4': {
+    slug: 'b9b900c4',
+    company: 'Otter.ai',
+    vertical: 'voice',
+    page: { file: 'b9b900c4.html', title: 'Otter Meeting Agent - AI Notetaker, Transcription, Insights' },
+    disclaimer: 'NOT ACTUALLY AN OTTER.AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Otter.ai product.',
+  },
   '9a51c8ce': {
     slug: '9a51c8ce',
     company: 'Happen Bank',

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Otter Meeting Agent - AI Notetaker, Transcription, Insights</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #144FFF;
+      --ink: #000000;
+      --ink-2: #222222;
+      --muted: #5f6368;
+      --banner: #22282F;
+      --plans: #1D25E2;
+      --plan-card: #2C32A3;
+      --grey-card: #F7F7F7;
+      --line: #DADCE0;
+      --font: Circular, 'Figtree', Arial, sans-serif;
+      --cdn: 'https://cdn.prod.website-files.com/618e9316785b3582a5178502';
+    }
+    html { font-size: 1.083vw; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #fff; color: var(--ink);
+      font-family: var(--font); font-size: 1.5rem; line-height: 1.45; letter-spacing: -0.03rem;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .container { padding: 0 5%; }
+
+    /* Header */
+    .nav-wrapper { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.94); backdrop-filter: blur(8px); }
+    .global-banner { display: flex; justify-content: center; align-items: center; gap: 0.25rem 0.5rem; background: var(--banner); color: #fff; padding: 0.75rem 5%; font-size: 0.875rem; line-height: 1.2; font-weight: 500; letter-spacing: 0; }
+    .global-banner u { text-underline-offset: 3px; font-weight: 700; text-decoration-thickness: 1px; }
+    .nav { display: flex; align-items: center; height: 5.2rem; padding: 0 2.25rem; }
+    .brand { display: flex; align-items: center; margin-right: 2.3rem; }
+    .brand svg { width: 2.6rem; height: 1rem; }
+    .nav-links { display: flex; align-items: center; gap: 1rem; }
+    .nav-link { display: flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.5rem; border-radius: 0.625rem; font-size: 1rem; line-height: 1.45; font-weight: 500; color: var(--ink-2); letter-spacing: 0; }
+    .nav-link .caret { width: 0.5rem; height: 0.5rem; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+    .nav-right .nav-link { color: #000; }
+    .nav-sep { width: 1px; height: 2rem; background: var(--line); margin: 0 1rem 0 1.5rem; }
+    .btn-gradient { display: inline-flex; align-items: center; justify-content: center; background: var(--blue); color: #fff; font-weight: 700; font-size: 1rem; line-height: 1.43; letter-spacing: 0; border-radius: 1rem; padding: 0.875rem 1.25rem; border: 0; cursor: pointer; font-family: var(--font); }
+    .nav .btn-gradient { padding: 0.8rem 1.1rem; }
+    .menu-btn { display: none; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.625rem; padding: 0.875rem 1.25rem; border-radius: 1rem; font-family: var(--font); font-size: 1rem; line-height: 1.43; font-weight: 700; letter-spacing: 0; text-align: center; cursor: pointer; }
+    .btn-secondary { border: 1.5px solid var(--blue); color: var(--blue); background: transparent; }
+    .btn-alt { border: 1.5px solid #fff; color: #fff; background: transparent; }
+    .btn-white { background: #fff; color: var(--ink-2); border: 1.5px solid #fff; }
+    .btn-black { background: #000; color: #fff; border: 0; }
+
+    /* Hero */
+    .hero { padding: 0 5%; }
+    .hero-grid { display: grid; grid-template-columns: 35.5rem 43.1rem; justify-content: space-between; align-items: start; padding: 0.15rem 0 0; }
+    .hero-left { padding-top: 2.4rem; }
+    h1.h1 { font-size: 3.75rem; line-height: 1.1; font-weight: 300; letter-spacing: -0.075rem; margin: 0 0 1.1rem; max-width: 31rem; }
+    .text-xl { font-size: 1.3125rem; line-height: 1.33; letter-spacing: -0.026rem; margin: 0 0 2rem; }
+    .compose { margin: 0 0 2.75rem; max-width: 35.5rem; }
+    .compose-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+    .compose-head label { font-size: 0.875rem; font-weight: 700; letter-spacing: 0; }
+    .mic-status { font-size: 0.8125rem; color: var(--muted); letter-spacing: 0; }
+    .compose textarea { width: 100%; min-height: 6.4rem; resize: vertical; border: 1.5px solid var(--line); border-radius: 1rem; padding: 0.875rem 1rem; font-family: var(--font); font-size: 1rem; line-height: 1.5; letter-spacing: 0; color: #000; background: #fff; outline: none; }
+    .compose textarea:focus, .compose select:focus { border-color: var(--blue); }
+    .compose-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 0.75rem 0 1.25rem; }
+    .compose-row label { display: block; font-size: 0.8125rem; font-weight: 500; color: var(--muted); margin-bottom: 0.3rem; letter-spacing: 0; }
+    .compose select { width: 100%; height: 3.2rem; border: 1.5px solid var(--line); border-radius: 1rem; padding: 0 2.25rem 0 1rem; font-family: var(--font); font-size: 1rem; letter-spacing: 0; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23222' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 1rem center; appearance: none; -webkit-appearance: none; color: #000; }
+    .compose-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .compose-actions .btn, .compose-actions .btn-gradient { min-height: 3.375rem; }
+    .btn-mic svg { width: 1.1rem; height: 1.1rem; fill: currentColor; }
+    .btn-mic.listening { background: rgba(20,79,255,0.08); }
+    .btn-gradient:disabled { opacity: 0.6; cursor: progress; }
+    .result-box { display: none; margin-top: 1rem; border-radius: 1rem; padding: 1rem 1.15rem; font-size: 0.9375rem; line-height: 1.45; letter-spacing: 0; }
+    .result-box.success { display: block; background: #EEF3FF; border: 1.5px solid #C9D7FF; }
+    .result-box.error { display: block; background: #FFF1F0; border: 1.5px solid #FFC9C4; color: #8A1C12; }
+    .r-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .r-meta { color: var(--muted); font-size: 0.8125rem; margin-top: 0.4rem; }
+    .quote-avatar { width: 3.3rem; height: 3.3rem; border-radius: 50%; object-fit: cover; margin-bottom: 1.25rem; background: #eee; }
+    .text-reg { font-size: 1rem; line-height: 1.5; letter-spacing: 0; margin: 0; }
+    .quote-by { color: #6b6b6b; margin-top: 0.5rem; }
+    .dots { display: flex; gap: 0.25rem; margin-top: 1rem; }
+    .dots i { width: 0.5rem; height: 0.2rem; border-radius: 2px; background: #d5d9e4; }
+    .dots i.on { width: 0.85rem; background: var(--blue); }
+    .hero-panel { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 1.75rem; overflow: hidden; background: radial-gradient(60% 50% at 55% 55%, #e9defc 0%, #f4effd 40%, #faf9fd 70%, #f6f6f8 100%); }
+    .hero-panel video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .mute { position: absolute; top: 1.1rem; right: 1.1rem; width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-items: center; }
+    .mute svg { width: 1.1rem; height: 1.1rem; }
+    .logos { display: flex; justify-content: space-between; align-items: center; padding: 3.5rem 0 0; }
+    .logos img { width: 7.5rem; height: 2.65rem; object-fit: contain; }
+
+    /* Section headings */
+    .h1-blue { font-size: 3.5rem; line-height: 1.1; font-weight: 300; letter-spacing: -0.07rem; color: var(--blue); margin: 0; }
+    .h2-blue { font-size: 3rem; line-height: 1.2; font-weight: 300; letter-spacing: -0.03rem; color: var(--blue); margin: 0; }
+    .center { text-align: center; }
+
+    /* Assistant */
+    .assistant { padding: 7.5rem 5% 4.3rem; }
+    .assistant-head { max-width: 40.6rem; margin: 0 auto; text-align: center; }
+    .assistant-head p { margin: 1rem 0 3.4rem; }
+    .cards { display: grid; grid-template-columns: repeat(2, 32.7rem); gap: 1.25rem 1.2rem; justify-content: center; margin-top: 2.6rem; }
+    .card { position: relative; border-radius: 1.75rem; overflow: hidden; background-size: cover; background-position: center; display: flex; flex-direction: column; }
+    .card-copy { padding: 2rem 2rem 1.25rem; }
+    .card h3 { font-size: 1.625rem; line-height: 1.25; font-weight: 400; letter-spacing: -0.02rem; margin: 0 0 0.75rem; max-width: 26rem; }
+    .card .text-reg { max-width: 27.75rem; }
+    .card.dark { color: #fff; }
+    .card-media { margin-top: 0; }
+    .card-media img { width: 100%; height: auto; }
+    .card.r1 { height: 35.4rem; } .card.r2 { height: 52.6rem; } .card.r3 { height: 25.2rem; }
+    .assistant-cta { display: flex; justify-content: center; margin-top: 3.4rem; }
+
+    /* Slider */
+    .slider { padding: 6.2rem 5% 6rem; text-align: center; }
+    .tabs { display: inline-flex; gap: 0.5rem; margin: 1.75rem 0 3.5rem; }
+    .tab { font-size: 0.875rem; line-height: 1.2; letter-spacing: 0; padding: 0.3rem 0.6rem; border-radius: 0.6rem; background: #f2f2f2; color: #000; }
+    .tab.on { background: #E9EDFF; color: var(--blue); }
+    .orb { width: 14rem; height: 14rem; border-radius: 50%; margin: 0 auto 4rem; background: radial-gradient(circle at 35% 30%, #a98ee8 0%, #3f7bdd 35%, #1bb5c9 60%, #2a56c6 85%); box-shadow: 0 0 5rem 1rem rgba(57,160,230,0.25); overflow: hidden; }
+    .orb video, .orb img { width: 100%; height: 100%; object-fit: cover; }
+    .slide-title { font-size: 2rem; font-weight: 300; color: var(--blue); margin: 0 0 1rem; letter-spacing: -0.02rem; }
+    .slide-row { display: grid; grid-template-columns: 2.25rem 1fr 2.25rem; align-items: center; max-width: 34.5rem; margin: 0 auto; gap: 2rem; }
+    .arrow { width: 2.25rem; height: 2.25rem; border-radius: 0.6rem; background: #f6f6f6; display: grid; place-items: center; color: var(--blue); }
+    .slide-row p { margin: 0; }
+    .slider .btn { margin-top: 1.25rem; }
+
+    /* Testimonials */
+    .testimonials { padding: 5.2rem 5% 5.2rem; }
+    .testimonials .sub { font-size: 0.875rem; margin: 1.25rem 0 2.75rem; letter-spacing: 0; }
+    .t-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem 1.2rem; }
+    .t-col { display: flex; flex-direction: column; gap: 1.1rem; }
+    .t-card { border-radius: 1.75rem; overflow: hidden; position: relative; background-size: cover; background-position: center; }
+    .t-tall { height: 36.1rem; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem 2.25rem 2rem; background-color: #050505; }
+    .t-tall .avatar { width: 5.65rem; height: 5.65rem; border-radius: 50%; object-fit: cover; }
+    .t-tall .quote { font-size: 1rem; line-height: 1.5; letter-spacing: 0; margin: 0 0 1rem; }
+    .t-tall .by { font-size: 0.8125rem; color: rgba(255,255,255,0.6); letter-spacing: 0; }
+    .t-logos { height: 16.9rem; background: var(--grey-card); display: flex; align-items: center; justify-content: space-around; }
+    .t-logos img { width: 8.5rem; height: 3rem; object-fit: contain; filter: brightness(0); }
+    .t-logos .wordmark { font-family: Georgia, 'Times New Roman', serif; font-size: 1.45rem; letter-spacing: -0.04rem; }
+    .t-wide { height: 18.4rem; color: #fff; padding: 2rem 2.25rem; display: flex; flex-direction: column; justify-content: space-between; background-color: #8b8fa6; }
+    .t-wide .big { font-family: Georgia, 'Times New Roman', serif; font-size: 2.2rem; line-height: 1; }
+    .t-wide .stat { font-size: 4rem; line-height: 1; font-weight: 300; }
+    .t-wide .lbl { font-size: 1rem; letter-spacing: 0; margin-top: 0.5rem; }
+    .t-wide p { font-size: 0.9375rem; line-height: 1.5; letter-spacing: 0; margin: 0; max-width: 32rem; }
+    .t-wide .lnk { font-size: 0.875rem; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; margin-top: 0.6rem; display: inline-block; letter-spacing: 0; }
+
+    /* Integrations */
+    .integrations { padding: 5.2rem 0 3.6rem; text-align: center; overflow: hidden; }
+    .integrations p.lead { max-width: 35rem; margin: 1.25rem auto 3.6rem; font-size: 1rem; line-height: 1.5; letter-spacing: 0; }
+    .int-row { display: flex; gap: 0.75rem; white-space: nowrap; margin-bottom: 0.75rem; }
+    .int-row.r1 { transform: translateX(-22rem); }
+    .int-row.r2 { transform: translateX(-12.4rem); }
+    .int-card { flex: 0 0 37.75rem; display: grid; grid-template-columns: 2.5rem 1fr; gap: 1.75rem; align-items: center; text-align: left; white-space: normal; background: var(--grey-card); border-radius: 1.25rem; padding: 1.25rem 1.5rem 1.25rem 1.5rem; height: 7.95rem; }
+    .int-card img { width: 2.5rem; height: 2.5rem; object-fit: contain; }
+    .int-card h4 { font-size: 1.625rem; font-weight: 400; margin: 0 0 0.35rem; line-height: 1.15; letter-spacing: -0.02rem; }
+    .int-card span { font-size: 0.875rem; line-height: 1.45; letter-spacing: 0; display: block; }
+    .integrations .btn-black { margin-top: 3.4rem; }
+
+    /* Plans */
+    .plans { background: var(--plans) radial-gradient(60% 40% at 50% 0%, rgba(120,140,255,0.35), transparent 70%); color: #fff; padding: 4.4rem 5% 6.8rem; }
+    .plans h2 { font-size: 3rem; line-height: 1.2; font-weight: 300; text-align: center; margin: 0 auto 3.6rem; max-width: 40rem; letter-spacing: -0.03rem; }
+    .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .plan { background: rgba(10, 14, 120, 0.55); border-radius: 1.25rem; padding: 1.1rem 1.75rem 1.75rem; }
+    .pill { display: inline-block; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0; padding: 0.3rem 0.55rem; border-radius: 1rem; background: rgba(255,255,255,0.16); }
+    .plan h3 { font-size: 2rem; font-weight: 300; margin: 2rem 0 1.4rem; line-height: 1.2; letter-spacing: -0.02rem; }
+    .plan .sub { font-size: 1.3125rem; font-weight: 300; color: rgba(255,255,255,0.6); margin: 0 0 1.8rem; }
+    .plan p, .plan li { font-size: 0.9375rem; line-height: 1.6; letter-spacing: 0; margin: 0; }
+    .plan h4 { font-size: 1rem; font-weight: 700; margin: 1.7rem 0 1rem; letter-spacing: 0; }
+    .plan ul { list-style: none; padding: 0; margin: 0 0 3.2rem; min-height: 5rem; }
+    .plan-ent { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
+    .plan-ent h3 { margin: 1.5rem 0 0.75rem; }
+
+    /* CTA */
+    .cta { background: var(--plans); color: #fff; text-align: center; padding: 1.5rem 5% 4rem; position: relative; overflow: hidden; }
+    .cta-blobs { width: 57rem; margin: 0 auto 3.6rem; height: 13.4rem; object-fit: contain; }
+    .cta h2 { font-size: 3rem; font-weight: 300; line-height: 1.2; margin: 0 auto 2.3rem; max-width: 41rem; letter-spacing: -0.03rem; }
+    .cta-actions { display: flex; gap: 0.6rem; justify-content: center; }
+    .related { background: var(--plans); color: #fff; padding: 4.3rem 5% 4.5rem; }
+    .related h2 { font-size: 2rem; font-weight: 300; text-align: center; margin: 0 0 3.5rem; letter-spacing: -0.02rem; }
+    .related ul { list-style: none; padding: 0; margin: 0 auto; max-width: 43.6rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 2.25rem; }
+    .related li { font-size: 0.875rem; font-weight: 700; line-height: 1.4; letter-spacing: 0; }
+
+    /* Footer */
+    .footer { background: #000; color: #fff; padding: 5.1rem 5% 0; position: relative; overflow: hidden; height: 49rem; }
+    .footer-top { display: grid; grid-template-columns: 27.1rem repeat(4, 1fr); }
+    .footer-logo svg { width: 3.5rem; height: 1.35rem; }
+    .f-col h5 { font-size: 1rem; font-weight: 700; margin: 0 0 1.8rem; letter-spacing: 0; }
+    .f-col a { display: block; font-size: 0.9375rem; color: #a3a3a3; margin-bottom: 1.15rem; letter-spacing: 0; }
+    .f-col img.qr { width: 5.5rem; height: 5.5rem; background: #fff; border-radius: 0.3rem; margin: -0.3rem 0 1.15rem; }
+    .footer-legal { position: absolute; left: calc(5% + 27.1rem); bottom: 7.4rem; display: flex; gap: 1.6rem; font-size: 0.9375rem; color: #a3a3a3; letter-spacing: 0; z-index: 2; }
+    .footer-word { position: absolute; left: -1rem; right: -1rem; bottom: -3.5rem; font-size: 27rem; line-height: 0.75; font-weight: 300; color: #1a1a1a; letter-spacing: -0.4rem; white-space: nowrap; user-select: none; }
+
+    @media (max-width: 991px) {
+      html { font-size: 16px; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+      body { font-size: 20px; }
+      .container, .hero, .assistant, .slider, .testimonials, .plans, .cta, .related { padding-left: 5%; padding-right: 5%; }
+      .global-banner { padding: 12px 16px; flex-wrap: wrap; text-align: center; font-size: 14px; line-height: 1.4; min-height: 87px; }
+      .nav { height: 64px; padding: 0 19px; justify-content: space-between; }
+      .nav-links, .nav-right .nav-link.hide-m, .nav-sep, .nav .btn-gradient { display: none; }
+      .nav-right { margin-left: auto; gap: 8px; }
+      .nav-right .nav-link { font-size: 16px; min-height: 44px; padding: 0 10px; }
+      .brand svg { width: 42px; height: 16px; }
+      .menu-btn { display: flex; align-items: center; gap: 8px; height: 44px; background: none; border: 0; padding: 0 0 0 6px; font-family: var(--font); font-size: 16px; font-weight: 500; color: #000; }
+      .menu-btn svg { width: 20px; height: 20px; }
+      .hero-left { padding-top: 28px; }
+      h1.h1 { font-size: 42px; letter-spacing: -0.84px; margin-bottom: 16px; }
+      .text-xl { font-size: 20px; line-height: 28px; margin-bottom: 28px; }
+      .compose { margin-bottom: 32px; }
+      .compose-row { grid-template-columns: 1fr; }
+      .compose select { height: 48px; font-size: 16px; }
+      .compose textarea { font-size: 16px; }
+      .compose-actions .btn, .compose-actions .btn-gradient { min-height: 52px; font-size: 14px; padding: 14px 16px; flex: 1 1 auto; }
+      .text-reg { font-size: 16px; line-height: 24px; }
+      .quote-avatar { width: 51px; height: 51px; }
+      .hero-panel { margin-top: 36px; border-radius: 24px; }
+      .logos { flex-wrap: wrap; justify-content: center; gap: 18px 28px; padding-top: 48px; }
+      .logos img { width: 96px; height: 34px; }
+      .h1-blue { font-size: 36px; letter-spacing: -0.72px; }
+      .h2-blue { font-size: 32px; }
+      .assistant { padding-top: 56px; }
+      .assistant-head p { margin: 16px 0 40px; }
+      .btn { font-size: 16px; padding: 14px 16px; min-height: 52px; }
+      .cards { grid-template-columns: 1fr; gap: 16px; }
+      .card h3 { font-size: 24px; }
+      .card-copy { padding: 28px 28px 16px; }
+      .card.r1, .card.r2, .card.r3 { height: auto; }
+      .slider { padding: 56px 5% 64px; }
+      .tabs { margin: 24px 0 40px; }
+      .tab { font-size: 14px; padding: 6px 10px; }
+      .orb { width: 220px; height: 220px; margin-bottom: 48px; }
+      .slide-title { font-size: 28px; }
+      .slide-row { grid-template-columns: 1fr; gap: 12px; }
+      .slide-row .arrow { display: none; }
+      .testimonials { padding-top: 64px; }
+      .t-grid { grid-template-columns: 1fr; }
+      .t-tall { height: 480px; padding: 24px 28px 28px; }
+      .t-logos { height: 200px; }
+      .t-wide { height: auto; min-height: 260px; padding: 28px; }
+      .int-card { flex: 0 0 165px; height: auto; min-height: 206px; grid-template-columns: 1fr; align-content: start; gap: 18px; padding: 20px 18px; }
+      .int-card img { width: 24px; height: 24px; }
+      .int-card h4 { font-size: 20px; }
+      .int-card span { font-size: 13px; }
+      .int-row.r1 { transform: translateX(-80px); }
+      .int-row.r2 { transform: translateX(-140px); }
+      .integrations .btn-black { min-height: 52px; }
+      .plans h2, .cta h2 { font-size: 32px; }
+      .plan-grid { grid-template-columns: 1fr; }
+      .plan h3 { font-size: 26px; }
+      .plan-ent { flex-direction: column; align-items: flex-start; gap: 24px; }
+      .cta-blobs { width: 100%; height: auto; margin-bottom: 40px; }
+      .cta-actions { flex-wrap: wrap; }
+      .related ul { grid-template-columns: 1fr; }
+      .footer { height: auto; padding: 56px 5% 120px; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 40px 24px; }
+      .footer-logo { grid-column: 1 / -1; }
+      .footer-legal { position: static; flex-direction: column; gap: 10px; margin-top: 20px; font-size: 14px; }
+      .footer-word { font-size: 120px; letter-spacing: -3px; bottom: -14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav-wrapper">
+    <a href="#" class="global-banner">Work Mode and Live Assist are here. Get more from every meeting. <u>Learn more</u></a>
+    <nav class="nav">
+      <a href="#" class="brand" aria-label="Otter home">
+        <svg viewBox="0 0 42 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="#144FFF" stroke-width="3.4"/><rect x="17.4" y="1.2" width="3.4" height="13.6" rx="1.7" fill="#144FFF"/><rect x="24" y="1.2" width="3.4" height="13.6" rx="1.7" fill="#144FFF"/><rect x="30.6" y="4.4" width="3.4" height="7.2" rx="1.7" fill="#144FFF"/><rect x="37.2" y="5.6" width="3.4" height="4.8" rx="1.7" fill="#144FFF"/></svg>
+      </a>
+      <div class="nav-links">
+        <a href="#" class="nav-link">Use Cases <svg class="caret" viewBox="0 0 8 8"><path d="M0 2.5l4 3.5 4-3.5z" fill="#222"/></svg></a>
+        <a href="#" class="nav-link">Resources <svg class="caret" viewBox="0 0 8 8"><path d="M0 2.5l4 3.5 4-3.5z" fill="#222"/></svg></a>
+        <a href="#" class="nav-link">Download <svg class="caret" viewBox="0 0 8 8"><path d="M0 2.5l4 3.5 4-3.5z" fill="#222"/></svg></a>
+        <a href="#" class="nav-link">Enterprise</a>
+        <a href="#" class="nav-link">Pricing</a>
+      </div>
+      <div class="nav-right">
+        <a href="#" class="nav-link hide-m">Schedule demo</a>
+        <a href="#" class="nav-link">Log in</a>
+        <span class="nav-sep"></span>
+        <a href="#" class="btn-gradient">Start for free</a>
+      </div>
+      <button type="button" class="menu-btn" aria-label="Menu">Menu <svg viewBox="0 0 22 22"><path d="M2 6h18M2 11h18M2 16h18" stroke="#000" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-left">
+        <h1 class="h1">Your AI notetaker is now also your Conversational Knowledge Engine</h1>
+        <p class="text-xl">Otter transcribes every meeting, turning it into searchable knowledge that powers your workflow.</p>
+
+        <form id="transcribeForm" class="compose">
+          <div class="compose-head">
+            <label for="utterance">Live transcript</label>
+            <span class="mic-status" id="micStatus">Click Record, or type what was said</span>
+          </div>
+          <textarea id="utterance" placeholder="okay quick recap comma pricing review is moved to thursday period amanda owns the follow up email period"></textarea>
+          <div class="compose-row">
+            <div>
+              <label for="workspace">Workspace</label>
+              <select id="workspace">
+                <option value="Brightmail">Sales team</option>
+                <option value="Juniper Labs">Product team</option>
+                <option value="Crestline Media">Media team</option>
+              </select>
+            </div>
+            <div>
+              <label for="dictionary">Custom vocabulary</label>
+              <select id="dictionary">
+                <option value="general">General</option>
+                <option value="engineering">Engineering terms</option>
+                <option value="gtm">Sales terms</option>
+                <option value="support">Support terms</option>
+              </select>
+            </div>
+          </div>
+          <div class="compose-actions">
+            <button type="submit" class="btn-gradient" id="submitBtn">Save transcript</button>
+            <button type="button" class="btn btn-secondary btn-mic" id="micBtn">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2z"/></svg>
+              <span id="micLabel">Record</span>
+            </button>
+          </div>
+          <div id="result" class="result-box"></div>
+        </form>
+
+        <img class="quote-avatar" src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d9a03c14cfc46c38e67258_brown.avif" alt="" onerror="this.style.visibility='hidden'">
+        <p class="text-reg">“Otter is a must-have. Just being conservative - our team is getting 33% time back.”</p>
+        <p class="text-reg quote-by">— Laura Brown, Vice President of Sales at Aiden Technologies</p>
+        <div class="dots"><i></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div class="hero-panel">
+        <video autoplay muted loop playsinline src="https://public.otter.ai/video/otter-landing-video-september-2025.mp4" onerror="this.remove()"></video>
+        <span class="mute"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3l2.5-2.5-1-1L15.5 11 13 8.5l-1 1 2.5 2.5-2.5 2.5 1 1 2.5-2.5 2.5 2.5 1-1z" fill="#222"/></svg></span>
+      </div>
+    </div>
+    <div class="logos">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca82ab84159b65f4eaabc_b1c029dc3f18e239d38dc64900191ea0_logo-salesforce.svg" alt="Salesforce" onerror="this.style.visibility='hidden'">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca82aabe0cec635bddb9c_d1546c95f9753392a2cdf36a3acf39c0_logo-harvard.svg" alt="Harvard University" onerror="this.style.visibility='hidden'">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d99de2bf18741e52b4069c_ee69e6e1a688affaccba3aa02ede0b82_nbc_universal.svg" alt="NBCUniversal" onerror="this.style.visibility='hidden'">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d99de2b0e7e01d72ef9448_e8f9b2494e9e5d6f76e7321093307c26_amazon.svg" alt="Amazon" onerror="this.style.visibility='hidden'">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d99de19b4c59d9f6303cc3_ede70156a4e2accb6e682882db89a474_ibm.svg" alt="IBM" onerror="this.style.visibility='hidden'">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca82a034f0ef337c54ab6_3d8dad0cb6a1ab1f23a584b5c42b5b73_logo-grant.svg" alt="Grant Thornton" onerror="this.style.visibility='hidden'">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d99de28805b88e980eb99b_98c0461a636c3f0a646f8f93beea9a2e_walgreens.svg" alt="Walgreens" onerror="this.style.visibility='hidden'">
+      <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca82938168d0b153afd03_de62202c1b906b7d5ce2a18a933f8747_logo-mastercard.svg" alt="Mastercard" onerror="this.style.visibility='hidden'">
+    </div>
+  </section>
+
+  <section class="assistant">
+    <div class="assistant-head">
+      <h2 class="h1-blue">Before, during, and after every meeting.</h2>
+      <p class="text-reg">Otter briefs you before the call, coaches you live based on what's been said, and automatically follows up in the tools you already use.</p>
+      <a href="#" class="btn btn-secondary">Learn more</a>
+    </div>
+    <div class="cards">
+      <div class="card r1" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/6acf7b5acfa605aac9edf03e_963bf39e29839ab13caee8f812a68584_capture-conversation-bg.png');background-color:#eeeef3">
+        <div class="card-copy"><h3>Capture conversations from anywhere</h3><p class="text-reg">Record directly from your Mac or Windows desktop, mobile device, or your browser.</p></div>
+        <div class="card-media"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/6acf6d38b06811780ea497e8_0f775b41f735aed29c359c23439fa080_capture-conversation-asset.png" alt="" onerror="this.remove()"></div>
+      </div>
+      <div class="card r1 dark" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dae9fbc6d0d551cf5d40c4_gist-background%402x.avif');background-color:#7b4f86">
+        <div class="card-copy"><h3>Pre-call briefings</h3><p class="text-reg">Have briefing documents delivered before your meeting with all the prior discussions, action items, and updates you need.</p></div>
+        <div class="card-media"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/6acf6d38648aba2bfbae10e6_pre-call-briefings-asset.avif" alt="" onerror="this.remove()"></div>
+      </div>
+      <div class="card r2" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d064ee96ac1d2d399beb1b_questions-background-no-min%402x.jpg');background-color:#ecebf3">
+        <div class="card-copy"><h3>Ask Otter anything</h3><p class="text-reg">Otter AI Chat searches across your meetings and connected apps to instantly answer questions and help you create follow-ups, reports, and content.</p></div>
+        <div class="card-media"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67db8d0b77f6c3eb435214cc_397f63dc4ab563ff369504b311566798_questions-when%402x.avif" alt="" onerror="this.remove()"></div>
+      </div>
+      <div class="card r2" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/69efd73263e84fa64b71d26f_background-desktop-app.png');background-color:#ebe6f5">
+        <div class="card-copy"><h3>Live-Assist coaching</h3><p class="text-reg">Get real-time, personalized coaching and prompts during calls based on your entire conversation history, company playbooks, and what’s being discussed.</p></div>
+        <div class="card-media"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/6acf7a4d000d099ee32fd109_9cf37f5f122b591a905b889ccbe173db_live-assist-coaching-asset.png" alt="" onerror="this.remove()"></div>
+      </div>
+      <div class="card r3" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67db2d8774449023a878b3cd_card-action-background%402x.avif');background-color:#efeef5">
+        <div class="card-copy"><h3>Automate the action items</h3><p class="text-reg">Clear next steps are automatically captured and assigned from every meeting.</p></div>
+        <div class="card-media"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/6acf6d389a9a4e749163d80a_automate-the-action-items-asset.avif" alt="" onerror="this.remove()"></div>
+      </div>
+      <div class="card r3 dark" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67db825d189a49c1033d87cd_card-insights-bg%402x.avif');background-color:#3c4f7a">
+        <div class="card-copy"><h3>Push sales insights to your CRM</h3><p class="text-reg">Key deal details, notes, and next steps automatically extracted from every meeting and synced to your CRM.</p></div>
+        <div class="card-media"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/6acf6d387d61adc9050fdc52_push-sales-insights-asset.avif" alt="" onerror="this.remove()"></div>
+      </div>
+    </div>
+    <div class="assistant-cta"><a href="#" class="btn-gradient">Start for free</a></div>
+  </section>
+
+  <section class="slider">
+    <h2 class="h2-blue">Whatever you do, Otter works for you</h2>
+    <div class="tabs"><span class="tab on">Sales</span><span class="tab">Education</span><span class="tab">Media</span></div>
+    <div class="orb"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502%2F67d990a68fcd79e04cd73649_AI%20Sales%20Agent%20X-poster-00001.jpg" alt="" onerror="this.remove()"></div>
+    <h3 class="slide-title">Sales</h3>
+    <div class="slide-row">
+      <span class="arrow"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M13 7H1m0 0l5-5M1 7l5 5" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></span>
+      <p class="text-reg">Capture sales call notes, get live coaching tips, automate follow-ups, and drive sales efficiency with CRM.</p>
+      <span class="arrow"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M1 7h12m0 0L8 2m5 5l-5 5" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></span>
+    </div>
+    <a href="#" class="btn btn-secondary">Learn more</a>
+  </section>
+
+  <section class="testimonials">
+    <h3 class="h1-blue">Trusted by teams, loved by people</h3>
+    <p class="sub">But don’t take our word for it.</p>
+    <div class="t-grid">
+      <div class="t-col">
+        <div class="t-card t-tall" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca17b963e6d4f87d5266a_tim-background%402x.avif')">
+          <img class="avatar" src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca17b7be752b1536a48b4_avatar-tim%402x.avif" alt="" onerror="this.style.visibility='hidden'">
+          <div><p class="quote">"I am possibly Otter's most enthusiastic supporter. My team and I are using it everyday. And we’re using it for almost every meeting.”</p><div class="by">— Tim Draper</div></div>
+        </div>
+        <div class="t-card t-logos">
+          <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d99de19b4c59d9f6303cc3_ede70156a4e2accb6e682882db89a474_ibm.svg" alt="IBM" onerror="this.style.visibility='hidden'">
+          <span class="wordmark">FAST COMPANY</span>
+        </div>
+        <div class="t-card t-wide" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67da1b1cf2925a9edfdafef5_hours-saved-background%402x.avif')">
+          <div><div class="stat">4+</div><div class="lbl">Hours saved per week</div></div>
+          <p>Users report saving over four hours weekly by automating transcription and summaries.</p>
+        </div>
+      </div>
+      <div class="t-col">
+        <div class="t-card t-logos">
+          <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d99de28805b88e980eb99b_98c0461a636c3f0a646f8f93beea9a2e_walgreens.svg" alt="Walgreens" onerror="this.style.visibility='hidden'">
+          <img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67d99de2bf18741e52b4069c_ee69e6e1a688affaccba3aa02ede0b82_nbc_universal.svg" alt="NBCUniversal" onerror="this.style.visibility='hidden'">
+        </div>
+        <div class="t-card t-wide" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67da124d2369c5818e4ec569_faster-follow-ups-background%402x.avif')">
+          <div><div class="big">WSJ</div><div class="lbl">As Seen in The Wall Street Journal</div></div>
+          <div><p>Recognized by WSJ as a must-try AI tool, Otter.ai’s AI-powered summaries and action items help teams follow up faster and work more efficiently.</p><a href="#" class="lnk">Learn more</a></div>
+        </div>
+        <div class="t-card t-tall" style="background-image:url('https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca17bb1ebe4682ce2140e_brandon-background%402x.avif')">
+          <img class="avatar" src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca17be85363bb952f2510_avatar-brandon%402x.avif" alt="" onerror="this.style.visibility='hidden'">
+          <div><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dca216bf7f7c2300f3f888_voziq-ai-logo%402x.avif" alt="Voziq.ai" style="height:1.5rem;width:auto;margin-bottom:0.9rem" onerror="this.remove()"><p class="quote">“I use Otter.ai almost everyday….it is a superpower.”</p><div class="by">— Brandon Savage, Head of Solution Enablement, Voziq.ai</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="integrations">
+    <h3 class="h1-blue">Connect to your favorite apps</h3>
+    <p class="lead">Countless integrations automatically connect your meetings to tools like Slack, Zoom, Salesforce, Claude, Google Drive, and many others.</p>
+    <div class="int-row r1">
+      <div class="int-card"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dd8736e6d8868780f53cb0_icon-google-meet%402x.avif" alt="" onerror="this.style.visibility='hidden'"><div><h4>Google Meet</h4><span>Get you real-time transcriptions, summaries, and answer questions on any call with your AI Meeting Agent.</span></div></div>
+      <div class="int-card"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dd87369fa6150b8a4ac4f0_icon-zoom%402x.avif" alt="" onerror="this.style.visibility='hidden'"><div><h4>Zoom</h4><span>Invite your AI Meeting Agent for automatic real-time transcription, key takeaways and action items, and more.</span></div></div>
+      <div class="int-card"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/6a458c1b0345633ff1393a7e_claude-ai.svg" alt="" onerror="this.style.visibility='hidden'"><div><h4>Claude</h4><span>Ground AI-generated answers in your team's meeting knowledge for more accurate, reliable results.</span></div></div>
+    </div>
+    <div class="int-row r2">
+      <div class="int-card"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dd87368e6dc4aa754535a9_icon-hubspot%402x.avif" alt="" onerror="this.style.visibility='hidden'"><div><h4>HubSpot</h4><span>Log meeting transcripts and notes to automatically push sales insights to your CRM.</span></div></div>
+      <div class="int-card"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dd87368e6dc4aa754535ac_icon-jira%402x.avif" alt="" onerror="this.style.visibility='hidden'"><div><h4>Jira</h4><span>Keep projects moving forward by automatically sending key takeaways and action items from every conversation.</span></div></div>
+      <div class="int-card"><img src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dd87365eb76a4850051c2d_icon-notion%402x.avif" alt="" onerror="this.style.visibility='hidden'"><div><h4>Notion</h4><span>Seamlessly sync your transcripts, notes, and key takeaways for easy organization, collaboration, and progress.</span></div></div>
+    </div>
+    <a href="#" class="btn btn-black">View integrations</a>
+  </section>
+
+  <section class="plans">
+    <h2>Flexible plans for teams, individuals, and enterprises</h2>
+    <div class="plan-grid">
+      <div class="plan">
+        <span class="pill">Basic</span>
+        <h3>Get started with Otter for free</h3>
+        <p class="sub">Free forever</p>
+        <p>Perfect for individuals and small teams looking to transcribe and summarize their meetings effortlessly</p>
+        <h4>Features</h4>
+        <ul><li>Automated AI meeting summaries</li><li>Unlimited meetings</li><li>Basic Integrations (Zoom, Google Meet, Teams, Slack)</li></ul>
+        <a href="#" class="btn btn-alt">Start for free</a>
+      </div>
+      <div class="plan">
+        <span class="pill">Business</span>
+        <h3>From $19.99/month per user</h3>
+        <p class="sub">7-day free trial included</p>
+        <p>Ideal for teams that want to collaborate seamlessly and turn meetings into actionable outcomes</p>
+        <h4>Features - Everything in Basic, plus</h4>
+        <ul><li>6000 monthly transcription minutes - 4 hours per conversation</li><li>Collaborative note editing</li><li>Import and transcribe unlimited audio or video files</li><li>&amp; more powerful workspace and admin features</li></ul>
+        <a href="#" class="btn btn-alt">Start for free</a>
+      </div>
+      <div class="plan plan-ent">
+        <div><span class="pill">Enterprise</span><h3>Need a custom solution?</h3><p>Contact our sales team to learn more about Otter’s advanced capabilities.</p></div>
+        <a href="#" class="btn btn-alt">Contact sales</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <img class="cta-blobs" src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/67dc9ce25f1f68064aca74af_cta-blobs%402x-p-1080.avif" alt="" onerror="this.style.visibility='hidden'">
+    <h2>The world's only Conversational Knowledge Engine</h2>
+    <div class="cta-actions"><a href="#" class="btn btn-white">Start for free</a><a href="#" class="btn btn-alt">Schedule demo</a></div>
+  </section>
+
+  <section class="related">
+    <h2>Browse related articles</h2>
+    <ul>
+      <li><a href="#">OtterPilot™ is the Smart AI Meeting Assistant You've Been Waiting For</a></li>
+      <li><a href="#">What Are AI Agents? A Guide to Types, Benefits, and Examples</a></li>
+      <li><a href="#">Meeting Notes Template With Action Items: Your Guide to Productive Meetings</a></li>
+      <li><a href="#">Enhancing Productivity With the Best AI Meeting Assistant Tool</a></li>
+      <li><a href="#">How To Use an AI Personal Assistant for Work: Top 8 Tools</a></li>
+      <li><a href="#">How To Generate a YouTube Transcript: A Complete Guide</a></li>
+      <li><a href="#">How To Run a Meeting Like a Pro: Strategies and Tips</a></li>
+      <li><a href="#">Otter AI Chat: In Your Meetings</a></li>
+      <li><a href="#">Speech to text</a></li>
+      <li><a href="#">Youtube transcript generator</a></li>
+    </ul>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="footer-logo">
+        <svg viewBox="0 0 42 16" aria-label="Otter"><circle cx="8" cy="8" r="6.2" fill="none" stroke="#fff" stroke-width="3.4"/><rect x="17.4" y="1.2" width="3.4" height="13.6" rx="1.7" fill="#fff"/><rect x="24" y="1.2" width="3.4" height="13.6" rx="1.7" fill="#fff"/><rect x="30.6" y="4.4" width="3.4" height="7.2" rx="1.7" fill="#fff"/><rect x="37.2" y="5.6" width="3.4" height="4.8" rx="1.7" fill="#fff"/></svg>
+      </div>
+      <div class="f-col"><h5>Use cases</h5><a href="#">Sales</a><a href="#">Education</a><a href="#">Media</a></div>
+      <div class="f-col"><h5>Resources</h5><a href="#">Help Center</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Blog</a></div>
+      <div class="f-col"><h5>Download</h5><a href="#">Desktop App</a><img class="qr" src="https://cdn.prod.website-files.com/618e9316785b3582a5178502/68b1c310f3bb6bf2c7d469f1_download-otter-qr.svg" alt="" onerror="this.remove()"><a href="#">iOS app</a><a href="#">Android app</a><a href="#">Chrome extension</a></div>
+      <div class="f-col"><h5>Social</h5><a href="#">LinkedIn</a><a href="#">YouTube</a><a href="#">X</a></div>
+    </div>
+    <div class="footer-legal"><span>© 2026 Otter.ai Inc</span><a href="#">Privacy policy</a><a href="#">Terms of service</a><a href="#">Software service agreement</a><a href="#">JP</a><a href="#">Status</a></div>
+    <div class="footer-word" aria-hidden="true">Otter.ai</div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const micBtn = document.getElementById('micBtn');
+      const micLabel = document.getElementById('micLabel');
+      const micStatus = document.getElementById('micStatus');
+      const utterance = document.getElementById('utterance');
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        micStatus.textContent = 'Recording unavailable in this browser — type what was said';
+        micBtn.disabled = true;
+        micBtn.style.opacity = '0.5';
+        return;
+      }
+      let recognition = null;
+      let listening = false;
+      let micErrored = false;
+      const resetMic = () => {
+        listening = false;
+        micBtn.classList.remove('listening');
+        micLabel.textContent = 'Record';
+        if (!micErrored) micStatus.textContent = 'Click Record, or type what was said';
+      };
+      micBtn.addEventListener('click', () => {
+        if (listening) { try { recognition.stop(); } catch (e) { resetMic(); } return; }
+        recognition = new SR();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.onresult = (e) => {
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+              utterance.value = (utterance.value ? utterance.value + ' ' : '') + e.results[i][0].transcript.trim();
+            }
+          }
+        };
+        recognition.onerror = (e) => { micErrored = true; micStatus.textContent = 'Mic error: ' + e.error + ' — you can type instead'; };
+        recognition.onend = resetMic;
+        try {
+          recognition.start();
+        } catch (err) {
+          micErrored = true;
+          micStatus.textContent = 'Mic unavailable — you can type instead';
+          resetMic();
+          return;
+        }
+        listening = true;
+        micBtn.classList.add('listening');
+        micLabel.textContent = 'Stop';
+        micErrored = false;
+        micStatus.textContent = 'Recording…';
+      });
+    })();
+  </script>
+  <script>
+    document.getElementById('transcribeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Saving\u2026';
+      result.className = 'result-box';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      try {
+        const res = await fetch('/api/voice/transcribe', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspace: document.getElementById('workspace').value, dictionary: document.getElementById('dictionary').value, utterance: document.getElementById('utterance').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="r-title">Transcript could not be saved</div><div>${esc(data.errorClass)}: ${esc(data.error)}</div>`;
+        } else {
+          const dictLabel = document.getElementById('dictionary').selectedOptions[0].textContent;
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="r-title">Transcript saved</div><div>${esc(data.transcript)}</div><div class="r-meta">${esc(data.wordCount)} words &middot; ${esc(data.termsApplied)} vocabulary terms applied &middot; ${esc(dictLabel)}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="r-title">Network error</div><div>${esc(err.message)}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Save transcript'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
