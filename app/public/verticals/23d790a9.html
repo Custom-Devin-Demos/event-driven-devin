@@ -95,7 +95,7 @@ textarea:focus,input:focus{outline:2px solid rgba(0,92,77,.25);border-color:var(
 #rmap .rgs{font-size:14px;fill:#4a4a4a;stroke-width:4;stroke-opacity:.85;transition:opacity .3s}
 #rmap .tpl{font-size:7.5px;fill:#3c3c3c;stroke-width:2;opacity:0;transition:opacity .3s}
 #rmap .gpl{font-size:4.2px;fill:var(--red);stroke:none;opacity:0;transition:opacity .3s}
-#rmap .dl{font-size:2.3px;fill:var(--ink);stroke-width:.6;opacity:0;transition:opacity .3s}
+#rmap .dl{font-size:3.2px;fill:var(--ink);stroke-width:.8;opacity:0;transition:opacity .3s}
 #rmap.z1 .tpl,#rmap.z1 .gpl,#rmap.z2 .tpl,#rmap.z2 .gpl,#rmap.z2 .dl{opacity:1}#rmap.z1 .rgl,#rmap.z1 .rgs,#rmap.z2 .rgl,#rmap.z2 .rgs{opacity:0}
 #rmap :focus{outline:none}#rmap .tpc:focus-visible,#rmap .dc:focus-visible{stroke:var(--gd);stroke-width:2.4}
 #rmap.focus .tpc:not(.on),#rmap.focus .dg:not(.on):not(.cited){opacity:.25}
@@ -367,14 +367,19 @@ function mapLayout(){const d=LIB;return ECO.map((e,i)=>{const a=(-90+i*60)*Math.
   const tot=new Set(d.themes.flatMap(t=>d.coverage[e.id][t.id])).size,R=140+Math.min(20,tot);
   const topics=d.themes.map((t,j)=>{const b=(-90+j*60)*Math.PI/180,ids=d.coverage[e.id][t.id],n=ids.length,r=n?Math.min(.27*R,.17*R+.045*R*Math.sqrt(n)):.15*R;
     const tx=x+.56*R*Math.cos(b),ty=y+.56*R*Math.sin(b),rd=r*(n<=1?.3:n<=3?.24:.19);
-    return {t,n,x:tx,y:ty,r,docs:ids.map((id,k)=>{const c=k*2*Math.PI/n-Math.PI/2;return n===1?{id,x:tx,y:ty,r:rd}:{id,x:tx+r*.5*Math.cos(c),y:ty+r*.5*Math.sin(c),r:rd}})}});
+    const room=n===1?r*1.5:Math.max(r*.5,r*Math.sin(Math.PI/n))*.92;
+    return {t,n,x:tx,y:ty,r,docs:ids.map((id,k)=>{const c=k*2*Math.PI/n-Math.PI/2;return n===1?{id,x:tx,y:ty,r:rd,room,up:false}:{id,x:tx+r*.5*Math.cos(c),y:ty+r*.5*Math.sin(c),r:rd,room,up:Math.sin(c)<-.3}})}});
   return {e,x,y,R,tot,gaps:topics.filter(t=>!t.n).length,topics}})}
-function mapSVG(){const L=MAP.L,docT=id=>(LIB.documents.find(x=>x.id===id)||{}).title||id,f1=v=>+v.toFixed(2);
+function wrapLines(t,max,n){const w=t.split(' '),out=[];let cur='';for(const x of w){if(!cur)cur=x;else if((cur+' '+x).length<=max)cur+=' '+x;else{out.push(cur);cur=x}}if(cur)out.push(cur);if(out.length>n){out.length=n;out[n-1]=clip(out[n-1]+' …',max)}return out.map(l=>clip(l,max))}
+function docLabel(o,title){const fs=3.2,lh=fs*1.12,lines=wrapLines(title,Math.max(9,Math.floor(o.room/(fs*.52))),2),f1=v=>+v.toFixed(2);
+  const y=o.up?o.y-o.r-1.1-(lines.length-1)*lh:o.y+o.r+fs+.4;
+  return `<text class="dl" x="${f1(o.x)}" y="${f1(y)}">${lines.map((l,i)=>`<tspan x="${f1(o.x)}" dy="${i?lh:0}">${esc(l)}</tspan>`).join('')}</text>`}
+function mapSVG(){const L=MAP.L,docT=id=>{const x=LIB.documents.find(x=>x.id===id)||{};return x.short||x.title||id},f1=v=>+v.toFixed(2);
   return `<svg id="rmap" viewBox="-40 -40 1080 1080" class="z0" role="group" aria-label="Research map: ecosystems, topics and studies"><circle class="hub" cx="500" cy="500" r="118"/><text class="hubt" x="500" y="494">VISION PORTFOLIO</text><text class="hubs" x="500" y="514">${LIB.documents.length} studies in the library</text>
   ${L.map(g=>{const nm=split2(shortEco(g.e)),y0=g.y-(nm.length-1)*14-6;return `<g class="rg" data-e="${g.e.id}" style="--h:${ECO_HUE[g.e.id]||'#005c4d'}"><circle class="rgc" data-k="r" data-e="${g.e.id}" cx="${f1(g.x)}" cy="${f1(g.y)}" r="${g.R}"/>
     ${g.topics.map(p=>`<circle class="tpc${p.n?'':' gap'}" data-k="t" data-e="${g.e.id}" data-t="${p.t.id}" cx="${f1(p.x)}" cy="${f1(p.y)}" r="${f1(p.r)}"${p.n?` style="fill-opacity:${TOPIC_FILL[Math.min(p.n,5)]}"`:''} tabindex="0" role="button" aria-label="${esc(g.e.name)}, ${esc(p.t.name)}: ${p.n?p.n+' studies':'not yet studied'}"/>
       ${p.n?'':`<text class="gpl" x="${f1(p.x)}" y="${f1(p.y+1.3)}">Not yet studied</text>`}
-      ${p.docs.map(o=>`<g class="dg" data-d="${o.id}"><circle class="ring" cx="${f1(o.x)}" cy="${f1(o.y)}" r="${f1(o.r)}"/><circle class="dc" data-k="d" data-e="${g.e.id}" data-t="${p.t.id}" data-d="${o.id}" cx="${f1(o.x)}" cy="${f1(o.y)}" r="${f1(o.r)}"/><text class="dl" x="${f1(o.x)}" y="${f1(o.y+o.r+2.6)}">${esc(clip(docT(o.id).replace(/^PIF /,''),30))}</text></g>`).join('')}
+      ${p.docs.map(o=>`<g class="dg" data-d="${o.id}"><circle class="ring" cx="${f1(o.x)}" cy="${f1(o.y)}" r="${f1(o.r)}"/><circle class="dc" data-k="d" data-e="${g.e.id}" data-t="${p.t.id}" data-d="${o.id}" cx="${f1(o.x)}" cy="${f1(o.y)}" r="${f1(o.r)}"/>${docLabel(o,docT(o.id))}</g>`).join('')}
       <text class="tpl" x="${f1(p.x)}" y="${f1(p.y+p.r+8)}">${esc(THEME_LABEL[p.t.id]||p.t.name)}${p.n?' · '+p.n:''}</text>`).join('')}
     ${nm.map((l,i)=>`<text class="rgl" x="${f1(g.x)}" y="${f1(y0+i*27)}">${esc(l)}</text>`).join('')}<text class="rgs" x="${f1(g.x)}" y="${f1(y0+nm.length*27-4)}">${g.tot} ${g.tot===1?'study':'studies'} · ${g.gaps} ${g.gaps===1?'gap':'gaps'}</text></g>`}).join('')}</svg>`}
 const THEME_LABEL={ai:'AI',capital:'Financing',private:'Private sector',performance:'Returns',sustainability:'Sustainability',talent:'Talent'};
