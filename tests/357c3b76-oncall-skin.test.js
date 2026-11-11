@@ -46,7 +46,8 @@ describe('357c3b76 Dell Automation Platform blueprint deploy on-call skin', () =
   test('is a native, unlisted privatecloud skin without report or incident surfaces', () => {
     const skin = getOncallSkin('357c3b76');
     expect(skin).toMatchObject({ vertical: 'privatecloud', oncallOnly: true, alertDestination: 'slack', page: { file: '357c3b76.html', title: TITLE } });
-    expect(skin.devinSession).toMatchObject({ auto: true, onCallIsTriggerer: true });
+    expect(skin.devinSession).toMatchObject({ auto: false, onCallIsTriggerer: true });
+    expect(skin.devinSession.promptAppendix).toContain('Dell Automation Platform');
     expect(skin).toMatchObject({ slackChannelId: 'C0CAX4SHG6M', slackChannelName: '#dell-oncall' });
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();

@@ -5506,8 +5506,10 @@ const ONCALL_SKINS = {
     slackChannelName: '#dell-oncall',
     paths: ['/dell', '/dap', '/dell-dap'],
     ribbonSide: 'left',
+    // Alert-only: the Dell Alert Responder (Devin Oncall on #dell-oncall) triages the
+    // card, dedupes repeats and opens the fix PR; no app-side session is created.
     devinSession: {
-      auto: true,
+      auto: false,
       onCallIsTriggerer: true,
       promptAppendix: [
         'Customer-facing context: this alert comes from the Dell Automation Platform console linked above (Inventory \u203a Blueprints). Deploy on a validated blueprint opens the deployment wizard, and its Deploy button on the Summary step posts to the endpoint above, so that endpoint is the backend of this incident.',

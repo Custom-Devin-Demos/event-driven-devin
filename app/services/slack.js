@@ -837,6 +837,7 @@ module.exports = {
   ONCALL_UNASSIGNED_TEXT,
   ownerRotation,
   buildAlertBlocks,
+  buildAlertText,
   onCallText,
   resolveOnCallMember,
   postMessage,
