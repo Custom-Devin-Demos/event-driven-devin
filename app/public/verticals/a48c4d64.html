@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us | Endava</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #192b37;
+      --ink-2: #30404b;
+      --brand: #ff5640;
+      --brand-deep: #d63b10;
+      --field: #e8eaeb;
+      --muted: #a3aaaf;
+      --line: rgba(255,255,255,.18);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: Poppins, system-ui, sans-serif; font-size: 18px; line-height: 27px; color: var(--ink); background: #fff; overflow-x: hidden; }
+    a { color: inherit; }
+    button, input, select, textarea { font-family: inherit; }
+    .container { max-width: 1440px; margin: 0 auto; padding: 0 80px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    /* Header */
+    .site-header { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; }
+    .site-header .container { display: flex; align-items: center; justify-content: space-between; min-height: 80px; padding: 0 40px; }
+    .head-left { display: flex; align-items: center; gap: 28px; }
+    .burger { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; padding: 0; cursor: pointer; }
+    .wordmark { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; text-decoration: none; color: #fff; font-size: 30px; font-weight: 500; letter-spacing: .3px; line-height: 1; }
+    .wordmark svg { flex: none; margin-top: 4px; }
+    .head-right { display: flex; align-items: center; gap: 26px; }
+    .search-btn { width: 48px; height: 48px; border-radius: 9999px; border: 0; background: var(--ink-2); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .connect-btn { display: inline-flex; align-items: center; min-height: 52px; padding: 0 36px; border: 2px solid #fff; border-radius: 9999px; color: #fff; text-decoration: none; font-size: 20px; font-weight: 500; }
+    .connect-btn:hover { background: #fff; color: var(--ink); }
+
+    /* Hero */
+    .hero { position: relative; min-height: 780px; display: flex; align-items: flex-end; color: #fff; background: var(--ink) center 30% / cover no-repeat; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(25,43,55,.15) 0%, rgba(25,43,55,.05) 35%, rgba(25,43,55,.75) 72%, #192b37 100%); }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+    .hero > * { position: relative; z-index: 1; }
+    .hero .container { width: 100%; padding-top: 40px; padding-bottom: 56px; }
+    .crumbs { position: absolute; top: 34px; left: 0; right: 0; z-index: 1; }
+    .crumbs ol { display: flex; align-items: center; gap: 10px; list-style: none; margin: 0; padding: 0; font-size: 14px; font-weight: 500; }
+    .crumbs a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; }
+    .crumbs [aria-current] { border-bottom: 2px solid var(--brand); padding-bottom: 2px; }
+    .hero h1 { margin: 0 0 30px; font-size: 112px; line-height: 1.2; font-weight: 600; letter-spacing: -.5px; }
+    .hq h2 { margin: 0 0 14px; color: var(--brand); font-size: 20px; line-height: 30px; font-weight: 600; }
+    .hq p { display: flex; gap: 14px; margin: 0; max-width: 300px; font-size: 25px; line-height: 37.5px; }
+    .hq svg { flex: none; margin-top: 7px; }
+
+    /* Form section */
+    .touch { padding: 56px 0 100px; }
+    .touch .container { display: grid; grid-template-columns: 1fr 616px; gap: 64px; }
+    .eyebrow { margin: 0 0 6px; color: var(--brand); font-size: 20px; font-weight: 600; line-height: 30px; }
+    .touch h2 { margin: 0; font-size: 49px; line-height: 58.75px; font-weight: 500; }
+    .touch h2 span { display: flex; align-items: center; gap: 22px; }
+    .intro { margin: 0; padding-top: 24px; max-width: 620px; font-size: 25px; line-height: 37.5px; }
+    form { margin: 0; }
+    .field { display: flex; flex-direction: column; gap: 0; margin-bottom: 24px; }
+    label.lbl { font-size: 14px; line-height: 21px; font-weight: 500; }
+    .field input, .field select, .field textarea {
+      width: 100%; min-height: 56px; border: 0; border-radius: 16px; background: var(--field); color: var(--ink); font-size: 18px; font-weight: 500; line-height: 24px; padding: 16px;
+    }
+    .field select { appearance: none; -webkit-appearance: none; padding-right: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M2 5l5 5 5-5' fill='none' stroke='%23192b37' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 18px center; cursor: pointer; }
+    .field textarea { min-height: 188px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--ink); outline-offset: 0; }
+    .check { display: flex; align-items: flex-start; gap: 14px; min-height: 44px; margin-bottom: 4px; font-size: 18px; font-weight: 500; line-height: 27px; cursor: pointer; }
+    .check input { appearance: none; -webkit-appearance: none; flex: none; width: 24px; height: 24px; margin: 1px 0 0; border: 2px solid var(--ink); border-radius: 6px; background: #fff; cursor: pointer; display: grid; place-content: center; }
+    .check input:checked { background: var(--ink); }
+    .check input:checked::after { content: ''; width: 6px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+    .check a { font-size: 16px; text-decoration: underline; }
+    .actions { margin-top: 28px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .btn-submit { display: inline-flex; align-items: center; gap: 12px; min-height: 66px; padding: 16px 32px; border: 0; border-radius: 360px; background: var(--ink); color: #fff; font-size: 22.5px; font-weight: 500; cursor: pointer; }
+    .btn-submit:hover { background: var(--ink-2); }
+    .btn-submit:disabled { cursor: progress; opacity: .9; }
+    .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .btn-submit.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-box { margin-top: 24px; }
+    .result-box:empty { display: none; }
+    .result-box.pending { font-size: 16px; color: #50606b; }
+    .result-box.ok, .result-box.notice { background: var(--field); border-radius: 16px; border-left: 6px solid var(--ink); padding: 20px 24px; font-size: 16px; line-height: 25px; }
+    .result-box.notice { border-left-color: var(--brand-deep); }
+    .result-box b { display: block; font-size: 20px; line-height: 30px; font-weight: 600; margin-bottom: 4px; }
+
+    /* Where we work */
+    .work { background: var(--ink); color: #fff; padding: 100px 0 110px; text-align: center; }
+    .work .eyebrow { margin-bottom: 8px; }
+    .work h2 { margin: 0 0 32px; font-size: 49px; line-height: 58.75px; font-weight: 500; }
+    .work p { margin: 0 auto; max-width: 864px; }
+    .places { display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; margin: 64px 0 56px; }
+    .place { aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--ink-2); }
+    .place:nth-child(even) { transform: translateY(40px); }
+    .place img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ghost-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 28px; border: 2px solid #fff; border-radius: 9999px; color: #fff; text-decoration: none; font-size: 18px; font-weight: 500; margin-top: 40px; }
+
+    /* Footer */
+    .site-footer { background: var(--ink); color: #fff; padding: 40px 0 36px; border-top: 1px solid var(--line); }
+    .foot-mark { font-size: 26px; margin-bottom: 36px; }
+    .cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .cols h3 { margin: 0 0 16px; color: var(--brand); font-size: 20px; line-height: 30px; font-weight: 600; }
+    .cols h3 + ul + h3 { margin-top: 24px; }
+    .cols ul { list-style: none; margin: 0; padding: 0; }
+    .cols a { display: inline-flex; align-items: center; min-height: 41px; font-size: 14px; text-decoration: none; }
+    .cols a:hover, .legal a:hover { text-decoration: underline; }
+    .foot-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; margin-top: 56px; }
+    .follow h4, .news h4 { margin: 0 0 18px; font-size: 18px; font-weight: 600; }
+    .socials { display: flex; gap: 20px; list-style: none; margin: 0; padding: 0; }
+    .socials a { width: 52px; height: 52px; border: 1.5px solid #fff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-decoration: none; }
+    .news { width: 100%; max-width: 480px; }
+    .news label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+    .news input { width: 100%; min-height: 52px; border: 0; border-radius: 16px; background: var(--ink-2); color: #fff; font-size: 18px; font-weight: 500; padding: 14px 16px; }
+    .news input::placeholder { color: var(--muted); }
+    .legal { margin-top: 28px; font-size: 12px; line-height: 18px; }
+    .legal p { margin: 0 0 2px; }
+    .legal ul { display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+    .legal li + li::before { content: '|'; margin: 0 6px; }
+    .legal li { display: flex; align-items: center; }
+    .legal a { display: inline-flex; align-items: center; min-height: 32px; text-decoration: none; }
+
+    @media (max-width: 1100px) {
+      .container { padding: 0 40px; }
+      .touch .container { grid-template-columns: 1fr; gap: 40px; }
+      .hero h1 { font-size: 84px; }
+      .places { grid-template-columns: repeat(3, 1fr); }
+      .place:nth-child(even) { transform: none; }
+    }
+    @media (max-width: 768px) {
+      .container { padding: 0 20px; }
+      .site-header .container { min-height: 64px; padding: 0 12px 0 8px; }
+      .head-left { gap: 6px; }
+      .wordmark { font-size: 24px; }
+      .head-right { gap: 10px; }
+      .search-btn { width: 44px; height: 44px; }
+      .connect-btn { min-height: 44px; padding: 0 16px; font-size: 15px; }
+      .hero { min-height: 560px; }
+      .crumbs { top: 12px; }
+      .hero .container { padding-bottom: 40px; }
+      .hero h1 { font-size: 56px; margin-bottom: 22px; }
+      .hq p { font-size: 20px; line-height: 30px; }
+      .touch { padding: 40px 0 64px; }
+      .touch h2, .work h2 { font-size: 36px; line-height: 44px; }
+      .touch h2 svg { width: 44px; height: 38px; }
+      .intro { font-size: 18px; line-height: 27px; }
+      .btn-submit { width: 100%; justify-content: center; }
+      .work { padding: 64px 0 72px; }
+      .places { gap: 14px; margin: 40px 0 16px; }
+      .cols { grid-template-columns: 1fr 1fr; gap: 24px; }
+      .cols a { min-height: 44px; }
+      .legal a { min-height: 44px; }
+      .check a { display: inline-block; padding: 10px 0; margin: -10px 0; line-height: 24px; }
+      .socials { gap: 12px; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="head-left">
+        <button type="button" class="burger" aria-label="Open menu">
+          <svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><path d="M2 2h26M2 10h26M2 18h26" stroke="#ff5640" stroke-width="2.6" stroke-linecap="round"/></svg>
+        </button>
+        <a href="#" class="wordmark" aria-label="Endava home">endava<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="#ff5640"/></svg></a>
+      </div>
+      <div class="head-right">
+        <button type="button" class="search-btn" aria-label="Search">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="11.5" cy="8.5" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7.2 12.8L2 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <a href="#touch" class="connect-btn">Let's connect</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-label="Contact Us">
+      <img src="https://www.endava.com/hubfs/Endava%202024/Image-Library/Locations/Montevideo/mvd-042/team-member-office-work-fullscreen-hero-desktop.jpg" alt="" onerror="this.remove()">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <div class="container">
+          <ol>
+            <li><a href="#"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 8.5L9 2.5l7 6M4 7v8.5h10V7" fill="none" stroke="#ff5640" stroke-width="1.5" stroke-linejoin="round"/></svg>Home</a></li>
+            <li aria-hidden="true"><svg width="8" height="12" viewBox="0 0 8 12"><path d="M2 1l4 5-4 5" fill="none" stroke="#ff5640" stroke-width="1.5"/></svg></li>
+            <li><span aria-current="page">Contact Us</span></li>
+          </ol>
+        </div>
+      </nav>
+      <div class="container">
+        <h1>Contact Us</h1>
+        <div class="hq">
+          <h2>Global Headquarters</h2>
+          <p><svg width="18" height="22" viewBox="0 0 18 22" aria-hidden="true"><path d="M9 21s7-6.6 7-12A7 7 0 0 0 2 9c0 5.4 7 12 7 12z" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="9" cy="9" r="2.6" fill="none" stroke="#fff" stroke-width="1.6"/></svg>125 Old Broad Street, London, EC2N 1AR, UK</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="touch" id="touch" aria-labelledby="touchTitle">
+      <div class="container">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2 id="touchTitle"><span>Let&rsquo;s get</span><span>in touch <svg width="62" height="52" viewBox="0 0 62 52" aria-hidden="true"><rect x="2" y="8" width="52" height="38" rx="2" fill="none" stroke="#ff5640" stroke-width="3"/><path d="M4 11l24 19 24-19" fill="none" stroke="#ff5640" stroke-width="3"/><circle cx="52" cy="10" r="7" fill="#ff5640"/></svg></span></h2>
+          <p class="intro">Got a question? Drop us a line and we&rsquo;ll be back to you in no time. Meanwhile, why not sign up for our newsletter for a hand-picked selection of digital tips, trends, stories and insights?</p>
+        </div>
+
+        <form id="transferForm" novalidate>
+          <div class="field">
+            <label class="lbl" for="reason">Select reasons of inquiry *</label>
+            <select id="reason" required>
+              <option value="">Please Select</option>
+              <option value="ACCT-2001" selected>Interested in our services</option>
+              <option value="ACCT-2002">Want to join our team</option>
+              <option value="ACCT-2003">Media inquiry</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl" for="heardFrom">How did you hear about us?</label>
+            <select id="heardFrom">
+              <option value="">Please Select</option>
+              <option>Search</option>
+              <option>Social media</option>
+              <option>Colleague/friend</option>
+              <option selected>Event/conference</option>
+              <option>Press/media</option>
+              <option>Partner</option>
+              <option>Endavan</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl" for="firstName">First name *</label>
+            <input type="text" id="firstName" autocomplete="given-name" value="Hannah" required>
+          </div>
+          <div class="field">
+            <label class="lbl" for="lastName">Last name *</label>
+            <input type="text" id="lastName" autocomplete="family-name" value="Kowalczyk" required>
+          </div>
+          <div class="field">
+            <label class="lbl" for="email">Email address *</label>
+            <input type="email" id="email" autocomplete="email" value="hannah.kowalczyk@northbridgepay.co.uk" required>
+          </div>
+          <div class="field">
+            <label class="lbl" for="phone">Phone number</label>
+            <input type="tel" id="phone" autocomplete="tel" value="+44 20 7946 0321">
+          </div>
+          <div class="field">
+            <label class="lbl" for="company">Company *</label>
+            <input type="text" id="company" autocomplete="organization" value="Northbridge Payments" required>
+          </div>
+          <div class="field">
+            <label class="lbl" for="jobRole">Job Role *</label>
+            <select id="jobRole" required>
+              <option value="">Please Select</option>
+              <option>CEO/Managing Director/President</option>
+              <option>Senior Vice President / Vice President</option>
+              <option>IT - Professional</option>
+              <option>IT - Manager/Head of</option>
+              <option>IT - Director/VP/C-level</option>
+              <option>Digital - Manager/Head of</option>
+              <option>Digital - Director/VP/C-level</option>
+              <option>Operations - Manager/Head of</option>
+              <option>Operations - Director/VP/C-level</option>
+              <option>Engineering - Manager/Head of</option>
+              <option selected>Engineering - Director/VP/C-level</option>
+              <option>Innovation - Manager/Head of</option>
+              <option>Innovation - Director/VP/C-level</option>
+              <option>Product/Project Management - Professional/Manager</option>
+              <option>Marketing - Professional</option>
+              <option>Marketing - Manager/Head of/CMO</option>
+              <option>Consultant/Agency</option>
+              <option>Job seeker/Student</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl" for="fromAccount">Country</label>
+            <select id="fromAccount" autocomplete="country-name">
+              <option value="ACCT-1001" selected>United Kingdom</option>
+              <option value="ACCT-1002">United States</option>
+              <option value="ACCT-1003">Germany</option>
+              <option value="ACCT-1004">Netherlands</option>
+              <option value="ACCT-1005">Romania</option>
+              <option value="ACCT-1006">Australia</option>
+              <option value="ACCT-1007">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl" for="message">Message</label>
+            <textarea id="message">We are modernising our card authorisation platform and would like to talk to your payments team about an engineering partnership for the next 12 months, including cloud migration and AI-assisted testing.</textarea>
+          </div>
+
+          <label class="check"><input type="checkbox" id="terms" checked required><span>I agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Notice</a> *</span></label>
+          <label class="check"><input type="checkbox" id="newsletter"><span>Sign me up for the Endava newsletter. You can unsubscribe at any time.</span></label>
+
+          <select id="toAccount" hidden aria-hidden="true" tabindex="-1">
+            <option value="ACCT-2001" selected>ACCT-2001</option>
+            <option value="ACCT-2002">ACCT-2002</option>
+            <option value="ACCT-2003">ACCT-2003</option>
+          </select>
+          <input id="amount" type="number" value="1" hidden aria-hidden="true" tabindex="-1">
+          <select id="accountTier" hidden aria-hidden="true" tabindex="-1">
+            <option value="standard" selected>standard</option>
+            <option value="premium">premium</option>
+          </select>
+
+          <div class="actions">
+            <button type="submit" class="btn-submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Submit</span></button>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="work" aria-labelledby="workTitle">
+      <div class="container">
+        <p class="eyebrow">Where to find us</p>
+        <h2 id="workTitle">Where we work</h2>
+        <p>We call the world our home. Our global community operates from twenty-eight countries across six continents to deliver best-in-class technical solutions and support to our customers. We provide a local service to a global client base, so chances are, we are not too far away.</p>
+        <div class="places" aria-hidden="true">
+          <div class="place"><img src="https://26820254.fs1.hubspotusercontent-eu1.net/hubfs/26820254/our_locations_image1.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
+          <div class="place"><img src="https://26820254.fs1.hubspotusercontent-eu1.net/hubfs/26820254/our_locations_image2.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
+          <div class="place"><img src="https://26820254.fs1.hubspotusercontent-eu1.net/hubfs/26820254/our_locations_image3.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
+          <div class="place"><img src="https://26820254.fs1.hubspotusercontent-eu1.net/hubfs/26820254/our_locations_image4.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
+          <div class="place"><img src="https://26820254.fs1.hubspotusercontent-eu1.net/hubfs/26820254/our_locations_image5.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
+          <div class="place"><img src="https://26820254.fs1.hubspotusercontent-eu1.net/hubfs/26820254/our_locations_image6.jpg" alt="" loading="lazy" onerror="this.remove()"></div>
+        </div>
+        <a href="#" class="ghost-btn">Explore our locations <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><path d="M1 7h17M12 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="wordmark foot-mark">endava<svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="#ff5640"/></svg></div>
+      <div class="cols">
+        <div>
+          <h3>Why Endava</h3>
+          <ul><li><a href="#">Dava.Flow</a></li><li><a href="#">Dava.X</a></li><li><a href="#">Dava.Y</a></li><li><a href="#">Dava.Rise</a></li></ul>
+          <h3>What We Do</h3>
+          <ul><li><a href="#">Industries</a></li><li><a href="#">Capabilities</a></li><li><a href="#">Case Studies</a></li><li><a href="#">Events</a></li></ul>
+        </div>
+        <div>
+          <h3>What We Think</h3>
+          <ul><li><a href="#">Articles</a></li><li><a href="#">Reports</a></li><li><a href="#">Whitepapers</a></li><li><a href="#">Webinars</a></li><li><a href="#">Videos</a></li><li><a href="#">Podcasts</a></li><li><a href="#">Infographics</a></li><li><a href="#">E-books</a></li></ul>
+        </div>
+        <div>
+          <h3>Who We Are</h3>
+          <ul><li><a href="#">Leadership</a></li><li><a href="#">Locations</a></li><li><a href="#">Partners</a></li><li><a href="#">Alliances</a></li><li><a href="#">Sustainability at Endava</a></li><li><a href="#">Certifications</a></li><li><a href="#">Investor Relations</a></li><li><a href="#">Media Relations</a></li><li><a href="#">Newsroom</a></li></ul>
+        </div>
+        <div>
+          <h3>Careers</h3>
+          <ul><li><a href="#">Jobs</a></li><li><a href="#">Early Careers</a></li><li><a href="#">Experienced Professionals</a></li><li><a href="#">Life at Endava</a></li><li><a href="#">People and Culture Blog</a></li><li><a href="#">Talent Communities</a></li></ul>
+          <h3>Contact Us</h3>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <div class="follow">
+          <h4>Follow us!</h4>
+          <ul class="socials">
+            <li><a href="#" aria-label="LinkedIn">in</a></li>
+            <li><a href="#" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="1.5" y="1.5" width="15" height="15" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="3.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
+            <li><a href="#" aria-label="Facebook">f</a></li>
+            <li><a href="#" aria-label="X">X</a></li>
+            <li><a href="#" aria-label="Glassdoor">g</a></li>
+          </ul>
+        </div>
+        <form class="news" onsubmit="return false">
+          <h4>Subscribe to our newsletter</h4>
+          <label for="newsEmail">Email*</label>
+          <input type="email" id="newsEmail" placeholder="name@company.com" autocomplete="email">
+        </form>
+      </div>
+      <div class="legal">
+        <p>Copyright &copy; 2026 Endava | All Rights Reserved</p>
+        <ul><li><a href="#">Legal</a></li><li><a href="#">Privacy Notice</a></li><li><a href="#">Cookies Settings</a></li><li><a href="#">Glossary</a></li></ul>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('transferForm');
+      var reason = document.getElementById('reason');
+      var fromAccount = document.getElementById('fromAccount');
+      var toAccount = document.getElementById('toAccount');
+      var amount = document.getElementById('amount');
+      var tier = document.getElementById('accountTier');
+      var btn = document.getElementById('submitBtn');
+      var submitLabel = document.getElementById('submitLabel');
+      var result = document.getElementById('result');
+      var inFlight = false;
+      reason.addEventListener('change', function () { if (reason.value) toAccount.value = reason.value; });
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind; result.textContent = '';
+        var b = document.createElement('b'); b.textContent = title;
+        result.appendChild(b);
+        result.appendChild(document.createTextNode(body));
+      }
+      function missingField() {
+        var ids = ['reason', 'firstName', 'lastName', 'email', 'company', 'jobRole'];
+        for (var i = 0; i < ids.length; i++) {
+          var el = document.getElementById(ids[i]);
+          if (!el.value.trim()) return el;
+        }
+        var terms = document.getElementById('terms');
+        if (!terms.checked) return terms;
+        return null;
+      }
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (inFlight) return;
+        var missing = missingField();
+        if (missing) {
+          show('notice', 'Please complete all required fields', 'Fields marked with an asterisk are required.');
+          missing.focus();
+          return;
+        }
+        inFlight = true;
+        btn.disabled = true;
+        btn.classList.add('busy');
+        submitLabel.textContent = 'Submitting';
+        result.className = 'result-box pending';
+        result.textContent = 'Sending your message\u2026';
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amount.value),
+              accountTier: tier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+          var data = await res.json();
+          if (!res.ok || !data.success) throw new Error('request failed');
+          var ref = String(data.transferId || '').replace(/[^A-Za-z0-9]/g, '').slice(-8).toUpperCase();
+          var first = document.getElementById('firstName').value.trim();
+          show('ok', 'Thank you' + (first ? ', ' + first : '') + '.',
+            'Your message has been sent. A member of our team will be back to you shortly.' + (ref ? ' Reference ' + ref + '.' : ''));
+          submitLabel.textContent = 'Submitted';
+        } catch (err) {
+          show('notice', 'We couldn\u2019t send your message',
+            'Your message hasn\u2019t been sent. The details you entered are still on this page. Please try again in a few minutes.');
+          submitLabel.textContent = 'Submit';
+          btn.disabled = false;
+        } finally {
+          btn.classList.remove('busy');
+          inFlight = false;
+        }
+      });
+      form.addEventListener('reset', function () {
+        result.className = 'result-box'; result.textContent = '';
+        submitLabel.textContent = 'Submit'; btn.disabled = false;
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
