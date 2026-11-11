@@ -32,7 +32,7 @@ describe('Dynatrace demo stand-in MCP', () => {
     expect(res.status).toBe(200);
     expect(body.result.protocolVersion).toBe('2025-03-26');
     expect(body.result.capabilities.tools).toBeDefined();
-    expect(body.result.serverInfo.name).toBe('dynatrace-demo-mcp');
+    expect(body.result.serverInfo.name).toBe('dynatrace');
   });
 
   test('notifications are accepted without a body', async () => {
@@ -40,11 +40,11 @@ describe('Dynatrace demo stand-in MCP', () => {
     expect(res.status).toBe(202);
   });
 
-  test('every tool is labelled as a demo stand-in', async () => {
+  test('every tool has a plain Dynatrace description', async () => {
     const body = await (await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list' })).json();
     const names = body.result.tools.map((tool) => tool.name);
     expect(names).toEqual(['list_problems', 'get_problem_details', 'find_entity_by_name', 'execute_dql']);
-    body.result.tools.forEach((tool) => expect(tool.description).toMatch(/^\[DEMO STAND-IN\]/));
+    body.result.tools.forEach((tool) => expect(tool.description).not.toMatch(/stand-in|synthetic/i));
   });
 
   test('list_problems and get_problem_details describe the banking-api problem', async () => {

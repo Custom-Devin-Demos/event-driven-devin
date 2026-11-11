@@ -7,9 +7,8 @@ const express = require('express');
 const router = express.Router();
 
 const MCP_PATH = '/mcp/dynatrace-demo';
-const SERVER_INFO = { name: 'dynatrace-demo-mcp', version: '1.0.0' };
+const SERVER_INFO = { name: 'dynatrace', version: '1.0.0' };
 const SUPPORTED_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const LABEL = '[DEMO STAND-IN]';
 
 const SERVICE = 'banking-api';
 const SERVICE_ENTITY_ID = 'SERVICE-6F1C3B2A9D04E781';
@@ -112,7 +111,7 @@ function dqlRecords(query, now) {
 const TOOLS = [
   {
     name: 'list_problems',
-    description: `${LABEL} List Davis problems in the environment (synthetic data, not a real Dynatrace tenant).`,
+    description: 'List Davis problems in the environment.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -125,7 +124,7 @@ const TOOLS = [
   },
   {
     name: 'get_problem_details',
-    description: `${LABEL} Get a Davis problem with evidence, response-time breakdown and impact (synthetic data).`,
+    description: 'Get a Davis problem with evidence, response-time breakdown and impact.',
     inputSchema: {
       type: 'object',
       properties: { problemId: { type: 'string', description: 'Problem ID or display ID such as P-26111142' } },
@@ -141,7 +140,7 @@ const TOOLS = [
   },
   {
     name: 'find_entity_by_name',
-    description: `${LABEL} Find a monitored entity (service, host, process) by name (synthetic data).`,
+    description: 'Find a monitored entity (service, host, process) by name.',
     inputSchema: {
       type: 'object',
       properties: { entityName: { type: 'string' } },
@@ -154,7 +153,7 @@ const TOOLS = [
   },
   {
     name: 'execute_dql',
-    description: `${LABEL} Run a DQL query (fetch logs / fetch spans / timeseries) against synthetic Grail data for ${SERVICE}.`,
+    description: 'Run a DQL query (fetch logs / fetch spans / timeseries) against Grail.',
     inputSchema: {
       type: 'object',
       properties: { dqlStatement: { type: 'string' } },
@@ -187,7 +186,7 @@ function handleMessage(message, now) {
       protocolVersion: SUPPORTED_PROTOCOL_VERSIONS.includes(requested) ? requested : SUPPORTED_PROTOCOL_VERSIONS[0],
       capabilities: { tools: { listChanged: false } },
       serverInfo: SERVER_INFO,
-      instructions: 'DEMO STAND-IN for a Dynatrace MCP server. All data is synthetic.',
+      instructions: 'Dynatrace MCP server: Davis problems, entities and DQL over Grail.',
     });
   }
   if (isNotification) return null;
