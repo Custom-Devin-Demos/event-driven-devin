@@ -666,7 +666,7 @@ const ALERT_SCENARIOS = {
     threshold: '> 2% of capacity changes',
     baseline: '~0.3% (7-day)',
     release: 'scheduling-service@1.4.0',
-    symptom: 'Since the 1.4.0 release, many capacity reductions on sessions that have accommodation seats are rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR, even though the new capacity still covers the accommodation seats. Increases, reductions on sessions without accommodation seats (which move the newest bookings to the waitlist as before), searches and bookings are fine. The legacy portal capacity is not updated through the outbox.',
+    symptom: 'Since the 1.4.0 release, many capacity reductions on sessions that have accommodation seats are rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR, even though the new capacity still covers the accommodation seats. Example: BOS01 session #198 (MHL-PHT) 23 \u2192 9 is rejected with "New capacity 9 is below the accommodation floor 10"; the legacy portal accepts it. Increases, reductions on sessions without accommodation seats, searches and bookings are fine. The legacy portal capacity is not updated through the outbox.',
     impact: 'Test centres cannot release seats in rooms that are out of service, so the legacy portal and partner channels keep selling seats that do not exist and candidates are turned away on exam day.',
     triggerWhen: { action: 'change-capacity' },
     alertOnStatus: [409],

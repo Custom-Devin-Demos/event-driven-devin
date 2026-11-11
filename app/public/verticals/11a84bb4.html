@@ -3,286 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Session scheduling | Northwind Assessment Network</title>
-  <style>
-    :root {
-      --navy: #10223F;
-      --accent: #0B6E99;
-      --accent-dark: #08577A;
-      --ink: #1F2933;
-      --muted: #5B6675;
-      --line: #D8DEE6;
-      --surface: #FFFFFF;
-      --page: #F3F5F8;
-      --soft: #EEF5F9;
-      --danger: #9B1C1C;
-      --danger-bg: #FDF0F0;
-      --success: #146C43;
-      --success-bg: #EAF6EF;
-      --warn: #8A5A00;
-      --warn-bg: #FFF6E0;
-    }
-    * { box-sizing: border-box; }
-    html, body { overflow-x: hidden; }
-    body { margin: 0; color: var(--ink); background: var(--page); font: 15px/1.5 "Segoe UI", Roboto, Arial, sans-serif; }
-    button, input, select { font: inherit; }
-    button { cursor: pointer; }
-    .site-header { min-height: 64px; background: var(--navy); color: #fff; display: flex; align-items: center; gap: 28px; padding: 0 max(20px, calc((100vw - 1200px) / 2)); }
-    .wordmark { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; min-height: 44px; }
-    .mark { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 8px; background: var(--accent); font-weight: 800; font-size: 19px; }
-    .wordmark-text { line-height: 1.15; font-weight: 700; font-size: 16px; }
-    .wordmark-text span { display: block; font-weight: 400; font-size: 12px; opacity: .8; }
-    .site-nav { display: flex; gap: 6px; }
-    .site-nav a { color: #D5DEEA; text-decoration: none; font-weight: 600; font-size: 14px; padding: 0 12px; min-height: 44px; display: flex; align-items: center; border-radius: 6px; }
-    .site-nav a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.12); }
-    .user { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #D5DEEA; white-space: nowrap; }
-    .avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #2C4A75; color: #fff; font-weight: 700; font-size: 13px; }
-    /* Bottom padding keeps the floating on-call demo ribbon clear of the last controls. */
-    main { width: min(100% - 40px, 1200px); margin: 0 auto; padding: 26px 0 40px; }
-    body { padding-bottom: 112px; }
-    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-    .eyebrow { color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    h1 { margin: 2px 0 4px; font-size: clamp(24px, 3.4vw, 30px); line-height: 1.2; }
-    .page-head p { margin: 0; color: var(--muted); }
-    .api-badge { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font: 12px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink); white-space: nowrap; }
-    .api-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #1F9D55; }
-    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 10px rgba(16,34,63,.05); }
-    .card + .card, .card + .panels, .panels + .card { margin-top: 18px; }
-    .card-head { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .card-head h2 { margin: 0; font-size: 17px; }
-    .card-head p { margin: 0; color: var(--muted); font-size: 13px; }
-    .card-body { padding: 18px 20px; }
-    .search-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 14px; align-items: end; }
-    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-    label { font-size: 13px; font-weight: 700; }
-    input, select { width: 100%; min-width: 0; min-height: 46px; padding: 10px 12px; border: 1px solid #A9B4C2; border-radius: 6px; background: #fff; color: var(--ink); }
-    input[readonly] { background: #F6F8FA; color: var(--muted); }
-    input:focus, select:focus, button:focus-visible { outline: 3px solid rgba(11,110,153,.25); outline-offset: 2px; }
-    .primary, .secondary { min-height: 46px; padding: 0 18px; border-radius: 6px; font-weight: 700; white-space: nowrap; }
-    .primary { border: 0; background: var(--accent); color: #fff; }
-    .primary:hover { background: var(--accent-dark); }
-    .primary:disabled, .secondary:disabled { opacity: .65; cursor: progress; }
-    .secondary { border: 1px solid var(--accent); background: #fff; color: var(--accent); }
-    .legend { color: var(--muted); font-size: 12px; }
-    .sessions { list-style: none; margin: 0; padding: 0; }
-    .session { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr) minmax(0, 2.2fr) auto; gap: 16px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--line); }
-    .session:first-child { border-top: 0; }
-    .session.selected { background: var(--soft); box-shadow: inset 4px 0 0 var(--accent); }
-    .session-title { font-weight: 700; }
-    .session-sub { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-    .note { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 4px; background: var(--warn-bg); color: var(--warn); font-size: 12px; font-weight: 600; }
-    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-    .stat { padding: 6px 8px; border-radius: 6px; background: #F6F8FA; text-align: center; }
-    .stat strong { display: block; font-size: 17px; line-height: 1.2; }
-    .stat span { display: block; color: var(--muted); font-size: 11px; line-height: 1.2; }
-    .stat.available strong { color: var(--success); }
-    .stat.full strong { color: var(--danger); }
-    .row-actions { display: flex; gap: 8px; }
-    .row-actions button { min-height: 44px; padding: 0 12px; font-size: 13px; }
-    .empty { padding: 22px 20px; color: var(--muted); }
-    .panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-    .panels .card { margin-top: 0; }
-    .form-grid { display: grid; gap: 14px; }
-    .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-    .form-actions { display: flex; justify-content: flex-end; }
-    .message { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 6px; overflow-wrap: anywhere; font-size: 14px; }
-    .message.show { display: block; }
-    .message.error { color: var(--danger); background: var(--danger-bg); border-left: 4px solid var(--danger); }
-    .message.success { color: var(--success); background: var(--success-bg); border-left: 4px solid var(--success); }
-    .message.pending { color: #234; background: var(--soft); border-left: 4px solid var(--accent); }
-    .message strong { display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-    .activity { list-style: none; margin: 0; padding: 0; font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .activity li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; padding: 8px 20px; border-top: 1px solid var(--line); }
-    .activity li:first-child { border-top: 0; }
-    .activity .path { overflow-wrap: anywhere; }
-    .activity .ok { color: var(--success); }
-    .activity .bad { color: var(--danger); font-weight: 700; }
-    footer { width: min(100% - 40px, 1200px); margin: 0 auto; padding: 0 0 28px; color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    footer code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    @media (max-width: 1020px) {
-      .search-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      #searchBtn { grid-column: 1 / -1; }
-      .session { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-      .stats { grid-column: 1 / -1; }
-      .row-actions { grid-column: 1 / -1; }
-      .row-actions button { flex: 1; }
-      .panels { grid-template-columns: minmax(0, 1fr); }
-    }
-    @media (max-width: 640px) {
-      .site-header { gap: 12px; padding: 0 14px; }
-      .site-nav { display: none; }
-      .user .user-name { display: none; }
-      main { width: calc(100% - 24px); padding-top: 18px; }
-      .page-head { flex-direction: column; align-items: flex-start; }
-      .card-head, .card-body { padding-left: 14px; padding-right: 14px; }
-      .search-grid { grid-template-columns: minmax(0, 1fr); }
-      .session { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 14px; }
-      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .two { grid-template-columns: minmax(0, 1fr); }
-      .summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .form-actions button { width: 100%; }
-      .activity li { grid-template-columns: 48px minmax(0, 1fr); padding: 8px 14px; }
-      .activity li .status { grid-column: 2; }
-      footer { width: calc(100% - 24px); }
-    }
-  </style>
+  <title>Northwind Scheduling</title>
+  <!-- Static replica of the scheduling-service admin UI (COG-GTM/SampleMvcWebApp, services/scheduling-service/frontend):
+       the compiled Tailwind stylesheet and the sonner toast styles are inlined from its production build. -->
+  <style>*,:before,:after{--tw-border-spacing-x: 0;--tw-border-spacing-y: 0;--tw-translate-x: 0;--tw-translate-y: 0;--tw-rotate: 0;--tw-skew-x: 0;--tw-skew-y: 0;--tw-scale-x: 1;--tw-scale-y: 1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness: proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width: 0px;--tw-ring-offset-color: #fff;--tw-ring-color: rgb(59 130 246 / .5);--tw-ring-offset-shadow: 0 0 #0000;--tw-ring-shadow: 0 0 #0000;--tw-shadow: 0 0 #0000;--tw-shadow-colored: 0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x: 0;--tw-border-spacing-y: 0;--tw-translate-x: 0;--tw-translate-y: 0;--tw-rotate: 0;--tw-skew-x: 0;--tw-skew-y: 0;--tw-scale-x: 1;--tw-scale-y: 1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness: proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width: 0px;--tw-ring-offset-color: #fff;--tw-ring-color: rgb(59 130 246 / .5);--tw-ring-offset-shadow: 0 0 #0000;--tw-ring-shadow: 0 0 #0000;--tw-shadow: 0 0 #0000;--tw-shadow-colored: 0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }*,:before,:after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}:before,:after{--tw-content: ""}html,:host{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dl,dd,h1,h2,h3,h4,h5,h6,hr,figure,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}ol,ul,menu{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}button,[role=button]{cursor:pointer}:disabled{cursor:default}img,svg,video,canvas,audio,iframe,embed,object{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.card{border-radius:1rem;border-width:1px;--tw-border-opacity: 1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1));--tw-bg-opacity: 1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1));--tw-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);--tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)}.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:.5rem;padding:.5rem .875rem;font-size:.875rem;line-height:1.25rem;font-weight:500;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.btn-primary:focus{outline:2px solid transparent;outline-offset:2px}.btn-primary:focus-visible{--tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000);--tw-ring-opacity: 1;--tw-ring-color: rgb(47 111 237 / var(--tw-ring-opacity, 1));--tw-ring-offset-width: 2px}.btn-primary:disabled{cursor:not-allowed;opacity:.5}.btn-primary{--tw-bg-opacity: 1;background-color:rgb(31 90 214 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.btn-primary:hover{--tw-bg-opacity: 1;background-color:rgb(26 71 168 / var(--tw-bg-opacity, 1))}.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:.5rem;padding:.5rem .875rem;font-size:.875rem;line-height:1.25rem;font-weight:500;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.btn-secondary:focus{outline:2px solid transparent;outline-offset:2px}.btn-secondary:focus-visible{--tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000);--tw-ring-opacity: 1;--tw-ring-color: rgb(47 111 237 / var(--tw-ring-opacity, 1));--tw-ring-offset-width: 2px}.btn-secondary:disabled{cursor:not-allowed;opacity:.5}.btn-secondary{border-width:1px;--tw-border-opacity: 1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1));--tw-bg-opacity: 1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.btn-secondary:hover{--tw-bg-opacity: 1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.btn-danger{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:.5rem;padding:.5rem .875rem;font-size:.875rem;line-height:1.25rem;font-weight:500;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.btn-danger:focus{outline:2px solid transparent;outline-offset:2px}.btn-danger:focus-visible{--tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000);--tw-ring-opacity: 1;--tw-ring-color: rgb(47 111 237 / var(--tw-ring-opacity, 1));--tw-ring-offset-width: 2px}.btn-danger:disabled{cursor:not-allowed;opacity:.5}.btn-danger{--tw-bg-opacity: 1;background-color:rgb(225 29 72 / var(--tw-bg-opacity, 1));--tw-text-opacity: 1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.btn-danger:hover{--tw-bg-opacity: 1;background-color:rgb(190 18 60 / var(--tw-bg-opacity, 1))}.input{display:block;width:100%;border-radius:.5rem;border-width:1px;--tw-border-opacity: 1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1));--tw-bg-opacity: 1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1));padding:.5rem .75rem;font-size:.875rem;line-height:1.25rem;--tw-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);--tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)}.input::-moz-placeholder{--tw-text-opacity: 1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.input::placeholder{--tw-text-opacity: 1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.input:focus{--tw-border-opacity: 1;border-color:rgb(47 111 237 / var(--tw-border-opacity, 1));outline:2px solid transparent;outline-offset:2px;--tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow, 0 0 #0000);--tw-ring-opacity: 1;--tw-ring-color: rgb(217 234 255 / var(--tw-ring-opacity, 1))}.input-error{--tw-border-opacity: 1;border-color:rgb(251 113 133 / var(--tw-border-opacity, 1))}.input-error:focus{--tw-border-opacity: 1;border-color:rgb(244 63 94 / var(--tw-border-opacity, 1));--tw-ring-opacity: 1;--tw-ring-color: rgb(255 228 230 / var(--tw-ring-opacity, 1))}.label{margin-bottom:.25rem;display:block;font-size:.75rem;line-height:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.025em;--tw-text-opacity: 1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.field-error{margin-top:.25rem;font-size:.75rem;line-height:1rem;--tw-text-opacity: 1;color:rgb(225 29 72 / var(--tw-text-opacity, 1))}.badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.125rem .5rem;font-size:.75rem;line-height:1rem;font-weight:500}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.inset-0{top:0;right:0;bottom:0;left:0}.right-0{right:0}.top-0{top:0}.z-30{z-index:30}.z-40{z-index:40}.mx-auto{margin-left:auto;margin-right:auto}.mb-1\.5{margin-bottom:.375rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.h-2{height:.5rem}.h-4{height:1rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-full{height:100%}.min-h-screen{min-height:100vh}.w-20{width:5rem}.w-4{width:1rem}.w-48{width:12rem}.w-64{width:16rem}.w-72{width:18rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-full{width:100%}.min-w-0{min-width:0px}.min-w-\[16rem\]{min-width:16rem}.min-w-full{min-width:100%}.max-w-7xl{max-width:80rem}.max-w-md{max-width:28rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.translate-x-0{--tw-translate-x: 0px;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-x-full{--tw-translate-x: 100%;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes spin{to{transform:rotate(360deg)}}.animate-spin{animation:spin 1s linear infinite}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.place-items-center{place-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-end{justify-content:flex-end}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse: 0;margin-top:calc(.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem * var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse: 0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.space-y-8>:not([hidden])~:not([hidden]){--tw-space-y-reverse: 0;margin-top:calc(2rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem * var(--tw-space-y-reverse))}.divide-y>:not([hidden])~:not([hidden]){--tw-divide-y-reverse: 0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-slate-100>:not([hidden])~:not([hidden]){--tw-divide-opacity: 1;border-color:rgb(241 245 249 / var(--tw-divide-opacity, 1))}.divide-slate-200>:not([hidden])~:not([hidden]){--tw-divide-opacity: 1;border-color:rgb(226 232 240 / var(--tw-divide-opacity, 1))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-brand-500{--tw-border-opacity: 1;border-color:rgb(47 111 237 / var(--tw-border-opacity, 1))}.border-rose-200{--tw-border-opacity: 1;border-color:rgb(254 205 211 / var(--tw-border-opacity, 1))}.border-slate-100{--tw-border-opacity: 1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity: 1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-transparent{border-color:transparent}.border-t-transparent{border-top-color:transparent}.bg-amber-100{--tw-bg-opacity: 1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-amber-50{--tw-bg-opacity: 1;background-color:rgb(255 251 235 / var(--tw-bg-opacity, 1))}.bg-amber-500{--tw-bg-opacity: 1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-emerald-100{--tw-bg-opacity: 1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-emerald-50{--tw-bg-opacity: 1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-emerald-500{--tw-bg-opacity: 1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-indigo-50{--tw-bg-opacity: 1;background-color:rgb(238 242 255 / var(--tw-bg-opacity, 1))}.bg-rose-100{--tw-bg-opacity: 1;background-color:rgb(255 228 230 / var(--tw-bg-opacity, 1))}.bg-rose-50{--tw-bg-opacity: 1;background-color:rgb(255 241 242 / var(--tw-bg-opacity, 1))}.bg-rose-500{--tw-bg-opacity: 1;background-color:rgb(244 63 94 / var(--tw-bg-opacity, 1))}.bg-sky-100{--tw-bg-opacity: 1;background-color:rgb(224 242 254 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity: 1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-200{--tw-bg-opacity: 1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity: 1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-900\/30{background-color:#0f172a4d}.bg-slate-900\/40{background-color:#0f172a66}.bg-white{--tw-bg-opacity: 1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/15{background-color:#ffffff26}.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}.from-brand-700{--tw-gradient-from: #1a47a8 var(--tw-gradient-from-position);--tw-gradient-to: rgb(26 71 168 / 0) var(--tw-gradient-to-position);--tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to)}.via-brand-600{--tw-gradient-to: rgb(31 90 214 / 0) var(--tw-gradient-to-position);--tw-gradient-stops: var(--tw-gradient-from), #1f5ad6 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-indigo-600{--tw-gradient-to: #4f46e5 var(--tw-gradient-to-position)}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xs{font-size:.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing: tabular-nums;font-variant-numeric:var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction)}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.text-amber-600{--tw-text-opacity: 1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-amber-700{--tw-text-opacity: 1;color:rgb(180 83 9 / var(--tw-text-opacity, 1))}.text-amber-800{--tw-text-opacity: 1;color:rgb(146 64 14 / var(--tw-text-opacity, 1))}.text-brand-100{--tw-text-opacity: 1;color:rgb(217 234 255 / var(--tw-text-opacity, 1))}.text-brand-600{--tw-text-opacity: 1;color:rgb(31 90 214 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity: 1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-emerald-800{--tw-text-opacity: 1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-indigo-700{--tw-text-opacity: 1;color:rgb(67 56 202 / var(--tw-text-opacity, 1))}.text-rose-600{--tw-text-opacity: 1;color:rgb(225 29 72 / var(--tw-text-opacity, 1))}.text-rose-700{--tw-text-opacity: 1;color:rgb(190 18 60 / var(--tw-text-opacity, 1))}.text-sky-800{--tw-text-opacity: 1;color:rgb(7 89 133 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity: 1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity: 1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity: 1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity: 1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity: 1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity: 1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-0{opacity:0}.opacity-100{opacity:1}.shadow{--tw-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1);--tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)}.shadow-2xl{--tw-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);--tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur: blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.duration-300{transition-duration:.3s}.hover\:-translate-y-0\.5:hover{--tw-translate-y: -.125rem;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-brand-500:hover{--tw-border-opacity: 1;border-color:rgb(47 111 237 / var(--tw-border-opacity, 1))}.hover\:border-slate-300:hover{--tw-border-opacity: 1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.hover\:bg-amber-200:hover{--tw-bg-opacity: 1;background-color:rgb(253 230 138 / var(--tw-bg-opacity, 1))}.hover\:bg-rose-50:hover{--tw-bg-opacity: 1;background-color:rgb(255 241 242 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity: 1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-50\/60:hover{background-color:#f8fafc99}.hover\:bg-white:hover{--tw-bg-opacity: 1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/10:hover{background-color:#ffffff1a}.hover\:text-white:hover{--tw-text-opacity: 1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:underline:hover{text-decoration-line:underline}.hover\:shadow-md:hover{--tw-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);--tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow)}.group:hover .group-hover\:text-brand-600{--tw-text-opacity: 1;color:rgb(31 90 214 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.sm\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:py-8{padding-top:2rem;padding-bottom:2rem}}@media (min-width: 1024px){.lg\:sticky{position:sticky}.lg\:top-6{top:1.5rem}.lg\:col-span-2{grid-column:span 2 / span 2}.lg\:col-span-3{grid-column:span 3 / span 3}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.lg\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}</style>
+  <style>:where(html[dir="ltr"]),:where([data-sonner-toaster][dir="ltr"]){--toast-icon-margin-start: -3px;--toast-icon-margin-end: 4px;--toast-svg-margin-start: -1px;--toast-svg-margin-end: 0px;--toast-button-margin-start: auto;--toast-button-margin-end: 0;--toast-close-button-start: 0;--toast-close-button-end: unset;--toast-close-button-transform: translate(-35%, -35%)}:where(html[dir="rtl"]),:where([data-sonner-toaster][dir="rtl"]){--toast-icon-margin-start: 4px;--toast-icon-margin-end: -3px;--toast-svg-margin-start: 0px;--toast-svg-margin-end: -1px;--toast-button-margin-start: 0;--toast-button-margin-end: auto;--toast-close-button-start: unset;--toast-close-button-end: 0;--toast-close-button-transform: translate(35%, -35%)}:where([data-sonner-toaster]){position:fixed;width:var(--width);font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;--gray1: hsl(0, 0%, 99%);--gray2: hsl(0, 0%, 97.3%);--gray3: hsl(0, 0%, 95.1%);--gray4: hsl(0, 0%, 93%);--gray5: hsl(0, 0%, 90.9%);--gray6: hsl(0, 0%, 88.7%);--gray7: hsl(0, 0%, 85.8%);--gray8: hsl(0, 0%, 78%);--gray9: hsl(0, 0%, 56.1%);--gray10: hsl(0, 0%, 52.3%);--gray11: hsl(0, 0%, 43.5%);--gray12: hsl(0, 0%, 9%);--border-radius: 8px;box-sizing:border-box;padding:0;margin:0;list-style:none;outline:none;z-index:999999999;transition:transform .4s ease}:where([data-sonner-toaster][data-lifted="true"]){transform:translateY(-10px)}@media (hover: none) and (pointer: coarse){:where([data-sonner-toaster][data-lifted="true"]){transform:none}}:where([data-sonner-toaster][data-x-position="right"]){right:max(var(--offset),env(safe-area-inset-right))}:where([data-sonner-toaster][data-x-position="left"]){left:max(var(--offset),env(safe-area-inset-left))}:where([data-sonner-toaster][data-x-position="center"]){left:50%;transform:translate(-50%)}:where([data-sonner-toaster][data-y-position="top"]){top:max(var(--offset),env(safe-area-inset-top))}:where([data-sonner-toaster][data-y-position="bottom"]){bottom:max(var(--offset),env(safe-area-inset-bottom))}:where([data-sonner-toast]){--y: translateY(100%);--lift-amount: calc(var(--lift) * var(--gap));z-index:var(--z-index);position:absolute;opacity:0;transform:var(--y);filter:blur(0);touch-action:none;transition:transform .4s,opacity .4s,height .4s,box-shadow .2s;box-sizing:border-box;outline:none;overflow-wrap:anywhere}:where([data-sonner-toast][data-styled="true"]){padding:16px;background:var(--normal-bg);border:1px solid var(--normal-border);color:var(--normal-text);border-radius:var(--border-radius);box-shadow:0 4px 12px #0000001a;width:var(--width);font-size:13px;display:flex;align-items:center;gap:6px}:where([data-sonner-toast]:focus-visible){box-shadow:0 4px 12px #0000001a,0 0 0 2px #0003}:where([data-sonner-toast][data-y-position="top"]){top:0;--y: translateY(-100%);--lift: 1;--lift-amount: calc(1 * var(--gap))}:where([data-sonner-toast][data-y-position="bottom"]){bottom:0;--y: translateY(100%);--lift: -1;--lift-amount: calc(var(--lift) * var(--gap))}:where([data-sonner-toast]) :where([data-description]){font-weight:400;line-height:1.4;color:inherit}:where([data-sonner-toast]) :where([data-title]){font-weight:500;line-height:1.5;color:inherit}:where([data-sonner-toast]) :where([data-icon]){display:flex;height:16px;width:16px;position:relative;justify-content:flex-start;align-items:center;flex-shrink:0;margin-left:var(--toast-icon-margin-start);margin-right:var(--toast-icon-margin-end)}:where([data-sonner-toast][data-promise="true"]) :where([data-icon])>svg{opacity:0;transform:scale(.8);transform-origin:center;animation:sonner-fade-in .3s ease forwards}:where([data-sonner-toast]) :where([data-icon])>*{flex-shrink:0}:where([data-sonner-toast]) :where([data-icon]) svg{margin-left:var(--toast-svg-margin-start);margin-right:var(--toast-svg-margin-end)}:where([data-sonner-toast]) :where([data-content]){display:flex;flex-direction:column;gap:2px}[data-sonner-toast][data-styled=true] [data-button]{border-radius:4px;padding-left:8px;padding-right:8px;height:24px;font-size:12px;color:var(--normal-bg);background:var(--normal-text);margin-left:var(--toast-button-margin-start);margin-right:var(--toast-button-margin-end);border:none;cursor:pointer;outline:none;display:flex;align-items:center;flex-shrink:0;transition:opacity .4s,box-shadow .2s}:where([data-sonner-toast]) :where([data-button]):focus-visible{box-shadow:0 0 0 2px #0006}:where([data-sonner-toast]) :where([data-button]):first-of-type{margin-left:var(--toast-button-margin-start);margin-right:var(--toast-button-margin-end)}:where([data-sonner-toast]) :where([data-cancel]){color:var(--normal-text);background:rgba(0,0,0,.08)}:where([data-sonner-toast][data-theme="dark"]) :where([data-cancel]){background:rgba(255,255,255,.3)}:where([data-sonner-toast]) :where([data-close-button]){position:absolute;left:var(--toast-close-button-start);right:var(--toast-close-button-end);top:0;height:20px;width:20px;display:flex;justify-content:center;align-items:center;padding:0;color:var(--gray12);border:1px solid var(--gray4);transform:var(--toast-close-button-transform);border-radius:50%;cursor:pointer;z-index:1;transition:opacity .1s,background .2s,border-color .2s}[data-sonner-toast] [data-close-button]{background:var(--gray1)}:where([data-sonner-toast]) :where([data-close-button]):focus-visible{box-shadow:0 4px 12px #0000001a,0 0 0 2px #0003}:where([data-sonner-toast]) :where([data-disabled="true"]){cursor:not-allowed}:where([data-sonner-toast]):hover :where([data-close-button]):hover{background:var(--gray2);border-color:var(--gray5)}:where([data-sonner-toast][data-swiping="true"]):before{content:"";position:absolute;left:0;right:0;height:100%;z-index:-1}:where([data-sonner-toast][data-y-position="top"][data-swiping="true"]):before{bottom:50%;transform:scaleY(3) translateY(50%)}:where([data-sonner-toast][data-y-position="bottom"][data-swiping="true"]):before{top:50%;transform:scaleY(3) translateY(-50%)}:where([data-sonner-toast][data-swiping="false"][data-removed="true"]):before{content:"";position:absolute;inset:0;transform:scaleY(2)}:where([data-sonner-toast]):after{content:"";position:absolute;left:0;height:calc(var(--gap) + 1px);bottom:100%;width:100%}:where([data-sonner-toast][data-mounted="true"]){--y: translateY(0);opacity:1}:where([data-sonner-toast][data-expanded="false"][data-front="false"]){--scale: var(--toasts-before) * .05 + 1;--y: translateY(calc(var(--lift-amount) * var(--toasts-before))) scale(calc(-1 * var(--scale)));height:var(--front-toast-height)}:where([data-sonner-toast])>*{transition:opacity .4s}:where([data-sonner-toast][data-expanded="false"][data-front="false"][data-styled="true"])>*{opacity:0}:where([data-sonner-toast][data-visible="false"]){opacity:0;pointer-events:none}:where([data-sonner-toast][data-mounted="true"][data-expanded="true"]){--y: translateY(calc(var(--lift) * var(--offset)));height:var(--initial-height)}:where([data-sonner-toast][data-removed="true"][data-front="true"][data-swipe-out="false"]){--y: translateY(calc(var(--lift) * -100%));opacity:0}:where([data-sonner-toast][data-removed="true"][data-front="false"][data-swipe-out="false"][data-expanded="true"]){--y: translateY(calc(var(--lift) * var(--offset) + var(--lift) * -100%));opacity:0}:where([data-sonner-toast][data-removed="true"][data-front="false"][data-swipe-out="false"][data-expanded="false"]){--y: translateY(40%);opacity:0;transition:transform .5s,opacity .2s}:where([data-sonner-toast][data-removed="true"][data-front="false"]):before{height:calc(var(--initial-height) + 20%)}[data-sonner-toast][data-swiping=true]{transform:var(--y) translateY(var(--swipe-amount, 0px));transition:none}[data-sonner-toast][data-swiped=true]{user-select:none}[data-sonner-toast][data-swipe-out=true][data-y-position=bottom],[data-sonner-toast][data-swipe-out=true][data-y-position=top]{animation:swipe-out .2s ease-out forwards}@keyframes swipe-out{0%{transform:translateY(calc(var(--lift) * var(--offset) + var(--swipe-amount)));opacity:1}to{transform:translateY(calc(var(--lift) * var(--offset) + var(--swipe-amount) + var(--lift) * -100%));opacity:0}}@media (max-width: 600px){[data-sonner-toaster]{position:fixed;--mobile-offset: 16px;right:var(--mobile-offset);left:var(--mobile-offset);width:100%}[data-sonner-toaster][dir=rtl]{left:calc(var(--mobile-offset) * -1)}[data-sonner-toaster] [data-sonner-toast]{left:0;right:0;width:calc(100% - var(--mobile-offset) * 2)}[data-sonner-toaster][data-x-position=left]{left:var(--mobile-offset)}[data-sonner-toaster][data-y-position=bottom]{bottom:20px}[data-sonner-toaster][data-y-position=top]{top:20px}[data-sonner-toaster][data-x-position=center]{left:var(--mobile-offset);right:var(--mobile-offset);transform:none}}[data-sonner-toaster][data-theme=light]{--normal-bg: #fff;--normal-border: var(--gray4);--normal-text: var(--gray12);--success-bg: hsl(143, 85%, 96%);--success-border: hsl(145, 92%, 91%);--success-text: hsl(140, 100%, 27%);--info-bg: hsl(208, 100%, 97%);--info-border: hsl(221, 91%, 91%);--info-text: hsl(210, 92%, 45%);--warning-bg: hsl(49, 100%, 97%);--warning-border: hsl(49, 91%, 91%);--warning-text: hsl(31, 92%, 45%);--error-bg: hsl(359, 100%, 97%);--error-border: hsl(359, 100%, 94%);--error-text: hsl(360, 100%, 45%)}[data-sonner-toaster][data-theme=light] [data-sonner-toast][data-invert=true]{--normal-bg: #000;--normal-border: hsl(0, 0%, 20%);--normal-text: var(--gray1)}[data-sonner-toaster][data-theme=dark] [data-sonner-toast][data-invert=true]{--normal-bg: #fff;--normal-border: var(--gray3);--normal-text: var(--gray12)}[data-sonner-toaster][data-theme=dark]{--normal-bg: #000;--normal-border: hsl(0, 0%, 20%);--normal-text: var(--gray1);--success-bg: hsl(150, 100%, 6%);--success-border: hsl(147, 100%, 12%);--success-text: hsl(150, 86%, 65%);--info-bg: hsl(215, 100%, 6%);--info-border: hsl(223, 100%, 12%);--info-text: hsl(216, 87%, 65%);--warning-bg: hsl(64, 100%, 6%);--warning-border: hsl(60, 100%, 12%);--warning-text: hsl(46, 87%, 65%);--error-bg: hsl(358, 76%, 10%);--error-border: hsl(357, 89%, 16%);--error-text: hsl(358, 100%, 81%)}[data-rich-colors=true][data-sonner-toast][data-type=success],[data-rich-colors=true][data-sonner-toast][data-type=success] [data-close-button]{background:var(--success-bg);border-color:var(--success-border);color:var(--success-text)}[data-rich-colors=true][data-sonner-toast][data-type=info],[data-rich-colors=true][data-sonner-toast][data-type=info] [data-close-button]{background:var(--info-bg);border-color:var(--info-border);color:var(--info-text)}[data-rich-colors=true][data-sonner-toast][data-type=warning],[data-rich-colors=true][data-sonner-toast][data-type=warning] [data-close-button]{background:var(--warning-bg);border-color:var(--warning-border);color:var(--warning-text)}[data-rich-colors=true][data-sonner-toast][data-type=error],[data-rich-colors=true][data-sonner-toast][data-type=error] [data-close-button]{background:var(--error-bg);border-color:var(--error-border);color:var(--error-text)}.sonner-loading-wrapper{--size: 16px;height:var(--size);width:var(--size);position:absolute;inset:0;z-index:10}.sonner-loading-wrapper[data-visible=false]{transform-origin:center;animation:sonner-fade-out .2s ease forwards}.sonner-spinner{position:relative;top:50%;left:50%;height:var(--size);width:var(--size)}.sonner-loading-bar{animation:sonner-spin 1.2s linear infinite;background:var(--gray11);border-radius:6px;height:8%;left:-10%;position:absolute;top:-3.9%;width:24%}.sonner-loading-bar:nth-child(1){animation-delay:-1.2s;transform:rotate(.0001deg) translate(146%)}.sonner-loading-bar:nth-child(2){animation-delay:-1.1s;transform:rotate(30deg) translate(146%)}.sonner-loading-bar:nth-child(3){animation-delay:-1s;transform:rotate(60deg) translate(146%)}.sonner-loading-bar:nth-child(4){animation-delay:-.9s;transform:rotate(90deg) translate(146%)}.sonner-loading-bar:nth-child(5){animation-delay:-.8s;transform:rotate(120deg) translate(146%)}.sonner-loading-bar:nth-child(6){animation-delay:-.7s;transform:rotate(150deg) translate(146%)}.sonner-loading-bar:nth-child(7){animation-delay:-.6s;transform:rotate(180deg) translate(146%)}.sonner-loading-bar:nth-child(8){animation-delay:-.5s;transform:rotate(210deg) translate(146%)}.sonner-loading-bar:nth-child(9){animation-delay:-.4s;transform:rotate(240deg) translate(146%)}.sonner-loading-bar:nth-child(10){animation-delay:-.3s;transform:rotate(270deg) translate(146%)}.sonner-loading-bar:nth-child(11){animation-delay:-.2s;transform:rotate(300deg) translate(146%)}.sonner-loading-bar:nth-child(12){animation-delay:-.1s;transform:rotate(330deg) translate(146%)}@keyframes sonner-fade-in{0%{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}@keyframes sonner-fade-out{0%{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.8)}}@keyframes sonner-spin{0%{opacity:1}to{opacity:.15}}@media (prefers-reduced-motion){[data-sonner-toast],[data-sonner-toast]>*,.sonner-loading-bar{transition:none!important;animation:none!important}}.sonner-loader{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transform-origin:center;transition:opacity .2s,transform .2s}.sonner-loader[data-visible=false]{opacity:0;transform:scale(.8) translate(-50%,-50%)}</style>
 </head>
-<body>
-  <header class="site-header">
-    <a class="wordmark" href="#sessions" aria-label="Northwind Assessment Network centre administration">
-      <span class="mark" aria-hidden="true">N</span>
-      <span class="wordmark-text">Northwind<span>Assessment Network</span></span>
-    </a>
-    <nav class="site-nav" aria-label="Centre administration">
-      <a href="#sessions" aria-current="page">Sessions</a>
-      <a href="#booking">Bookings</a>
-      <a href="#capacity">Capacity</a>
-    </nav>
-    <div class="user"><span class="user-name">Jordan Ellis · Centre scheduler</span><span class="avatar" aria-hidden="true">JE</span></div>
-  </header>
-
-  <main>
-    <section class="page-head">
-      <div>
-        <div class="eyebrow">Centre administration</div>
-        <h1>Session scheduling</h1>
-        <p>Search exam sessions, book seats for candidates and adjust session capacity.</p>
-      </div>
-      <span class="api-badge" title="Requests on this page are served by scheduling-service"><span class="dot" aria-hidden="true"></span>scheduling-service v1.4 · /api/v1</span>
-    </section>
-
-    <section class="card" aria-labelledby="searchTitle">
-      <div class="card-head">
-        <h2 id="searchTitle">Find sessions</h2>
-        <p>GET /api/v2/centers/{centerCode}/sessions</p>
-      </div>
-      <div class="card-body">
-        <form class="search-grid" id="searchForm">
-          <div class="field">
-            <label for="centerCode">Test centre</label>
-            <select id="centerCode">
-              <option value="BOS01" selected>BOS01 · Harborview Testing Centre</option>
-              <option value="NYC02">NYC02 · Midtown Assessment Suites</option>
-              <option value="ATL01">ATL01 · Peachtree Exam Centre</option>
-              <option value="DEN01">DEN01 · Front Range Exam Centre</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="examCode">Exam</label>
-            <select id="examCode">
-              <option value="" selected>All exams</option>
-              <option value="CTA-SEC2">CTA-SEC2 · Security Operations Associate</option>
-              <option value="BCB-PM100">BCB-PM100 · Project Management Practitioner</option>
-              <option value="MHL-PHT">MHL-PHT · Pharmacy Technician Certificate</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="fromDate">From</label>
-            <input id="fromDate" type="date">
-          </div>
-          <div class="field">
-            <label for="toDate">To</label>
-            <input id="toDate" type="date">
-          </div>
-          <button class="primary" id="searchBtn" type="submit">Search sessions</button>
-        </form>
-        <div class="message" id="searchMessage" role="status" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <section class="card" id="sessions" aria-labelledby="sessionsTitle">
-      <div class="card-head">
-        <h2 id="sessionsTitle">Sessions</h2>
-        <p class="legend">Capacity counts every seat, including accommodation seats. Seats available = capacity − booked.</p>
-      </div>
-      <ul class="sessions" id="sessionList" aria-live="polite"><li class="empty">Loading sessions…</li></ul>
-    </section>
-
-    <div class="panels">
-      <section class="card" id="booking" aria-labelledby="bookingTitle">
-        <div class="card-head">
-          <h2 id="bookingTitle">Book a seat</h2>
-          <p>POST /api/v2/bookings</p>
-        </div>
-        <div class="card-body">
-          <form class="form-grid" id="bookingForm">
-            <div class="field">
-              <label for="bookingSession">Session</label>
-              <input id="bookingSession" type="text" readonly value="Select a session above">
-            </div>
-            <div class="two">
-              <div class="field">
-                <label for="candidateNumber">Candidate number</label>
-                <input id="candidateNumber" type="text" value="NW20481736" maxlength="10" autocomplete="off" spellcheck="false">
-              </div>
-              <div class="field">
-                <label for="accommodationCode">Accommodation</label>
-                <select id="accommodationCode">
-                  <option value="" selected>None</option>
-                  <option value="ET25">ET25 · 25% extra time</option>
-                  <option value="ET50">ET50 · 50% extra time</option>
-                  <option value="SR">SR · Separate room</option>
-                  <option value="RB">RB · Rest breaks</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-actions"><button class="primary" id="bookBtn" type="submit" disabled>Book seat</button></div>
-          </form>
-          <div class="message" id="bookingMessage" role="status" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <section class="card" id="capacity" aria-labelledby="capacityTitle">
-        <div class="card-head">
-          <h2 id="capacityTitle">Change session capacity</h2>
-          <p>PUT /api/v2/sessions/{sessionId}/capacity</p>
-        </div>
-        <div class="card-body">
-          <form class="form-grid" id="capacityForm">
-            <div class="field">
-              <label for="capacitySession">Session</label>
-              <input id="capacitySession" type="text" readonly value="Select a session above">
-            </div>
-            <div class="summary" aria-label="Current seats">
-              <div class="stat"><strong id="sumCapacity">—</strong><span>Capacity</span></div>
-              <div class="stat"><strong id="sumAccommodation">—</strong><span>Accommodation</span></div>
-              <div class="stat"><strong id="sumBooked">—</strong><span>Booked</span></div>
-            </div>
-            <div class="two">
-              <div class="field">
-                <label for="newCapacity">New capacity</label>
-                <input id="newCapacity" type="number" min="0" max="200" step="1" inputmode="numeric" value="24">
-              </div>
-              <div class="field">
-                <label for="capacityReason">Reason</label>
-                <input id="capacityReason" type="text" maxlength="120" value="6 workstations out of service">
-              </div>
-            </div>
-            <div class="form-actions"><button class="primary" id="capacityBtn" type="submit" disabled>Save capacity</button></div>
-          </form>
-          <div class="message" id="capacityMessage" role="status" aria-live="polite"></div>
-        </div>
-      </section>
-    </div>
-
-    <section class="card" aria-labelledby="activityTitle">
-      <div class="card-head">
-        <h2 id="activityTitle">API activity</h2>
-        <p>Calls from this page to scheduling-service</p>
-      </div>
-      <ul class="activity" id="activityList"><li><span>—</span><span class="path">No calls yet</span><span></span></li></ul>
-    </section>
-  </main>
-
-  <footer>
-    <span>Served by <code>scheduling-service v1.4</code> · Northwind Assessment Network centre operations</span>
-    <span>Times shown in each test centre's local time</span>
-  </footer>
-
+<body class="bg-slate-50 text-slate-900 antialiased">
+  <div id="root"><div class="min-h-screen"><header class="bg-gradient-to-r from-brand-700 via-brand-600 to-indigo-600 shadow"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6"><a class="flex items-center gap-2 text-white" href="#/"><span class="grid h-9 w-9 place-items-center rounded-xl bg-white/15 text-lg font-bold">N</span><span class="leading-tight"><span class="block text-sm font-semibold">Northwind Assessment Network</span><span class="block text-xs text-brand-100">Test-center scheduling</span></span></a><nav class="flex flex-wrap gap-1" id="nav"><a data-nav="find" href="#/">Find a session</a><a data-nav="bookings" href="#/my-bookings">My bookings</a><a data-nav="admin" href="#/admin">Center admin</a></nav></div></header><main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8" id="main"></main></div><section aria-label="Notifications alt+T" tabindex="-1" aria-live="polite" aria-relevant="additions text" aria-atomic="false" id="toaster"></section></div>
   <script>
     (function () {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
       fetch('/api/config').then(function (response) { return response.json(); }).then(function (config) {
         if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
         if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
@@ -291,350 +21,641 @@
 
     (function () {
       var API = '/api/northwind-scheduling';
-      var DEMO_SESSION_ID = 41872;
-      var TZ_LABELS = { 'America/Chicago': 'CT', 'America/New_York': 'ET', 'America/Denver': 'MT' };
-      var STATUS_TEXT = { 200: 'OK', 201: 'Created', 400: 'Bad Request', 404: 'Not Found', 409: 'Conflict', 500: 'Server Error' };
+      var DEFAULT_ROUTE = '#/admin/centers/BOS01';
+      var main = document.getElementById('main');
+      var routeSeq = 0;
 
-      var centerSelect = document.getElementById('centerCode');
-      var examSelect = document.getElementById('examCode');
-      var fromInput = document.getElementById('fromDate');
-      var toInput = document.getElementById('toDate');
-      var searchBtn = document.getElementById('searchBtn');
-      var sessionList = document.getElementById('sessionList');
-      var sessionsTitle = document.getElementById('sessionsTitle');
-      var bookBtn = document.getElementById('bookBtn');
-      var capacityBtn = document.getElementById('capacityBtn');
-      var newCapacityInput = document.getElementById('newCapacity');
-      var messages = {
-        search: document.getElementById('searchMessage'),
-        booking: document.getElementById('bookingMessage'),
-        capacity: document.getElementById('capacityMessage'),
+      // ---- api.ts ---------------------------------------------------------
+      function ApiError(status, code, message, legacyCode) {
+        var e = new Error(message);
+        e.status = status; e.code = code; e.legacyCode = legacyCode; e.isApiError = true;
+        return e;
+      }
+      function call(path, body) {
+        return fetch(API + path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(body || {}),
+        }).then(function (res) {
+          return res.text().then(function (text) {
+            var json = null;
+            try { json = text ? JSON.parse(text) : null; } catch (e) { json = null; }
+            if (!res.ok) throw ApiError(res.status, (json && json.error) || 'ERROR', (json && json.message) || res.statusText, (json && json.legacyCode) || null);
+            return json;
+          });
+        });
+      }
+      var referencePromise = null;
+      var api = {
+        reference: function () {
+          if (!referencePromise) referencePromise = call('/reference', { action: 'reference-data' }).catch(function (e) { referencePromise = null; throw e; });
+          return referencePromise;
+        },
+        sessions: function (centerCode, examCode, from, to) {
+          return call('/sessions/search', { action: 'search-sessions', centerCode: centerCode, examCode: examCode || null, from: from || null, to: to || null })
+            .then(function (r) { return r.sessions; });
+        },
+        session: function (id) { return call('/sessions/detail', { action: 'get-session', sessionId: id }); },
+        waitlist: function (id) { return call('/sessions/waitlist', { action: 'get-waitlist', sessionId: id }); },
+        changeCapacity: function (id, newCapacity) {
+          return call('/sessions/capacity', { action: 'change-capacity', sessionId: id, newCapacity: newCapacity, actor: 'admin-ui' });
+        },
+        book: function (sessionId, candidateNumber, accommodationCode) {
+          return call('/bookings', { action: 'book-seat', sessionId: sessionId, candidateNumber: candidateNumber, accommodationCode: accommodationCode });
+        },
+        candidateBookings: function (n) { return call('/candidates/bookings', { action: 'candidate-bookings', candidateNumber: n }); },
       };
-      var sessions = [];
-      var selected = null;
-      var busy = { search: false, booking: false, capacity: false };
-      var searchSeq = 0;
-      var firstLoad = true;
 
-      function isoDay(offset) {
+      // ---- format.ts / hooks.ts --------------------------------------------
+      function esc(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function formatDateTime(iso) {
+        if (!iso) return '-';
+        return new Date(iso).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      }
+      function formatDate(iso) {
+        return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      function formatTime(iso) {
+        return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+      function seatTone(available, capacity) {
+        if (available <= 0) return 'full';
+        if (available <= Math.max(2, Math.floor(capacity * 0.2))) return 'low';
+        return 'ok';
+      }
+      function validateCapacity(value, accommodationCapacity) {
+        if (value.trim() === '') return 'Enter a capacity';
+        if (!/^\d+$/.test(value.trim())) return 'Capacity must be a whole number';
+        var n = Number(value);
+        if (n > 500) return 'Capacity cannot exceed 500';
+        if (n < accommodationCapacity) return 'Cannot go below the ' + accommodationCapacity + ' accommodation seats';
+        return null;
+      }
+      function validateCandidateNumber(value) {
+        var v = value.trim().toUpperCase();
+        if (!v) return 'Candidate number is required';
+        if (!/^NW\d{8}$/.test(v)) return 'Use the format NW followed by 8 digits, e.g. NW00000901';
+        return null;
+      }
+      function needsAccommodationSeat(code) { return code === 'ET25' || code === 'ET50'; }
+      var ACCOMMODATION_OPTIONS = [
+        { value: '', label: 'None' },
+        { value: 'ET25', label: 'ET25 - 25% extra time (accommodation seat)' },
+        { value: 'ET50', label: 'ET50 - 50% extra time (accommodation seat)' },
+        { value: 'SR', label: 'SR - separate room' },
+        { value: 'RB', label: 'RB - rest breaks' },
+      ];
+      function todayIso() {
         var d = new Date();
-        d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + offset));
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      }
+      function plusDays(iso, days) {
+        var d = new Date(iso + 'T00:00:00Z');
+        d.setUTCDate(d.getUTCDate() + days);
         return d.toISOString().slice(0, 10);
       }
-      fromInput.value = isoDay(0);
-      toInput.value = isoDay(14);
+      var CANDIDATE_KEY = 'nw.candidateNumber';
+      function rememberedCandidate() { try { return localStorage.getItem(CANDIDATE_KEY) || ''; } catch (e) { return ''; } }
+      function rememberCandidate(n) { try { localStorage.setItem(CANDIDATE_KEY, n); } catch (e) { /* private mode */ } }
 
-      function formatDate(day) {
-        return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })
-          .format(new Date(day + 'T00:00:00Z'));
+      // ---- sonner <Toaster richColors position="top-right" closeButton /> ----
+      var ICONS = {
+        success: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" height="20" width="20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"></path></svg>',
+        warning: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" height="20" width="20"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>',
+        error: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" height="20" width="20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg>',
+      };
+      var CLOSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+      var toaster = document.getElementById('toaster');
+      var activeToast = null;
+      function dismissToast(li) {
+        if (!li || li.getAttribute('data-removed') === 'true') return;
+        clearTimeout(li._timer);
+        li.setAttribute('data-removed', 'true');
+        if (activeToast === li) activeToast = null;
+        setTimeout(function () {
+          var ol = li.parentNode;
+          if (ol) ol.removeChild(li);
+          if (ol && !ol.children.length && ol.parentNode) ol.parentNode.removeChild(ol);
+        }, 400);
       }
-
-      function sessionLabel(s) {
-        return '#' + s.sessionId + ' · ' + s.examCode + ' · ' + formatDate(s.date) + ' ' + s.startTime + ' · ' + s.room;
-      }
-
-      function show(kind, type, title, text) {
-        var node = messages[kind];
-        node.className = 'message show ' + type;
-        node.textContent = '';
-        if (title) {
-          var strong = document.createElement('strong');
-          strong.textContent = title;
-          node.appendChild(strong);
+      function toast(type, title, description) {
+        if (activeToast) dismissToast(activeToast);
+        var ol = toaster.querySelector('ol');
+        if (!ol) {
+          ol = document.createElement('ol');
+          ol.setAttribute('dir', 'ltr');
+          ol.setAttribute('tabindex', '-1');
+          ol.setAttribute('data-sonner-toaster', 'true');
+          ol.setAttribute('data-theme', 'light');
+          ol.setAttribute('data-y-position', 'top');
+          ol.setAttribute('data-lifted', 'false');
+          ol.setAttribute('data-x-position', 'right');
+          ol.style.cssText = '--front-toast-height: 0px; --offset: 32px; --width: 356px; --gap: 14px;';
+          toaster.appendChild(ol);
         }
-        node.appendChild(document.createTextNode(text));
-      }
-
-      function errorTitle(response) {
-        var d = response.data || {};
-        return response.status + ' ' + (STATUS_TEXT[response.status] || '') + ' · ' + (d.error || 'ERROR')
-          + (d.legacyCode ? ' · legacy ' + d.legacyCode : '');
-      }
-
-      function clear(kind) {
-        messages[kind].className = 'message';
-        messages[kind].textContent = '';
-      }
-
-      function logCall(method, path, status, ms) {
-        var list = document.getElementById('activityList');
-        if (list.dataset.started !== '1') { list.textContent = ''; list.dataset.started = '1'; }
         var li = document.createElement('li');
-        var m = document.createElement('span');
-        m.textContent = method;
-        var p = document.createElement('span');
-        p.className = 'path';
-        p.textContent = path;
-        var st = document.createElement('span');
-        st.className = 'status ' + (status && status < 400 ? 'ok' : 'bad');
-        st.textContent = status ? status + ' ' + (STATUS_TEXT[status] || '') + ' · ' + ms + ' ms' : 'network error';
-        li.appendChild(m); li.appendChild(p); li.appendChild(st);
-        list.insertBefore(li, list.firstChild);
-        while (list.children.length > 6) list.removeChild(list.lastChild);
+        li.setAttribute('tabindex', '0');
+        li.className = '';
+        var attrs = { 'data-sonner-toast': '', 'data-rich-colors': 'true', 'data-styled': 'true', 'data-mounted': 'false', 'data-promise': 'false',
+          'data-swiped': 'false', 'data-removed': 'false', 'data-visible': 'true', 'data-y-position': 'top', 'data-x-position': 'right',
+          'data-index': '0', 'data-front': 'true', 'data-swiping': 'false', 'data-dismissible': 'true', 'data-type': type,
+          'data-swipe-out': 'false', 'data-expanded': 'false' };
+        Object.keys(attrs).forEach(function (k) { li.setAttribute(k, attrs[k]); });
+        li.style.cssText = '--index: 0; --toasts-before: 0; --z-index: 1; --offset: 0px; --initial-height: 0px;';
+        li.innerHTML = '<button aria-label="Close toast" data-disabled="false" data-close-button="true" class="">' + CLOSE_ICON + '</button>'
+          + '<div data-icon="" class="">' + ICONS[type] + '</div>'
+          + '<div data-content="" class=""><div data-title="" class="">' + esc(title) + '</div>'
+          + (description ? '<div data-description="" class="">' + esc(description) + '</div>' : '') + '</div>';
+        li.querySelector('[data-close-button]').addEventListener('click', function () { dismissToast(li); });
+        ol.appendChild(li);
+        var h = li.getBoundingClientRect().height + 'px';
+        li.style.setProperty('--initial-height', h);
+        ol.style.setProperty('--front-toast-height', h);
+        requestAnimationFrame(function () { li.setAttribute('data-mounted', 'true'); });
+        li._timer = setTimeout(function () { dismissToast(li); }, 4000);
+        li.addEventListener('mouseenter', function () { clearTimeout(li._timer); });
+        li.addEventListener('mouseleave', function () { li._timer = setTimeout(function () { dismissToast(li); }, 4000); });
+        activeToast = li;
+      }
+      function toastError(e, fallback) {
+        if (e && e.isApiError) toast('error', e.message, e.legacyCode ? e.code + ' (legacy ' + e.legacyCode + ')' : e.code);
+        else toast('error', fallback || 'Something went wrong');
       }
 
-      function call(method, apiPath, url, body) {
-        var started = performance.now();
-        return fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        }).then(function (response) {
-          return response.json().catch(function () { return {}; }).then(function (data) {
-            logCall(method, apiPath, response.status, Math.round(performance.now() - started));
-            return { ok: response.ok, status: response.status, data: data };
+      // ---- components/ui.tsx ----------------------------------------------
+      var STATUS_TONE = {
+        BOOKED: 'bg-emerald-100 text-emerald-800', ATTENDED: 'bg-sky-100 text-sky-800', WAITLISTED: 'bg-amber-100 text-amber-800',
+        CANCELLED: 'bg-slate-200 text-slate-600', NO_SHOW: 'bg-rose-100 text-rose-700', OPEN: 'bg-emerald-100 text-emerald-800',
+        CLOSED: 'bg-slate-200 text-slate-600', COMPLETED: 'bg-sky-100 text-sky-800',
+      };
+      function pageHeader(title, subtitleHtml, actionsHtml) {
+        return '<div class="mb-6 flex flex-wrap items-end justify-between gap-4"><div><h1 class="text-2xl font-semibold tracking-tight text-slate-900">' + esc(title) + '</h1>'
+          + (subtitleHtml ? '<p class="mt-1 text-sm text-slate-500">' + subtitleHtml + '</p>' : '') + '</div>' + (actionsHtml || '') + '</div>';
+      }
+      function statusBadge(status) {
+        return '<span class="badge ' + (STATUS_TONE[status] || 'bg-slate-100 text-slate-700') + '">' + esc(String(status).replace('_', ' ')) + '</span>';
+      }
+      function seatMeter(available, capacity, booked) {
+        var pct = capacity > 0 ? Math.min(100, Math.round((booked / capacity) * 100)) : 100;
+        var tone = seatTone(available, capacity);
+        var bar = tone === 'full' ? 'bg-rose-500' : tone === 'low' ? 'bg-amber-500' : 'bg-emerald-500';
+        return '<div class="h-2 w-full overflow-hidden rounded-full bg-slate-100" aria-hidden="true"><div class="h-full ' + bar + ' transition-all" style="width: ' + pct + '%;"></div></div>';
+      }
+      function spinner(label) {
+        return '<div class="flex items-center gap-2 py-10 text-sm text-slate-500" role="status"><span class="h-4 w-4 animate-spin rounded-full border-2 border-brand-500 border-t-transparent"></span>' + esc(label || 'Loading') + '...</div>';
+      }
+      function empty(html) { return '<div class="card px-6 py-12 text-center text-sm text-slate-500">' + html + '</div>'; }
+      function errorBox(error) { return '<div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">' + esc(error.message) + '</div>'; }
+      function el(html) {
+        var t = document.createElement('template');
+        t.innerHTML = html.trim();
+        return t.content.firstChild;
+      }
+      // <Modal>: Escape and a backdrop click close it.
+      function openModal(parent, title, bodyHtml, footerHtml, onClose) {
+        var node = el('<div class="fixed inset-0 z-40 grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm"><div role="dialog" aria-modal="true" aria-label="' + esc(title) + '" class="card w-full max-w-md p-6">'
+          + '<h2 class="text-lg font-semibold">' + esc(title) + '</h2><div class="mt-3 text-sm text-slate-600">' + bodyHtml + '</div>'
+          + (footerHtml ? '<div class="mt-6 flex justify-end gap-2">' + footerHtml + '</div>' : '') + '</div></div>');
+        function onKey(e) { if (e.key === 'Escape') onClose(); }
+        node.addEventListener('click', function (e) { if (e.target === node) onClose(); });
+        window.addEventListener('keydown', onKey);
+        parent.appendChild(node);
+        return { node: node, close: function () { window.removeEventListener('keydown', onKey); if (node.parentNode) node.parentNode.removeChild(node); } };
+      }
+
+      // ---- components/CapacityEditor.tsx ----------------------------------
+      function capacityEditor(host, session, onChanged, compact) {
+        var editing = false;
+        var value = String(session.capacity);
+        var modal = null;
+        var saving = false;
+        function render() {
+          if (modal) { modal.close(); modal = null; }
+          host.textContent = '';
+          if (!editing) {
+            var btn = el('<button type="button" data-testid="capacity-edit" class="group inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1 font-semibold text-slate-900 hover:border-slate-300 hover:bg-white ' + (compact ? 'text-sm' : 'text-2xl') + '" title="Change capacity">'
+              + esc(session.capacity) + '<span class="text-xs font-normal text-slate-400 group-hover:text-brand-600">edit</span></button>');
+            btn.addEventListener('click', function () { value = String(session.capacity); editing = true; render(); });
+            host.appendChild(btn);
+            return;
+          }
+          var form = el('<form class="inline-flex flex-col" novalidate=""><div class="flex items-center gap-1.5">'
+            + '<input aria-label="New capacity" data-testid="capacity-input" inputmode="numeric" class="input w-20 py-1 " value="' + esc(value) + '">'
+            + '<button type="submit" class="btn-primary px-2.5 py-1" data-testid="capacity-save">Save</button>'
+            + '<button type="button" class="btn-secondary px-2.5 py-1">Cancel</button></div></form>');
+          var input = form.querySelector('input');
+          var save = form.querySelector('[data-testid=capacity-save]');
+          var errorSpan = null;
+          function validate() {
+            var error = validateCapacity(value, session.accommodationCapacity);
+            input.className = 'input w-20 py-1 ' + (error ? 'input-error' : '');
+            save.disabled = !!error;
+            if (error && !errorSpan) {
+              errorSpan = el('<span class="field-error" data-testid="capacity-error"></span>');
+              form.insertBefore(errorSpan, form.children[1] || null);
+            } else if (!error && errorSpan) {
+              form.removeChild(errorSpan); errorSpan = null;
+            }
+            if (errorSpan) errorSpan.textContent = error;
+            return error;
+          }
+          input.addEventListener('input', function () { value = input.value; validate(); });
+          form.querySelector('.btn-secondary').addEventListener('click', function () { editing = false; render(); });
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (validate()) return;
+            var next = Number(value);
+            if (next === session.capacity) { editing = false; render(); return; }
+            openConfirm(form, next);
           });
-        }, function (error) {
-          logCall(method, apiPath, 0, 0);
-          throw error;
+          host.appendChild(form);
+          validate();
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+        function openConfirm(form, next) {
+          var willBump = Math.max(0, session.bookedSeats - next);
+          var body = '<p>Session ' + esc(session.sessionId) + ' (' + esc(session.examCode) + ') goes from <b>' + esc(session.capacity) + '</b> to <b>' + esc(next) + '</b> seats.</p>'
+            + (willBump > 0
+              ? '<p class="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-amber-800">' + willBump + ' of the ' + esc(session.bookedSeats) + ' seated booking(s) will be moved to the waitlist - the most recently booked first.</p>'
+              : '<p class="mt-3 text-slate-500">No booked candidate is affected.</p>');
+          var footer = '<button type="button" class="btn-secondary">Back</button><button type="button" class="' + (willBump > 0 ? 'btn-danger' : 'btn-primary') + '" data-testid="capacity-confirm">Set capacity to ' + esc(next) + '</button>';
+          function close() { if (modal) { modal.close(); modal = null; } }
+          modal = openModal(form, 'Change capacity?', body, footer, close);
+          var confirm = modal.node.querySelector('[data-testid=capacity-confirm]');
+          modal.node.querySelector('.btn-secondary').addEventListener('click', close);
+          confirm.addEventListener('click', function () {
+            if (saving) return;
+            saving = true;
+            confirm.disabled = true;
+            confirm.textContent = 'Saving...';
+            api.changeCapacity(session.sessionId, next).then(function (r) {
+              toast('success', 'Capacity of session ' + session.sessionId + ' is now ' + r.session.capacity,
+                r.bumpedBookingIds.length ? r.bumpedBookingIds.length + ' booking(s) moved to the waitlist: ' + r.bumpedBookingIds.join(', ') : 'No bookings were moved.');
+              session = r.session;
+              editing = false;
+              saving = false;
+              render();
+              onChanged(r.session);
+            }, function (e) {
+              toastError(e);
+              saving = false;
+              confirm.disabled = false;
+              confirm.textContent = 'Set capacity to ' + next;
+            });
+          });
+        }
+        render();
+      }
+
+      // ---- components/WaitlistTable.tsx -----------------------------------
+      function waitlistTable(host, sessionId) {
+        host.innerHTML = spinner('Loading waitlist');
+        api.waitlist(sessionId).then(function (data) {
+          if (!data || !data.length) { host.innerHTML = empty('Nobody is waiting for this session.'); return; }
+          host.innerHTML = '<ol class="divide-y divide-slate-100" data-testid="waitlist">' + data.map(function (w) {
+            return '<li class="flex items-center gap-3 py-3" data-testid="waitlist-row"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-amber-100 text-sm font-semibold text-amber-800">' + esc(w.position) + '</span>'
+              + '<div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-slate-900">' + esc(w.candidateName || 'Unknown candidate') + '</p><p class="text-xs text-slate-500">' + esc(w.candidateNumber) + ' - booking #' + esc(w.bookingId) + '</p></div>'
+              + '<span class="text-right text-xs text-slate-500">added<br>' + esc(formatDateTime(w.addedAt)) + '</span></li>';
+          }).join('') + '</ol>';
+        }, function (e) { host.innerHTML = errorBox(e); });
+      }
+
+      // ---- router ---------------------------------------------------------
+      function parseRoute() {
+        var hash = location.hash.replace(/^#/, '') || '/';
+        var q = hash.indexOf('?');
+        return { path: q === -1 ? hash : hash.slice(0, q), params: new URLSearchParams(q === -1 ? '' : hash.slice(q + 1)) };
+      }
+      function setParams(path, params) {
+        var s = params.toString();
+        history.replaceState(null, '', location.pathname + location.search + '#' + path + (s ? '?' + s : ''));
+        render();
+      }
+      function navigate(hash) { location.hash = hash; }
+      function updateNav(path) {
+        var active = path === '/' ? 'find' : path.indexOf('/my-bookings') === 0 ? 'bookings' : path.indexOf('/admin') === 0 ? 'admin' : '';
+        Array.prototype.forEach.call(document.querySelectorAll('#nav a'), function (a) {
+          var on = a.getAttribute('data-nav') === active;
+          a.className = 'rounded-lg px-3 py-2 text-sm font-medium transition ' + (on ? 'bg-white/15 text-white' : 'text-brand-100 hover:bg-white/10 hover:text-white');
+          if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
         });
       }
-
-      function stat(value, label, extra) {
-        var div = document.createElement('div');
-        div.className = 'stat' + (extra ? ' ' + extra : '');
-        var strong = document.createElement('strong');
-        strong.textContent = value;
-        var span = document.createElement('span');
-        span.textContent = label;
-        div.appendChild(strong); div.appendChild(span);
-        return div;
+      function render() {
+        var seq = ++routeSeq;
+        var live = function () { return seq === routeSeq; };
+        var r = parseRoute();
+        updateNav(r.path);
+        var m;
+        if (r.path === '/' || r.path === '') return findSessions(r.params, live);
+        if (r.path === '/book') return bookPage(r.params, live);
+        if (r.path === '/my-bookings') return myBookings(r.params, live);
+        if (r.path === '/admin') return adminIndex(live);
+        if ((m = r.path.match(/^\/admin\/centers\/([^/]+)$/))) return adminCenter(decodeURIComponent(m[1]), r.params, live);
+        if ((m = r.path.match(/^\/admin\/sessions\/([^/]+)$/))) return adminSession(Number(m[1]), live);
+        navigate('/');
       }
 
-      function renderSessions() {
-        sessionList.textContent = '';
-        if (!sessions.length) {
-          var empty = document.createElement('li');
-          empty.className = 'empty';
-          empty.textContent = 'No sessions match this search.';
-          sessionList.appendChild(empty);
-          return;
+      // ---- pages/AdminIndex.tsx -------------------------------------------
+      function adminIndex(live) {
+        main.innerHTML = '<div>' + pageHeader('Test-center administration', 'Choose a center to manage session capacity and waitlists.') + spinner() + '</div>';
+        api.reference().then(function (ref) {
+          if (!live()) return;
+          main.innerHTML = '<div>' + pageHeader('Test-center administration', 'Choose a center to manage session capacity and waitlists.')
+            + '<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">' + ref.centers.map(function (c) {
+              return '<a href="#/admin/centers/' + esc(c.centerCode) + '" class="card p-4 transition hover:border-brand-500 hover:shadow-md" data-testid="admin-center-link"><p class="text-xs font-semibold text-brand-600">' + esc(c.centerCode) + '</p><p class="font-semibold">' + esc(c.name) + '</p><p class="text-sm text-slate-500">' + esc(c.city) + ', ' + esc(c.region) + '</p></a>';
+            }).join('') + '</div></div>';
+        }, function (e) { if (live()) main.innerHTML = '<div>' + pageHeader('Test-center administration', 'Choose a center to manage session capacity and waitlists.') + errorBox(e) + '</div>'; });
+      }
+
+      // ---- pages/AdminCenter.tsx ------------------------------------------
+      function stat(label, value) {
+        return '<div class="card p-4"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">' + esc(label) + '</p><p class="mt-1 text-2xl font-semibold tabular-nums">' + esc(value) + '</p></div>';
+      }
+      function adminCenter(centerCode, params, live) {
+        var examCode = params.get('examCode') || '';
+        var from = params.get('from') || todayIso();
+        var path = '/admin/centers/' + centerCode;
+        function set(key, value) {
+          var next = new URLSearchParams(params.toString());
+          if (value) next.set(key, value); else next.delete(key);
+          setParams(path, next);
         }
-        sessions.forEach(function (s) {
-          var li = document.createElement('li');
-          li.className = 'session' + (selected && selected.sessionId === s.sessionId ? ' selected' : '');
-          var info = document.createElement('div');
-          var title = document.createElement('div');
-          title.className = 'session-title';
-          title.textContent = s.examCode + ' · #' + s.sessionId;
-          var sub = document.createElement('div');
-          sub.className = 'session-sub';
-          sub.textContent = s.examTitle;
-          info.appendChild(title); info.appendChild(sub);
-          if (s.note) {
-            var note = document.createElement('span');
-            note.className = 'note';
-            note.textContent = s.note;
-            info.appendChild(note);
+        main.innerHTML = spinner('Loading sessions');
+        Promise.all([api.reference(), api.sessions(centerCode, examCode, from).then(function (s) { return { ok: s }; }, function (e) { return { error: e }; })]).then(function (res) {
+          if (!live()) return;
+          var ref = res[0];
+          var center = ref.centers.find(function (c) { return c.centerCode === centerCode; });
+          var list = res[1].ok || [];
+          var drawerSession = null;
+          function draw() {
+            var totals = list.reduce(function (t, s) { return { cap: t.cap + s.capacity, booked: t.booked + s.bookedSeats, wait: t.wait + s.waitlistCount }; }, { cap: 0, booked: 0, wait: 0 });
+            var select = '<select class="input w-64" data-testid="admin-center-select">' + ref.centers.map(function (c) {
+              return '<option value="' + esc(c.centerCode) + '"' + (c.centerCode === centerCode ? ' selected' : '') + '>' + esc(c.centerCode) + ' - ' + esc(c.name) + '</option>';
+            }).join('') + '</select>';
+            var html = '<div>' + pageHeader(center ? center.name : centerCode,
+              center ? esc(center.centerCode + ' - ' + center.city + ', ' + center.region + ' - ' + center.timeZone) : 'Test center', select)
+              + '<div class="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">' + stat('Sessions', list.length) + stat('Seats', totals.cap) + stat('Booked', totals.booked) + stat('Waiting', totals.wait) + '</div>'
+              + '<div class="card mb-4 flex flex-wrap gap-4 p-4"><label class="w-64"><span class="label">Exam</span><select class="input" data-filter="examCode"><option value="">All exams</option>'
+              + ref.exams.map(function (x) { return '<option value="' + esc(x.examCode) + '"' + (x.examCode === examCode ? ' selected' : '') + '>' + esc(x.examCode) + '</option>'; }).join('')
+              + '</select></label><label class="w-48"><span class="label">From</span><input type="date" class="input" data-filter="from" value="' + esc(from) + '"></label></div>';
+            if (res[1].error) html += errorBox(res[1].error);
+            else if (!list.length) html += empty('No sessions from ' + esc(from) + '.');
+            else {
+              html += '<div class="card overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-sm" data-testid="session-grid"><thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"><tr>'
+                + '<th class="px-4 py-3">Session</th><th class="px-4 py-3">Exam</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Capacity</th><th class="px-4 py-3 text-right">Booked</th><th class="px-4 py-3 text-right">Available</th><th class="px-4 py-3 text-right">Accommodation</th><th class="px-4 py-3 text-right">Waitlist</th>'
+                + '</tr></thead><tbody class="divide-y divide-slate-100">' + list.map(function (s) {
+                  return '<tr class="hover:bg-slate-50/60" data-testid="session-row" data-session-id="' + esc(s.sessionId) + '">'
+                    + '<td class="px-4 py-3"><a class="font-medium text-brand-600 hover:underline" href="#/admin/sessions/' + esc(s.sessionId) + '">#' + esc(s.sessionId) + '</a><div class="text-xs text-slate-500">' + esc(formatDateTime(s.startsAt)) + ' - ' + esc(s.roomName) + '</div></td>'
+                    + '<td class="px-4 py-3"><span class="font-medium">' + esc(s.examCode) + '</span><div class="text-xs text-slate-500">' + esc(s.examTitle) + '</div></td>'
+                    + '<td class="px-4 py-3">' + statusBadge(s.status) + '</td>'
+                    + '<td class="px-4 py-3" data-capacity-host="' + esc(s.sessionId) + '"></td>'
+                    + '<td class="px-4 py-3 text-right tabular-nums" data-testid="booked">' + esc(s.bookedSeats) + '</td>'
+                    + '<td class="px-4 py-3 text-right font-semibold tabular-nums ' + (s.seatsAvailable === 0 ? 'text-rose-600' : 'text-emerald-700') + '" data-testid="available">' + esc(s.seatsAvailable) + '</td>'
+                    + '<td class="px-4 py-3 text-right tabular-nums">' + esc(s.accommodationUsed) + ' / ' + esc(s.accommodationCapacity) + '<div class="text-xs text-slate-500">' + Math.max(0, s.accommodationCapacity - s.accommodationUsed) + ' free</div></td>'
+                    + '<td class="px-4 py-3 text-right"><button class="badge ' + (s.waitlistCount ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200') + '" data-testid="waitlist-button" data-session-id="' + esc(s.sessionId) + '">' + esc(s.waitlistCount) + ' waiting</button></td></tr>';
+                }).join('') + '</tbody></table></div>';
+            }
+            var d = drawerSession;
+            html += '<div class="fixed inset-0 z-30 ' + (d ? '' : 'pointer-events-none') + '" data-drawer=""><div class="absolute inset-0 bg-slate-900/30 transition-opacity ' + (d ? 'opacity-100' : 'opacity-0') + '" data-drawer-backdrop=""></div>'
+              + '<aside role="dialog" aria-label="' + esc(d ? 'Waitlist - session #' + d.sessionId : 'Waitlist') + '" class="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-300 ' + (d ? 'translate-x-0' : 'translate-x-full') + '">'
+              + '<div class="flex items-start justify-between border-b border-slate-200 px-5 py-4"><div><h2 class="text-lg font-semibold">' + esc(d ? 'Waitlist - session #' + d.sessionId : 'Waitlist') + '</h2>'
+              + (d ? '<p class="text-sm text-slate-500">' + esc(d.examCode + ' - ' + formatDateTime(d.startsAt) + ' - ' + d.seatsAvailable + ' seats free') + '</p>' : '')
+              + '</div><button class="btn-secondary px-2 py-1" aria-label="Close" data-drawer-close="">x</button></div><div class="flex-1 overflow-y-auto px-5 py-4" data-drawer-body=""></div></aside></div></div>';
+            main.innerHTML = html;
+            main.querySelector('[data-testid=admin-center-select]').addEventListener('change', function (e) { navigate('/admin/centers/' + e.target.value); });
+            Array.prototype.forEach.call(main.querySelectorAll('[data-filter]'), function (f) {
+              f.addEventListener('change', function () { set(f.getAttribute('data-filter'), f.value); });
+            });
+            list.forEach(function (s) {
+              var host = main.querySelector('[data-capacity-host="' + s.sessionId + '"]');
+              if (host) capacityEditor(host, s, function (n) { list = list.map(function (x) { return x.sessionId === n.sessionId ? n : x; }); draw(); }, true);
+            });
+            Array.prototype.forEach.call(main.querySelectorAll('[data-testid=waitlist-button]'), function (b) {
+              b.addEventListener('click', function () {
+                drawerSession = list.find(function (x) { return String(x.sessionId) === b.getAttribute('data-session-id'); });
+                draw();
+              });
+            });
+            function closeDrawer() { drawerSession = null; draw(); }
+            main.querySelector('[data-drawer-backdrop]').addEventListener('click', closeDrawer);
+            main.querySelector('[data-drawer-close]').addEventListener('click', closeDrawer);
+            if (d) waitlistTable(main.querySelector('[data-drawer-body]'), d.sessionId);
           }
-          var when = document.createElement('div');
-          var day = document.createElement('div');
-          day.className = 'session-title';
-          day.textContent = formatDate(s.date) + ' · ' + s.startTime + ' ' + (TZ_LABELS[s.timeZone] || '');
-          var room = document.createElement('div');
-          room.className = 'session-sub';
-          room.textContent = s.room + ' · ' + s.status;
-          when.appendChild(day); when.appendChild(room);
-          var stats = document.createElement('div');
-          stats.className = 'stats';
-          stats.appendChild(stat(s.capacity, 'Capacity'));
-          stats.appendChild(stat(s.accommodationCapacity, 'Accommodation'));
-          stats.appendChild(stat(s.booked, 'Booked'));
-          stats.appendChild(stat(s.seatsAvailable, 'Seats available', s.seatsAvailable > 0 ? 'available' : 'full'));
-          var actions = document.createElement('div');
-          actions.className = 'row-actions';
-          var book = document.createElement('button');
-          book.type = 'button';
-          book.className = 'secondary';
-          book.textContent = 'Book seat';
-          book.addEventListener('click', function () { select(s, 'booking'); });
-          var cap = document.createElement('button');
-          cap.type = 'button';
-          cap.className = 'secondary';
-          cap.textContent = 'Change capacity';
-          cap.addEventListener('click', function () { select(s, 'capacity'); });
-          actions.appendChild(book); actions.appendChild(cap);
-          li.appendChild(info); li.appendChild(when); li.appendChild(stats); li.appendChild(actions);
-          sessionList.appendChild(li);
-        });
+          draw();
+        }, function (e) { if (live()) main.innerHTML = errorBox(e); });
       }
-
-      function updateForms() {
-        var label = selected ? sessionLabel(selected) : 'Select a session above';
-        document.getElementById('bookingSession').value = label;
-        document.getElementById('capacitySession').value = label;
-        document.getElementById('sumCapacity').textContent = selected ? selected.capacity : '—';
-        document.getElementById('sumAccommodation').textContent = selected ? selected.accommodationCapacity : '—';
-        document.getElementById('sumBooked').textContent = selected ? selected.booked : '—';
-        bookBtn.disabled = !selected || busy.booking;
-        capacityBtn.disabled = !selected || busy.capacity;
-      }
-
-      function select(s, focus) {
-        var changed = !selected || selected.sessionId !== s.sessionId;
-        selected = s;
-        if (changed) {
-          clear('booking');
-          clear('capacity');
-          newCapacityInput.value = s.capacity;
-          document.getElementById('capacityReason').value = s.note || '';
-        }
-        renderSessions();
-        updateForms();
-        if (focus) {
-          var target = document.getElementById(focus);
-          if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
-
-      function replaceSession(updated) {
-        sessions = sessions.map(function (s) { return s.sessionId === updated.sessionId ? updated : s; });
-        if (selected && selected.sessionId === updated.sessionId) selected = updated;
-        renderSessions();
-        updateForms();
-      }
-
-      function search() {
-        if (busy.search) return;
-        var seq = ++searchSeq;
-        busy.search = true;
-        searchBtn.disabled = true;
-        searchBtn.textContent = 'Searching…';
-        clear('search');
-        var query = (examSelect.value ? 'examCode=' + examSelect.value + '&' : '')
-          + 'from=' + fromInput.value + '&to=' + toInput.value;
-        call('GET', '/api/v2/centers/' + centerSelect.value + '/sessions?' + query, API + '/sessions/search', {
-          action: 'search-sessions',
-          centerCode: centerSelect.value,
-          examCode: examSelect.value,
-          from: fromInput.value,
-          to: toInput.value,
-        }).then(function (response) {
-          if (seq !== searchSeq) return;
-          if (!response.ok) {
-            show('search', 'error', errorTitle(response), response.data.message || 'Sessions could not be loaded.');
-            return;
-          }
-          sessions = response.data.sessions;
-          sessionsTitle.textContent = 'Sessions at ' + response.data.centre.name + ' (' + response.data.centre.code + ') · ' + sessions.length;
-          var keep = selected && sessions.find(function (s) { return s.sessionId === selected.sessionId; });
-          var demo = firstLoad && sessions.find(function (s) { return s.sessionId === DEMO_SESSION_ID; });
-          selected = keep || null;
-          if (demo) {
-            selected = demo;
-            document.getElementById('capacityReason').value = demo.note || '';
-          } else if (!keep) {
-            clear('booking');
-            clear('capacity');
-          }
-          firstLoad = false;
-          renderSessions();
-          updateForms();
-        }).catch(function () {
-          if (seq !== searchSeq) return;
-          show('search', 'error', '', 'scheduling-service could not be reached. Try again.');
-        }).then(function () {
-          busy.search = false;
-          searchBtn.disabled = false;
-          searchBtn.textContent = 'Search sessions';
-        });
-      }
-
-      document.getElementById('searchForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-        search();
+      window.addEventListener('keydown', function (e) {
+        var close = e.key === 'Escape' && document.querySelector('[data-drawer]:not(.pointer-events-none) [data-drawer-close]');
+        if (close) close.click();
       });
 
-      document.getElementById('bookingForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-        if (!selected || busy.booking) return;
-        var candidateNumber = document.getElementById('candidateNumber').value.trim().toUpperCase();
-        if (!/^NW\d{8}$/.test(candidateNumber)) {
-          show('booking', 'error', '', 'Candidate number must be NW followed by 8 digits.');
-          return;
-        }
-        var session = selected;
-        busy.booking = true;
-        updateForms();
-        bookBtn.textContent = 'Booking…';
-        show('booking', 'pending', '', 'Booking a seat in session #' + session.sessionId + '…');
-        call('POST', '/api/v2/bookings', API + '/bookings', {
-          action: 'book-seat',
-          sessionId: session.sessionId,
-          candidateNumber: candidateNumber,
-          accommodationCode: document.getElementById('accommodationCode').value || null,
-        }).then(function (response) {
-          if (!response.ok) {
-            show('booking', 'error', errorTitle(response), response.data.message || 'The seat could not be booked.');
-            return;
+      // ---- pages/AdminSession.tsx -----------------------------------------
+      function adminSession(id, live) {
+        main.innerHTML = spinner();
+        api.session(id).then(function (s) {
+          if (!live()) return;
+          function draw() {
+            main.innerHTML = '<div>' + pageHeader('Session #' + s.sessionId, '<a class="text-brand-600 hover:underline" href="#/admin/centers/' + esc(s.centerCode) + '">Back to ' + esc(s.centerName) + '</a>')
+              + '<div class="grid gap-6 lg:grid-cols-3"><div class="card p-6"><div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-brand-600">' + esc(s.examCode) + '</p><h2 class="font-semibold">' + esc(s.examTitle) + '</h2><p class="text-sm text-slate-500">' + esc(formatDateTime(s.startsAt)) + ' - ' + esc(s.roomName) + '</p></div>' + statusBadge(s.status) + '</div>'
+              + '<div class="mt-6"><p class="label">Capacity</p><div data-capacity-host=""></div></div>'
+              + '<div class="mt-4">' + seatMeter(s.seatsAvailable, s.capacity, s.bookedSeats) + '</div>'
+              + '<dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt class="text-slate-500">Booked</dt><dd class="font-semibold" data-testid="booked">' + esc(s.bookedSeats) + '</dd></div><div><dt class="text-slate-500">Available</dt><dd class="font-semibold" data-testid="available">' + esc(s.seatsAvailable) + '</dd></div><div><dt class="text-slate-500">Accommodation</dt><dd class="font-semibold">' + esc(s.accommodationUsed) + ' / ' + esc(s.accommodationCapacity) + '</dd></div><div><dt class="text-slate-500">Waitlist</dt><dd class="font-semibold">' + esc(s.waitlistCount) + '</dd></div></dl></div>'
+              + '<div class="card p-6 lg:col-span-2"><h2 class="mb-2 font-semibold">Waitlist</h2><div data-waitlist-host=""></div></div></div></div>';
+            // The capacity editor's host is a plain div here; React renders the button/form directly in the column.
+            var host = main.querySelector('[data-capacity-host]');
+            host.style.display = 'contents';
+            capacityEditor(host, s, function (n) { s = n; draw(); }, false);
+            waitlistTable(main.querySelector('[data-waitlist-host]'), s.sessionId);
+            var wl = main.querySelector('[data-waitlist-host]');
+            wl.style.display = 'contents';
           }
-          var b = response.data.booking;
-          replaceSession(response.data.session);
-          show('booking', 'success', b.bookingId + ' · ' + b.status,
-            b.status === 'BOOKED'
-              ? 'Candidate ' + b.candidateNumber + ' booked into session #' + b.sessionId + (b.accommodationCode ? ' with ' + b.accommodationCode : '') + '. Seats available: ' + response.data.session.seatsAvailable + '.'
-              : 'Session #' + b.sessionId + ' is full; candidate ' + b.candidateNumber + ' was added to the waitlist.');
-        }).catch(function () {
-          show('booking', 'error', '', 'scheduling-service could not be reached. Try again.');
-        }).then(function () {
-          busy.booking = false;
-          bookBtn.textContent = 'Book seat';
-          updateForms();
-        });
-      });
+          draw();
+        }, function (e) { if (live()) main.innerHTML = errorBox(e.status === 404 ? new Error('Session not found') : e); });
+      }
 
-      document.getElementById('capacityForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-        if (!selected || busy.capacity) return;
-        var session = selected;
-        var raw = newCapacityInput.value.trim();
-        var capacity = Number(raw);
-        if (!/^\d+$/.test(raw) || capacity > 200) {
-          show('capacity', 'error', '', 'Enter a whole number of seats between 0 and 200.');
-          return;
+      // ---- pages/FindSessions.tsx -----------------------------------------
+      function findSessions(params, live) {
+        var centerCode = params.get('centerCode') || '';
+        var examCode = params.get('examCode') || '';
+        var date = params.get('date') || '';
+        function set(key, value) {
+          var next = new URLSearchParams(params.toString());
+          if (value) next.set(key, value); else next.delete(key);
+          setParams('/', next);
         }
-        if (capacity === session.capacity) {
-          show('capacity', 'error', '', 'Capacity is already ' + capacity + '.');
-          return;
-        }
-        busy.capacity = true;
-        updateForms();
-        capacityBtn.textContent = 'Saving…';
-        show('capacity', 'pending', '', 'Updating capacity for session #' + session.sessionId + '…');
-        call('PUT', '/api/v2/sessions/' + session.sessionId + '/capacity', API + '/sessions/capacity', {
-          action: 'change-capacity',
-          sessionId: session.sessionId,
-          newCapacity: capacity,
-          actor: 'jordan.ellis@BOS01',
-          reason: document.getElementById('capacityReason').value.trim(),
-        }).then(function (response) {
-          if (!response.ok) {
-            show('capacity', 'error', errorTitle(response), response.data.message || 'The capacity change was not saved.');
-            return;
+        var head = pageHeader('Find an exam session', 'Pick a test center, then filter by exam and date. Seat counts are live.');
+        main.innerHTML = '<div>' + head + spinner() + '</div>';
+        var load = centerCode
+          ? api.sessions(centerCode, examCode, date || todayIso(), date ? plusDays(date, 1) : null).then(function (s) { return { ok: s }; }, function (e) { return { error: e }; })
+          : Promise.resolve({ ok: null });
+        Promise.all([api.reference(), load]).then(function (res) {
+          if (!live()) return;
+          var ref = res[0];
+          var center = ref.centers.find(function (c) { return c.centerCode === centerCode; });
+          var html = '<div>' + head + '<div class="card mb-6 grid gap-4 p-4 sm:grid-cols-3">'
+            + '<label><span class="label">Test center</span><select class="input" data-filter="centerCode" data-testid="center-select"><option value="">Choose a center...</option>'
+            + ref.centers.map(function (c) { return '<option value="' + esc(c.centerCode) + '"' + (c.centerCode === centerCode ? ' selected' : '') + '>' + esc(c.centerCode + ' - ' + c.name + ' (' + c.city + ')') + '</option>'; }).join('') + '</select></label>'
+            + '<label><span class="label">Exam</span><select class="input" data-filter="examCode" data-testid="exam-select"><option value="">All exams</option>'
+            + ref.exams.map(function (x) { return '<option value="' + esc(x.examCode) + '"' + (x.examCode === examCode ? ' selected' : '') + '>' + esc(x.examCode + ' - ' + x.title) + '</option>'; }).join('') + '</select></label>'
+            + '<label><span class="label">Date</span><input type="date" class="input" data-filter="date" data-testid="date-input" value="' + esc(date) + '"></label></div>';
+          var list = res[1].ok;
+          if (!centerCode) html += empty('Choose a test center to see its upcoming sessions.');
+          if (res[1].error) html += errorBox(res[1].error);
+          if (centerCode && list && !list.length) html += empty('No sessions match these filters.');
+          var groups = [];
+          (list || []).forEach(function (s) {
+            var k = s.startsAt.slice(0, 10);
+            var g = groups.find(function (x) { return x[0] === k; });
+            if (g) g[1].push(s); else groups.push([k, [s]]);
+          });
+          html += '<div class="space-y-8">' + groups.map(function (g) {
+            return '<section><h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">' + esc(formatDate(g[0] + 'T00:00:00')) + '</h2><div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">'
+              + g[1].map(function (s) { return sessionCard(s, center && center.timeZone); }).join('') + '</div></section>';
+          }).join('') + '</div></div>';
+          main.innerHTML = html;
+          Array.prototype.forEach.call(main.querySelectorAll('[data-filter]'), function (f) {
+            f.addEventListener('change', function () { set(f.getAttribute('data-filter'), f.value); });
+          });
+        }, function (e) { if (live()) main.innerHTML = '<div>' + head + errorBox(e) + '</div>'; });
+      }
+      function sessionCard(s, timeZone) {
+        var tone = seatTone(s.seatsAvailable, s.capacity);
+        var accLeft = Math.max(0, s.accommodationCapacity - s.accommodationUsed);
+        return '<article class="card flex flex-col p-5 transition hover:-translate-y-0.5 hover:shadow-md" data-testid="session-card" data-session-id="' + esc(s.sessionId) + '">'
+          + '<div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold text-brand-600">' + esc(s.examCode) + '</p><h3 class="font-semibold text-slate-900">' + esc(s.examTitle) + '</h3><p class="mt-0.5 text-sm text-slate-500">' + esc(formatTime(s.startsAt) + ' - ' + s.roomName + (timeZone ? ' - ' + timeZone : '')) + '</p></div>' + statusBadge(s.status) + '</div>'
+          + '<div class="mt-4"><div class="mb-1.5 flex items-baseline justify-between text-sm"><span data-testid="seats-left" class="font-semibold ' + (tone === 'full' ? 'text-rose-600' : tone === 'low' ? 'text-amber-600' : 'text-emerald-700') + '">' + (s.seatsAvailable > 0 ? esc(s.seatsAvailable) + ' seats left' : 'Full - waitlist open') + '</span><span class="text-xs text-slate-500">' + esc(s.bookedSeats) + '/' + esc(s.capacity) + ' booked</span></div>'
+          + seatMeter(s.seatsAvailable, s.capacity, s.bookedSeats)
+          + '<p class="mt-2 text-xs text-slate-500">' + accLeft + ' of ' + esc(s.accommodationCapacity) + ' extra-time seats free' + (s.waitlistCount > 0 ? ' - ' + esc(s.waitlistCount) + ' on waitlist' : '') + '</p></div>'
+          + '<div class="mt-5 flex justify-end">' + (s.status === 'OPEN'
+            ? '<a href="#/book?sessionId=' + esc(s.sessionId) + '" class="' + (s.seatsAvailable > 0 ? 'btn-primary' : 'btn-secondary') + '" data-testid="book-link">' + (s.seatsAvailable > 0 ? 'Book a seat' : 'Join waitlist') + '</a>'
+            : '<span class="text-xs text-slate-400">Not open for booking</span>') + '</div></article>';
+      }
+
+      // ---- pages/Book.tsx -------------------------------------------------
+      function bookPage(params, live) {
+        var sessionId = Number(params.get('sessionId'));
+        if (!sessionId) { main.innerHTML = errorBox(new Error('No session selected.')); return; }
+        main.innerHTML = spinner();
+        api.session(sessionId).then(function (s) {
+          if (!live()) return;
+          var candidate = (params.get('candidateNumber') || '').toUpperCase() || rememberedCandidate();
+          var accommodation = '';
+          var touched = false;
+          var submitting = false;
+          var result = null;
+          function draw() {
+            var accLeft = Math.max(0, s.accommodationCapacity - s.accommodationUsed);
+            var candidateError = validateCandidateNumber(candidate);
+            var accError = needsAccommodationSeat(accommodation) && accLeft === 0 ? 'No extra-time seats left on this session - pick another session or a different accommodation' : null;
+            var left = pageHeader('Book a seat', '<a href="#/?centerCode=' + esc(s.centerCode) + '" class="text-brand-600 hover:underline">Back to ' + esc(s.centerName) + ' sessions</a>');
+            if (result) {
+              left += '<div class="card p-6" data-testid="booking-confirmation"><div class="flex items-center gap-3">' + statusBadge(result.status) + '<h2 class="text-lg font-semibold">Booking #' + esc(result.bookingId) + '</h2></div>'
+                + '<p class="mt-2 text-sm text-slate-600">' + (result.status === 'BOOKED' ? esc('You\'re booked for ' + s.examTitle + ' on ' + formatDateTime(s.startsAt) + '.') : 'The session is full. You are number ' + esc(result.waitlistPosition) + ' on the waitlist.') + '</p>'
+                + '<div class="mt-5 flex flex-wrap gap-2"><button class="btn-primary" data-testid="go-my-bookings">View my bookings</button><button class="btn-secondary" data-again="">Book another candidate</button></div></div>';
+            } else {
+              left += '<form class="card space-y-5 p-6" novalidate="" data-testid="booking-form"><label class="block"><span class="label">Candidate number</span>'
+                + '<input class="input ' + (touched && candidateError ? 'input-error' : '') + '" placeholder="NW00000901" value="' + esc(candidate) + '" data-testid="candidate-input">'
+                + (touched && candidateError ? '<p class="field-error">' + esc(candidateError) + '</p>' : '') + '</label>'
+                + '<label class="block"><span class="label">Accommodation (optional)</span><select class="input ' + (accError ? 'input-error' : '') + '" data-testid="accommodation-select">'
+                + ACCOMMODATION_OPTIONS.map(function (o) { return '<option value="' + o.value + '"' + (o.value === accommodation ? ' selected' : '') + '>' + esc(o.label) + '</option>'; }).join('') + '</select>'
+                + (accError ? '<p class="field-error">' + esc(accError) + '</p>' : '') + '</label>'
+                + '<div class="flex items-center justify-between gap-4 border-t border-slate-100 pt-5"><p class="text-xs text-slate-500">' + (s.seatsAvailable > 0 ? 'A seat is held immediately.' : 'This session is full; you will join the waitlist.') + '</p>'
+                + '<button type="submit" class="btn-primary" data-testid="book-submit"' + (submitting || (touched && candidateError) || accError ? ' disabled' : '') + '>' + (submitting ? 'Booking...' : s.seatsAvailable > 0 ? 'Confirm booking' : 'Join waitlist') + '</button></div></form>';
+            }
+            main.innerHTML = '<div class="grid gap-6 lg:grid-cols-5"><div class="lg:col-span-3">' + left + '</div><aside class="lg:col-span-2"><div class="card p-6 lg:sticky lg:top-6" data-testid="session-summary">'
+              + '<div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-brand-600">' + esc(s.examCode) + ' - session ' + esc(s.sessionId) + '</p><h2 class="text-lg font-semibold">' + esc(s.examTitle) + '</h2></div>' + statusBadge(s.status) + '</div>'
+              + '<dl class="mt-4 space-y-2 text-sm"><div class="flex justify-between"><dt class="text-slate-500">When</dt><dd>' + esc(formatDateTime(s.startsAt)) + '</dd></div><div class="flex justify-between"><dt class="text-slate-500">Where</dt><dd>' + esc(s.centerName + ', ' + s.roomName) + '</dd></div></dl>'
+              + '<div class="mt-5"><div class="mb-1.5 flex items-baseline justify-between"><span class="text-3xl font-semibold" data-testid="summary-seats-left">' + esc(s.seatsAvailable) + '</span><span class="text-xs text-slate-500">seats left of ' + esc(s.capacity) + '</span></div>'
+              + seatMeter(s.seatsAvailable, s.capacity, s.bookedSeats) + '<p class="mt-2 text-xs text-slate-500">' + accLeft + ' of ' + esc(s.accommodationCapacity) + ' extra-time (ET25/ET50) seats free - ' + esc(s.waitlistCount) + ' waiting</p></div></div></aside></div>';
+            if (result) {
+              main.querySelector('[data-testid=go-my-bookings]').addEventListener('click', function () { navigate('/my-bookings?candidateNumber=' + encodeURIComponent(result.candidateNumber)); });
+              main.querySelector('[data-again]').addEventListener('click', function () { result = null; draw(); });
+              return;
+            }
+            var input = main.querySelector('[data-testid=candidate-input]');
+            input.addEventListener('change', function () { candidate = input.value; touched = true; draw(); });
+            input.addEventListener('input', function () { candidate = input.value; });
+            main.querySelector('[data-testid=accommodation-select]').addEventListener('change', function (e) { accommodation = e.target.value; draw(); });
+            main.querySelector('form').addEventListener('submit', function (e) {
+              e.preventDefault();
+              candidate = input.value;
+              touched = true;
+              if (validateCandidateNumber(candidate) || accError) { draw(); return; }
+              submitting = true;
+              draw();
+              var n = candidate.trim().toUpperCase();
+              api.book(s.sessionId, n, accommodation || null).then(function (r) {
+                rememberCandidate(n);
+                result = r;
+                s = Object.assign({}, s, {
+                  seatsAvailable: r.seatsAvailable,
+                  bookedSeats: r.status === 'BOOKED' ? s.bookedSeats + 1 : s.bookedSeats,
+                  accommodationUsed: r.status === 'BOOKED' && needsAccommodationSeat(r.accommodationCode) ? s.accommodationUsed + 1 : s.accommodationUsed,
+                  waitlistCount: r.status === 'WAITLISTED' ? s.waitlistCount + 1 : s.waitlistCount,
+                });
+                if (r.status === 'BOOKED') toast('success', 'Seat booked - booking #' + r.bookingId, r.seatsAvailable + ' seats left on this session');
+                else toast('warning', 'Session is full - you are #' + r.waitlistPosition + ' on the waitlist', 'Booking #' + r.bookingId);
+              }, function (err) { toastError(err); }).then(function () { submitting = false; if (live()) draw(); });
+            });
           }
-          var bumpedCount = (response.data.bumpedBookingIds || []).length;
-          replaceSession(response.data.session);
-          show('capacity', 'success', '200 OK · ' + response.data.outbox.event,
-            'Capacity for session #' + session.sessionId + ' changed from ' + response.data.previousCapacity + ' to ' + response.data.session.capacity
-            + '. Seats available: ' + response.data.session.seatsAvailable + '.'
-            + (bumpedCount ? ' ' + bumpedCount + (bumpedCount === 1 ? ' booking' : ' bookings') + ' moved to waitlist.' : '')
-            + ' Legacy portal update queued.');
-        }).catch(function () {
-          show('capacity', 'error', '', 'scheduling-service could not be reached. Try again.');
-        }).then(function () {
-          busy.capacity = false;
-          capacityBtn.textContent = 'Save capacity';
-          updateForms();
-        });
-      });
+          draw();
+        }, function (e) { if (live()) main.innerHTML = errorBox(e.status === 404 ? new Error('Session not found') : e); });
+      }
 
-      [centerSelect, examSelect, fromInput, toInput].forEach(function (el) {
-        el.addEventListener('change', function () { searchSeq += 1; });
-      });
+      // ---- pages/MyBookings.tsx -------------------------------------------
+      function myBookings(params, live) {
+        var candidateNumber = (params.get('candidateNumber') || '').toUpperCase();
+        var input = candidateNumber || rememberedCandidate();
+        var head = pageHeader('My bookings', 'See, cancel or reschedule your exam bookings.');
+        function draw(state) {
+          var inputError = validateCandidateNumber(input);
+          var html = '<div>' + head + '<form class="card mb-6 flex flex-wrap items-start gap-3 p-4" novalidate=""><label class="min-w-[16rem] flex-1"><span class="label">Candidate number</span>'
+            + '<input class="input ' + (state.touched && inputError ? 'input-error' : '') + '" value="' + esc(input) + '" placeholder="NW00000901" data-testid="mybookings-candidate">'
+            + (state.touched && inputError ? '<p class="field-error">' + esc(inputError) + '</p>' : '') + '</label><button class="btn-primary mt-5" type="submit" data-testid="mybookings-search">Show bookings</button></form>';
+          if (!candidateNumber) html += empty('Enter your candidate number to see your bookings.');
+          else if (state.loading) html += spinner('Loading bookings');
+          else if (state.error) html += errorBox(state.error);
+          else if (state.data) {
+            var active = state.data.filter(function (b) { return b.status === 'BOOKED' || b.status === 'WAITLISTED'; });
+            html += '<div class="space-y-8"><section><h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Upcoming (' + active.length + ')</h2>'
+              + (active.length === 0 ? empty('No active bookings. <a class="text-brand-600 hover:underline" href="#/">Find a session</a>') : '<div class="grid gap-3">' + active.map(function (b) {
+                return '<article class="card flex flex-wrap items-center gap-4 p-4" data-testid="booking-row" data-booking-id="' + esc(b.bookingId) + '" data-status="' + esc(b.status) + '"><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><span class="font-semibold">' + esc(b.examCode) + '</span>' + statusBadge(b.status)
+                  + (b.waitlistPosition ? '<span class="badge bg-amber-50 text-amber-700">waitlist #' + esc(b.waitlistPosition) + '</span>' : '')
+                  + (b.accommodationCode ? '<span class="badge bg-indigo-50 text-indigo-700">' + esc(b.accommodationCode) + '</span>' : '')
+                  + '</div><p class="mt-1 text-sm text-slate-500">' + esc(formatDateTime(b.sessionStartsAt) + ' - session ' + b.sessionId + ' - booking #' + b.bookingId) + '</p></div></article>';
+              }).join('') + '</div>') + '</section></div>';
+          }
+          html += '</div>';
+          main.innerHTML = html;
+          var field = main.querySelector('[data-testid=mybookings-candidate]');
+          field.addEventListener('input', function () { input = field.value; });
+          main.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            input = field.value;
+            if (validateCandidateNumber(input)) { state.touched = true; draw(state); return; }
+            var n = input.trim().toUpperCase();
+            rememberCandidate(n);
+            setParams('/my-bookings', new URLSearchParams({ candidateNumber: n }));
+          });
+        }
+        if (!candidateNumber) { draw({}); return; }
+        draw({ loading: true });
+        api.candidateBookings(candidateNumber).then(function (data) { if (live()) draw({ data: data }); }, function (e) { if (live()) draw({ error: e }); });
+      }
 
+      function start() {
+        if (!location.hash || location.hash === '#') history.replaceState(null, '', location.pathname + location.search + DEFAULT_ROUTE);
+        window.addEventListener('hashchange', function () { window.scrollTo(0, 0); render(); });
+        render();
+      }
       // The on-call shim is injected after this script; wait for it before the first request.
-      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', search);
-      else search();
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+      else start();
     })();
   </script>
   <script src="/session-cap-banner.js"></script>
