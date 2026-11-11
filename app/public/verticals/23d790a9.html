@@ -364,7 +364,7 @@ const split2=t=>{if(t.length<=12||!t.includes(' '))return [t];const m=t.length/2
 const clip=(t,n)=>t.length>n?t.slice(0,n-1).trim()+'…':t;
 const TOPIC_FILL=[0,.2,.32,.45,.58,.7];
 function mapLayout(){const d=LIB;return ECO.map((e,i)=>{const a=(-90+i*60)*Math.PI/180,x=500+335*Math.cos(a),y=500+335*Math.sin(a);
-  const tot=d.themes.reduce((s,t)=>s+d.coverage[e.id][t.id].length,0),R=140+Math.min(20,tot);
+  const tot=new Set(d.themes.flatMap(t=>d.coverage[e.id][t.id])).size,R=140+Math.min(20,tot);
   const topics=d.themes.map((t,j)=>{const b=(-90+j*60)*Math.PI/180,ids=d.coverage[e.id][t.id],n=ids.length,r=n?Math.min(.27*R,.17*R+.045*R*Math.sqrt(n)):.15*R;
     const tx=x+.56*R*Math.cos(b),ty=y+.56*R*Math.sin(b),rd=r*(n<=1?.3:n<=3?.24:.19);
     return {t,n,x:tx,y:ty,r,docs:ids.map((id,k)=>{const c=k*2*Math.PI/n-Math.PI/2;return n===1?{id,x:tx,y:ty,r:rd}:{id,x:tx+r*.5*Math.cos(c),y:ty+r*.5*Math.sin(c),r:rd}})}});
