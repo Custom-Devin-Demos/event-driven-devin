@@ -3003,10 +3003,9 @@ const ONCALL_SKINS = {
     telemetryBrand: 'splunk-dynatrace',
     alertCard: {
       title: 'Response time degradation \u2014 Client Connection: release payment',
-      service: 'client-connection-disbursement-api',
       release: 'client-connection@2026.11.0',
       team: 'loan-disbursement-oncall',
-      metricQuery: 'index=prod sourcetype=client-connection service:disbursement-api uri_path="/api/oncall/banking/transfer" | timechart span=5m p95(duration_ms)',
+      metricQuery: 'index=prod sourcetype=client-connection service:banking-api uri_path="/api/oncall/banking/transfer" | timechart span=5m p95(duration_ms)',
       threshold: 'p95 > 2s per 5m span',
       symptom: 'Release Payment on approved withdrawal applications hangs ~10s before Treasury confirms. Error rate is normal; payments eventually go through. Dynatrace shows most of the response time in the payment-release call chain.',
       impact: 'Borrower finance officers releasing direct payments wait ~10 seconds per application ahead of the 16:00 UTC Treasury cut-off.',
