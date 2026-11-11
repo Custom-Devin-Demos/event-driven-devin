@@ -282,7 +282,7 @@ function gapSuggestions() {
 }
 
 function libraryIndex() {
-  return LIBRARY.map((d) => ({ ...docMeta(d.id), ecosystems: d.eco, themes: d.themes, passages: d.paragraphs.length }));
+  return LIBRARY.map((d) => ({ ...docMeta(d.id), short: d.short || d.title, ecosystems: d.eco, themes: d.themes, passages: d.paragraphs.length }));
 }
 
 // ------------------------------------------------------------------ trends
