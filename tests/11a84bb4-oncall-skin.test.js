@@ -301,6 +301,7 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
     expect(html).toContain('POST /api/v2/bookings');
     expect(html).toContain('PUT /api/v2/sessions/{sessionId}/capacity');
     expect(html).toContain('newCapacity: capacity');
+    expect(html).toContain('<input id="newCapacity" type="number" min="0" max="200"');
     expect(html).toContain("' moved to waitlist.'");
     expect(html).not.toMatch(/COMMITTED|\/api\/v1\/|NW-CHI-01/);
   });
