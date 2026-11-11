@@ -1,7 +1,7 @@
 /* global describe, expect, test, jest, beforeEach, beforeAll, afterAll */
 jest.mock('../app/services/slack', () => ({
   postMessage: jest.fn(() => Promise.resolve('1730000000.000100')),
-  findChannelByName: jest.fn(() => Promise.resolve({ id: 'C0FEEDBACK1', name: 'dell-com-feedback' })),
+  findChannelByName: jest.fn(() => Promise.resolve({ id: 'C0FEEDBACK1', name: 'dell-feedback' })),
   joinChannel: jest.fn(() => Promise.resolve()),
   buildAlertBlocks: jest.fn(() => [{ type: 'header', text: { type: 'plain_text', text: 'alert' } }]),
   buildAlertText: jest.fn((alertData) => `:rotating_light: ${alertData.issueTitle}`),
@@ -158,7 +158,7 @@ describe('683629b3 Dell.com storefront — registration and hosting', () => {
     expect(catalog.body.products.map((p) => p.id)).toEqual(['dell-14-plus', 'dell-15', 'dell-16', 'xps-13']);
     expect(account.body.profile.fullName).toBe('Alex Morgan');
     expect(account.body.orders.map((o) => o.id)).toEqual(['DEMO-10482', 'DEMO-10463']);
-    expect(config.body).toMatchObject({ scenario: 'checkout-unavailable', channel: '#dell-oncall', feedbackChannel: '#dell-com-feedback', feedbackMode: 'dry-run' });
+    expect(config.body).toMatchObject({ scenario: 'checkout-unavailable', channel: '#dell-oncall', feedbackChannel: '#dell-feedback', feedbackMode: 'dry-run' });
     expect(health.body).toEqual({ ok: true, service: `customer-${CUSTOMER}-web` });
     expect(missing.status).toBe(404);
   });
@@ -346,25 +346,25 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
   test('without a bot token the report is a dry run and the UI is told so', async () => {
     const res = await request('POST', FEEDBACK_ROUTE, report);
     expect(res.status).toBe(202);
-    expect(res.body).toEqual({ status: 'dry-run', channel: '#dell-com-feedback' });
+    expect(res.body).toEqual({ status: 'dry-run', channel: '#dell-feedback' });
     expect(postMessage).not.toHaveBeenCalled();
     const config = await request('GET', `${API_BASE}/config`);
     expect(config.body.feedbackMode).toBe('dry-run');
   });
 
-  test('live reports resolve #dell-com-feedback once and post plain-text blocks there — never #dell-oncall', async () => {
+  test('live reports post plain-text blocks to #dell-feedback (built-in id, no lookup) — never #dell-oncall', async () => {
     process.env.SLACK_BOT_TOKEN = 'xoxb-test';
     const first = await request('POST', FEEDBACK_ROUTE, report);
     const second = await request('POST', FEEDBACK_ROUTE, { ...report, title: 'Second <b>report</b> *markup*' });
     expect(first.status).toBe(201);
-    expect(first.body).toEqual({ status: 'sent', channel: '#dell-com-feedback' });
+    expect(first.body).toEqual({ status: 'sent', channel: '#dell-feedback' });
     expect(second.status).toBe(201);
-    expect(findChannelByName).toHaveBeenCalledTimes(1);
-    expect(findChannelByName).toHaveBeenCalledWith('xoxb-test', 'dell-com-feedback');
+    expect(findChannelByName).not.toHaveBeenCalled();
     expect(postMessage).toHaveBeenCalledTimes(2);
     const [token, channel, text, blocks] = postMessage.mock.calls[1];
     expect(token).toBe('xoxb-test');
-    expect(channel).toBe('C0FEEDBACK1');
+    expect(channel).toBe(FEEDBACK_CHANNEL.id);
+    expect(FEEDBACK_CHANNEL.id).toBe('C0CGM2LF6AJ');
     expect(channel).not.toBe(ONCALL_CHANNEL.id);
     expect(text).toBe('Dell.com demo \u2014 new bug report');
     expect(text).not.toContain('<');
@@ -392,32 +392,27 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
     process.env[FEEDBACK_CHANNEL.envVar] = ONCALL_CHANNEL.id;
     const refused = await request('POST', FEEDBACK_ROUTE, report);
     expect(refused.status).toBe(503);
-    expect(refused.body.error).toContain('#dell-com-feedback');
+    expect(refused.body.error).toContain('#dell-feedback');
     expect(postMessage).toHaveBeenCalledTimes(1);
   });
 
-  test('an unresolvable channel or a Slack failure is reported honestly and not retried', async () => {
+  test('a Slack failure is reported honestly and not retried', async () => {
     process.env.SLACK_BOT_TOKEN = 'xoxb-test';
-    findChannelByName.mockResolvedValueOnce(null);
-    const unresolved = await request('POST', FEEDBACK_ROUTE, report);
-    expect(unresolved.status).toBe(503);
-    expect(unresolved.body.error).toBe('Bug reporting is not connected to #dell-com-feedback on this server.');
-    expect(postMessage).not.toHaveBeenCalled();
 
     postMessage.mockRejectedValueOnce(new Error('Slack API error: channel_not_found'));
     const failed = await request('POST', FEEDBACK_ROUTE, report);
     expect(failed.status).toBe(502);
-    expect(failed.body.error).toBe('Unable to confirm delivery. Check #dell-com-feedback before retrying.');
+    expect(failed.body.error).toBe('Unable to confirm delivery. Check #dell-feedback before retrying.');
     expect(failed.body.error).not.toContain('channel_not_found');
     expect(postMessage).toHaveBeenCalledTimes(1);
   });
 
-  test('a bug report joins #dell-com-feedback when the bot is not a member yet', async () => {
+  test('a bug report joins #dell-feedback when the bot is not a member yet', async () => {
     process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-sre-bot';
     postMessage.mockImplementationOnce(() => Promise.reject(new Error('Slack API error: not_in_channel')));
     const res = await request('POST', FEEDBACK_ROUTE, report);
     expect(res.status).toBe(201);
-    expect(joinChannel).toHaveBeenCalledWith('xoxb-sre-bot', 'C0FEEDBACK1');
+    expect(joinChannel).toHaveBeenCalledWith('xoxb-sre-bot', FEEDBACK_CHANNEL.id);
     expect(postMessage).toHaveBeenCalledTimes(2);
     const config = await request('GET', `${API_BASE}/config`);
     expect(config.body.feedbackMode).toBe('live');

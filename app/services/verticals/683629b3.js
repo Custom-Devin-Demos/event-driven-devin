@@ -13,7 +13,7 @@ const { PRODUCTS, MEMORY_OPTIONS, STORAGE_OPTIONS, DEMO_ACCOUNT } = require('./6
  * build of that repo is served at /683629b3/app and talks to the JSON API
  * under /api/683629b3: catalog, always-signed-in sample account, configuration
  * quotes, Place order and the Contact Us bug report. Place order is the on-call
- * trigger; the bug report goes to #dell-com-feedback and never pages anyone.
+ * trigger; the bug report goes to #dell-feedback and never pages anyone.
  */
 const CUSTOMER = '683629b3';
 const API_BASE = `/api/${CUSTOMER}`;
@@ -28,7 +28,7 @@ const INCIDENT_WINDOW_MS = 60 * 1000;
 const FEEDBACK_LIMIT = { max: 5, windowMs: 60 * 1000 };
 
 const ONCALL_CHANNEL = { id: 'C0CAX4SHG6M', name: '#dell-oncall' };
-const FEEDBACK_CHANNEL = { name: 'dell-com-feedback', label: '#dell-com-feedback', envVar: 'SLACK_DELL_COM_FEEDBACK_CHANNEL_ID' };
+const FEEDBACK_CHANNEL = { id: 'C0CGM2LF6AJ', name: 'dell-feedback', label: '#dell-feedback', envVar: 'SLACK_DELL_FEEDBACK_CHANNEL_ID' };
 const DISCLAIMER = 'This is not a Dell Technologies website. Internal demonstration only; no real orders, accounts or payments.';
 
 /** Demo owner: on-call and session owner for every checkout incident. */
@@ -310,7 +310,7 @@ function refreshOrderStatus(orderId) {
 }
 
 /* ----------------------------------------------------------------------------
- * Contact Us → bug report → #dell-com-feedback
+ * Contact Us → bug report → #dell-feedback
  * ------------------------------------------------------------------------- */
 
 const feedbackWindow = [];
@@ -334,10 +334,10 @@ function reserveFeedbackSlot(now = Date.now()) {
 
 /**
  * The feedback channel is never the on-call channel: a configured id is used
- * as-is, otherwise the bot looks #dell-com-feedback up by name once.
+ * as-is, otherwise the bot looks #dell-feedback up by name once.
  */
 async function resolveFeedbackChannel(token) {
-  const configured = (process.env[FEEDBACK_CHANNEL.envVar] || '').trim();
+  const configured = (process.env[FEEDBACK_CHANNEL.envVar] || FEEDBACK_CHANNEL.id || '').trim();
   if (configured) {
     if (configured === ONCALL_CHANNEL.id) {
       throw new Error(`${FEEDBACK_CHANNEL.envVar} must not be the on-call channel`);
