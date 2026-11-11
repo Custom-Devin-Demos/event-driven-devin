@@ -33,7 +33,7 @@ const wrap = (fn) => async (req, res) => {
 router.get(`${BASE}/status`, wrap(() => pif.status()));
 router.get(`${BASE}/outlook`, wrap(() => pif.outlook()));
 router.get(`${BASE}/escalation`, wrap((req) => pif.escalation(req.query.lang)));
-router.get(`${BASE}/library`, wrap(() => ({ documents: pif.libraryIndex(), themes: pif.THEMES, coverage: pif.coverage(), gaps: pif.researchGaps(null) })));
+router.get(`${BASE}/library`, wrap(() => ({ documents: pif.libraryIndex(), themes: pif.THEMES, coverage: pif.coverage(), gaps: pif.researchGaps(null), suggestions: pif.gapSuggestions() })));
 router.get(`${BASE}/search`, wrap((req) => ({ results: pif.search(req.query.q, 8) })));
 router.post(`${BASE}/ask`, wrap((req) => pif.ask(req.body && req.body.question, { lang: req.body && req.body.lang })));
 router.get(`${BASE}/trends`, wrap((req) => ({ trends: pif.rankTrends(req.query.ecosystem) })));

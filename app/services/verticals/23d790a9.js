@@ -271,6 +271,16 @@ async function ask(question, { lang = 'en' } = {}) {
   return { question: q, answer, mode, aiOffline: hits.length > 0 && mode === 'extractive' && Boolean(llmProvider()), sources: hits, ecosystem: eco ? eco.name : null, focus: questionFocus(eco, themes, hits, answer), gaps: researchGaps(eco) };
 }
 
+function gapSuggestions() {
+  const cells = coverage();
+  const out = {};
+  for (const e of ECOSYSTEMS) {
+    out[e.id] = {};
+    for (const th of THEMES) if (!cells[e.id][th.id].length) out[e.id][th.id] = GAP_STUDIES[th.id](e);
+  }
+  return out;
+}
+
 function libraryIndex() {
   return LIBRARY.map((d) => ({ ...docMeta(d.id), ecosystems: d.eco, themes: d.themes, passages: d.paragraphs.length }));
 }
@@ -604,7 +614,7 @@ function status() {
 module.exports = {
   SLUG, ACCESS_COOKIE,
   accessToken, codeMatches, hasAccess, unlockAllowed,
-  search, ask, libraryIndex, coverage, researchGaps, detectEcosystem, detectThemes,
+  search, ask, libraryIndex, coverage, researchGaps, gapSuggestions, detectEcosystem, detectThemes,
   rankTrends, trendsBrief, outlook, escalation,
   checkCommunication, PUBLIC_FIGURES, THEMES,
   createFeatureRequest, getFeatureRequest, listFeatureRequests, buildFeaturePrompt, dailyCap,
