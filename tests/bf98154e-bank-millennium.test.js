@@ -97,7 +97,9 @@ describe('Bank Millennium Millenet login replica (/bankmillennium)', () => {
     expect(PAGE).not.toMatch(/@cognition\.ai|org_[A-Za-z0-9]{8,}/);
   });
 
-  test('is labelled as not affiliated with Bank Millennium', () => {
+  test('is labelled as a mock not affiliated with Bank Millennium', () => {
+    expect(PAGE).toContain('class="mockbar"');
+    expect(PAGE).toContain('THIS IS A MOCK');
     expect(PAGE).toContain('not affiliated with Bank Millennium S.A.');
     expect(PAGE).toContain('Do not enter real credentials.');
   });
