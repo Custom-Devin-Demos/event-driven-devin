@@ -39,6 +39,35 @@ const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/b
  */
 
 const REPO_URL = process.env.ONCALL_REPO_URL || 'https://github.com/COG-GTM/event-driven-devin';
+const GITHUB_REPO_NAME_RE = /^[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}$/;
+const GIT_BRANCH_RE = /^[A-Za-z0-9_][A-Za-z0-9._/-]{0,199}$/;
+
+/**
+ * Repository a skin's incident is investigated in, from the optional
+ * devinSession.repo: { name: 'owner/repo', branch } override. A malformed
+ * override is ignored, so the skin falls back to REPO_URL like every other.
+ */
+function skinRepo(skin) {
+  const repo = skin && isPlainObject(skin.devinSession) ? skin.devinSession.repo : null;
+  if (!isPlainObject(repo) || typeof repo.name !== 'string' || !GITHUB_REPO_NAME_RE.test(repo.name)) return null;
+  if (repo.name.split('/').some((part) => /^\.+$/.test(part))) return null;
+  let branch = null;
+  if (repo.branch !== undefined) {
+    if (typeof repo.branch !== 'string' || !GIT_BRANCH_RE.test(repo.branch)
+      || /\.\.|\/\/|\/$|\.lock$|\.$/.test(repo.branch)) return null;
+    branch = repo.branch;
+  }
+  return {
+    name: repo.name,
+    branch,
+    url: `https://github.com/${repo.name}${branch ? `/tree/${branch}` : ''}`,
+  };
+}
+
+function skinRepoUrl(skin) {
+  const repo = skinRepo(skin);
+  return repo ? repo.url : REPO_URL;
+}
 const DEMO_BASE_URL = () =>
   (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
 
@@ -620,6 +649,27 @@ const ALERT_SCENARIOS = {
     symptom: 'Confirm booking hangs about 9s, then returns 504; test-centre availability search answers in under 200ms. Onset coincides with the release.',
     impact: 'Candidates cannot book Certiport or Pearson VUE exams, seats are not reserved, and some retry or call the contact centre.',
     triggerWhen: { action: 'confirm-booking' },
+    unlisted: true,
+  },
+  assessmentscheduling: {
+    vertical: 'assessmentscheduling',
+    page: '11a84bb4.html',
+    apiPath: '/api/northwind-scheduling',
+    oncallApiPath: '/api/oncall/assessmentscheduling',
+    owner: 'Morgan Reyes (scheduling-service-oncall)',
+    brand: 'Assessment Network (Session scheduling)',
+    service: 'scheduling-service',
+    endpoint: 'PUT /api/v2/sessions/{sessionId}/capacity',
+    monitor: 'Capacity change rejections \u2014 scheduling-service PUT /api/v2/sessions/{sessionId}/capacity',
+    metricQuery: 'sum:scheduling_service.capacity_change.rejected{service:scheduling-service,error:capacity_below_accommodation_floor}.as_count()',
+    metricValue: '4.6% of capacity changes rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR (legacyCode 50005), all of them reductions on sessions with accommodation seats',
+    threshold: '> 2% of capacity changes',
+    baseline: '~0.3% (7-day)',
+    release: 'scheduling-service@1.4.0',
+    symptom: 'Since the 1.4.0 release, many capacity reductions on sessions that have accommodation seats are rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR, even though the new capacity still covers the accommodation seats. Increases, reductions on sessions without accommodation seats (which move the newest bookings to the waitlist as before), searches and bookings are fine. The legacy portal capacity is not updated through the outbox.',
+    impact: 'Test centres cannot release seats in rooms that are out of service, so the legacy portal and partner channels keep selling seats that do not exist and candidates are turned away on exam day.',
+    triggerWhen: { action: 'change-capacity' },
+    alertOnStatus: [409],
     unlisted: true,
   },
   devicereports: {
@@ -1675,7 +1725,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `Env: production | ${t.release}: ${card.release}`,
     `${t.events}: ${events} | ${t.first}: ${firstSeen.toISOString()} | ${t.last}: ${now.toISOString()}`,
     '',
-    `Repo: ${REPO_URL}`,
+    `Repo: ${skinRepoUrl(skin)}`,
   ];
 
   const notes = responderNotes(skin);
@@ -1730,7 +1780,7 @@ function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, o
     `*${t.impact}:* ${card.impact}`,
     runRef ? `*${t.incidentRef}:* ${runRef}` : null,
     '',
-    t.reproduce(`${DEMO_BASE_URL()}/oncall/c/${skin.slug}`, REPO_URL),
+    t.reproduce(`${DEMO_BASE_URL()}/oncall/c/${skin.slug}`, skinRepoUrl(skin)),
   ].filter((l) => l !== null);
 
   if (t.promptTelemetry) {
@@ -1828,12 +1878,14 @@ async function triggerSkinDevinSession(
 
   // Reserve before the async call so concurrent alerts cannot all pass the cap check.
   const release = reserveSession();
+  const repo = skinRepo(skin);
   let session = null;
   try {
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId }), {
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
       title: oncallStrings(skin, scenario).sessionTitle(resolveAlertCard(scenario, skin).monitor),
+      ...(repo ? { repos: [repo.name] } : {}),
     });
   } catch (error) {
     logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
@@ -1909,7 +1961,7 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
     body: [
       `**${t.owner}:** ${ownerRotation(card.owner)}`,
       demoPath ? `**${t.affectedPage}:** ${DEMO_BASE_URL()}${demoPath}` : null,
-      `Repo: ${REPO_URL}`,
+      `Repo: ${skinRepoUrl(skin)}`,
       ...(notes ? notes.split('\n').filter((line) => line.trim()) : []),
     ],
     actions: [
@@ -2050,7 +2102,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     ...(compact ? [] : [mrkdwnSection(`*${t.monitorQuery}:*\n\`\`\`${card.metricQuery}\`\`\``)]),
     mrkdwnSection(
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
-      `Repo: ${REPO_URL}`
+      `Repo: ${skinRepoUrl(skin)}`
     ),
     ...(responderNotes(skin) ? mrkdwnSections(responderNotes(skin)) : []),
     ...(t.viewDatadog && !compact ? [datadogActions(t)] : []),
@@ -2092,7 +2144,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       runRef,
       service: card.service,
       triggeredBy: validEmail(options.devinEmail) || `oncall/c/${skin.slug}`,
-      repoUrl: REPO_URL,
+      repoUrl: skinRepoUrl(skin),
       severity: 'SEV-2',
     }).catch((error) => logger.warn('Failed to declare Datadog incident for On-Call skin', { skin: skin.slug, error: error.message }));
   }
@@ -2633,6 +2685,7 @@ module.exports = {
   postOncallInfraIncident,
   getInfraState,
   isPlainObject,
+  skinRepo,
   buildOncallSessionPrompt,
   setOncallConfigOverride,
   resetSkinAlertMemory,

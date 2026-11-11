@@ -156,3 +156,36 @@ describe('on-call skin session prompt Slack thread context', () => {
     expect(prompt.indexOf('Appendix text.')).toBeLessThan(prompt.indexOf('*Slack Thread:*'));
   });
 });
+
+describe('per-skin repository override', () => {
+  const { skinRepo } = require('../app/services/oncall');
+  const DEFAULT_REPO_LINE = 'diagnose it from the repository and its telemetry: https://github.com/COG-GTM/event-driven-devin';
+
+  test('points the prompt at the override repo and branch', () => {
+    const skin = { slug: 'demo', devinSession: { auto: true, repo: { name: 'COG-GTM/SampleMvcWebApp', branch: 'assessment-delivery-demo' } } };
+    const prompt = buildOncallSessionPrompt(SCENARIO, skin, '');
+    expect(prompt).toContain('diagnose it from the repository and its telemetry: https://github.com/COG-GTM/SampleMvcWebApp/tree/assessment-delivery-demo');
+    expect(prompt).not.toContain('event-driven-devin');
+  });
+
+  test('an override without a branch links the repository root', () => {
+    expect(skinRepo({ devinSession: { repo: { name: 'COG-GTM/SampleMvcWebApp' } } }))
+      .toEqual({ name: 'COG-GTM/SampleMvcWebApp', branch: null, url: 'https://github.com/COG-GTM/SampleMvcWebApp' });
+  });
+
+  test.each([
+    ['no devinSession', {}],
+    ['no repo', { devinSession: { auto: true } }],
+    ['a string repo', { devinSession: { repo: 'COG-GTM/SampleMvcWebApp' } }],
+    ['a name without owner', { devinSession: { repo: { name: 'SampleMvcWebApp' } } }],
+    ['a URL as name', { devinSession: { repo: { name: 'https://evil.example/x' } } }],
+    ['a dot-dot path segment', { devinSession: { repo: { name: '../x' } } }],
+    ['a branch with ..', { devinSession: { repo: { name: 'COG-GTM/x', branch: 'a/../b' } } }],
+    ['a branch with spaces', { devinSession: { repo: { name: 'COG-GTM/x', branch: 'a b' } } }],
+    ['a non-string branch', { devinSession: { repo: { name: 'COG-GTM/x', branch: 7 } } }],
+  ])('%s keeps the default repository', (_label, extra) => {
+    const skin = { slug: 'demo', ...extra };
+    expect(skinRepo(skin)).toBeNull();
+    expect(buildOncallSessionPrompt(SCENARIO, skin, '')).toContain(DEFAULT_REPO_LINE);
+  });
+});

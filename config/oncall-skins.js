@@ -33,6 +33,11 @@
  * hub, or from skins without this key, stay alert-only. orgId defaults to
  * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
  * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
+ * devinSession.repo: { name: 'owner/repo', branch } points the skin's incident
+ * at another repository: the alert card's Repo line, the session prompt and
+ * any Datadog incident link https://github.com/<name>[/tree/<branch>], and the
+ * session is scoped to repos: [name]. Without it (or when malformed) REPO_URL
+ * is used, as for every other skin.
  * devinSession.notifySlackMemberId (a Slack member id) makes the session's
  * prompt ask Devin to @-mention that person in the alert thread when the root
  * cause is confirmed and again when the fix PR is open.
@@ -4464,6 +4469,47 @@ const ONCALL_SKINS = {
     supportCenter: 'Pearson VUE Customer Service',
     supportCenterSub: 'Exam scheduling & test centres',
     disclaimer: 'NOT ACTUALLY A PEARSON VUE SITE — internal demo only, not affiliated with, endorsed by, or a real Pearson VUE or Certiport product.',
+  },
+  '11a84bb4': {
+    slug: '11a84bb4',
+    company: 'Northwind Assessment Network',
+    brandMark: 'N',
+    vertical: 'assessmentscheduling',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/assessment-scheduling', '/northwind-scheduling'],
+    devinSession: {
+      auto: true,
+      repo: { name: 'COG-GTM/SampleMvcWebApp', branch: 'assessment-delivery-demo' },
+      promptAppendix: [
+        'The page linked above is a replica of the scheduling-service centre-admin UI. The alert has already fired from it: never submit that page again.',
+        'The service behind it is the Java 21 / Spring Boot 3 scheduling-service in COG-GTM/SampleMvcWebApp, branch assessment-delivery-demo, folder services/scheduling-service/. The defect is there, not in COG-GTM/event-driven-devin: do not open PRs in event-driven-devin.',
+        'Reproduce the rejected capacity change locally against scheduling-service per its README (unit tests / mvn -B verify, or scripts/run-scheduling-service.sh); docs/adr/0002-ported-rule-decisions.md documents the ported legacy rules. Add a regression test, fix it, and open a fix PR into assessment-delivery-demo.',
+        'Post the root cause and the PR link in the alert thread. Never merge or deploy.',
+      ].join('\n'),
+    },
+    page: { file: '11a84bb4.html', title: 'Session scheduling | Northwind Assessment Network' },
+    theme: {
+      '--accent': '#0B6E99',
+      '--ink': '#1F2933',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#10223F',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'Capacity change rejections \u2014 scheduling-service PUT /api/v2/sessions/{sessionId}/capacity',
+      service: 'scheduling-service',
+      release: 'scheduling-service@1.4.0',
+      team: 'scheduling-service-oncall',
+      metricQuery: 'sum:scheduling_service.capacity_change.rejected{service:scheduling-service,error:capacity_below_accommodation_floor}.as_count()',
+      metricValue: '4.6% of capacity changes rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR (legacyCode 50005), all of them reductions on sessions with accommodation seats',
+      threshold: '> 2% of capacity changes',
+      baseline: '~0.3% (7-day)',
+      symptom: 'Since the 1.4.0 release, many capacity reductions on sessions that have accommodation seats are rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR, even though the new capacity still covers the accommodation seats. Increases, reductions on sessions without accommodation seats (which move the newest bookings to the waitlist as before), searches and bookings are fine. The legacy portal capacity is not updated through the outbox.',
+      impact: 'Centres cannot release seats in rooms that are out of service, so the legacy portal and partner channels keep selling seats that do not exist; candidates are turned away on exam day.',
+    },
+    supportCenter: 'Northwind Centre Operations Support',
+    disclaimer: 'NOT A REAL ORGANIZATION \u2014 internal demo only. Northwind Assessment Network is fictional; all test centres, sessions and candidates are made up.',
   },
   '99defdc4': {
     slug: '99defdc4',

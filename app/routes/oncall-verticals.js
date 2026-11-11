@@ -1,3 +1,4 @@
+const { randomUUID } = require('crypto');
 const express = require('express');
 const { processTransfer } = require('../services/oncall-verticals/banking');
 const { processCashTransfer } = require('../services/oncall-verticals/statestreet-transfers');
@@ -47,6 +48,7 @@ const { runWithAlertDestination } = require('../services/alert-destination');
 const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
+const { searchSessions, bookSeat, changeCapacity } = require('../services/oncall-verticals/assessmentscheduling');
 const { generateReport } = require('../services/oncall-verticals/devicereports');
 const { refreshRefillQueue, REFILLS } = require('../services/oncall-verticals/refillqueue');
 const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
@@ -1319,6 +1321,70 @@ router.post('/api/oncall/examscheduling/appointments', async (req, res) => {
   }
 });
 
+const ASSESSMENT_SCHEDULING_STATUS = {
+  VALIDATION: 400,
+  CENTER_NOT_FOUND: 404,
+  SESSION_NOT_FOUND: 404,
+  SESSION_NOT_OPEN: 409,
+  DUPLICATE_BOOKING: 409,
+  NO_ACCOMMODATION_SEAT: 409,
+  CAPACITY_BELOW_ACCOMMODATION_FLOOR: 409,
+};
+
+// Same error body as scheduling-service's ApiExceptionHandler: {"error","message","legacyCode"}.
+function sendAssessmentSchedulingError(req, res, error, fallbackCode) {
+  const status = ASSESSMENT_SCHEDULING_STATUS[error.code] || 500;
+  if (status === 500) logger.error('scheduling-service replica error', { error: error.message, requestId: req.requestId });
+  res.status(status).json({
+    error: status === 500 ? fallbackCode : error.code,
+    message: status === 500 ? 'scheduling-service could not process the request' : error.message,
+    legacyCode: status === 500 ? null : (error.legacyCode ?? null),
+  });
+}
+
+// Mounted in server.js on the assessmentscheduling prefix: malformed JSON bodies
+// answer 400 BAD_REQUEST (as scheduling-service does) instead of the global 500.
+function assessmentSchedulingBodyErrorHandler(err, req, res, next) {
+  if (err && err.type === 'entity.parse.failed') {
+    // The request-ID middleware runs after the body parser, so set it here.
+    const requestId = req.requestId || req.headers['x-request-id'] || randomUUID();
+    res.setHeader('x-request-id', requestId);
+    return res.status(400).json({ error: 'BAD_REQUEST', message: 'Malformed JSON request body', legacyCode: null });
+  }
+  return next(err);
+}
+
+/**
+ * Northwind scheduling-service replica: session search, seat booking and
+ * session capacity changes for centre administrators.
+ */
+router.post('/api/oncall/assessmentscheduling/sessions/search', (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(searchSessions({ centerCode: body.centerCode, examCode: body.examCode, from: body.from, to: body.to }));
+  } catch (error) {
+    sendAssessmentSchedulingError(req, res, error, 'SEARCH_FAILED');
+  }
+});
+
+router.post('/api/oncall/assessmentscheduling/bookings', (req, res) => {
+  const body = req.body || {};
+  try {
+    res.status(201).json(bookSeat({ sessionId: body.sessionId, candidateNumber: body.candidateNumber, accommodationCode: body.accommodationCode }));
+  } catch (error) {
+    sendAssessmentSchedulingError(req, res, error, 'BOOKING_FAILED');
+  }
+});
+
+router.post('/api/oncall/assessmentscheduling/sessions/capacity', (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(changeCapacity({ sessionId: body.sessionId, newCapacity: body.newCapacity, actor: body.actor, reason: body.reason }));
+  } catch (error) {
+    sendAssessmentSchedulingError(req, res, error, 'CAPACITY_CHANGE_FAILED');
+  }
+});
+
 router.post('/api/oncall/devicereports/reports', async (req, res) => {
   const body = req.body || {};
   try {
@@ -1462,3 +1528,4 @@ router.post('/api/playback/start', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.assessmentSchedulingBodyErrorHandler = assessmentSchedulingBodyErrorHandler;

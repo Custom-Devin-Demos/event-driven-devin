@@ -126,6 +126,7 @@ app.use(devinUsersRoutes);
 app.use(webinarRoutes);
 app.use(oncallRoutes);
 app.use(oncallVerticalRoutes);
+app.use('/api/oncall/assessmentscheduling', oncallVerticalRoutes.assessmentSchedulingBodyErrorHandler);
 app.use(internalJobsRoutes);
 app.use(cibcCardApplyRoutes);
 app.use(incidentLabRoutes);
