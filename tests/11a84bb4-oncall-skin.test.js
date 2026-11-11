@@ -25,6 +25,7 @@ beforeAll((done) => {
   app.use(express.json());
   app.use(oncallRoutes);
   app.use(oncallVerticalRoutes);
+  app.use('/api/oncall/assessmentscheduling', oncallVerticalRoutes.assessmentSchedulingBodyErrorHandler);
   server = http.createServer(app);
   server.listen(0, () => {
     baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -132,7 +133,7 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
     const demo = data.sessions.find((s) => s.sessionId === 41872);
     expect(demo).toMatchObject({
       examCode: 'NWA-NET-310', room: 'Room B', capacity: 30, accommodationCapacity: 4, booked: 22, seatsAvailable: 8,
-      note: 'Room B: 6 workstations out of service',
+      note: '6 workstations out of service',
     });
     data.sessions.forEach((s) => expect(s.seatsAvailable).toBe(Math.max(0, s.capacity - s.booked)));
 
@@ -169,7 +170,7 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
 
   test('reducing capacity on a session with accommodation seats is rejected with 409 CAPACITY_BELOW_COMMITTED', async () => {
     const res = await post(`${API}/sessions/capacity`, {
-      action: 'change-capacity', sessionId: 41872, capacity: 24, reason: 'Room B: 6 workstations out of service',
+      action: 'change-capacity', sessionId: 41872, capacity: 24, reason: '6 workstations out of service',
     });
     expect(res.status).toBe(409);
     const data = await res.json();
@@ -211,6 +212,51 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
   test('a recent capacity change is kept within the idle window', () => {
     changeCapacity({ sessionId: 41872, capacity: 34 });
     expect(searchSessions({ centerCode: 'NW-CHI-01' }).sessions.find((s) => s.sessionId === 41872).capacity).toBe(34);
+  });
+
+  test.each([
+    ['boolean capacity', { sessionId: 41872, capacity: true }],
+    ['array capacity', { sessionId: 41872, capacity: [25] }],
+    ['trailing garbage capacity', { sessionId: 41872, capacity: '25abc' }],
+    ['fractional capacity', { sessionId: 41872, capacity: 25.5 }],
+    ['empty capacity', { sessionId: 41872, capacity: '' }],
+    ['boolean sessionId', { sessionId: true, capacity: 25 }],
+    ['array sessionId', { sessionId: [41872], capacity: 25 }],
+    ['trailing garbage sessionId', { sessionId: '41872abc', capacity: 25 }],
+    ['fractional sessionId', { sessionId: 41872.5, capacity: 25 }],
+  ])('rejects %s with 400 INVALID_REQUEST', async (_label, body) => {
+    const res = await post(`${API}/sessions/capacity`, { action: 'change-capacity', ...body });
+    expect(res.status).toBe(400);
+    expect((await res.json()).code).toBe('INVALID_REQUEST');
+    expect(await findSession(41872)).toMatchObject({ capacity: 30 });
+  });
+
+  test('rejects a non-integer sessionId on bookings with 400', async () => {
+    const res = await post(`${API}/bookings`, { sessionId: [41873], candidateNumber: 'NW20481736' });
+    expect(res.status).toBe(400);
+    expect((await res.json()).code).toBe('INVALID_REQUEST');
+  });
+
+  test('accepts digit-only string ids and capacities', async () => {
+    const res = await post(`${API}/sessions/capacity`, { sessionId: '41872', capacity: '34' });
+    expect(res.status).toBe(200);
+    expect((await res.json()).session.capacity).toBe(34);
+  });
+
+  test('malformed JSON is a 400, not a 500', async () => {
+    const res = await fetch(`${baseUrl}${API}/sessions/capacity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{"sessionId": 41872, "capacity": ',
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ success: false, code: 'INVALID_REQUEST' });
+  });
+
+  test('page reserves room under the content for the floating demo ribbon', async () => {
+    const html = await (await fetch(`${baseUrl}/oncall/c/${SLUG}`)).text();
+    expect(html).toContain('body { padding-bottom: 112px; }');
+    expect(html).toContain('value="6 workstations out of service"');
   });
 
   test('invalid capacity requests are 400 and unknown sessions 404', async () => {

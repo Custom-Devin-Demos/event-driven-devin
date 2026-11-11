@@ -1340,6 +1340,20 @@ function sendAssessmentSchedulingError(req, res, error, fallbackCode) {
   });
 }
 
+// Mounted in server.js on the assessmentscheduling prefix: malformed JSON bodies
+// answer 400 INVALID_REQUEST instead of the global 500.
+function assessmentSchedulingBodyErrorHandler(err, req, res, next) {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      error: 'Request body must be valid JSON.',
+      code: 'INVALID_REQUEST',
+      requestId: req.requestId,
+    });
+  }
+  return next(err);
+}
+
 /**
  * Northwind scheduling-service replica: session search, seat booking and
  * session capacity changes for centre administrators.
@@ -1514,3 +1528,4 @@ router.post('/api/playback/start', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.assessmentSchedulingBodyErrorHandler = assessmentSchedulingBodyErrorHandler;

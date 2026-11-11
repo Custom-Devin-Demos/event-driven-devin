@@ -33,7 +33,7 @@ const SEATED_ACCOMMODATIONS = new Set(['ET25', 'ET50']);
 // [sessionId, centre, exam, dayOffset, startTime, room, capacity, accommodationCapacity, booked, accommodationBooked, note]
 const SEED = [
   [41871, 'NW-CHI-01', 'NWA-PM-210', 2, '08:30', 'Room A', 24, 0, 15, 0, null],
-  [41872, 'NW-CHI-01', 'NWA-NET-310', 2, '08:30', 'Room B', 30, 4, 22, 3, 'Room B: 6 workstations out of service'],
+  [41872, 'NW-CHI-01', 'NWA-NET-310', 2, '08:30', 'Room B', 30, 4, 22, 3, '6 workstations out of service'],
   [41873, 'NW-CHI-01', 'NWA-CLN-120', 2, '13:00', 'Room A', 24, 2, 9, 1, null],
   [41874, 'NW-CHI-01', 'NWA-NET-310', 4, '08:30', 'Room B', 30, 4, 18, 2, null],
   [41875, 'NW-CHI-01', 'NWA-PM-210', 6, '13:00', 'Room A', 24, 0, 24, 0, null],
@@ -136,8 +136,15 @@ function sessionView(session) {
   };
 }
 
+// Only JSON integers or digit-only strings; rejects true, [25], "25abc", 2.5.
+function toInteger(value) {
+  if (typeof value === 'number') return Number.isInteger(value) ? value : NaN;
+  if (typeof value === 'string' && /^\d{1,9}$/.test(value.trim())) return Number(value.trim());
+  return NaN;
+}
+
 function parseSessionId(value) {
-  const id = Number(value);
+  const id = toInteger(value);
   if (!Number.isInteger(id) || id <= 0) throw requestError('INVALID_REQUEST', 'sessionId must be a positive integer.');
   return id;
 }
@@ -237,7 +244,7 @@ function bookSeat(data = {}) {
 function changeCapacity(data = {}) {
   const startedAt = Date.now();
   const sessionId = parseSessionId(data.sessionId);
-  const capacity = Number(data.capacity);
+  const capacity = toInteger(data.capacity);
   if (!Number.isInteger(capacity) || capacity < 1 || capacity > MAX_CAPACITY) {
     throw requestError('INVALID_REQUEST', `Capacity must be a whole number between 1 and ${MAX_CAPACITY}.`);
   }
