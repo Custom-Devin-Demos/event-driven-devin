@@ -332,7 +332,7 @@ function reqHtml(q, prefix = 'req-') {
   const label = q.mode === 'voice-qa' && q.state === 'working' ? 'Devin is transcribing the call → QA scenarios → regression tests' : (REQ_TEXT[q.state] || q.state);
   return `<div class="req" id="${prefix}${esc(q.id)}"><div class="q">${q.mode === 'reviews' ? '★ ' : q.mode === 'voice-qa' ? 'Voice QA · ' : ''}${esc(q.request)}</div><div class="m">${esc(label)}${q.devinStatus ? ` · ${esc(q.devinStatus)}` : ''}</div><div class="prog">${bars}</div><div class="lnk">${q.sessionUrl ? `<a href="${esc(safeUrl(q.sessionUrl))}" target="_blank" rel="noopener">Watch Devin →</a>` : ''}${q.prUrl ? `<a href="${esc(safeUrl(q.prUrl))}" target="_blank" rel="noopener">View pull request →</a>` : ''}</div></div>`;
 }
-function renderReqs(list) { $('#reqList').innerHTML = list.length ? list.map(reqHtml).join('') : '<div class="m" style="color:var(--muted);font-size:13px">No requests yet.</div>'; }
+function renderReqs(list) { $('#reqList').innerHTML = list.length ? list.map((q) => reqHtml(q)).join('') : '<div class="m" style="color:var(--muted);font-size:13px">No requests yet.</div>'; }
 function upsertReq(q) {
   if (q.mode === 'voice-qa' && q.recordingId) { const box = document.getElementById(`qa-${q.recordingId}`); if (box) box.innerHTML = reqHtml(q, 'vq-'); }
   const el = document.getElementById(`req-${q.id}`);
