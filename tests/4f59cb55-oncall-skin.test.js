@@ -80,7 +80,7 @@ describe('4f59cb55 gift-with-purchase checkout on-call skin', () => {
     await postOncallAlert(skin.vertical, { skin, runRef: 'run-test' });
     const [, channel, text] = postMessage.mock.calls[postMessage.mock.calls.length - 1];
     expect(channel).toBe('C0TEST');
-    expect(text).toContain('Checkout: place order (gift with purchase)');
+    expect(text).toContain('Checkout: place order');
     expect(text).toContain('web-checkout-api (MECCA)');
     expect(text).toContain('web-checkout@2026.11.4');
     expect(text).toContain('/oncall/c/4f59cb55');

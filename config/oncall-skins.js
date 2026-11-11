@@ -8323,7 +8323,7 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'MECCA Customer Care',
     alertCard: {
-      title: 'p95 latency — Checkout: place order (gift with purchase)',
+      title: 'p95 latency — Checkout: place order',
       service: 'web-checkout-api',
       release: 'web-checkout@2026.11.4',
       team: 'digital-checkout',
@@ -8331,7 +8331,7 @@ const ONCALL_SKINS = {
       metricValue: '9.4s',
       threshold: '> 1.5s',
       baseline: '~320ms (7-day p95, before web-checkout@2026.11.4)',
-      symptom: 'Bags with a gift with purchase hang ~9s after the shopper selects Place order before the order confirmation is shown. Error rate is normal — the order is placed and charged.',
+      symptom: 'Checkout hangs ~9s after the shopper selects Place order before the order confirmation is shown. Error rate is normal — the order is placed and charged.',
       impact: 'Shoppers checking out during the gifting event wait ~9 seconds on Place order; some tap it again and contact Customer Care about being charged twice.',
     },
     disclaimer: 'NOT ACTUALLY A MECCA SITE — internal demo only, not affiliated with, endorsed by, or a real MECCA Brands product.',
