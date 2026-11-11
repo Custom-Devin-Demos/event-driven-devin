@@ -168,3 +168,18 @@ describe('greenfield feature requests', () => {
     expect(res.body.sources).toContain('G2');
   });
 });
+
+describe('incident dedupe and org-scoped polling', () => {
+  test('repeat Sales-line failures reuse the open Jira ticket', async () => {
+    await request('POST', '/api/cbe0ee4c/sms', { fromNumberId: 'sales', conversationId: 'cv-northwind', text: 'one' });
+    const second = await request('POST', '/api/cbe0ee4c/sms', { fromNumberId: 'sales', conversationId: 'cv-northwind', text: 'two' });
+    expect(jira.createIssue).toHaveBeenCalledTimes(1);
+    expect(second.body.jira.key).toBe('MBA-901');
+  });
+
+  test('feature request remembers the org it was created in', async () => {
+    await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews', devinOrgId: 'org-other' });
+    expect(createDevinSession.mock.calls[0][1].orgId).toBe('org-other');
+    expect([...rc._featureRequests.values()][0].orgId).toBe('org-other');
+  });
+});

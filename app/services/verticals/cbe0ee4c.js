@@ -14,6 +14,7 @@ const SEND_ROUTE = '/api/cbe0ee4c/sms';
 const REPO = 'COG-GTM/event-driven-devin';
 const JIRA_PROJECT_KEY = process.env.RC_JIRA_PROJECT_KEY || 'MBA';
 const DAY_MS = 24 * 60 * 60 * 1000;
+const TICKET_DEDUPE_MS = 15 * 60 * 1000;
 
 const ACCOUNT = {
   company: 'Summit Ridge Outfitters',
@@ -224,10 +225,11 @@ async function reportSmsIncident(error, data, context) {
     session: null,
     state: 'filing-ticket',
   };
+  const openTicket = incidents.find((i) => i.jira && i.campaignId === number.campaignId && incident.createdAt - i.createdAt < TICKET_DEDUPE_MS);
   incidents.unshift(incident);
   incidents.length = Math.min(incidents.length, 20);
 
-  const issue = await fileJiraTicket({ error, number, campaign, messageId, sentryUrl });
+  const issue = openTicket ? openTicket.jira : await fileJiraTicket({ error, number, campaign, messageId, sentryUrl });
   incident.jira = issue ? { key: issue.key, url: issue.url } : null;
   incident.state = 'starting-devin';
 
@@ -456,11 +458,12 @@ async function createFeatureRequest({ mode, focus, request, name, devinUserId, d
   };
   featureRequests.set(id, record);
   const config = getCustomerConfig(SLUG);
+  record.orgId = devinOrgId || config.devinOrgId;
   try {
     const prompt = fromReviews ? buildReviewsPrompt(area.id, record.name) : buildFeaturePrompt(text, record.name);
     const session = await createDevinSession(prompt, {
       apiKey: config.apiKey,
-      orgId: devinOrgId || config.devinOrgId,
+      orgId: record.orgId,
       userId: devinUserId || config.devinUserId,
       title: fromReviews ? `RingCentral: build from customer reviews (${area.label})` : `RingCentral feature: ${text.slice(0, 70)}`,
       repos: [REPO],
@@ -494,7 +497,7 @@ async function refreshRequest(record) {
   if (!record.sessionId || record.prUrl) return;
   const config = getCustomerConfig(SLUG);
   const key = config.apiKey;
-  const orgId = config.devinOrgId || process.env.DEVIN_ORG_ID;
+  const orgId = record.orgId || config.devinOrgId || process.env.DEVIN_ORG_ID;
   if (!key || !orgId) return;
   try {
     const r = await axios.get(`https://api.devin.ai/v3/organizations/${orgId}/sessions/${record.sessionId}`, {
