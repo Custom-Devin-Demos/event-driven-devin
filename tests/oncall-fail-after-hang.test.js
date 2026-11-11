@@ -36,18 +36,15 @@ describe('failAfterHang skins', () => {
     await expect(processTransfer(data)).resolves.toMatchObject({ success: true });
   });
 
-  test('telco: the failAfterHang skin hangs, then gets a calm 504', async () => {
+  test('telco: the failAfterHang skin commits before the billing hold expires', async () => {
     expect(getOncallSkin('b77d601c')).toMatchObject({ vertical: 'telco', failAfterHang: true });
     const started = Date.now();
     const res = await post('/api/oncall/telco/upgrade', {
       accountId: 'CUST-3001', currentPlanCode: 'BASIC-12', targetPlanCode: 'PLUS-24', billingDay: 15,
     }, { 'X-Oncall-Skin': 'b77d601c' });
-    const body = await res.json();
-    expect(res.status).toBe(504);
-    expect(Date.now() - started).toBeGreaterThan(5000);
-    expect(body).toMatchObject({ success: false, code: 'HOLD_EXPIRED' });
-    expect(body.error).toMatch(/try again in a few minutes/);
-    expect(body.error).not.toMatch(/hold|ms\b/i);
+    expect(res.status).toBe(200);
+    expect(Date.now() - started).toBeLessThan(1500);
+    expect(await res.json()).toMatchObject({ success: true, status: 'upgraded' });
   });
 
   test('banking: failAfterMs ends the hang with a 504 after ~5s', async () => {
@@ -71,7 +68,7 @@ describe('failAfterHang skins', () => {
     expect((await res.json()).code).toBe('HOLD_EXPIRED');
   });
 
-  test('a skin without failAfterHang still succeeds after the hang', async () => {
+  test('a telco skin without failAfterHang succeeds', async () => {
     const rogers = getOncallSkin('42a72d14');
     expect(rogers).toMatchObject({ vertical: 'telco' });
     expect(rogers.failAfterHang).toBeUndefined();
