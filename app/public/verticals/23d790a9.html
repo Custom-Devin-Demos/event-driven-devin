@@ -343,7 +343,7 @@ const QS=['How is PIF financing AI infrastructure?','What does the 2026–2030 s
 $('#qChips').innerHTML=QS.map(q=>`<button type="button">${esc(q)}</button>`).join('');
 $$('#qChips button').forEach(b=>b.onclick=()=>{$('#question').value=b.textContent;askQ()});
 $('#askForm').onsubmit=e=>{e.preventDefault();askQ()};
-async function askQ(){const q=$('#question').value.trim();if(!q)return;$('#askBtn').disabled=true;$('#answer').innerHTML='<span class="spin"></span><span class="muted">Searching the library…</span>';
+async function askQ(pin){const q=$('#question').value.trim();if(!q)return;if(MAP)MAP.pin=pin||null;$('#askBtn').disabled=true;$('#answer').innerHTML='<span class="spin"></span><span class="muted">Searching the library…</span>';
   try{const r=await api('/ask',{method:'POST',body:JSON.stringify({question:q,lang:LANG})});
     const ans=esc(r.answer).replace(/\[(\d+)\]/g,'<sup data-s="$1">[$1]</sup>');
     $('#answer').innerHTML=`<div class="lab">${r.mode==='ai'?'Answer':(r.aiOffline?'Answer — AI synthesis unavailable, composed from source passages':'Answer — composed from source passages')}${r.ecosystem?` · ${esc(r.ecosystem)}`:''}</div><div class="answer" dir="${LANG==='ar'&&r.mode==='ai'?'rtl':'ltr'}">${ans}</div>
@@ -435,7 +435,7 @@ function renderCoverage(f){const fresh=f!==undefined&&f!==null;if(f!==undefined)
     else q='No specific ecosystem or topic detected in this question.';
     $('#covq').innerHTML=`Your question — ${q}`;$('#covq').style.display=''}else $('#covq').style.display='none';
   applyFocus();
-  if(fresh){if(f.ecosystem&&themes.length===1)mapTopic(f.ecosystem,themes[0]);else if(f.ecosystem)mapRegion(f.ecosystem);else mapAll()}}
+  if(fresh&&MAP.pin){const [pe,pt]=MAP.pin;MAP.pin=null;mapTopic(pe,pt)}else if(fresh){if(f.ecosystem&&themes.length===1)mapTopic(f.ecosystem,themes[0]);else if(f.ecosystem)mapRegion(f.ecosystem);else mapAll()}}
 function showRegion(eid){const e=ECO.find(x=>x.id===eid),g=mapReg(eid),gaps=g.topics.filter(p=>!p.n);
   $('#cellInfo').innerHTML=`<div class="cell"><h4>${esc(e.name)}</h4><div class="m">${g.tot} ${g.tot===1?'study':'studies'} across ${6-gaps.length} of 6 topics · ${esc(e.companies.slice(0,4).join(', '))}</div>
     ${gaps.length?`<p style="font-size:13px;margin:10px 0 12px"><span class="st-red">Not yet studied:</span> ${gaps.map(p=>esc(p.t.name)).join(', ')}. Click a dashed circle for the suggested study.</p>`:'<p style="font-size:13px;margin:10px 0 12px">Every topic has at least one study.</p>'}
@@ -444,14 +444,14 @@ function showRegion(eid){const e=ECO.find(x=>x.id===eid),g=mapReg(eid),gaps=g.to
 function showDoc(did,eid,tid){const x=LIB.documents.find(o=>o.id===did),t=LIB.themes.find(o=>o.id===tid),e=ECO.find(o=>o.id===eid);
   $('#cellInfo').innerHTML=`<div class="cell"><h4><a class="ul" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a></h4><div class="m">${esc(x.type)} · ${fmt(x.date)} · ${x.passages} passages indexed</div>
     <p style="font-size:13px;margin:10px 0 12px">Filed under ${esc(shortEco(e))} × ${esc(t.name)}${x.ecosystems.length>2?' (covers all ecosystems)':''}.</p><button type="button" class="btn" id="cellAsk">Ask about this</button></div>`;
-  $('#cellAsk').onclick=()=>{$('#question').value=`What does “${x.title}” say about ${t.name.toLowerCase()} in ${e.name}?`;window.scrollTo({top:0,behavior:'smooth'});askQ()}}
+  $('#cellAsk').onclick=()=>{$('#question').value=`What does “${x.title}” say about ${t.name.toLowerCase()} in ${e.name}?`;window.scrollTo({top:0,behavior:'smooth'});askQ([eid,tid])}}
 function showCell(eid,tid){const d=LIB,e=ECO.find(x=>x.id===eid),t=d.themes.find(x=>x.id===tid),ids=d.coverage[eid][tid],docs=d.documents.filter(x=>ids.includes(x.id));
   const q=`What have we studied on ${t.name.toLowerCase()} in ${e.name}?`;
   $('#cellInfo').innerHTML=`<div class="cell${docs.length?'':' gap'}"><h4>${esc(e.name)} × ${esc(t.name)}</h4>
     ${docs.length?`<div class="m">${docs.length} ${docs.length===1?'study':'studies'} in the library</div><ul>${docs.map(x=>`<li><a class="ul" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a> <span class="m">· ${fmt(x.date)}</span></li>`).join('')}</ul>`
       :`<div class="m st-red">Not yet studied — suggested next research</div><p style="font-size:13.5px;margin:10px 0 12px">${esc((d.suggestions[eid]||{})[tid]||'')}</p>`}
     <button type="button" class="btn" id="cellAsk">${docs.length?'Ask about this':'Research this'}</button></div>`;
-  $('#cellAsk').onclick=()=>{$('#question').value=q;window.scrollTo({top:0,behavior:'smooth'});askQ()}}
+  $('#cellAsk').onclick=()=>{$('#question').value=q;window.scrollTo({top:0,behavior:'smooth'});askQ([eid,tid])}}
 async function loadEcoList(){if(!ECO){const d=await api('/outlook');ECO=d.ecosystems}}
 
 /* ---------- trends ---------- */
