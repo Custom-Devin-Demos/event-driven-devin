@@ -14,7 +14,6 @@ button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}a{
 .search{flex:1;max-width:520px;margin-left:20px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--muted)}
 .search input{border:0;background:transparent;outline:0;flex:1}
 .top .sp{flex:1}.dial{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:6px;font-weight:600}
-.feat{background:linear-gradient(90deg,#066fac,#0a8fd1);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;display:flex;gap:7px;align-items:center}
 .me{display:flex;align-items:center;gap:8px}.av{width:32px;height:32px;border-radius:50%;background:#4b5bd6;color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none;position:relative}
 .me .av:after{content:"";position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:#2fb344;border:2px solid #fff}
 .ops-link{display:none;font-size:12px;color:var(--muted);border:1px dashed #c5cbd3;border-radius:6px;padding:5px 8px;background:#fff}.ops-on .ops-link{display:inline-block}
@@ -98,7 +97,6 @@ details{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:
     <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Search messages, contacts, and more" aria-label="Search"></label>
     <div class="sp"></div>
     <button class="ops-link" id="opsBtn" type="button">Ops view</button>
-    <button class="feat" id="featBtn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9l-5.6 1.9L12 16.5l-1.9-5.6L4.5 9l5.6-1.4zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg><span>Request a feature</span></button>
     <button class="dial" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--ok)"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1z"/></svg>Dial</button>
     <div class="me"><div class="av" id="meAv">JE</div></div>
   </header>
@@ -154,28 +152,6 @@ details{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:
 
 <div class="scrim" id="scrim"></div>
 
-<aside class="drawer" id="featDrawer" aria-label="Request a feature">
-  <div class="dh"><div><h3>Request a feature</h3><p>Devin builds it in this app and opens a pull request.</p></div><button class="cl" type="button" data-close>&times;</button></div>
-  <div class="db">
-    <div class="hero">
-      <h4>Build what customers are asking for</h4>
-      <p>Devin reads recent public reviews of the RingCentral app, finds the complaint people raise most, and builds a feature that fixes it — with the evidence in the PR.</p>
-      <div class="chips" id="sources"></div>
-      <ol class="steps"><li>Research reviews and cluster complaints</li><li>Pick the top fixable theme</li><li>Build it here and open a PR with the quotes</li></ol>
-      <label class="f" for="focus">Focus area</label>
-      <select class="in" id="focus"></select>
-      <button class="big" id="reviewsGo" type="button">Research reviews &amp; build</button>
-    </div>
-    <details>
-      <summary>Or describe your own feature</summary>
-      <label class="f" for="custom">What should RingCentral do?</label>
-      <textarea class="in" id="custom" maxlength="1200" placeholder="e.g. Let me schedule a text to send later from any shared number."></textarea>
-      <button class="big" id="customGo" type="button" style="background:var(--blue)">Send to Devin</button>
-    </details>
-    <div class="msg-note" id="featErr"></div>
-    <div class="reqs"><h5>Requests <span id="capInfo" style="text-transform:none;letter-spacing:0;font-weight:400"></span></h5><div id="reqList"><div class="m" style="color:var(--muted);font-size:13px">No requests yet.</div></div></div>
-  </div>
-</aside>
 
 <aside class="drawer" id="opsDrawer" aria-label="Ops view">
   <div class="dh"><div><h3>Incident response</h3><p>RingEX business SMS · customer-cbe0ee4c-ringex-sms</p></div><button class="cl" type="button" data-close>&times;</button></div>
@@ -278,7 +254,6 @@ function closeDrawers() { document.querySelectorAll('.drawer').forEach((d) => d.
 $('#scrim').addEventListener('click', closeDrawers);
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeDrawers));
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawers(); });
-$('#featBtn').addEventListener('click', () => { openDrawer('featDrawer'); loadFeatures(); });
 
 /* ---------- ops (presenter) view ---------- */
 const opsMode = qs.get('ops') === '1';
@@ -313,18 +288,8 @@ function startIncidentPolling() {
   pollIncidents();
 }
 
-/* ---------- feature requests ---------- */
-let featMeta = null; const reqTimers = {};
-async function loadFeatures() {
-  const r = await fetch(`${API}/feature-requests`); featMeta = await r.json();
-  if (!$('#focus').options.length) {
-    $('#focus').innerHTML = featMeta.focusAreas.map((a) => `<option value="${esc(a.id)}">${esc(a.label)}</option>`).join('');
-    $('#sources').innerHTML = featMeta.sources.map((s) => `<span>${esc(s)}</span>`).join('');
-  }
-  $('#capInfo').textContent = `· ${featMeta.usedToday}/${featMeta.cap} today`;
-  renderReqs(featMeta.requests);
-  featMeta.requests.forEach((q) => { if (q.state === 'working') watch(q.id); });
-}
+/* ---------- Devin requests (voice QA) ---------- */
+const reqTimers = {};
 const REQ_TEXT = { queued: 'Starting Devin…', working: 'Devin is working', 'pr-opened': 'Pull request opened', finished: 'Session finished', 'not-configured': 'Devin is not configured on this server', failed: 'Could not start a Devin session' };
 function reqHtml(q, prefix = 'req-') {
   const stage = q.prUrl ? 3 : q.state === 'working' ? 2 : q.state === 'queued' ? 1 : (q.state === 'finished' ? 3 : 0);
@@ -332,11 +297,8 @@ function reqHtml(q, prefix = 'req-') {
   const label = q.mode === 'voice-qa' && q.state === 'working' ? 'Devin is transcribing the call → QA scenarios → regression tests' : (REQ_TEXT[q.state] || q.state);
   return `<div class="req" id="${prefix}${esc(q.id)}"><div class="q">${q.mode === 'reviews' ? '★ ' : q.mode === 'voice-qa' ? 'Voice QA · ' : ''}${esc(q.request)}</div><div class="m">${esc(label)}${q.devinStatus ? ` · ${esc(q.devinStatus)}` : ''}</div><div class="prog">${bars}</div><div class="lnk">${q.sessionUrl ? `<a href="${esc(safeUrl(q.sessionUrl))}" target="_blank" rel="noopener">Watch Devin →</a>` : ''}${q.prUrl ? `<a href="${esc(safeUrl(q.prUrl))}" target="_blank" rel="noopener">View pull request →</a>` : ''}</div></div>`;
 }
-function renderReqs(list) { $('#reqList').innerHTML = list.length ? list.map((q) => reqHtml(q)).join('') : '<div class="m" style="color:var(--muted);font-size:13px">No requests yet.</div>'; }
 function upsertReq(q) {
   if (q.mode === 'voice-qa' && q.recordingId) { const box = document.getElementById(`qa-${q.recordingId}`); if (box) box.innerHTML = reqHtml(q, 'vq-'); }
-  const el = document.getElementById(`req-${q.id}`);
-  if (el) el.outerHTML = reqHtml(q); else { if (!document.querySelector('.req')) $('#reqList').innerHTML = ''; $('#reqList').insertAdjacentHTML('afterbegin', reqHtml(q)); }
 }
 function watch(id) {
   if (reqTimers[id]) return;
@@ -346,19 +308,6 @@ function watch(id) {
     if (request.state !== 'working') { clearInterval(reqTimers[id]); delete reqTimers[id]; if (request.prUrl) toast('Devin opened a pull request'); }
   }, 10000);
 }
-async function submitFeature(body, btn) {
-  $('#featErr').classList.remove('show'); btn.disabled = true; const label = btn.textContent; btn.textContent = 'Starting Devin…';
-  try {
-    const r = await fetch(`${API}/feature-requests`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, name: 'Jordan Ellis', ...devin() }) });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Request failed');
-    upsertReq(d.request); if (d.request.state === 'working') { watch(d.request.id); toast('Devin session started'); }
-    loadFeatures();
-    return true;
-  } catch (e) { $('#featErr').textContent = e.message; $('#featErr').classList.add('show'); return false; } finally { btn.disabled = false; btn.textContent = label; }
-}
-$('#reviewsGo').addEventListener('click', (e) => submitFeature({ mode: 'reviews', focus: $('#focus').value }, e.currentTarget));
-$('#customGo').addEventListener('click', async (e) => { if (await submitFeature({ mode: 'custom', request: $('#custom').value }, e.currentTarget)) $('#custom').value = ''; });
 
 /* ---------- phone: call recordings ---------- */
 const OTHER_CALLS = {
@@ -446,7 +395,6 @@ fetch(`${API}/inbox`).then((r) => r.json()).then((d) => {
 loadRecordings().then(() => { const rid = qs.get('recording'); if (rid) { showView('phone'); openPlayer(rid, false); } }).catch(() => { $('#callList').innerHTML = '<div class="rowi"><small>Could not load calls.</small></div>'; });
 if (qs.get('view')) showView(qs.get('view'));
 if (opsMode) pollIncidents();
-if (qs.get('feature') === '1') { openDrawer('featDrawer'); loadFeatures(); }
 })();
 </script>
 </body>
