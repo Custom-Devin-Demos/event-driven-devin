@@ -3,6 +3,7 @@ const {
   getInbox,
   sendBusinessSms,
   listIncidents,
+  createFeatureRequest,
   getFeatureRequest,
   listFeatureRequests,
   listRecordings,
@@ -57,6 +58,19 @@ router.get('/api/cbe0ee4c/incidents', (_req, res) => {
 
 router.get('/api/cbe0ee4c/feature-requests', (_req, res) => {
   res.json({ success: true, ...listFeatureRequests() });
+});
+
+router.post('/api/cbe0ee4c/feature-requests', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const request = await createFeatureRequest({
+      mode: body.mode === 'reviews' ? 'reviews' : 'custom',
+      focus: clip(body.focus, 32),
+      request: clip(body.request, 2000), name: clip(body.name, 80), ...devinFields(body) });
+    res.json({ success: true, request });
+  } catch (error) {
+    sendError(res, req, error, 'FEATURE_REQUEST_FAILED');
+  }
 });
 
 router.get('/api/cbe0ee4c/recordings', (_req, res) => {

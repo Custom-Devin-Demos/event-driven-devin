@@ -123,6 +123,53 @@ describe('business SMS send', () => {
   });
 });
 
+describe('greenfield feature requests', () => {
+  test('review-research request starts a Devin session scoped to the repo', async () => {
+    const res = await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews', focus: 'phone' });
+    expect(res.status).toBe(200);
+    expect(res.body.request).toMatchObject({ mode: 'reviews', focus: 'phone', state: 'working', sessionUrl: 'https://app.devin.ai/sessions/rc2' });
+    const [prompt, opts] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('Research online reviews');
+    expect(prompt).toContain('Phone & call history');
+    expect(prompt).toContain('Voice of the customer');
+    expect(prompt).toContain('app/public/verticals/cbe0ee4c.html');
+    expect(opts.repos).toEqual(['COG-GTM/event-driven-devin']);
+    expect(opts.title).toContain('customer reviews');
+  });
+
+  test('unknown focus falls back to anywhere in the app', async () => {
+    const res = await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews', focus: 'nope' });
+    expect(res.body.request.focus).toBe('any');
+  });
+
+  test('custom request validates length and quotes the text in the prompt', async () => {
+    const short = await request('POST', '/api/cbe0ee4c/feature-requests', { request: 'hi' });
+    expect(short.status).toBe(400);
+    const ok = await request('POST', '/api/cbe0ee4c/feature-requests', { request: 'Let me schedule a text to send later.' });
+    expect(ok.status).toBe(200);
+    expect(ok.body.request.mode).toBe('custom');
+    expect(createDevinSession.mock.calls[0][0]).toContain('> Let me schedule a text to send later.');
+  });
+
+  test('enforces the daily cap', async () => {
+    process.env.RC_FEATURE_REQUESTS_PER_DAY = '1';
+    try {
+      expect((await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews' })).status).toBe(200);
+      const res = await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews' });
+      expect(res.status).toBe(429);
+      expect(res.body.code).toBe('FEATURE_REQUEST_LIMIT');
+    } finally {
+      delete process.env.RC_FEATURE_REQUESTS_PER_DAY;
+    }
+  });
+
+  test('lists focus areas and review sources', async () => {
+    const res = await request('GET', '/api/cbe0ee4c/feature-requests');
+    expect(res.body.focusAreas.length).toBeGreaterThan(1);
+    expect(res.body.sources).toContain('G2');
+  });
+});
+
 describe('incident dedupe and org-scoped polling', () => {
   test('repeat Sales-line failures reuse the open Jira ticket', async () => {
     await request('POST', '/api/cbe0ee4c/sms', { fromNumberId: 'sales', conversationId: 'cv-northwind', text: 'one' });
@@ -137,8 +184,8 @@ describe('incident dedupe and org-scoped polling', () => {
     expect(jira.createIssue).toHaveBeenCalledTimes(1);
   });
 
-  test('voice QA request remembers the org it was created in', async () => {
-    await request('POST', '/api/cbe0ee4c/recordings/qa-sales-sms/qa', { devinOrgId: 'org-other' });
+  test('feature request remembers the org it was created in', async () => {
+    await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews', devinOrgId: 'org-other' });
     expect(createDevinSession.mock.calls[0][1].orgId).toBe('org-other');
     expect([...rc._featureRequests.values()][0].orgId).toBe('org-other');
   });
@@ -177,14 +224,12 @@ describe('voice QA from call recordings', () => {
     expect(prompt).toMatch(/Do not fix product code/);
   });
 
-  test('rejects unknown recordings and enforces the daily cap', async () => {
+  test('rejects unknown recordings and shares the daily cap', async () => {
     expect((await request('POST', '/api/cbe0ee4c/recordings/nope/qa', {})).status).toBe(400);
     for (let i = 0; i < rc.dailyCap(); i += 1) {
       await request('POST', '/api/cbe0ee4c/recordings/priya-quote/qa', {});
     }
-    const res = await request('POST', '/api/cbe0ee4c/recordings/qa-sales-sms/qa', {});
+    const res = await request('POST', '/api/cbe0ee4c/feature-requests', { mode: 'reviews' });
     expect(res.status).toBe(429);
-    expect(res.body.code).toBe('FEATURE_REQUEST_LIMIT');
-    expect((await request('GET', '/api/cbe0ee4c/feature-requests')).body.usedToday).toBe(rc.dailyCap());
   });
 });
