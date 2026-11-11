@@ -81,11 +81,12 @@ describe('Bank Millennium Millenet login replica (/bankmillennium)', () => {
     expect(customer.aliases).toEqual(expect.arrayContaining(['bankmillennium', 'millenet']));
   });
 
-  test('is a Polish Millenet login page', () => {
-    expect(PAGE).toContain('<html lang="pl">');
-    expect(PAGE).toContain('Logowanie do Millenetu');
+  test('is an English Millenet login page reached from the public site', () => {
+    expect(PAGE).toContain('<html lang="en">');
+    expect(PAGE).toContain('id="openLogin"');
+    expect(PAGE).toContain('Log in to Millenet');
     expect(PAGE).toContain('Millekod');
-    expect(PAGE).toContain('ZALOGUJ');
+    expect(PAGE).toContain('id="signIn"');
   });
 
   test('reports with the Bank Millennium client identity and supports ?reports=off', () => {
@@ -96,10 +97,9 @@ describe('Bank Millennium Millenet login replica (/bankmillennium)', () => {
     expect(PAGE).not.toMatch(/@cognition\.ai|org_[A-Za-z0-9]{8,}/);
   });
 
-  test('is clearly labelled as a mock website', () => {
-    expect(PAGE).toMatch(/<title>\[MOCK\]/);
-    expect(PAGE).toContain('class="mock-badge"');
-    expect(PAGE).toContain('to nie jest serwis Banku Millennium');
+  test('is labelled as not affiliated with Bank Millennium', () => {
+    expect(PAGE).toContain('not affiliated with Bank Millennium S.A.');
+    expect(PAGE).toContain('Do not enter real credentials.');
   });
 
   test('Standard and Private Banking customers sign in', () => {

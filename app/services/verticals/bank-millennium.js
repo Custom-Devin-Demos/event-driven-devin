@@ -37,8 +37,8 @@ used by the login step after the identity service resolves the customer):
 - Windows: \`${WEB_REPO}\`, \`${WINDOWS_DIR}/\` (\`BankMillennium.Core/SignInPolicies.cs\`, WPF app \`BankMillennium.Desktop\`); read its \`README.md\`
 - Web: \`${WEB_REPO}\`, \`${WEB_PAGE}\` (the \`SIGN_IN_POLICIES\` block), served at \`/bankmillennium\`
 
-Failing path on all three: Logowanie do Millenetu -> Millekod 48213907 (Anna Kowalska) -> DALEJ -> Hasło -> *ZALOGUJ*
-fails with \`${ERROR_CODE}\`. Millekod 31570264 (Standard) and 55018342 (Private Banking) log in normally.
+Failing path on all three: Millekod 48213907 (Anna Kowalska) -> password -> sign in (web: LOG IN -> Next -> *Log in*;
+Windows and iOS: Logowanie do Millenetu -> DALEJ -> *ZALOGUJ*) fails with \`${ERROR_CODE}\`. Millekod 31570264 (Standard) and 55018342 (Private Banking) log in normally.
 
 You are the ORCHESTRATOR for this incident. Do not edit, build or run any app yourself.
 0. FIRST, before reading any code: reply in the alert's Slack thread (channel and thread_ts are at the end of this

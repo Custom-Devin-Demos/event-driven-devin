@@ -1,104 +1,279 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>[MOCK] Logowanie do Millenetu - Bank Millennium</title>
+<title>Log in to Millenet - Bank Millennium</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { --mag:#bd004f; --mag2:#9a0040; --ink:#2e2e2e; --soft:#737373; --line:#e6e6e6; --page:#f0f0f0; --red:#d0021b; --redsoft:#fdecee; --blue:#1c5cad; }
+  :root { --mag:#bd004f; --mag2:#9e0042; --ink:#2e2e2e; --soft:#737373; --mute:#8c9296; --line:#e3e3e3; --grey:#f6f6f6; --blue:#0676cc; --blue2:#0561a8; --navy:#363c58; --red:#d0021b; --redsoft:#fdeef0; --ok:#1e8e3e; }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:Roboto, Arial, sans-serif; color:var(--ink); background:var(--page); }
-  .demo-strip { background:#fff4c2; border-bottom:1px solid #e9d27a; font-size:13px; padding:7px 40px; }
-  header { background:#fff; border-bottom:1px solid var(--line); }
-  .top { display:flex; align-items:center; gap:28px; padding:14px 40px; max-width:1280px; margin:0 auto; }
-  .logo { background:var(--mag); color:#fff; padding:6px 18px 6px 14px; line-height:1; text-decoration:none; }
-  .logo b { display:block; font-size:24px; letter-spacing:.2px; }
-  .logo span { font-size:12px; margin-left:2px; }
-  .mock-badge { background:#ffd600; color:#000; font-weight:700; font-size:12px; padding:2px 8px; border-radius:3px; }
-  nav a { color:var(--soft); text-decoration:none; margin-right:24px; font-size:15px; }
-  nav a.on { color:var(--ink); font-weight:700; border-bottom:3px solid var(--mag); padding-bottom:16px; }
-  .top .right { margin-left:auto; color:var(--soft); font-size:14px; }
-  main { max-width:1280px; margin:0 auto; padding:48px 40px; min-height:calc(100vh - 170px); }
-  .card { background:#fff; border:1px solid var(--line); padding:36px 40px; }
-  .login { max-width:520px; margin:0 auto; }
-  h1 { font-weight:300; font-size:30px; margin:0 0 26px; }
-  label { display:block; font-size:13px; color:var(--soft); margin-top:6px; }
-  input[type=text], input[type=password] { width:100%; font:inherit; font-size:20px; padding:10px 4px; border:0; border-bottom:2px solid #969696; outline:none; background:transparent; letter-spacing:1px; }
-  input:focus { border-bottom-color:var(--mag); }
-  .hint { font-size:12px; color:var(--soft); margin:6px 0 14px; }
-  .link { color:var(--mag); font-size:14px; text-decoration:underline; cursor:pointer; background:none; border:0; padding:0; font-family:inherit; }
-  .btn { background:var(--mag); color:#fff; border:0; font:inherit; font-weight:700; font-size:15px; padding:12px 30px; cursor:pointer; letter-spacing:.5px; }
-  .btn:hover { background:var(--mag2); }
-  .row { display:flex; align-items:center; gap:22px; margin-top:22px; }
-  .error { display:none; background:var(--redsoft); border-left:4px solid var(--red); color:var(--red); font-weight:500; padding:12px 14px; margin-bottom:18px; font-size:14px; }
-  .error.show { display:block; }
-  .field-error input { border-bottom-color:var(--red) !important; }
+  html, body { height:100%; }
+  body { margin:0; font-family:Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:#fff; -webkit-font-smoothing:antialiased; }
+  a { color:var(--mag); }
+  button { font-family:inherit; }
+  [hidden] { display:none !important; }
+  .logo { display:inline-block; line-height:0; }
+  .logo svg { display:block; }
+
+  /* ---------- public site (www.bankmillennium.pl/en) ---------- */
+  .alertbar { background:#1f66c1; color:#fff; font-size:14px; font-weight:500; display:flex; align-items:center; gap:14px; padding:0 20px; height:56px; }
+  .alertbar .i { width:26px; height:26px; border:2px solid #fff; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:14px; flex:none; }
+  .alertbar .chev { margin-left:auto; }
+  .segbar { display:flex; align-items:center; gap:24px; padding:0 20px; height:46px; font-size:12px; font-weight:500; letter-spacing:.3px; }
+  .segbar a { color:#555; text-decoration:none; text-transform:uppercase; }
+  .segbar a.on { color:var(--mag); }
+  .segbar .tools { margin-left:auto; display:flex; align-items:center; gap:18px; color:#555; }
+  .segbar .tools .a1 { font-size:12px; font-weight:700; } .segbar .tools .a2 { font-size:17px; }
+  .flag { width:18px; height:18px; border-radius:50%; overflow:hidden; display:inline-block; box-shadow:0 0 0 1px #ddd; background:linear-gradient(#fff 50%, #dc143c 50%); }
+  .flag.uk { background:#012169; position:relative; }
+  .flag.uk::before { content:""; position:absolute; inset:0; background:linear-gradient(0deg, transparent 40%, #fff 40% 60%, transparent 60%), linear-gradient(90deg, transparent 40%, #fff 40% 60%, transparent 60%); }
+  .flag.uk::after { content:""; position:absolute; inset:0; background:linear-gradient(0deg, transparent 45%, #c8102e 45% 55%, transparent 55%), linear-gradient(90deg, transparent 45%, #c8102e 45% 55%, transparent 55%); }
+  .mast { display:flex; align-items:center; gap:12px; padding:18px 20px; border-bottom:1px solid var(--line); }
+  .mast .search { margin-left:auto; display:flex; align-items:center; width:220px; height:44px; border:1px solid #8c9296; border-radius:4px; padding:0 12px; color:#777; font-size:14px; justify-content:space-between; }
+  .obtn { height:44px; padding:0 20px; border:2px solid var(--mag); color:var(--mag); background:#fff; font-weight:700; font-size:13px; border-radius:4px; letter-spacing:.3px; cursor:pointer; }
+  .loginbtn { height:44px; padding:0 22px; border:0; background:var(--blue); color:#fff; font-weight:700; font-size:13px; border-radius:4px; display:flex; align-items:center; gap:10px; cursor:pointer; letter-spacing:.3px; }
+  .loginbtn:hover { background:var(--blue2); }
+  .mainnav { display:flex; justify-content:center; gap:50px; height:58px; align-items:center; font-size:15px; font-weight:500; color:#555; }
+  .notice { margin:12px 20px 24px; border:1px solid #dcdcdc; border-radius:6px; padding:12px 14px; font-size:14px; line-height:1.45; }
+  .notice b { color:var(--mag); font-weight:400; }
+  .hero { display:grid; grid-template-columns:1fr 1fr; margin:0 20px; border-radius:6px; overflow:hidden; min-height:440px; }
+  .hero .copy { background:var(--navy); color:#fff; padding:90px 30px 40px; }
+  .hero h1 { font-weight:300; font-size:40px; line-height:1.25; margin:0 0 22px; }
+  .hero p { font-size:15px; margin:0 0 32px; max-width:470px; line-height:1.5; }
+  .hero .ctas { display:flex; gap:10px; align-items:center; }
+  .hero .solid { background:var(--mag); color:#fff; border:0; height:44px; padding:0 20px; font-weight:700; font-size:13px; border-radius:2px; cursor:pointer; }
+  .hero .ghost { background:none; color:#fff; border:2px solid #fff; height:44px; padding:0 18px; font-weight:700; font-size:13px; border-radius:2px; cursor:pointer; }
+  .hero .art { position:relative; background:radial-gradient(120% 90% at 70% 20%, #e2387f 0%, #bd004f 45%, #7d0035 100%); overflow:hidden; }
+  .hero .art svg { position:absolute; inset:0; width:100%; height:100%; }
+  .hero .card360 { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(-8deg); width:300px; height:188px; border-radius:16px; background:linear-gradient(135deg, #2b2f45, #11131f); box-shadow:0 30px 60px rgba(0,0,0,.35); color:#fff; padding:22px; }
+  .hero .card360 .chip { width:40px; height:30px; border-radius:6px; background:linear-gradient(135deg,#e9c46a,#b48a2c); margin:26px 0 22px; }
+  .hero .card360 .num { letter-spacing:3px; font-size:15px; }
+  .hero .card360 .brand { position:absolute; right:20px; bottom:16px; font-weight:700; font-size:20px; font-style:italic; }
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:24px 20px 40px; }
+  .tile { border:1px solid var(--line); border-radius:6px; padding:20px; }
+  .tile b { display:block; font-size:16px; margin-bottom:6px; } .tile span { color:var(--soft); font-size:14px; line-height:1.45; }
+
+  /* ---------- Millenet login (login.bankmillennium.pl) ---------- */
+  .auth { min-height:100vh; display:flex; flex-direction:column; }
+  .auth .split { flex:1; display:grid; grid-template-columns:600px 1fr; min-height:620px; }
+  .auth .left { padding:58px 126px 40px; position:relative; }
+  .auth .left .top { display:flex; align-items:center; justify-content:space-between; margin-bottom:76px; }
+  .auth h2 { font-size:20px; font-weight:700; margin:0 0 50px; }
+  .lab { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .lab span { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .lab .info { width:15px; height:15px; border:1.5px solid #8c9296; border-radius:50%; font-size:10px; display:grid; place-items:center; color:#8c9296; font-weight:700; }
+  .lab a, .linkbtn { font-size:14px; color:var(--mag); text-decoration:underline; background:none; border:0; padding:0; cursor:pointer; }
+  .field { border:2px solid var(--ink); border-radius:4px; height:45px; display:flex; align-items:center; background:#fff; }
+  .field input { border:0; outline:0; flex:1; height:100%; padding:0 12px; font:inherit; font-size:15px; letter-spacing:.5px; background:transparent; }
+  .field:focus-within { border-color:var(--mag); }
+  .field.bad { border-color:var(--red); }
+  .kbd { display:flex; justify-content:flex-end; margin:6px 0 22px; color:#8c9296; }
+  .primary { width:100%; height:40px; border:0; border-radius:4px; background:var(--mag); color:#fff; font-size:13px; font-weight:500; letter-spacing:.4px; cursor:pointer; text-transform:uppercase; }
+  .primary:hover { background:var(--mag2); }
+  .center { text-align:center; margin-top:30px; }
   .step { display:none; } .step.on { display:block; }
-  .spinner { height:4px; background:linear-gradient(90deg, var(--mag) 0 30%, #f3c4d7 30% 100%); background-size:200% 100%; animation:move 1s linear infinite; margin-top:14px; }
-  @keyframes move { to { background-position:-200% 0; } }
-  .status { font-size:11px; color:var(--soft); margin-top:18px; }
-  .dash h1 { margin-bottom:4px; }
-  .dash .sub { color:var(--soft); margin-bottom:24px; }
-  .acct { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:22px 26px; }
-  .acct b { font-size:17px; } .acct small { display:block; color:var(--soft); margin-top:4px; }
+  .who { display:flex; justify-content:space-between; align-items:center; background:var(--grey); border-radius:4px; padding:12px 14px; margin:-26px 0 26px; font-size:14px; }
+  .who b { letter-spacing:.5px; }
+  .error { display:none; gap:12px; align-items:flex-start; background:var(--redsoft); border:1px solid #f3c2c9; border-left:4px solid var(--red); color:#a10016; border-radius:4px; padding:12px 14px; margin:-26px 0 24px; font-size:14px; line-height:1.45; }
+  .error.show { display:flex; }
+  .error.show ~ .step .who { margin-top:0; }
+  .error .x { flex:none; width:20px; height:20px; border-radius:50%; background:var(--red); color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; margin-top:1px; }
+  .tips { margin-top:62px; font-size:13px; line-height:1.45; color:#555; }
+  .tips b { display:block; color:var(--ink); font-size:14px; margin-bottom:8px; }
+  .tips p { margin:0 0 22px; }
+  .authorize { text-align:center; padding-top:4px; }
+  .authorize .phone { width:64px; height:104px; border:3px solid var(--ink); border-radius:12px; margin:0 auto 22px; position:relative; }
+  .authorize .phone::after { content:""; position:absolute; left:50%; top:38%; width:26px; height:26px; margin-left:-13px; border-radius:50%; background:var(--mag); box-shadow:0 0 0 0 rgba(189,0,79,.5); animation:ping 1.4s infinite; }
+  @keyframes ping { to { box-shadow:0 0 0 18px rgba(189,0,79,0); } }
+  .authorize h3 { font-size:18px; margin:0 0 10px; }
+  .authorize p { color:var(--soft); font-size:14px; line-height:1.5; margin:0 0 22px; }
+  .bar { height:4px; border-radius:2px; background:#f3c4d7; overflow:hidden; } .bar i { display:block; height:100%; width:0; background:var(--mag); animation:fill 1.5s linear forwards; }
+  @keyframes fill { to { width:100%; } }
+  .status { font-size:11px; color:var(--mute); margin-top:18px; }
+  .right { position:relative; overflow:hidden; color:#fff; background:radial-gradient(70% 70% at 78% 62%, rgba(0,153,255,.35) 0%, rgba(0,60,140,.15) 45%, transparent 70%), linear-gradient(160deg, #0b2a57 0%, #051a3a 45%, #02081a 100%); }
+  .right .notes { position:relative; z-index:2; padding:45px 0 0 110px; display:grid; gap:16px; }
+  .note { background:var(--blue); border-radius:10px 0 0 10px; padding:24px 26px 24px 48px; display:flex; align-items:center; justify-content:space-between; font-weight:700; font-size:16px; line-height:1.4; }
+  .note .chev { flex:none; margin-left:24px; opacity:.9; }
+  .right .pitch { position:absolute; z-index:2; left:234px; top:360px; }
+  .right .pitch h3 { font-size:34px; font-weight:700; margin:0 0 26px; }
+  .right .pitch p { font-size:15px; margin:0 0 30px; }
+  .right .pitch a { display:inline-block; background:var(--mag); color:#fff; font-weight:700; font-size:16px; padding:16px 18px; border-radius:4px; text-decoration:none; }
+  .right .lock { position:absolute; right:-40px; top:290px; width:460px; height:420px; z-index:1; }
+  .right .word { position:absolute; left:0; right:0; bottom:-36px; font-size:169px; font-weight:700; color:rgba(255,255,255,.06); letter-spacing:-2px; white-space:nowrap; z-index:1; }
+  .authfoot { background:var(--grey); height:116px; display:flex; align-items:center; padding:0 72px; gap:44px; }
+  .authfoot .tel { font-size:30px; color:var(--ink); text-decoration:none; margin-right:auto; }
+  .authfoot a.l { display:flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; font-size:15px; }
+  .authfoot svg { color:var(--mag); }
+  .fine { background:var(--grey); color:#9a9a9a; font-size:11px; text-align:center; padding:0 0 12px; }
+
+  /* ---------- Millenet (signed in) ---------- */
+  .app { min-height:100vh; background:#f4f4f6; }
+  .app header { background:#fff; border-bottom:1px solid var(--line); height:72px; display:flex; align-items:center; gap:28px; padding:0 32px; }
+  .app header nav { display:flex; gap:28px; font-size:14px; font-weight:500; color:#555; }
+  .app header nav { align-self:stretch; }
+  .app header nav span { display:flex; align-items:center; }
+  .app header nav .on { color:var(--mag); box-shadow:inset 0 -3px 0 var(--mag); }
+  .app header .me { margin-left:auto; display:flex; align-items:center; gap:18px; font-size:14px; color:#555; }
+  .app header .avatar { width:36px; height:36px; border-radius:50%; background:var(--mag); color:#fff; display:grid; place-items:center; font-weight:700; }
+  .app header .out { border:2px solid var(--mag); color:var(--mag); background:#fff; border-radius:4px; height:36px; padding:0 16px; font-weight:700; font-size:12px; cursor:pointer; }
+  .app main { max-width:1180px; margin:0 auto; padding:34px 32px 60px; }
+  .app h1 { font-weight:300; font-size:32px; margin:0 0 6px; }
+  .app .sub { color:var(--soft); font-size:14px; margin-bottom:28px; }
+  .grid { display:grid; grid-template-columns:2fr 1fr; gap:22px; }
+  .panel { background:#fff; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,.06); padding:24px 26px; }
+  .panel h2 { font-size:16px; margin:0 0 16px; }
+  .acct { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid #eee; }
+  .acct:last-child { border-bottom:0; }
+  .acct b { font-size:16px; } .acct small { display:block; color:var(--soft); margin-top:5px; letter-spacing:.3px; }
   .acct .bal { font-size:22px; font-weight:700; }
-  .tx { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); }
-  .tx:last-child { border-bottom:0; }
-  h2 { font-size:20px; margin:22px 0 12px; }
-  footer { background:#fff; border-top:1px solid var(--line); font-size:12px; color:var(--soft); padding:12px 40px; }
+  .quick { display:grid; gap:10px; }
+  .quick button { text-align:left; border:1px solid var(--line); background:#fff; border-radius:6px; padding:14px 16px; font-size:14px; font-weight:500; cursor:pointer; }
+  .quick button::before { content:"›"; color:var(--mag); font-weight:700; margin-right:10px; }
+  .tx { display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee; font-size:14px; }
+  .tx:last-child { border-bottom:0; } .tx .in { color:var(--ok); }
+  @media (max-width: 1100px) { .auth .split { grid-template-columns:1fr; } .right { display:none; } .auth .left { padding:40px 24px; max-width:520px; margin:0 auto; width:100%; } .hero, .grid { grid-template-columns:1fr; } .tiles { grid-template-columns:1fr 1fr; } .mainnav { gap:20px; overflow:auto; } .authfoot { flex-wrap:wrap; height:auto; padding:20px 24px; gap:14px 24px; } .authfoot .tel { font-size:22px; width:100%; } .app header nav { display:none; } }
 </style>
 </head>
 <body>
-<div class="demo-strip" role="note"><b>MOCK</b> — Wersja demonstracyjna — to nie jest serwis Banku Millennium. Nie wpisuj prawdziwych danych. (Devin demo, not affiliated with Bank Millennium.)</div>
-<header>
-  <div class="top">
-    <a class="logo" href="#" aria-label="Bank Millennium"><b>Millennium</b><span>bank</span></a>
-    <span class="mock-badge">MOCK</span>
-    <nav><a class="on" href="#">Klienci Indywidualni</a><a href="#">Firmy</a><a href="#">Private Banking</a><a href="#">Pomoc</a></nav>
-    <div class="right" id="sessionLabel">Millenet — przeglądarka</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="bm-logo" viewBox="0 0 186 46">
+      <rect width="186" height="46" fill="#bd004f"/>
+      <text x="93" y="27" text-anchor="middle" fill="#fff" font-family="Roboto, Arial, sans-serif" font-size="25" font-weight="400" letter-spacing="-.3">Millennium</text>
+      <rect x="10" y="31.5" width="166" height="1.6" fill="#fff"/>
+      <text x="93" y="43" text-anchor="middle" fill="#fff" font-family="Roboto, Arial, sans-serif" font-size="10.5" font-weight="400">bank</text>
+    </symbol>
+    <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="padlock" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  </defs>
+</svg>
+
+<!-- Public site -->
+<div id="siteView">
+  <div class="alertbar"><span class="i">i</span>Scammers are posing as Bank Millennium – be wary of suspicious automated calls from the bank<svg class="chev" width="20" height="20"><use href="#chev"/></svg></div>
+  <div class="segbar">
+    <a class="on" href="#">Individuals</a><a href="#">Prestige</a><a href="#">Private Banking</a><a href="#">Firms</a><a href="#">Small Business</a><a href="#">Corporate</a>
+    <div class="tools"><span class="a1">A</span><span class="a2">A</span><span class="flag"></span></div>
   </div>
-</header>
-<main>
-  <section id="loginView" class="card login">
-    <h1>Logowanie do Millenetu</h1>
-    <div id="error" class="error" role="alert"></div>
-    <form id="stepMillekod" class="step on" autocomplete="off">
-      <label for="millekod">Millekod</label>
-      <input id="millekod" type="text" inputmode="numeric" maxlength="8" value="48213907">
-      <div class="hint">8 cyfr, znajdziesz go w umowie lub w aplikacji</div>
-      <button type="button" class="link">Nie pamiętam Millekodu</button>
-      <div class="row"><button id="next" class="btn" type="submit">DALEJ</button></div>
-    </form>
-    <form id="stepPassword" class="step" autocomplete="off">
-      <div id="millekodEcho" style="font-size:14px;margin-bottom:14px"></div>
-      <div id="passwordField">
-        <label for="password">Hasło</label>
-        <input id="password" type="password" value="Demo2026!">
+  <div class="mast">
+    <a class="logo" href="#" aria-label="Bank Millennium"><svg width="186" height="46"><use href="#bm-logo"/></svg></a>
+    <div class="search">Search here <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="#777" stroke-width="2"/><path d="M16 16l5 5" stroke="#777" stroke-width="2"/></svg></div>
+    <button class="obtn" type="button">BORROW MONEY</button>
+    <button class="obtn" type="button">OPEN ACCOUNT</button>
+    <button id="openLogin" class="loginbtn" type="button"><svg width="18" height="18"><use href="#padlock"/></svg>LOG IN</button>
+  </div>
+  <nav class="mainnav"><span>Accounts</span><span>Cards</span><span>Loans</span><span>Savings</span><span>Investments</span><span>Insurance</span><span>Electronic banking</span><span>Support</span><span>Contact</span></nav>
+  <div class="notice">Log in to Millenet only at <b>login.bankmillennium.pl</b>. The Bank never asks for your password, card details or authorisation codes by phone, SMS or e-mail.</div>
+  <section class="hero">
+    <div class="copy">
+      <h1>Account 360° –<br>banking that keeps up with you</h1>
+      <p>No fee for running the account, a debit card and free BLIK payments. Open it online in 15 minutes.</p>
+      <div class="ctas"><button class="solid" type="button">OPEN NOW</button><button class="ghost" type="button">LEARN MORE</button></div>
+    </div>
+    <div class="art" aria-hidden="true">
+      <svg viewBox="0 0 600 440" preserveAspectRatio="none"><g fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.2"><path d="M-20 300 C 120 220, 260 380, 620 210"/><path d="M-20 320 C 140 240, 270 400, 620 232"/><path d="M-20 340 C 160 262, 280 420, 620 254"/><path d="M-20 120 C 160 40, 330 220, 620 70"/><path d="M-20 140 C 170 60, 340 240, 620 92"/></g></svg>
+      <div class="card360"><div style="font-size:13px;opacity:.85">Account 360°</div><div class="chip"></div><div class="num">5375 •••• •••• 4821</div><div class="brand">VISA</div></div>
+    </div>
+  </section>
+  <div class="tiles">
+    <div class="tile"><b>Accounts</b><span>Account 360°, savings accounts and currency accounts.</span></div>
+    <div class="tile"><b>Cards</b><span>Debit and credit cards with Apple Pay and Google Pay.</span></div>
+    <div class="tile"><b>Loans</b><span>Cash loan decisions online, even in a few minutes.</span></div>
+    <div class="tile"><b>Electronic banking</b><span>Millenet and the Bank Millennium mobile app.</span></div>
+  </div>
+  <div class="fine" style="background:#fff">Demo environment – not affiliated with Bank Millennium S.A. Do not enter real credentials.</div>
+</div>
+
+<!-- Millenet login -->
+<div id="loginView" class="auth" hidden>
+  <div class="split">
+    <section class="left">
+      <div class="top">
+        <a class="logo" href="#" id="toSite" aria-label="Bank Millennium"><svg width="186" height="46"><use href="#bm-logo"/></svg></a>
+        <span class="flag" title="Polski"></span>
       </div>
-      <div style="margin-top:12px"><button type="button" class="link">Nie pamiętam hasła</button></div>
-      <div class="row"><button id="signIn" class="btn" type="submit">ZALOGUJ</button><button id="back" type="button" class="link">Wróć</button></div>
-    </form>
-    <div id="stepAuthorize" class="step">
-      <div style="font-size:18px;font-weight:500;margin-bottom:10px">Potwierdź logowanie w aplikacji mobilnej</div>
-      <div id="authorizeDetail" style="color:var(--soft)"></div>
-      <div class="spinner"></div>
+      <h2>Log in to Millenet</h2>
+      <div id="error" class="error" role="alert"><span class="x">!</span><span id="errorText"></span></div>
+      <form id="stepMillekod" class="step on" autocomplete="off">
+        <div class="lab"><span>Millekod <i class="info">i</i></span><a href="#" onclick="return false">I don't remember Millekod</a></div>
+        <div class="field" id="millekodField"><input id="millekod" type="text" inputmode="numeric" maxlength="8" value="48213907" aria-label="Millekod"></div>
+        <div class="kbd"><svg width="20" height="14" viewBox="0 0 20 14"><rect x=".75" y=".75" width="18.5" height="12.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 5h1M7 5h1M10 5h1M13 5h1M16 5h0M5 9h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        <button id="next" class="primary" type="submit">Next</button>
+        <div class="center"><a href="#" onclick="return false">Login problem</a></div>
+      </form>
+      <form id="stepPassword" class="step" autocomplete="off">
+        <div class="who"><span>Millekod <b id="millekodEcho"></b></span><button id="back" type="button" class="linkbtn">Change</button></div>
+        <div class="lab"><span>Password</span><a href="#" onclick="return false">I don't remember my password</a></div>
+        <div class="field" id="passwordField"><input id="password" type="password" value="Demo2026!" aria-label="Password"></div>
+        <div class="kbd"></div>
+        <button id="signIn" class="primary" type="submit">Log in</button>
+        <div class="center"><a href="#" onclick="return false">Login problem</a></div>
+      </form>
+      <div id="stepAuthorize" class="step authorize">
+        <div class="phone"></div>
+        <h3>Confirm the login in the Bank Millennium app</h3>
+        <p id="authorizeDetail"></p>
+        <div class="bar"><i></i></div>
+      </div>
+      <div class="tips" id="tips">
+        <b>Fake consultants</b>
+        <p>Scammers impersonate Bank consultants – do not download any unknown apps nor share personal data. <a href="#" onclick="return false">More</a></p>
+        <b>Finance 360°</b>
+        <p>Check balances and order transfers from your accounts in other banks through Millenet. <a href="#" onclick="return false">More</a></p>
+      </div>
+      <div id="reportStatus" class="status"></div>
+    </section>
+    <section class="right" aria-hidden="true">
+      <div class="notes">
+        <div class="note">Scammers are posing as Bank Millennium – be wary of suspicious automated calls from the bank<svg class="chev" width="22" height="22"><use href="#chev"/></svg></div>
+        <div class="note">Attention! Your browser may show a new message when you log in to Millenet<svg class="chev" width="22" height="22"><use href="#chev"/></svg></div>
+      </div>
+      <div class="pitch"><h3>Your secure account</h3><p>Thanks to our safeguards and your vigilance</p><a href="#" onclick="return false">LEARN MORE</a></div>
+      <svg class="lock" viewBox="0 0 460 420">
+        <defs><radialGradient id="glow" cx="50%" cy="60%" r="50%"><stop offset="0" stop-color="#3fd0ff" stop-opacity=".55"/><stop offset="1" stop-color="#3fd0ff" stop-opacity="0"/></radialGradient></defs>
+        <ellipse cx="240" cy="270" rx="210" ry="160" fill="url(#glow)"/>
+        <g fill="none" stroke="#7fe3ff" stroke-opacity=".7" stroke-width="1.1">
+          <path d="M140 180 V120 a100 100 0 0 1 200 0 V180"/><path d="M165 180 V122 a75 75 0 0 1 150 0 V180"/>
+          <rect x="100" y="180" width="280" height="210" rx="26"/>
+          <path d="M240 255 a26 26 0 1 1 0.1 0 M240 300 l-14 50 h28 z"/>
+          <path d="M100 230 L170 205 L230 240 L300 200 L380 235 M100 300 L160 270 L240 320 L310 280 L380 310 M140 390 L200 340 L280 360 L340 330"/>
+        </g>
+        <g fill="#bff4ff">
+          <circle cx="140" cy="120" r="3"/><circle cx="340" cy="120" r="3"/><circle cx="240" cy="20" r="3"/><circle cx="190" cy="40" r="2"/><circle cx="292" cy="40" r="2"/><circle cx="170" cy="205" r="3"/><circle cx="230" cy="240" r="2.5"/><circle cx="300" cy="200" r="3"/><circle cx="380" cy="235" r="2.5"/><circle cx="160" cy="270" r="2.5"/><circle cx="240" cy="320" r="3"/><circle cx="310" cy="280" r="2.5"/><circle cx="200" cy="340" r="2"/><circle cx="280" cy="360" r="2.5"/><circle cx="100" cy="230" r="2"/><circle cx="380" cy="310" r="2"/><circle cx="60" cy="160" r="1.6"/><circle cx="420" cy="140" r="1.6"/><circle cx="30" cy="290" r="1.4"/><circle cx="440" cy="380" r="1.4"/>
+        </g>
+      </svg>
+      <div class="word">Millennium</div>
+    </section>
+  </div>
+  <footer class="authfoot">
+    <a class="tel" href="#" onclick="return false">(+48) 22 598 40 50</a>
+    <a class="l" href="#" onclick="return false"><svg width="22" height="22"><use href="#padlock"/></svg>Security</a>
+    <a class="l" href="#" onclick="return false"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 13V8l3 3 3-3v5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Branches and ATMs</a>
+    <a class="l" href="#" onclick="return false"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 6l9 7 9-7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Write us</a>
+  </footer>
+  <div class="fine">Demo environment – not affiliated with Bank Millennium S.A. Do not enter real credentials.</div>
+</div>
+
+<!-- Millenet (signed in) -->
+<div id="dashView" class="app" hidden>
+  <header>
+    <span class="logo"><svg width="150" height="37"><use href="#bm-logo"/></svg></span>
+    <nav><span class="on">Desktop</span><span>Accounts</span><span>Payments</span><span>Cards</span><span>Savings</span><span>Loans</span></nav>
+    <div class="me"><span id="sessionLabel"></span><span class="avatar" id="avatar"></span><button id="logout" class="out" type="button">LOG OUT</button></div>
+  </header>
+  <main>
+    <h1 id="greeting"></h1>
+    <div class="sub" id="policyLine"></div>
+    <div class="grid">
+      <div class="panel"><h2>My accounts</h2><div id="accounts"></div></div>
+      <div class="panel"><h2>Quick actions</h2><div class="quick"><button type="button">New transfer</button><button type="button">BLIK code</button><button type="button">Top up phone</button><button type="button">Pay a bill</button></div></div>
+      <div class="panel" style="grid-column:1/-1"><h2>Recent transactions</h2><div id="transactions"></div></div>
     </div>
-    <div id="reportStatus" class="status"></div>
-  </section>
-  <section id="dashView" class="dash" hidden>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div><h1 id="greeting"></h1><div class="sub" id="policyLine"></div></div>
-      <button id="logout" class="btn">WYLOGUJ</button>
-    </div>
-    <h2>Pulpit</h2>
-    <div id="accounts"></div>
-    <h2>Ostatnie operacje</h2>
-    <div class="card" id="transactions" style="padding:18px 26px"></div>
-  </section>
-</main>
-<footer>Wersja demonstracyjna — to nie jest serwis Banku Millennium. Nie wpisuj prawdziwych danych. · Millenet · infolinia 801 331 331 (mock)</footer>
+  </main>
+</div>
+
 <script>
 /* SIGN_IN_POLICIES:start — Millenet sign-in rules, kept in sync with BankMillenniumCore/SignInPolicies.swift
    and windows/BankMillennium/BankMillennium.Core/SignInPolicies.cs */
@@ -132,7 +307,7 @@ SignInPolicyError.prototype = Object.create(Error.prototype);
 
 function LoginValidationError() {
   this.name = 'LoginValidationError';
-  this.message = 'Nieprawidłowy Millekod lub hasło.';
+  this.message = 'Incorrect Millekod or password.';
 }
 LoginValidationError.prototype = Object.create(Error.prototype);
 
@@ -157,26 +332,35 @@ function signIn(millekod, password, channel) {
   return { customer: customer, policy: policyFor(customer, channel) };
 }
 /* SIGN_IN_POLICIES:end */
-
 var ACCOUNTS = {
-  '48213907': [['Konto 360°', 'PL61 1160 2202 0000 0004 8213 9071', 12480.55], ['Konto Oszczędnościowe Profit', 'PL27 1160 2202 0000 0004 8213 9188', 48900.00]],
-  '55018342': [['Konto Prestige', 'PL83 1160 2202 0000 0005 5018 3421', 86302.17], ['Lokata', 'PL09 1160 2202 0000 0005 5018 3512', 120000.00]],
-  '31570264': [['Konto 360°', 'PL44 1160 2202 0000 0003 1570 2641', 3214.90]]
+  '48213907': [['Account 360°', 'PL61 1160 2202 0000 0004 8213 9071', 12480.55], ['Profit Savings Account', 'PL27 1160 2202 0000 0004 8213 9188', 48900.00]],
+  '55018342': [['Prestige Account', 'PL83 1160 2202 0000 0005 5018 3421', 86302.17], ['Term Deposit', 'PL09 1160 2202 0000 0005 5018 3512', 120000.00]],
+  '31570264': [['Account 360°', 'PL44 1160 2202 0000 0003 1570 2641', 3214.90]]
 };
-var TRANSACTIONS = [['Biedronka Warszawa', -86.40], ['Przelew od: Jan Kowalski', 1200.00], ['Orlen Stacja 412', -254.13]];
+var TRANSACTIONS = [['Biedronka Warszawa', -86.40], ['Transfer from: Jan Kowalski', 1200.00], ['Orlen Station 412', -254.13]];
 
 var REPORT_PATH = '/api/bankmillennium/login/error';
 var REPORTS_ON = new URLSearchParams(location.search).get('reports') !== 'off';
 var APP_VERSION = '2026.4.2';
+var REPORTS_OFF_TEXT = 'Failure reports: off (?reports=off)';
 
 function $(id) { return document.getElementById(id); }
-function pln(v) { return v.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' PLN'; }
-function show(step) { ['stepMillekod', 'stepPassword', 'stepAuthorize'].forEach(function (s) { $(s).classList.toggle('on', s === step); }); }
-function showError(msg, policyFailure) { $('error').textContent = msg; $('error').classList.add('show'); $('passwordField').classList.toggle('field-error', !!policyFailure); }
-function clearError() { $('error').classList.remove('show'); $('passwordField').classList.remove('field-error'); }
+function pln(v) { return v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' PLN'; }
+function view(name) { ['siteView', 'loginView', 'dashView'].forEach(function (v) { $(v).hidden = v !== name; }); window.scrollTo(0, 0); }
+function show(step) {
+  ['stepMillekod', 'stepPassword', 'stepAuthorize'].forEach(function (s) { $(s).classList.toggle('on', s === step); });
+  $('tips').hidden = step === 'stepAuthorize';
+}
+function showError(msg, field) {
+  $('errorText').textContent = msg; $('error').classList.add('show');
+  $('millekodField').classList.toggle('bad', field === 'millekod');
+  $('passwordField').classList.toggle('bad', field === 'password');
+}
+function clearError() { $('error').classList.remove('show'); $('millekodField').classList.remove('bad'); $('passwordField').classList.remove('bad'); }
+function openLogin() { clearError(); show('stepMillekod'); view('loginView'); $('millekod').focus(); }
 
 function reportFailure(err) {
-  if (!REPORTS_ON) { $('reportStatus').textContent = 'Raporty błędów: wyłączone (?reports=off)'; return; }
+  if (!REPORTS_ON) { $('reportStatus').textContent = REPORTS_OFF_TEXT; return; }
   fetch(REPORT_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -191,18 +375,19 @@ function reportFailure(err) {
       devinOrgId: localStorage.getItem('devinOrgId') || ''
     })
   }).then(function (r) { return r.json(); }).then(function (ack) {
-    $('reportStatus').textContent = ack && ack.reference ? 'Zgłoszenie wysłane: ' + ack.reference : '';
+    $('reportStatus').textContent = ack && ack.reference ? 'Incident reference: ' + ack.reference : '';
   }).catch(function () {});
 }
 
 function showDashboard(customer, policy) {
-  $('loginView').hidden = true; $('dashView').hidden = false;
-  $('greeting').textContent = 'Dzień dobry, ' + customer.firstName;
-  $('policyLine').textContent = 'Zalogowano: ' + customer.firstName + ' ' + customer.lastName + ' · sesja ' + policy.sessionMinutes + ' min · polityka ' + POLICY_VERSION;
+  view('dashView');
+  $('greeting').textContent = 'Good morning, ' + customer.firstName;
+  $('policyLine').textContent = 'Signed in: ' + customer.firstName + ' ' + customer.lastName + ' · session ' + policy.sessionMinutes + ' min · policy ' + POLICY_VERSION;
   $('sessionLabel').textContent = customer.firstName + ' ' + customer.lastName + ' · Millekod ' + maskMillekod(customer.millekod);
+  $('avatar').textContent = customer.firstName.charAt(0) + customer.lastName.charAt(0);
   $('accounts').innerHTML = '';
   (ACCOUNTS[customer.millekod] || []).forEach(function (a) {
-    var el = document.createElement('div'); el.className = 'card acct';
+    var el = document.createElement('div'); el.className = 'acct';
     el.innerHTML = '<div><b></b><small></small></div><div class="bal"></div>';
     el.querySelector('b').textContent = a[0]; el.querySelector('small').textContent = a[1]; el.querySelector('.bal').textContent = pln(a[2]);
     $('accounts').appendChild(el);
@@ -211,16 +396,19 @@ function showDashboard(customer, policy) {
   TRANSACTIONS.forEach(function (t) {
     var el = document.createElement('div'); el.className = 'tx';
     el.innerHTML = '<span></span><b></b>';
-    el.querySelector('span').textContent = t[0]; el.querySelector('b').textContent = (t[1] > 0 ? '+' : '') + pln(t[1]);
+    el.querySelector('span').textContent = t[0];
+    var amount = el.querySelector('b'); amount.textContent = (t[1] > 0 ? '+' : '') + pln(t[1]); if (t[1] > 0) amount.className = 'in';
     $('transactions').appendChild(el);
   });
 }
 
+$('openLogin').addEventListener('click', openLogin);
+$('toSite').addEventListener('click', function (e) { e.preventDefault(); view('siteView'); });
 $('stepMillekod').addEventListener('submit', function (e) {
   e.preventDefault(); clearError();
   var m = $('millekod').value.trim();
-  if (!isValidMillekod(m)) return showError('Nieprawidłowy Millekod lub hasło.', false);
-  $('millekodEcho').textContent = 'Millekod: ' + m;
+  if (!isValidMillekod(m)) return showError('Incorrect Millekod or password.', 'millekod');
+  $('millekodEcho').textContent = m;
   show('stepPassword'); $('password').focus();
 });
 $('back').addEventListener('click', function () { clearError(); show('stepMillekod'); });
@@ -229,22 +417,22 @@ $('stepPassword').addEventListener('submit', function (e) {
   try {
     var result = signIn($('millekod').value, $('password').value, 'web');
     show('stepAuthorize');
-    $('authorizeDetail').textContent = 'Wysłaliśmy powiadomienie do aplikacji Bank Millennium na telefonie klienta ' + result.customer.firstName + ' ' + result.customer.lastName + '.';
+    $('authorizeDetail').textContent = 'We sent a notification to the Bank Millennium app on ' + result.customer.firstName + ' ' + result.customer.lastName + '’s phone.';
     setTimeout(function () { showDashboard(result.customer, result.policy); }, 1500);
   } catch (err) {
     if (err instanceof SignInPolicyError) {
-      showError('Nie możemy Cię teraz zalogować. Spróbuj ponownie później. Kod błędu: ' + ERROR_CODE, true);
+      showError('We can’t log you in right now. Please try again later. Error code: ' + ERROR_CODE, 'password');
       reportFailure(err);
     } else {
-      showError(err.message, false);
+      showError(err.message, 'password');
     }
   }
 });
 $('logout').addEventListener('click', function () {
-  $('dashView').hidden = true; $('loginView').hidden = false; clearError(); show('stepMillekod');
-  $('password').value = DEMO_PASSWORD; $('sessionLabel').textContent = 'Millenet — przeglądarka';
+  clearError(); show('stepMillekod'); $('password').value = DEMO_PASSWORD; view('siteView');
 });
-if (!REPORTS_ON) $('reportStatus').textContent = 'Raporty błędów: wyłączone (?reports=off)';
+if (!REPORTS_ON) $('reportStatus').textContent = REPORTS_OFF_TEXT;
+if (/^#?(login|millenet)$/.test(location.hash) || new URLSearchParams(location.search).get('view') === 'login') openLogin();
 </script>
 </body>
 </html>
