@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Seats | Workspace settings | Synthesia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy: #090B22; --night: #0D0F2C; --indigo: #3E57DA; --body: #363636; --muted: #68686A; --line: #E7E7EC; --app: #F7F7F9; --paper: #FFFFFF; --soft: #EEF0FD; --accent: var(--indigo); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: "Geist", "Helvetica Neue", Arial, sans-serif; font-size: 15px; line-height: 1.5; color: var(--body); background: var(--app); }
+    a { color: inherit; }
+    .top { height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 20px; background: var(--paper); border-bottom: 1px solid var(--line); }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--navy); font-weight: 600; font-size: 20px; letter-spacing: -.02em; }
+    .ws { margin-left: 18px; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; color: var(--navy); }
+    .ws i { width: 20px; height: 20px; border-radius: 6px; background: var(--soft); color: var(--indigo); font-style: normal; font-weight: 600; font-size: 12px; display: grid; place-items: center; }
+    .top .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .credits { font-size: 13px; color: var(--muted); }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--night); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+    .app { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: calc(100vh - 60px); }
+    .side { background: var(--paper); border-right: 1px solid var(--line); padding: 16px 12px; }
+    .create { width: 100%; min-height: 44px; border: 0; border-radius: 8px; background: var(--navy); color: #fff; font: 500 14px "Geist", Arial, sans-serif; margin-bottom: 14px; }
+    .side a { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 8px; text-decoration: none; color: var(--body); font-size: 14px; }
+    .side a[aria-current] { background: var(--soft); color: var(--indigo); font-weight: 500; }
+    .side .sec { margin: 18px 10px 6px; font-size: 12px; color: var(--muted); }
+    .side svg { flex: none; }
+    .main { padding: 32px 40px 56px; max-width: 1120px; }
+    .crumbs { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+    h1 { color: var(--navy); font-weight: 500; font-size: 32px; letter-spacing: -.02em; line-height: 1.15; margin: 0 0 6px; }
+    .lede { color: var(--muted); margin: 0 0 22px; max-width: 640px; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 26px; overflow-x: auto; }
+    .tabs a { padding: 10px 12px; text-decoration: none; color: var(--muted); font-size: 14px; white-space: nowrap; border-bottom: 2px solid transparent; }
+    .tabs a[aria-current] { color: var(--navy); border-color: var(--navy); font-weight: 500; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+    .stat span { display: block; font-size: 13px; color: var(--muted); }
+    .stat b { color: var(--navy); font-weight: 500; font-size: 28px; letter-spacing: -.02em; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+    .card + .card { margin-top: 20px; }
+    h2 { color: var(--navy); font-weight: 500; font-size: 18px; margin: 0 0 4px; }
+    .card > p.sub { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 500; font-size: 13px; color: var(--muted); padding: 8px 6px; border-bottom: 1px solid var(--line); }
+    td { padding: 12px 6px; border-bottom: 1px solid var(--line); color: var(--navy); }
+    tr:last-child td { border-bottom: 0; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--soft); color: var(--indigo); font-size: 12px; font-weight: 500; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 14px; font-weight: 500; color: var(--navy); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 44px; border: 1px solid #D5D6DD; border-radius: 8px; background: #fff; padding: 0 12px; font: 400 15px "Geist", Arial, sans-serif; color: var(--navy); }
+    .field small { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+    .btn { min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--navy); background: var(--navy); color: #fff; font: 500 14px "Geist", Arial, sans-serif; cursor: pointer; }
+    #submitBtn { background: var(--indigo); border-color: var(--indigo); }
+    .btn.ghost { background: #fff; color: var(--navy); border-color: #D5D6DD; }
+    .btn:disabled { opacity: .55; cursor: progress; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .sw-label { font-size: 13px; color: var(--muted); }
+    .sw-value { font-size: 24px; font-weight: 500; color: var(--navy); }
+    .stopwatch.done .sw-value { color: #C4320A; }
+    .result-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 14px; line-height: 1.45; }
+    .result-box b { display: block; margin-bottom: 2px; color: var(--navy); }
+    .result-box.success { display: block; background: #EDF8F1; border: 1px solid #B5DEC3; }
+    .result-box.notice { display: block; background: #FEF3F0; border: 1px solid #F3C2B6; }
+    .summary dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 10px; font-size: 14px; }
+    .summary dt { color: var(--muted); } .summary dd { margin: 0; text-align: right; color: var(--navy); font-weight: 500; }
+    .summary .tot { border-top: 1px solid var(--line); padding-top: 10px; }
+    .promo { overflow: hidden; padding: 0; }
+    .promo img { display: block; width: 100%; height: 170px; object-fit: cover; }
+    .promo .alt { display: none; height: 170px; background: linear-gradient(135deg, #3E57DA, #0D0F2C); color: #fff; padding: 22px; font-size: 18px; font-weight: 500; }
+    .promo.fallback img { display: none; } .promo.fallback .alt { display: block; }
+    .promo p { margin: 0; padding: 14px 18px 18px; font-size: 14px; color: var(--muted); }
+    .promo p b { display: block; color: var(--navy); font-weight: 500; font-size: 15px; }
+    footer { padding: 18px 40px 28px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 20px; }
+    @media (max-width: 1040px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 820px) {
+      .app { grid-template-columns: minmax(0, 1fr); }
+      .side { display: none; }
+      .credits, .ws span { display: none; }
+    }
+    @media (max-width: 600px) {
+      .top { padding: 0 14px; } .ws { margin-left: 4px; }
+      .main { padding: 22px 14px 40px; } h1 { font-size: 26px; }
+      .stats { gap: 8px; } .stat { padding: 12px; } .stat b { font-size: 22px; }
+      .two { grid-template-columns: 1fr; } .card { padding: 16px; }
+      .actions .btn { flex: 1 1 100%; } .hide-xs { display: none; } footer { padding: 16px 14px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="logo" href="#" aria-label="Synthesia">
+      <svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="1" width="24" height="20" rx="6" fill="none" stroke="#3E57DA" stroke-width="2.4"/><path d="M8 11h10" stroke="#3E57DA" stroke-width="2.4" stroke-linecap="round"/></svg>
+      synthesia
+    </a>
+    <div class="ws"><i aria-hidden="true">L</i><span>Lindqvist Learning</span></div>
+    <div class="right"><span class="credits">Enterprise plan</span><span class="avatar" aria-label="Signed in as Maya Okafor">MO</span></div>
+  </header>
+  <div class="app">
+    <aside class="side" aria-label="Synthesia">
+      <button type="button" class="create">Create video</button>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 8l6-5 6 5v7H3z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Home</a>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="4" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Videos</a>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="2" width="6" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Templates</a>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="6.5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 16c.8-3 3.2-4.5 6-4.5s5.2 1.5 6 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Avatars</a>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="2" fill="currentColor"/></svg>Brand kit</a>
+      <div class="sec">Workspace</div>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="6.5" cy="7" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12.5" cy="7" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 15c.6-2.2 2.3-3.4 4.5-3.4S10.4 12.8 11 15M9 15c.6-2.2 1.5-3.4 3.5-3.4s3.4 1.2 4 3.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Members</a>
+      <a href="#" aria-current="page"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5l1.6 1.2 2-.2.6 1.9 1.7 1.1-.7 1.9.7 1.9-1.7 1.1-.6 1.9-2-.2L9 15.5l-1.6-1.2-2 .2-.6-1.9-1.7-1.1.7-1.9-.7-1.9 1.7-1.1.6-1.9 2 .2z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Settings</a>
+    </aside>
+    <main class="main">
+      <p class="crumbs">Workspace settings</p>
+      <h1>Seats</h1>
+      <p class="lede">Editors can create, edit and publish videos. Guests can view and comment. New editor seats are prorated to your renewal date.</p>
+      <nav class="tabs" aria-label="Workspace settings"><a href="#">General</a><a href="#">Members</a><a href="#" aria-current="page">Seats</a><a href="#">Plan &amp; billing</a><a href="#" class="hide-xs">Security</a></nav>
+      <div class="stats" aria-label="Editor seats">
+        <div class="stat"><span>Editor seats</span><b id="mSeats">0</b></div>
+        <div class="stat"><span>Assigned</span><b id="mUsed">0</b></div>
+        <div class="stat"><span>Available</span><b id="mFree">0</b></div>
+      </div>
+      <div class="grid">
+        <div>
+          <section class="card" aria-labelledby="wsHead">
+            <h2 id="wsHead">Workspaces</h2>
+            <p class="sub">Editor seats by workspace in your organisation.</p>
+            <table>
+              <thead><tr><th>Workspace</th><th class="hide-xs">Team</th><th class="num">Editors</th></tr></thead>
+              <tbody>
+                <tr><td>Onboarding &amp; Compliance</td><td class="hide-xs"><span class="pill">L&amp;D</span></td><td class="num" data-seats-for="enterprise_suite" data-assigned="17">18</td></tr>
+                <tr><td>Product Education</td><td class="hide-xs"><span class="pill">Customer Success</span></td><td class="num" data-seats-for="devops_platform" data-assigned="9">9</td></tr>
+                <tr><td>Sales Enablement</td><td class="hide-xs"><span class="pill">Revenue</span></td><td class="num" data-seats-for="analytics_cloud" data-assigned="5">6</td></tr>
+              </tbody>
+            </table>
+          </section>
+          <section class="card" aria-labelledby="addHead">
+            <h2 id="addHead">Add editor seats</h2>
+            <p class="sub">Seats are available to invite as soon as they are added.</p>
+            <form id="provisionForm" novalidate>
+              <div class="field">
+                <label for="product">Workspace</label>
+                <select id="product">
+                  <option value="enterprise_suite" selected>Onboarding &amp; Compliance</option>
+                  <option value="devops_platform">Product Education</option>
+                  <option value="analytics_cloud">Sales Enablement</option>
+                </select>
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="seats">Editor seats to add</label>
+                  <input type="number" id="seats" value="6" min="1" max="250" step="1" inputmode="numeric">
+                  <small>1&ndash;250 per change</small>
+                </div>
+                <div class="field">
+                  <label for="planTier">Plan</label>
+                  <select id="planTier">
+                    <option value="enterprise" selected>Enterprise</option>
+                    <option value="business">Creator</option>
+                  </select>
+                </div>
+              </div>
+              <div class="actions">
+                <button type="submit" class="btn" id="submitBtn">Add seats</button>
+                <button type="reset" class="btn ghost" id="cancelBtn">Cancel</button>
+              </div>
+              <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+        </div>
+        <div>
+          <section class="card summary" aria-labelledby="sumHead">
+            <h2 id="sumHead">Summary</h2>
+            <p class="sub">Billed annually on your organisation invoice.</p>
+            <dl>
+              <dt>Workspace</dt><dd id="sumApp">&mdash;</dd>
+              <dt>Plan</dt><dd id="sumPlan">&mdash;</dd>
+              <dt>Seats to add</dt><dd id="sumSeats">&mdash;</dd>
+              <dt class="tot">Editors after change</dt><dd class="tot" id="sumAfter">&mdash;</dd>
+            </dl>
+          </section>
+          <section class="card promo" id="promo">
+            <img src="https://cdn.prod.website-files.com/65e89895c5a4b8d764c0d70e/6a840a701cf7e6186d01f0ff_brand-kits-poster%201.jpg" alt="" loading="lazy" onerror="document.getElementById('promo').className='card promo fallback'">
+            <div class="alt" aria-hidden="true">Brand kits</div>
+            <p><b>Keep every video on brand</b>Share your brand kit with new editors so fonts, colours and logos stay consistent.</p>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+  <footer><span>Synthesia workspace</span><a href="#">Help Center</a><a href="#">Status</a><a href="#">Terms</a><a href="#">Privacy</a><span>Sample organisation and seat counts.</span></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('provisionForm'); const btn = $('submitBtn'); const cancelBtn = $('cancelBtn'); const result = $('result');
+      const app = $('product'); const seats = $('seats'); const plan = $('planTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const IDLE = 'Add seats';
+      const bySpace = {}; let assigned = 0;
+      document.querySelectorAll('[data-seats-for]').forEach((el) => { bySpace[el.dataset.seatsFor] = Number(el.textContent) || 0; assigned += Number(el.dataset.assigned) || 0; });
+      let pending = false; let ticker = null;
+      const set = (id, t) => { $(id).textContent = t; };
+      const text = (s) => s.options[s.selectedIndex].textContent;
+      const total = () => Object.values(bySpace).reduce((a, b) => a + b, 0);
+      const count = () => { const raw = seats.value.trim(); return /^\d+$/.test(raw) ? parseInt(raw, 10) : NaN; };
+      function render() {
+        const n = count(); const ok = Number.isFinite(n) && n >= 1 && n <= 250;
+        set('sumApp', text(app)); set('sumPlan', text(plan));
+        set('sumSeats', ok ? String(n) : '\u2014');
+        set('sumAfter', ok ? String((bySpace[app.value] || 0) + n) : '\u2014');
+        set('mSeats', String(total())); set('mUsed', String(assigned)); set('mFree', String(total() - assigned));
+        document.querySelectorAll('[data-seats-for]').forEach((el) => { el.textContent = String(bySpace[el.dataset.seatsFor] || 0); });
+      }
+      function show(kind, title, body) {
+        result.className = `result-box ${kind}`; result.textContent = '';
+        const b = document.createElement('b'); b.textContent = title; result.appendChild(b); result.appendChild(document.createTextNode(body));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function clearStale() { if (pending) return; result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s'; }
+      form.addEventListener('input', () => { clearStale(); render(); });
+      form.addEventListener('change', () => { clearStale(); render(); });
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { clearStale(); render(); });
+      });
+      render();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        const n = count();
+        if (!Number.isFinite(n) || n < 1 || n > 250) { show('notice', 'Check the number of seats', 'Enter a whole number of editor seats from 1 to 250.'); seats.focus(); return; }
+        const space = app.value; const spaceLabel = text(app); const planLabel = text(plan);
+        pending = true; [btn, cancelBtn, app, seats, plan].forEach((el) => { el.disabled = true; });
+        btn.textContent = 'Adding seats\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: app.value,
+              planName: plan.value,
+              seats: parseInt(seats.value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          tick(); stopTimer(true);
+          if (res.ok && data.success) {
+            const added = Number(data.seatsAdded) || n;
+            bySpace[space] = (bySpace[space] || 0) + added; render();
+            const ref = String(data.licenseId || '').slice(0, 8).toUpperCase();
+            show('success', 'Seats added', `${added} editor ${added === 1 ? 'seat' : 'seats'} added to ${spaceLabel} (${planLabel}). Your organisation now has ${total()} editor seats.${ref ? ' Reference ' + ref + '.' : ''}`);
+          } else {
+            show('notice', 'Seats weren\u2019t added', 'We couldn\u2019t add editor seats right now and your plan hasn\u2019t changed. Try again in a few minutes, or contact Synthesia Support.');
+          }
+        } catch (_err) {
+          stopTimer(true);
+          show('notice', 'Seats weren\u2019t added', 'We couldn\u2019t reach Synthesia. Check your connection and try again.');
+        } finally {
+          pending = false; [btn, cancelBtn, app, seats, plan].forEach((el) => { el.disabled = false; });
+          btn.textContent = IDLE;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
