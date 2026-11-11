@@ -52,6 +52,7 @@ const SEED = [
 
 let state = null;
 let lastMutationAt = 0;
+let seededDay = null;
 
 function isoDate(date) {
   return date.toISOString().slice(0, 10);
@@ -83,10 +84,15 @@ function seedState(now = new Date()) {
   return { sessions, bookings: [] };
 }
 
+// Reseed after 30 min without a change, or on a new day if nothing changed,
+// so the seeded session dates stay relative to today.
 function currentState(now = Date.now()) {
-  if (!state || (lastMutationAt && now - lastMutationAt > STATE_TTL_MS)) {
+  const today = isoDate(new Date(now));
+  const stale = lastMutationAt ? now - lastMutationAt > STATE_TTL_MS : seededDay !== today;
+  if (!state || stale) {
     state = seedState(new Date(now));
     lastMutationAt = 0;
+    seededDay = today;
   }
   return state;
 }
@@ -98,6 +104,7 @@ function touch() {
 function resetState() {
   state = null;
   lastMutationAt = 0;
+  seededDay = null;
 }
 
 function requestError(code, message) {

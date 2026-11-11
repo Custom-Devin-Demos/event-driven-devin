@@ -10,7 +10,7 @@ const { stopGateway } = require('../app/services/oncall-verticals/industrials-ed
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 const { ALERT_SCENARIOS, skinRepo } = require('../app/services/oncall');
-const { resetState } = require('../app/services/oncall-verticals/assessmentscheduling');
+const { resetState, searchSessions, changeCapacity } = require('../app/services/oncall-verticals/assessmentscheduling');
 const { getOncallSkin } = require('../config/oncall-skins');
 
 const SLUG = '11a84bb4';
@@ -198,6 +198,19 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.session).toMatchObject({ sessionId: 41871, capacity: 20, accommodationCapacity: 0, booked: 15, seatsAvailable: 5 });
+  });
+
+  test('unchanged demo state is reseeded on a new day so the demo session stays searchable', () => {
+    const day0 = new Date('2026-11-11T12:00:00Z');
+    const day3 = new Date('2026-11-14T12:00:00Z');
+    const demo = (now) => searchSessions({ centerCode: 'NW-CHI-01' }, now).sessions.find((s) => s.sessionId === 41872);
+    expect(demo(day0).date).toBe('2026-11-13');
+    expect(demo(day3).date).toBe('2026-11-16');
+  });
+
+  test('a recent capacity change is kept within the idle window', () => {
+    changeCapacity({ sessionId: 41872, capacity: 34 });
+    expect(searchSessions({ centerCode: 'NW-CHI-01' }).sessions.find((s) => s.sessionId === 41872).capacity).toBe(34);
   });
 
   test('invalid capacity requests are 400 and unknown sessions 404', async () => {
