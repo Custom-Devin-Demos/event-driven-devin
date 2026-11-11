@@ -85,6 +85,7 @@ function responseTimeBreakdown() {
 function dqlRecords(query, now) {
   const q = String(query || '').toLowerCase();
   if (q.includes('fetch logs')) {
+    if (/loglevel\s*==\s*"(error|warn)"|status\s*==\s*"(error|warn)"/.test(q)) return [];
     return [
       { timestamp: minutesAgo(now, 2), loglevel: 'INFO', 'service.name': SERVICE, content: 'Transfer completed', durationMs: 9503, endpoint: ENDPOINT },
       { timestamp: minutesAgo(now, 4), loglevel: 'INFO', 'service.name': SERVICE, content: 'Transfer completed', durationMs: 9318, endpoint: ENDPOINT },

@@ -83,3 +83,10 @@ describe('Dynatrace demo stand-in MCP params handling', () => {
     expect(call.error.code).toBe(-32602);
   });
 });
+
+describe('Dynatrace demo stand-in MCP DQL filters', () => {
+  test('error-level log queries return no records because the error rate is normal', async () => {
+    const res = await (await rpc({ jsonrpc: '2.0', id: 10, method: 'tools/call', params: { name: 'execute_dql', arguments: { dqlStatement: 'fetch logs | filter loglevel == "ERROR"' } } })).json();
+    expect(JSON.parse(res.result.content[0].text).records).toEqual([]);
+  });
+});
