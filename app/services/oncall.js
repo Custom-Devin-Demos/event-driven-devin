@@ -78,6 +78,18 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  walmartorders: {
+    vertical: 'walmartorders', page: 'db261a21.html',
+    apiPath: '/api/db261a21/orders', oncallApiPath: '/api/oncall/walmartorders/orders',
+    owner: 'Walmart Cart & Checkout On-Call', brand: 'Walmart.com Cart',
+    service: 'walmart-cart-order-api', endpoint: 'POST /api/oncall/walmartorders/orders',
+    monitor: '5xx rate \u2014 Walmart.com cart Order now',
+    metricQuery: 'sum:trace.express.request.errors{resource:POST /api/oncall/walmartorders/orders,http.status_code:500}',
+    metricValue: '100% of Rollback cart orders returning 500', threshold: '> 1%', baseline: '<0.1% (7-day)',
+    release: 'cart-pricing@2026.11.4',
+    symptom: 'Place order from the cart fails immediately with HTTP 500 for carts containing Rollback items. Latency is normal. Onset coincides with the merchandising feed v3 promotion codes. Store pickup is a separate service.',
+    impact: 'Customers cannot place orders for Rollback items from the cart during the holiday event.', alertOnStatus: [500], unlisted: true,
+  },
   cibctransfers: {
     vertical: 'cibctransfers', page: '5abd65f5.html',
     apiPath: '/api/5abd65f5/transfers', oncallApiPath: '/api/oncall/cibc/transfers',
@@ -666,7 +678,7 @@ const ALERT_SCENARIOS = {
     threshold: '> 2% of capacity changes',
     baseline: '~0.3% (7-day)',
     release: 'scheduling-service@1.4.0',
-    symptom: 'Since the 1.4.0 release, many capacity reductions on sessions that have accommodation seats are rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR, even though the new capacity still covers the accommodation seats. Increases, reductions on sessions without accommodation seats (which move the newest bookings to the waitlist as before), searches and bookings are fine. The legacy portal capacity is not updated through the outbox.',
+    symptom: 'Since the 1.4.0 release, many capacity reductions on sessions that have accommodation seats are rejected with HTTP 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR, even though the new capacity still covers the accommodation seats. Example: BOS01 session #198 (MHL-PHT) 23 \u2192 9 is rejected with "New capacity 9 is below the accommodation floor 10"; the legacy portal accepts it. Increases, reductions on sessions without accommodation seats, searches and bookings are fine. The legacy portal capacity is not updated through the outbox.',
     impact: 'Test centres cannot release seats in rooms that are out of service, so the legacy portal and partner channels keep selling seats that do not exist and candidates are turned away on exam day.',
     triggerWhen: { action: 'change-capacity' },
     alertOnStatus: [409],
