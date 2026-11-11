@@ -203,6 +203,10 @@ describe('11a84bb4 Northwind Assessment Network scheduling-service skin', () => 
     expect(list).toHaveLength(3);
     expect(list.map((w) => w.position)).toEqual([1, 2, 3]);
     expect(list[0]).toMatchObject({ bookingId: 1603, candidateNumber: 'NW00000410', candidateName: 'Ruby Underwood' });
+    const mine = await (await post(`${API}/candidates/bookings`, { candidateNumber: 'NW00000410' })).json();
+    expect(mine).toContainEqual(expect.objectContaining({
+      bookingId: 1603, sessionId: 153, status: 'WAITLISTED', waitlistPosition: 1, bookedAt: list[0].addedAt,
+    }));
   });
 
   test('23 -> 9 on #198 is rejected with 409 CAPACITY_BELOW_ACCOMMODATION_FLOOR (legacyCode 50005)', async () => {

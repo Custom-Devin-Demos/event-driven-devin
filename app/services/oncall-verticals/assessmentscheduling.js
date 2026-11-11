@@ -262,14 +262,14 @@ function bookSeat(data = {}) {
   };
 }
 
-/** GET /api/v2/candidates/{candidateNumber}/bookings (bookings made on this demo page). */
+/** GET /api/v2/candidates/{candidateNumber}/bookings (seeded waitlist entries and bookings made on this demo page). */
 function candidateBookings(data = {}) {
   const candidateNumber = typeof data.candidateNumber === 'string' ? data.candidateNumber.trim().toUpperCase() : '';
   if (!/^NW\d{8}$/.test(candidateNumber)) throw requestError('VALIDATION', 'candidateNumber must be NW followed by 8 digits');
   const out = [];
   for (const session of currentState().sessions.values()) {
     for (const b of session.bookings) {
-      if (b.candidateNumber !== candidateNumber || !b.createdAt) continue;
+      if (b.candidateNumber !== candidateNumber) continue;
       out.push({
         bookingId: b.bookingId,
         sessionId: session.sessionId,
@@ -279,7 +279,7 @@ function candidateBookings(data = {}) {
         status: b.status,
         accommodationCode: b.accommodationCode,
         channel: 'PORTAL',
-        bookedAt: b.createdAt,
+        bookedAt: b.createdAt || b.addedAt,
         waitlistPosition: b.status === 'WAITLISTED' ? b.waitlistPosition : null,
       });
     }
