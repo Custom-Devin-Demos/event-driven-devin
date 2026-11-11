@@ -249,9 +249,13 @@
           tick(); stopTimer(true);
           if (!response.ok || !data.success) throw new Error('not sent');
           const debited = Number(data.debitAmount || (data.receipt && data.receipt.totalDebit)) || a + feeFor(a);
+          const ref = String(data.transferId || '').slice(-8).toUpperCase();
+          if (data.duplicate) {
+            show('success', 'Overføringen er allerede utført', `${nok.format(a)} til ${toName} er allerede overført. Vi har ikke overført beløpet to ganger.${ref ? ' Referanse ' + ref + '.' : ''}`);
+            return;
+          }
           balances[from] -= debited; if (Object.prototype.hasOwnProperty.call(balances, to)) balances[to] += a;
           render();
-          const ref = String(data.transferId || '').slice(-8).toUpperCase();
           show('success', 'Overføringen er utført', `${nok.format(a)} er overført til ${toName}. Belastet ${nok.format(debited)}.${ref ? ' Referanse ' + ref + '.' : ''}`);
         } catch (_err) {
           stopTimer(true);
