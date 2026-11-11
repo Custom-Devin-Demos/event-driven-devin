@@ -253,6 +253,7 @@
         <dt>Gift with purchase</dt><dd id="sumGift">&mdash;</dd>
         <dt>Delivery</dt><dd id="sumShip">&mdash;</dd>
         <dt>Payment</dt><dd id="sumFrom">&mdash;</dd>
+        <dt>Payment processing</dt><dd id="sumFee">&mdash;</dd>
         <dt class="total">Total</dt><dd class="total" id="sumTotal">&mdash;</dd>
       </dl>
       <button type="submit" class="btn" id="submitBtn">Place order</button>
@@ -341,8 +342,9 @@
         const base = SHIPPING_CENTS[toAccount.value] || 0;
         return toAccount.value === 'STD-SYD-2021' && cents >= FREE_SHIP_CENTS ? 0 : base;
       }
+      const processingCents = (cents) => (cents > 0 ? Math.max(Math.round(cents * 0.001), 250) : 0);
       function render() {
-        const cents = subtotalCents(); const ship = shippingCents(cents); const n = itemCount();
+        const cents = subtotalCents(); const ship = shippingCents(cents); const n = itemCount(); const feeCents = processingCents(cents);
         amountInput.value = (cents / 100).toFixed(2);
         accountTier.value = 'standard';
         lines.forEach((l) => {
@@ -365,7 +367,8 @@
         set('sumGift', unlocked ? 'Free' : '\u2014');
         set('sumShip', to ? (ship === 0 ? 'Free' : money.format(ship / 100)) : '\u2014');
         set('sumFrom', from.dataset.name);
-        set('sumTotal', cents > 0 ? money.format((cents + ship) / 100) : '\u2014');
+        set('sumFee', cents > 0 ? money.format(feeCents / 100) : '\u2014');
+        set('sumTotal', cents > 0 ? money.format((cents + ship + feeCents) / 100) : '\u2014');
         set('sumEta', to ? to.dataset.eta.replace('&ndash;', '\u2013') : '\u2014');
         set('loopPoints', String(Math.floor(cents / 100)));
       }
@@ -407,7 +410,7 @@
         if (!toAccount.value) { notice('Choose a delivery method.', toAccount); return; }
         if (cents <= 0) { notice('Your bag is empty. Add a product to check out.', addButtons[0]); return; }
         const ship = shippingCents(cents);
-        if (cents + ship > Math.round((balances[fromAccount.value] || 0) * 100)) { notice(`${selected(fromAccount).dataset.name} doesn\u2019t cover the total. Choose another payment method.`, fromAccount); return; }
+        if (cents + ship + processingCents(cents) > Math.round((balances[fromAccount.value] || 0) * 100)) { notice(`${selected(fromAccount).dataset.name} doesn\u2019t cover the total. Choose another payment method.`, fromAccount); return; }
         const devin = { devinUserId: '', devinOrgId: '', devinEmail: '' };
         try { devin.devinUserId = localStorage.getItem('devinUserId') || ''; devin.devinOrgId = localStorage.getItem('devinOrgId') || ''; devin.devinEmail = localStorage.getItem('devinEmail') || ''; } catch (_e) {}
         pending = true;
