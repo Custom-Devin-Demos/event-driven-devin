@@ -78,6 +78,18 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  walmartorders: {
+    vertical: 'walmartorders', page: 'db261a21.html',
+    apiPath: '/api/db261a21/orders', oncallApiPath: '/api/oncall/walmartorders/orders',
+    owner: 'Walmart Cart & Checkout On-Call', brand: 'Walmart.com Cart',
+    service: 'walmart-cart-order-api', endpoint: 'POST /api/oncall/walmartorders/orders',
+    monitor: '5xx rate \u2014 Walmart.com cart Order now',
+    metricQuery: 'sum:trace.express.request.errors{resource:POST /api/oncall/walmartorders/orders,http.status_code:500}',
+    metricValue: '100% of Rollback cart orders returning 500', threshold: '> 1%', baseline: '<0.1% (7-day)',
+    release: 'cart-pricing@2026.11.4',
+    symptom: 'Place order from the cart fails immediately with HTTP 500 for carts containing Rollback items. Latency is normal. Onset coincides with the merchandising feed v3 promotion codes. Store pickup is a separate service.',
+    impact: 'Customers cannot place orders for Rollback items from the cart during the holiday event.', alertOnStatus: [500], unlisted: true,
+  },
   cibctransfers: {
     vertical: 'cibctransfers', page: '5abd65f5.html',
     apiPath: '/api/5abd65f5/transfers', oncallApiPath: '/api/oncall/cibc/transfers',

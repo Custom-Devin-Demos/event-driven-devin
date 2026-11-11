@@ -102,6 +102,46 @@
  */
 
 const ONCALL_SKINS = {
+  db261a21: {
+    slug: 'db261a21',
+    company: 'Walmart',
+    brandMark: 'Walmart',
+    vertical: 'walmartorders',
+    oncallOnly: true,
+    paths: ['/walmart-2', '/walmart-2-oncall'],
+    alertDestination: 'slack',
+    onCallSlackMemberId: 'U0BQZBHCNMA',
+    incidentInviteUserIds: ['U0BQZBHCNMA'],
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Walmart.com Cart page linked above. Order now \u2192 Place order posts to POST /api/oncall/walmartorders/orders, so that endpoint is the backend of this incident.',
+        'Investigate only the cart order pricing failure in app/services/oncall-verticals/walmartorders.js (walmart-cart-order-api). It is separate from the store pickup slot outage (walmart-pickup-slot-service, walmartfulfillment.js), which has its own SEV-1 incident; do not combine those investigations.',
+        'Reproduce only locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Do not submit the live page, and give testing agents the same restriction.',
+        'Keep order validation, promotion caps and the order confirmation fields; do not hide the issue by dropping the promotion or catching the error and returning success. Add a regression test, post findings and the PR link in this alert thread, and do not merge or deploy.',
+      ].join('\n'),
+    },
+    page: { file: 'db261a21.html', title: 'Cart | Walmart.com' },
+    theme: {
+      '--accent': '#0071dc',
+      '--ink': '#2e2f32',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0053e2',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Walmart Global Tech support',
+    alertCard: {
+      title: '5xx rate \u2014 Walmart.com cart Order now',
+      service: 'walmart-cart-order-api',
+      team: 'cart-checkout-oncall',
+      release: 'cart-pricing@2026.11.4',
+      symptom: 'Order now \u2192 Place order returns HTTP 500 for every cart with a Rollback item; no orders are created. Latency is normal. Store pickup is tracked separately.',
+      impact: 'Walmart.com customers cannot place orders for Rollback items from the cart during the holiday event.',
+    },
+    disclaimer: 'NOT ACTUALLY A WALMART SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Walmart product.',
+  },
+
   '5abd65f5': {
     slug: '5abd65f5',
     company: 'CIBC',
