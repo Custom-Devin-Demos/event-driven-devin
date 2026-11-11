@@ -162,6 +162,40 @@ function detectEcosystem(text) {
   return null;
 }
 
+const THEME_KEYS = {
+  ai: /\b(ai|artificial intelligence|digital|data cent(re|er)s?|compute|humain|technology)\b|ذكاء|رقمي/i,
+  capital: /\b(financ\w*|capital|debt|bonds?|funding|sukuk|invest\w*)\b|تمويل|استثمار/i,
+  private: /\b(private sector|private capital|locali[sz]ation|local content|suppliers?|smes?|co-invest\w*)\b|القطاع الخاص|المحتوى المحلي/i,
+  performance: /\b(returns?|tsr|performance|profits?|revenues?|aum|ratings?)\b|عوائد|أداء|إيرادات|أرباح/i,
+  sustainability: /\b(sustainab\w*|renewables?|green|climate|emissions?|water|hydrogen|esg|solar)\b|استدامة|متجددة|هيدروجين/i,
+  talent: /\b(talent|education|skills?|jobs?|workforce|training|employment)\b|مواهب|تعليم|مهارات|وظائف/i,
+};
+
+function detectThemes(text) {
+  const t = String(text || '');
+  return THEMES.filter((th) => THEME_KEYS[th.id].test(t)).map((th) => th.id);
+}
+
+function questionFocus(eco, themes, hits) {
+  const cells = coverage();
+  const cited = new Set(hits.map((h) => h.doc && h.doc.id));
+  const rows = eco ? [eco] : [];
+  const focus = [];
+  for (const e of rows) {
+    for (const th of THEMES.filter((x) => themes.includes(x.id))) {
+      focus.push({ ecosystem: e.id, theme: th.id, studies: cells[e.id][th.id].length });
+    }
+  }
+  const citedCells = {};
+  for (const e of ECOSYSTEMS) {
+    for (const th of THEMES) {
+      const n = cells[e.id][th.id].filter((id) => cited.has(id)).length;
+      if (n) citedCells[`${e.id}:${th.id}`] = n;
+    }
+  }
+  return { ecosystem: eco ? eco.id : null, themes, cells: focus, cited: citedCells };
+}
+
 function coverage() {
   const cells = {};
   for (const e of ECOSYSTEMS) {
@@ -219,6 +253,7 @@ async function ask(question, { lang = 'en' } = {}) {
   if (!q) { const err = new Error('Question is required'); err.status = 400; throw err; }
   const hits = search(q, 6);
   const eco = detectEcosystem(q);
+  const themes = detectThemes(q);
   let answer = null; let mode = 'extractive';
   if (hits.length) {
     const sourcesText = hits.map((h, i) => `[${i + 1}] ${h.doc.title} (${h.doc.date}): ${h.text}`).join('\n\n');
@@ -229,7 +264,7 @@ async function ask(question, { lang = 'en' } = {}) {
     if (answer) mode = 'ai';
   }
   if (!answer) answer = extractiveAnswer(q, hits);
-  return { question: q, answer, mode, aiOffline: hits.length > 0 && mode === 'extractive' && Boolean(llmProvider()), sources: hits, ecosystem: eco ? eco.name : null, gaps: researchGaps(eco) };
+  return { question: q, answer, mode, aiOffline: hits.length > 0 && mode === 'extractive' && Boolean(llmProvider()), sources: hits, ecosystem: eco ? eco.name : null, focus: questionFocus(eco, themes, hits), gaps: researchGaps(eco) };
 }
 
 function libraryIndex() {
@@ -565,7 +600,7 @@ function status() {
 module.exports = {
   SLUG, ACCESS_COOKIE,
   accessToken, codeMatches, hasAccess, unlockAllowed,
-  search, ask, libraryIndex, coverage, researchGaps, detectEcosystem,
+  search, ask, libraryIndex, coverage, researchGaps, detectEcosystem, detectThemes,
   rankTrends, trendsBrief, outlook, escalation,
   checkCommunication, PUBLIC_FIGURES, THEMES,
   createFeatureRequest, getFeatureRequest, listFeatureRequests, buildFeaturePrompt, dailyCap,

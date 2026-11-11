@@ -91,6 +91,17 @@ describe('PIF Ecosystem Outlook PoC', () => {
     expect(r.sources.length).toBeGreaterThan(0);
     expect(r.answer).toMatch(/\[\d\]/);
     expect(r.ecosystem).toBe('Advanced Manufacturing & Innovation');
+    expect(r.focus.ecosystem).toBe('ami');
+    expect(r.focus.themes).toContain('capital');
+    expect(r.focus.cells.find((c) => c.theme === 'capital').studies).toBeGreaterThan(0);
+    expect(Object.keys(r.focus.cited).length).toBeGreaterThan(0);
+  });
+
+  test('question focus changes with the question', async () => {
+    expect(pif.detectThemes('What talent gaps exist in tourism?')).toEqual(['talent']);
+    const r = await pif.ask('What have we studied on talent in NEOM?');
+    expect(r.focus.ecosystem).toBe('neom');
+    expect(r.focus.cells).toEqual([{ ecosystem: 'neom', theme: 'talent', studies: 0 }]);
   });
 
   test('trends rank by ecosystem and the brief is available in Arabic', () => {

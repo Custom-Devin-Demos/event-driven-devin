@@ -78,6 +78,9 @@ textarea:focus,input:focus{outline:2px solid rgba(0,92,77,.25);border-color:var(
 table.cov{border-collapse:collapse;width:100%;font-size:12px}table.cov th{font-weight:500;text-align:start;color:var(--grey);padding:6px 4px;border-bottom:1px solid var(--line);font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;vertical-align:bottom}
 table.cov td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:center}table.cov td:first-child{text-align:start;color:#3c3c3c}
 table.cov td.z{color:var(--red)}table.cov td.c{color:var(--g)}
+table.cov tr.hl td{background:var(--cream)}table.cov th.hl,table.cov td.hlc{background:var(--cream)}table.cov tr.hl td:first-child{color:var(--g);font-weight:600}
+table.cov td.x{outline:2px solid var(--g);outline-offset:-2px;font-weight:600}table.cov td.z.x{outline-color:var(--red)}table.cov td sup{color:var(--gold);font-size:8px;margin-inline-start:3px;vertical-align:super}
+.covq{font-size:12.5px;margin:0 0 10px;color:var(--ink)}.covq b{color:var(--g);font-weight:600}.covq .st-red{font-weight:600}
 .doc{padding:12px 0;border-top:1px solid var(--line);font-size:13px}.doc .m{font-size:11.5px;color:var(--grey)}
 .ftabs{display:flex;gap:22px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:8px}.ftabs span{font-size:12.5px;color:var(--grey);padding:10px 0;cursor:pointer;border-bottom:2px solid transparent}.ftabs span.on{color:var(--ink);border-bottom-color:var(--g)}
 .trend{display:grid;grid-template-columns:70px 1fr 220px;gap:24px;padding:22px 0;border-top:1px solid var(--line)}
@@ -311,11 +314,22 @@ async function askQ(){const q=$('#question').value.trim();if(!q)return;$('#askBt
     $('#answer').innerHTML=`<div class="lab">${r.mode==='ai'?'Answer':(r.aiOffline?'Answer — AI synthesis unavailable, composed from source passages':'Answer — composed from source passages')}${r.ecosystem?` · ${esc(r.ecosystem)}`:''}</div><div class="answer" dir="${LANG==='ar'&&r.mode==='ai'?'rtl':'ltr'}">${ans}</div>
     ${r.sources.length?`<div class="lab" style="margin-top:30px">Sources</div><div class="srcs">${r.sources.map((s,i)=>`<div class="srcrow" id="src${i+1}"><div class="i">${i+1}</div><div><a class="ul" href="${esc(s.doc.url)}" target="_blank" rel="noopener">${esc(s.doc.title)}</a><div class="m">${esc(s.doc.type)} · ${fmt(s.doc.date)}</div><div class="x">${esc(s.text.length>260?s.text.slice(0,260)+'…':s.text)}</div></div></div>`).join('')}</div>`:''}
     ${r.gaps.length?`<div class="lab" style="margin-top:30px">Not yet studied — suggested next research</div>${r.gaps.map(g=>`<div class="find"><div class="k st-amb">${esc(g.ecosystem)} · ${esc(g.theme)}</div><div class="f">${esc(g.study)}</div></div>`).join('')}`:''}`;
+    renderCoverage(r.focus);
     $$('#answer sup').forEach(s=>s.onclick=()=>$('#src'+s.dataset.s)?.scrollIntoView({behavior:'smooth',block:'center'}));
   }catch(e){if(e.message!=='locked')$('#answer').innerHTML=`<span class="st-red">${esc(e.message)}</span>`}finally{$('#askBtn').disabled=false}}
 let libLoaded=false;async function loadResearch(){if(libLoaded)return;libLoaded=true;const d=await api('/library');await loadEcoList();
-  $('#coverage').innerHTML=`<table class="cov"><tr><th>Ecosystem</th>${d.themes.map(t=>`<th>${esc(t.name.split(' ')[0])}</th>`).join('')}</tr>${ECO.map(e=>`<tr><td>${esc(e.name.split(',')[0].split(' &')[0])}</td>${d.themes.map(t=>{const n=d.coverage[e.id][t.id].length;return `<td class="${n?'c':'z'}" title="${n} studies">${n||'—'}</td>`}).join('')}</tr>`).join('')}</table><p class="muted" style="font-size:11px;margin-top:6px">Number of studies per theme. — marks a gap.</p>`;
+  LIB=d;renderCoverage(null);
   $('#library').innerHTML=d.documents.map(x=>`<div class="doc"><a class="ul" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a><div class="m">${esc(x.type)} · ${fmt(x.date)}</div></div>`).join('')}
+let LIB=null;
+function renderCoverage(f){if(!LIB||!ECO)return;const d=LIB,themes=f?f.themes:[],cited=f?f.cited:{};
+  const tn=id=>(d.themes.find(t=>t.id===id)||{}).name||id,en=id=>(ECO.find(e=>e.id===id)||{}).name||id;
+  let q='';if(f){const nc=Object.values(cited).reduce((a,b)=>a+b,0);
+    if(f.cells.length)q=f.cells.map(c=>`<b>${esc(en(c.ecosystem))} × ${esc(tn(c.theme))}</b>: ${c.studies?`${c.studies} ${c.studies===1?'study':'studies'} in the library`:'<span class="st-red">not yet studied</span>'}`).join(' · ');
+    else if(f.ecosystem)q=`<b>${esc(en(f.ecosystem))}</b> highlighted. Name a topic (e.g. financing, AI, talent) to pinpoint a cell.`;
+    else if(themes.length)q=`<b>${themes.map(t=>esc(tn(t))).join(', ')}</b> across all ecosystems. Name an ecosystem or company to pinpoint a cell.`;
+    else q='No specific ecosystem or topic detected in this question.';
+    q=`<p class="covq">Your question — ${q}${nc?` · <sup style="color:var(--gold)">●</sup> marks where the cited sources sit`:''}</p>`}
+  $('#coverage').innerHTML=`${q}<table class="cov"><tr><th>Ecosystem</th>${d.themes.map(t=>`<th class="${themes.includes(t.id)?'hl':''}">${esc(t.name.split(' ')[0])}</th>`).join('')}</tr>${ECO.map(e=>{const row=f&&f.ecosystem===e.id;return `<tr class="${row?'hl':''}"><td>${esc(e.name.split(',')[0].split(' &')[0])}</td>${d.themes.map(t=>{const n=d.coverage[e.id][t.id].length,col=themes.includes(t.id),k=cited[e.id+':'+t.id];return `<td class="${n?'c':'z'}${col?' hlc':''}${row&&col?' x':''}" title="${n} studies${k?`, ${k} cited`:''}">${n||'—'}${k?'<sup>●</sup>':''}</td>`}).join('')}</tr>`}).join('')}</table><p class="muted" style="font-size:11px;margin-top:6px">Number of studies per theme. — marks a gap.${f?' Highlighting follows your latest question.':' Ask a question to highlight where it sits.'}</p>`}
 async function loadEcoList(){if(!ECO){const d=await api('/outlook');ECO=d.ecosystems}}
 
 /* ---------- trends ---------- */
