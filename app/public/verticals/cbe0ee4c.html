@@ -34,7 +34,7 @@ button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}a{
 .conv .pv{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.conv .via{font-size:11px;color:var(--blue);margin-top:4px}.dot{background:var(--orange);color:#fff;border-radius:9px;font-size:11px;font-weight:700;padding:0 6px;line-height:18px}
 .pane{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff}
 .ph{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 20px}.ph .t{flex:1;min-width:0}.ph .t b{display:block}.ph .t small{color:var(--muted)}
-.ph .acts{display:flex;gap:8px}
+.ph .acts{display:flex;gap:8px}.back{display:none}
 .thread{flex:1;overflow:auto;padding:20px 24px;background:#fbfbfc;display:flex;flex-direction:column;gap:10px}
 .day{align-self:center;font-size:12px;color:var(--muted);background:#eef0f3;border-radius:10px;padding:2px 10px}
 .msg{max-width:64%;display:flex;flex-direction:column;gap:3px}.msg.me{align-self:flex-end;align-items:flex-end}
@@ -75,7 +75,7 @@ details{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:
 .tl b{display:block;font-size:14px}.tl small{color:var(--muted);display:block;margin-top:2px;word-break:break-word}.tl a{font-weight:600;font-size:13px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:#1f2328;color:#fff;padding:10px 16px;border-radius:8px;transition:transform .25s;z-index:40;font-size:13px}.toast.show{transform:translateX(-50%)}
 .scrim{position:fixed;inset:0;background:#0d1b2a40;opacity:0;pointer-events:none;transition:opacity .2s;z-index:25}.scrim.show{opacity:1;pointer-events:auto}
-@media(max-width:900px){.list{width:100%}.pane{display:none}.view.thread-open .list{display:none}.view.thread-open .pane{display:flex}.search,.dial,.brand{display:none}.grid3{grid-template-columns:1fr}.feat span{display:none}}
+@media(max-width:900px){.back{display:grid}.list{width:100%}.pane{display:none}.view.thread-open .list{display:none}.view.thread-open .pane{display:flex}.search,.dial,.brand{display:none}.grid3{grid-template-columns:1fr}.feat span{display:none}}
 </style>
 </head>
 <body>
@@ -213,11 +213,12 @@ function openConv(id) {
   current = id; const c = inbox.conversations.find((x) => x.id === id); c.unread = 0; renderConvs();
   $('#v-text').classList.add('thread-open');
   const n = numberById(c.numberId);
-  $('#pane').innerHTML = `<div class="ph"><div class="av" style="background:#0f8a4a">${esc(c.contact.initials)}</div><div class="t"><b>${esc(c.contact.name)}</b><small>${esc(c.contact.company)} · ${esc(c.contact.display)}</small></div><div class="acts"><button class="iconbtn" type="button" title="Call">&#9742;</button><button class="iconbtn" type="button" title="Video">&#9655;</button></div></div>
+  $('#pane').innerHTML = `<div class="ph"><button class="iconbtn back" id="backBtn" type="button" aria-label="Back to conversations">&#8249;</button><div class="av" style="background:#0f8a4a">${esc(c.contact.initials)}</div><div class="t"><b>${esc(c.contact.name)}</b><small>${esc(c.contact.company)} · ${esc(c.contact.display)}</small></div><div class="acts"><button class="iconbtn" type="button" title="Call">&#9742;</button><button class="iconbtn" type="button" title="Video">&#9655;</button></div></div>
   <div class="thread" id="thread"><span class="day">Today</span>${bubbles(c)}</div>
   <div class="err" id="err"><span class="x">!</span><div><b>Message not sent</b><span id="errText"></span><small id="errRef"></small></div></div>
   <div class="comp"><div class="from">Send from <select id="fromSel">${inbox.numbers.map((x) => `<option value="${esc(x.id)}" ${x.id === n.id ? 'selected' : ''}>${esc(x.label)} · ${esc(x.display)}</option>`).join('')}</select><span id="sharedTag">${n.shared ? '<span class="tag">Shared line</span>' : ''}</span></div>
   <div class="box"><textarea id="txt" maxlength="1000" aria-label="Message">${esc(c.draft)}</textarea><button class="send" id="sendBtn" type="button">Send</button></div><div class="cc"><span>SMS · 10DLC registered</span><span id="cnt"></span></div></div>`;
+  $('#backBtn').addEventListener('click', () => $('#v-text').classList.remove('thread-open'));
   const th = $('#thread'); th.scrollTop = th.scrollHeight;
   const txt = $('#txt'); const cnt = () => { $('#cnt').textContent = `${txt.value.length}/1000`; }; cnt(); txt.addEventListener('input', cnt);
   $('#fromSel').addEventListener('change', (e) => { const x = numberById(e.target.value); $('#sharedTag').innerHTML = x.shared ? '<span class="tag">Shared line</span>' : ''; });
