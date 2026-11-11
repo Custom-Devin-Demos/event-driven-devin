@@ -91,6 +91,33 @@ describe('PIF Ecosystem Outlook PoC', () => {
     expect(r.sources.length).toBeGreaterThan(0);
     expect(r.answer).toMatch(/\[\d\]/);
     expect(r.ecosystem).toBe('Advanced Manufacturing & Innovation');
+    expect(r.focus.ecosystem).toBe('ami');
+    expect(r.focus.themes).toContain('capital');
+    expect(r.focus.cells.find((c) => c.theme === 'capital').studies).toBeGreaterThan(0);
+    expect(Object.keys(r.focus.cited).length).toBeGreaterThan(0);
+    expect(r.focus.citedDocs.length).toBeGreaterThan(0);
+    const citedRefs = new Set([...r.answer.matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1])));
+    const citedDocs = new Set(r.sources.filter((_s, i) => citedRefs.has(i + 1)).map((s) => s.doc.id));
+    const cov = pif.coverage();
+    for (const key of Object.keys(r.focus.cited)) {
+      const [e, t] = key.split(':');
+      expect(cov[e][t].some((id) => citedDocs.has(id))).toBe(true);
+    }
+  });
+
+  test('named ecosystems win over generic topic keywords', () => {
+    expect(pif.detectEcosystem('AI financing in NEOM').id).toBe('neom');
+    expect(pif.detectEcosystem('ما الذي درسناه عن نيوم؟').id).toBe('neom');
+    expect(pif.detectEcosystem('السياحة في نيوم').id).toBe('neom');
+    expect(pif.detectEcosystem('ما هي توقعات السياحة؟').id).toBe('tte');
+    expect(pif.detectEcosystem('compute capacity outlook').id).toBe('ami');
+  });
+
+  test('question focus changes with the question', async () => {
+    expect(pif.detectThemes('What talent gaps exist in tourism?')).toEqual(['talent']);
+    const r = await pif.ask('What have we studied on talent in NEOM?');
+    expect(r.focus.ecosystem).toBe('neom');
+    expect(r.focus.cells).toEqual([{ ecosystem: 'neom', theme: 'talent', studies: 0 }]);
   });
 
   test('trends rank by ecosystem and the brief is available in Arabic', () => {

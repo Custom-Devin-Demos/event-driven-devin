@@ -147,19 +147,57 @@ function search(query, limit = 6) {
     .map(({ p, score }) => ({ doc: docMeta(p.docId), text: p.text, score: Math.round(score * 100) / 100 }));
 }
 
+const ECO_NAMES_AR = { neom: ['نيوم', 'أوكساجون'] };
+const ECO_KEYWORDS = {
+  tte: ['tourism', 'travel', 'entertainment', 'airline', 'hospitality'],
+  urban: ['urban', 'real estate', 'housing', 'livability', 'cities'],
+  ami: ['manufacturing', 'ai ', 'artificial intelligence', 'compute', 'data centre', 'data center', 'semiconductor'],
+  ind: ['logistics', 'mining', 'industrial', 'shipping', 'supply chain'],
+  energy: ['energy', 'renewable', 'water', 'hydrogen', 'solar', 'power'],
+  neom: ['oxagon'],
+};
+const ECO_KEYWORDS_AR = { tte: ['السياحة', 'الترفيه'], urban: ['التطوير العمراني', 'جودة الحياة'], ami: ['التصنيع', 'الابتكار'], ind: ['الصناعة', 'الخدمات اللوجستية', 'التعدين'], energy: ['الطاقة', 'المياه'] };
+
+// Named ecosystems and companies win over generic topic keywords ("AI financing in NEOM" is NEOM).
 function detectEcosystem(text) {
   const t = String(text || '').toLowerCase();
-  for (const e of ECOSYSTEMS) {
-    const keys = [e.name.toLowerCase(), ...e.companies.map((c) => c.toLowerCase())];
-    if (e.id === 'tte') keys.push('tourism', 'travel', 'entertainment', 'airline', 'hospitality');
-    if (e.id === 'urban') keys.push('urban', 'real estate', 'housing', 'livability', 'cities');
-    if (e.id === 'ami') keys.push('manufacturing', 'ai ', 'artificial intelligence', 'compute', 'data centre', 'data center', 'semiconductor');
-    if (e.id === 'ind') keys.push('logistics', 'mining', 'industrial', 'shipping', 'supply chain');
-    if (e.id === 'energy') keys.push('energy', 'renewable', 'water', 'hydrogen', 'solar', 'power');
-    if (e.id === 'neom') keys.push('neom', 'oxagon');
-    if (keys.some((k) => t.includes(k))) return e;
+  const named = ECOSYSTEMS.find((e) => [e.name.toLowerCase(), ...e.companies.map((c) => c.toLowerCase()), e.nameAr, ...(ECO_NAMES_AR[e.id] || [])].filter(Boolean).some((k) => t.includes(k)));
+  return named || ECOSYSTEMS.find((e) => [...(ECO_KEYWORDS[e.id] || []), ...(ECO_KEYWORDS_AR[e.id] || [])].some((k) => t.includes(k))) || null;
+}
+
+const THEME_KEYS = {
+  ai: /\b(ai|artificial intelligence|digital|data cent(re|er)s?|compute|humain|technology)\b|ذكاء|رقمي/i,
+  capital: /\b(financ\w*|capital|debt|bonds?|funding|sukuk|invest\w*)\b|تمويل|استثمار/i,
+  private: /\b(private sector|private capital|locali[sz]ation|local content|suppliers?|smes?|co-invest\w*)\b|القطاع الخاص|المحتوى المحلي/i,
+  performance: /\b(returns?|tsr|performance|profits?|revenues?|aum|ratings?)\b|عوائد|أداء|إيرادات|أرباح/i,
+  sustainability: /\b(sustainab\w*|renewables?|green|climate|emissions?|water|hydrogen|esg|solar)\b|استدامة|متجددة|هيدروجين/i,
+  talent: /\b(talent|education|skills?|jobs?|workforce|training|employment)\b|مواهب|تعليم|مهارات|وظائف/i,
+};
+
+function detectThemes(text) {
+  const t = String(text || '');
+  return THEMES.filter((th) => THEME_KEYS[th.id].test(t)).map((th) => th.id);
+}
+
+function questionFocus(eco, themes, hits, answer) {
+  const cells = coverage();
+  const refs = new Set([...String(answer || '').matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1])));
+  const cited = new Set(hits.filter((h, i) => refs.has(i + 1)).map((h) => h.doc && h.doc.id));
+  const rows = eco ? [eco] : [];
+  const focus = [];
+  for (const e of rows) {
+    for (const th of THEMES.filter((x) => themes.includes(x.id))) {
+      focus.push({ ecosystem: e.id, theme: th.id, studies: cells[e.id][th.id].length });
+    }
   }
-  return null;
+  const citedCells = {};
+  for (const e of ECOSYSTEMS) {
+    for (const th of THEMES) {
+      const n = cells[e.id][th.id].filter((id) => cited.has(id)).length;
+      if (n) citedCells[`${e.id}:${th.id}`] = n;
+    }
+  }
+  return { ecosystem: eco ? eco.id : null, themes, cells: focus, cited: citedCells, citedDocs: [...cited].filter(Boolean) };
 }
 
 function coverage() {
@@ -219,6 +257,7 @@ async function ask(question, { lang = 'en' } = {}) {
   if (!q) { const err = new Error('Question is required'); err.status = 400; throw err; }
   const hits = search(q, 6);
   const eco = detectEcosystem(q);
+  const themes = detectThemes(q);
   let answer = null; let mode = 'extractive';
   if (hits.length) {
     const sourcesText = hits.map((h, i) => `[${i + 1}] ${h.doc.title} (${h.doc.date}): ${h.text}`).join('\n\n');
@@ -229,7 +268,17 @@ async function ask(question, { lang = 'en' } = {}) {
     if (answer) mode = 'ai';
   }
   if (!answer) answer = extractiveAnswer(q, hits);
-  return { question: q, answer, mode, aiOffline: hits.length > 0 && mode === 'extractive' && Boolean(llmProvider()), sources: hits, ecosystem: eco ? eco.name : null, gaps: researchGaps(eco) };
+  return { question: q, answer, mode, aiOffline: hits.length > 0 && mode === 'extractive' && Boolean(llmProvider()), sources: hits, ecosystem: eco ? eco.name : null, focus: questionFocus(eco, themes, hits, answer), gaps: researchGaps(eco) };
+}
+
+function gapSuggestions() {
+  const cells = coverage();
+  const out = {};
+  for (const e of ECOSYSTEMS) {
+    out[e.id] = {};
+    for (const th of THEMES) if (!cells[e.id][th.id].length) out[e.id][th.id] = GAP_STUDIES[th.id](e);
+  }
+  return out;
 }
 
 function libraryIndex() {
@@ -565,7 +614,7 @@ function status() {
 module.exports = {
   SLUG, ACCESS_COOKIE,
   accessToken, codeMatches, hasAccess, unlockAllowed,
-  search, ask, libraryIndex, coverage, researchGaps, detectEcosystem,
+  search, ask, libraryIndex, coverage, researchGaps, gapSuggestions, detectEcosystem, detectThemes,
   rankTrends, trendsBrief, outlook, escalation,
   checkCommunication, PUBLIC_FIGURES, THEMES,
   createFeatureRequest, getFeatureRequest, listFeatureRequests, buildFeaturePrompt, dailyCap,
