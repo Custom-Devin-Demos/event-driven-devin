@@ -97,6 +97,12 @@ describe('PIF Ecosystem Outlook PoC', () => {
     expect(Object.keys(r.focus.cited).length).toBeGreaterThan(0);
   });
 
+  test('named ecosystems win over generic topic keywords', () => {
+    expect(pif.detectEcosystem('AI financing in NEOM').id).toBe('neom');
+    expect(pif.detectEcosystem('ما الذي درسناه عن نيوم؟').id).toBe('neom');
+    expect(pif.detectEcosystem('compute capacity outlook').id).toBe('ami');
+  });
+
   test('question focus changes with the question', async () => {
     expect(pif.detectThemes('What talent gaps exist in tourism?')).toEqual(['talent']);
     const r = await pif.ask('What have we studied on talent in NEOM?');

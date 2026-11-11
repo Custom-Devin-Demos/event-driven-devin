@@ -147,19 +147,21 @@ function search(query, limit = 6) {
     .map(({ p, score }) => ({ doc: docMeta(p.docId), text: p.text, score: Math.round(score * 100) / 100 }));
 }
 
+const ECO_NAMES_AR = { tte: ['السياحة', 'الترفيه'], urban: ['التطوير العمراني', 'جودة الحياة'], ami: ['التصنيع', 'الابتكار'], ind: ['الصناعة', 'الخدمات اللوجستية', 'التعدين'], energy: ['الطاقة', 'المياه'], neom: ['نيوم', 'أوكساجون'] };
+const ECO_KEYWORDS = {
+  tte: ['tourism', 'travel', 'entertainment', 'airline', 'hospitality'],
+  urban: ['urban', 'real estate', 'housing', 'livability', 'cities'],
+  ami: ['manufacturing', 'ai ', 'artificial intelligence', 'compute', 'data centre', 'data center', 'semiconductor'],
+  ind: ['logistics', 'mining', 'industrial', 'shipping', 'supply chain'],
+  energy: ['energy', 'renewable', 'water', 'hydrogen', 'solar', 'power'],
+  neom: ['oxagon'],
+};
+
+// Named ecosystems and companies win over generic topic keywords ("AI financing in NEOM" is NEOM).
 function detectEcosystem(text) {
   const t = String(text || '').toLowerCase();
-  for (const e of ECOSYSTEMS) {
-    const keys = [e.name.toLowerCase(), ...e.companies.map((c) => c.toLowerCase())];
-    if (e.id === 'tte') keys.push('tourism', 'travel', 'entertainment', 'airline', 'hospitality');
-    if (e.id === 'urban') keys.push('urban', 'real estate', 'housing', 'livability', 'cities');
-    if (e.id === 'ami') keys.push('manufacturing', 'ai ', 'artificial intelligence', 'compute', 'data centre', 'data center', 'semiconductor');
-    if (e.id === 'ind') keys.push('logistics', 'mining', 'industrial', 'shipping', 'supply chain');
-    if (e.id === 'energy') keys.push('energy', 'renewable', 'water', 'hydrogen', 'solar', 'power');
-    if (e.id === 'neom') keys.push('neom', 'oxagon');
-    if (keys.some((k) => t.includes(k))) return e;
-  }
-  return null;
+  const named = ECOSYSTEMS.find((e) => [e.name.toLowerCase(), ...e.companies.map((c) => c.toLowerCase()), ...(ECO_NAMES_AR[e.id] || [])].some((k) => t.includes(k)));
+  return named || ECOSYSTEMS.find((e) => (ECO_KEYWORDS[e.id] || []).some((k) => t.includes(k))) || null;
 }
 
 const THEME_KEYS = {
