@@ -95,6 +95,7 @@ describe('PIF Ecosystem Outlook PoC', () => {
     expect(r.focus.themes).toContain('capital');
     expect(r.focus.cells.find((c) => c.theme === 'capital').studies).toBeGreaterThan(0);
     expect(Object.keys(r.focus.cited).length).toBeGreaterThan(0);
+    expect(r.focus.citedDocs.length).toBeGreaterThan(0);
     const citedRefs = new Set([...r.answer.matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1])));
     const citedDocs = new Set(r.sources.filter((_s, i) => citedRefs.has(i + 1)).map((s) => s.doc.id));
     const cov = pif.coverage();

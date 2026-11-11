@@ -64,7 +64,7 @@ textarea,input[type=text],input[type=password]{width:100%;border:1px solid #d9d3
 textarea{min-height:230px;resize:vertical;padding:18px}
 textarea:focus,input:focus{outline:2px solid rgba(0,92,77,.25);border-color:var(--g)}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:48px}
-.cols.r{grid-template-columns:1.45fr 1fr}
+.cols.r{grid-template-columns:1.45fr 1fr}.cols.r.rm{grid-template-columns:1fr 1.1fr}
 .find{border-top:1px solid var(--line);padding:16px 0}
 .find .q{font-size:13px;color:#4a4a4a}.find .q mark{background:none;color:var(--red);border-bottom:1px solid var(--red)}.find .q mark.ok{color:var(--g);border-color:var(--g)}
 .find .k{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;margin-bottom:6px}
@@ -75,18 +75,41 @@ textarea:focus,input:focus{outline:2px solid rgba(0,92,77,.25);border-color:var(
 .srcs{counter-reset:s}.srcrow{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:14px 0;border-top:1px solid var(--line);font-size:13px}
 .srcrow .i{color:var(--gold);font-size:16px}.srcrow .m{font-size:11.5px;color:var(--grey);margin-top:2px}.srcrow .x{color:#555;margin-top:6px;font-size:12.5px}
 .muted{color:var(--grey);font-size:12px}
-.hm{display:grid;grid-template-columns:118px repeat(6,minmax(0,1fr));gap:5px;align-items:center}
-.hm .ch{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--grey);text-align:center;padding-bottom:4px;transition:color .2s}
-.hm .ch .sm{display:none}.hm .rh{font-size:12px;color:#3c3c3c;line-height:1.25;padding-inline-end:6px;transition:color .2s}
-.hm .ch.on,.hm .rh.on{color:var(--g);font-weight:600}
-.tile{aspect-ratio:1;border:0;border-radius:3px;font:inherit;font-size:13px;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;transition:transform .15s,opacity .25s,box-shadow .15s}
-.tile:hover,.tile:focus-visible{transform:scale(1.08);box-shadow:0 2px 10px rgba(0,0,0,.12);z-index:2;outline:none}
-.tile.l0{background:var(--cream);color:var(--red);box-shadow:inset 0 0 0 1px #e6c9c5}.tile.l1{background:#dbe8e4;color:var(--g)}.tile.l2{background:#a9cbc2;color:var(--gd)}.tile.l3{background:#5e9a8c;color:#fff}.tile.l4{background:var(--g);color:#fff}
-.hm.focus .tile{opacity:.4}.hm.focus .tile.f,.hm.focus .tile.fx{opacity:1}
-.tile.fx{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--gold)}.tile.l0.fx{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--red)}
-.tile.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--gd)}
-.tile .dot{position:absolute;top:4px;inset-inline-end:4px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
-.hmleg{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--grey);margin-top:12px;flex-wrap:wrap}.hmleg i{display:inline-block;width:14px;height:14px;border-radius:2px}
+.mapbox{position:relative;background:var(--cream);border-radius:6px;overflow:hidden}
+#rmap{display:block;width:100%;aspect-ratio:1;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+#rmap.drag{cursor:grabbing}
+#rmap text{pointer-events:none;font-family:Montserrat,"Noto Kufi Arabic",sans-serif;text-anchor:middle;paint-order:stroke;stroke:var(--cream);stroke-linejoin:round}
+#rmap .hub{fill:none;stroke:#d9d0bf;stroke-dasharray:3 5}
+#rmap .hubt{font-size:14px;fill:var(--grey);letter-spacing:2px;stroke-width:3}#rmap .hubs{font-size:10.5px;fill:var(--grey);stroke-width:3}
+.rgc{fill:var(--h);fill-opacity:.06;stroke:var(--h);stroke-opacity:.3;stroke-width:1.2;cursor:pointer;transition:fill-opacity .3s,stroke-opacity .3s,stroke-width .3s}
+.rg:hover .rgc{fill-opacity:.11}
+.tpc{fill:var(--h);stroke:var(--h);stroke-opacity:.5;stroke-width:.8;cursor:pointer;transition:opacity .3s,stroke-width .2s}
+.tpc:hover{stroke-width:1.6;stroke-opacity:1}
+.tpc.gap{fill:#fff;stroke:var(--red);stroke-dasharray:3 2.5;stroke-opacity:.75}
+.dg{transition:opacity .3s}.dc{fill:#fff;stroke:var(--h);stroke-width:.9;cursor:pointer;transition:fill .3s}.dc:hover{stroke-width:1.6}
+.dg.cited .dc{fill:var(--gold);stroke:#7d6334}
+.dg .ring{display:none;fill:none;stroke:var(--gold);stroke-width:1;pointer-events:none;transform-box:fill-box;transform-origin:center;animation:ping 1.8s ease-out infinite}
+.dg.cited .ring{display:block}
+@keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.6);opacity:0}}
+#rmap .rgl{font-size:25px;font-weight:600;fill:var(--h);stroke-width:6;stroke-opacity:.85;transition:opacity .3s}
+#rmap .rgs{font-size:14px;fill:#4a4a4a;stroke-width:4;stroke-opacity:.85;transition:opacity .3s}
+#rmap .tpl{font-size:7.5px;fill:#3c3c3c;stroke-width:2;opacity:0;transition:opacity .3s}
+#rmap .gpl{font-size:4.2px;fill:var(--red);stroke:none;opacity:0;transition:opacity .3s}
+#rmap .dl{font-size:2.3px;fill:var(--ink);stroke-width:.6;opacity:0;transition:opacity .3s}
+#rmap.z1 .tpl,#rmap.z1 .gpl,#rmap.z2 .tpl,#rmap.z2 .gpl,#rmap.z2 .dl{opacity:1}#rmap.z1 .rgl,#rmap.z1 .rgs,#rmap.z2 .rgl,#rmap.z2 .rgs{opacity:0}
+#rmap :focus{outline:none}#rmap .tpc:focus-visible,#rmap .dc:focus-visible{stroke:var(--gd);stroke-width:2.4}
+#rmap.focus .tpc:not(.on),#rmap.focus .dg:not(.on):not(.cited){opacity:.25}
+#rmap.focus .rg.on .rgc{fill-opacity:.13;stroke-opacity:.9;stroke-width:2.2}
+.tpc.on{stroke:var(--gold);stroke-opacity:1;stroke-width:2}.tpc.gap.on{stroke:var(--red);stroke-width:2}
+.tpc.sel{stroke:var(--gd);stroke-opacity:1;stroke-width:2.4;stroke-dasharray:none}
+.mbar{position:absolute;top:10px;inset-inline:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}.mbar>*{pointer-events:auto}
+.crumbs{background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:11.5px;color:var(--grey);line-height:1.5}
+.crumbs a{color:var(--g);cursor:pointer}.crumbs a:hover{text-decoration:underline}.crumbs b{color:var(--ink);font-weight:500}
+.mz{display:flex;gap:5px}.mz button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--g);font-size:17px;cursor:pointer;line-height:1;padding:0}
+.mz button:hover{border-color:var(--g)}
+.mtip{position:absolute;pointer-events:none;background:var(--gd);color:#fff;font-size:11.5px;padding:7px 10px;border-radius:4px;max-width:250px;opacity:0;transition:opacity .15s;line-height:1.45;z-index:3}
+.mtip.on{opacity:1}.mtip small{display:block;color:#b9cbc6;font-size:10.5px}
+.hmleg{display:flex;align-items:center;gap:14px;font-size:11px;color:var(--grey);margin-top:12px;flex-wrap:wrap}.hmleg span{display:inline-flex;align-items:center;gap:6px}.hmleg i{display:inline-block;width:11px;height:11px;border-radius:50%}
 .cell{border-top:2px solid var(--g);background:#fff;margin-top:18px;padding:16px 0 4px;animation:fadeIn .25s}.cell.gap{border-top-color:var(--red)}
 .cell h4{margin:0 0 4px;font-weight:500;font-size:15px}.cell .m{font-size:11.5px;color:var(--grey)}.cell ul{margin:10px 0 12px;padding-inline-start:18px;font-size:13px}.cell li{margin:5px 0}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
@@ -114,8 +137,7 @@ table.figs td.v{color:var(--g);font-size:15px}
 @media print{body *{visibility:hidden}.overlay.on,.overlay.on *{visibility:visible}.overlay.on{position:absolute;inset:0;background:#fff;padding:0}.modal .tools,.modal .x{display:none}}
 @media (max-width:900px){.hero .wrap,.cols,.cols.r,.esc{grid-template-columns:1fr}.eco{grid-template-columns:40px 1fr;gap:10px 16px}.eco>*:nth-child(n+3){grid-column:2}.trend{grid-template-columns:50px 1fr}
   header .wrap{flex-wrap:wrap;height:auto;gap:10px 16px;padding-top:12px}header img{height:36px}.lang{margin-inline-start:auto}
-  nav{order:3;flex:1 0 100%;min-width:0;overflow-x:auto;gap:22px;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav a{padding:10px 0 12px}
-  .hm{grid-template-columns:84px repeat(6,minmax(0,1fr));gap:4px}.hm .rh{font-size:11px}.hm .ch{font-size:10px}.hm .ch .lg{display:none}.hm .ch .sm{display:inline}.tile{font-size:12px}}
+  nav{order:3;flex:1 0 100%;min-width:0;overflow-x:auto;gap:22px;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav a{padding:10px 0 12px}}
 </style>
 </head>
 <body>
@@ -167,14 +189,14 @@ table.figs td.v{color:var(--g);font-size:15px}
     <div class="eyebrow">Research Navigator</div><h1 data-i="res_h">What have we already studied?</h1>
     <p class="lead" data-i="res_lead">Ask across the division's research library. Every answer cites its source, and the navigator points out what has not been studied yet.</p>
   </div></div>
-  <section class="blk" style="padding-top:36px"><div class="wrap cols r">
+  <section class="blk" style="padding-top:36px"><div class="wrap cols r rm">
     <div>
       <form id="askForm" style="display:flex;gap:10px"><input type="text" id="question" placeholder="e.g. How is PIF financing AI infrastructure?" maxlength="500"><button class="btn" id="askBtn">Ask</button></form>
       <div class="chips" id="qChips"></div>
       <div id="answer" style="margin-top:34px"></div>
     </div>
     <div>
-      <div class="lab">Research coverage by ecosystem</div>
+      <div class="lab">Research map</div>
       <div id="coverage" class="muted">Loading…</div>
       <div class="lab" style="margin-top:30px">Library</div>
       <div id="library"></div>
@@ -335,27 +357,94 @@ let libLoaded=false;async function loadResearch(){if(libLoaded)return;libLoaded=
   LIB=d;renderCoverage(null);
   $('#library').innerHTML=d.documents.map(x=>`<div class="doc"><a class="ul" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a><div class="m">${esc(x.type)} · ${fmt(x.date)}</div></div>`).join('')}
 let LIB=null;
-let COVF=null,COVSEL=null;
-const THEME_SHORT={ai:['AI','AI'],capital:['Finance','Fin.'],private:['Private','Priv.'],performance:['Returns','Ret.'],sustainability:['Sustain.','Sus.'],talent:['Talent','Tal.']};
-const lvl=n=>n===0?0:n===1?1:n<=3?2:n<=5?3:4;
+let COVF=null,COVSEL=null,MAP=null;
+const ECO_HUE={tte:'#b5654a',urban:'#4b6382',ami:'#005c4d',ind:'#86733f',energy:'#2f7f8a',neom:'#8a5a83'};
 const shortEco=e=>e.name.split(',')[0].split(' &')[0];
-function renderCoverage(f){if(f!==undefined)COVF=f;if(!LIB||!ECO)return;f=COVF;const d=LIB,themes=f?f.themes:[],cited=f?f.cited:{};
+const split2=t=>{if(t.length<=12||!t.includes(' '))return [t];const m=t.length/2;let k=-1;for(let i=0;i<t.length;i++)if(t[i]===' '&&(k<0||Math.abs(i-m)<Math.abs(k-m)))k=i;return [t.slice(0,k),t.slice(k+1)]};
+const clip=(t,n)=>t.length>n?t.slice(0,n-1).trim()+'…':t;
+const TOPIC_FILL=[0,.2,.32,.45,.58,.7];
+function mapLayout(){const d=LIB;return ECO.map((e,i)=>{const a=(-90+i*60)*Math.PI/180,x=500+335*Math.cos(a),y=500+335*Math.sin(a);
+  const tot=d.themes.reduce((s,t)=>s+d.coverage[e.id][t.id].length,0),R=140+Math.min(20,tot);
+  const topics=d.themes.map((t,j)=>{const b=(-90+j*60)*Math.PI/180,ids=d.coverage[e.id][t.id],n=ids.length,r=n?Math.min(.27*R,.17*R+.045*R*Math.sqrt(n)):.15*R;
+    const tx=x+.56*R*Math.cos(b),ty=y+.56*R*Math.sin(b),rd=r*(n<=1?.3:n<=3?.24:.19);
+    return {t,n,x:tx,y:ty,r,docs:ids.map((id,k)=>{const c=k*2*Math.PI/n-Math.PI/2;return n===1?{id,x:tx,y:ty,r:rd}:{id,x:tx+r*.5*Math.cos(c),y:ty+r*.5*Math.sin(c),r:rd}})}});
+  return {e,x,y,R,tot,gaps:topics.filter(t=>!t.n).length,topics}})}
+function mapSVG(){const L=MAP.L,docT=id=>(LIB.documents.find(x=>x.id===id)||{}).title||id,f1=v=>+v.toFixed(2);
+  return `<svg id="rmap" viewBox="-40 -40 1080 1080" class="z0" role="group" aria-label="Research map: ecosystems, topics and studies"><circle class="hub" cx="500" cy="500" r="118"/><text class="hubt" x="500" y="494">VISION PORTFOLIO</text><text class="hubs" x="500" y="514">${LIB.documents.length} studies in the library</text>
+  ${L.map(g=>{const nm=split2(shortEco(g.e)),y0=g.y-(nm.length-1)*14-6;return `<g class="rg" data-e="${g.e.id}" style="--h:${ECO_HUE[g.e.id]||'#005c4d'}"><circle class="rgc" data-k="r" data-e="${g.e.id}" cx="${f1(g.x)}" cy="${f1(g.y)}" r="${g.R}"/>
+    ${g.topics.map(p=>`<circle class="tpc${p.n?'':' gap'}" data-k="t" data-e="${g.e.id}" data-t="${p.t.id}" cx="${f1(p.x)}" cy="${f1(p.y)}" r="${f1(p.r)}"${p.n?` style="fill-opacity:${TOPIC_FILL[Math.min(p.n,5)]}"`:''} tabindex="0" role="button" aria-label="${esc(g.e.name)}, ${esc(p.t.name)}: ${p.n?p.n+' studies':'not yet studied'}"/>
+      ${p.n?'':`<text class="gpl" x="${f1(p.x)}" y="${f1(p.y+1.3)}">Not yet studied</text>`}
+      ${p.docs.map(o=>`<g class="dg" data-d="${o.id}"><circle class="ring" cx="${f1(o.x)}" cy="${f1(o.y)}" r="${f1(o.r)}"/><circle class="dc" data-k="d" data-e="${g.e.id}" data-t="${p.t.id}" data-d="${o.id}" cx="${f1(o.x)}" cy="${f1(o.y)}" r="${f1(o.r)}"/><text class="dl" x="${f1(o.x)}" y="${f1(o.y+o.r+2.6)}">${esc(clip(docT(o.id).replace(/^PIF /,''),30))}</text></g>`).join('')}
+      <text class="tpl" x="${f1(p.x)}" y="${f1(p.y+p.r+8)}">${esc(THEME_LABEL[p.t.id]||p.t.name)}${p.n?' · '+p.n:''}</text>`).join('')}
+    ${nm.map((l,i)=>`<text class="rgl" x="${f1(g.x)}" y="${f1(y0+i*27)}">${esc(l)}</text>`).join('')}<text class="rgs" x="${f1(g.x)}" y="${f1(y0+nm.length*27-4)}">${g.tot} ${g.tot===1?'study':'studies'} · ${g.gaps} ${g.gaps===1?'gap':'gaps'}</text></g>`}).join('')}</svg>`}
+const THEME_LABEL={ai:'AI',capital:'Financing',private:'Private sector',performance:'Returns',sustainability:'Sustainability',talent:'Talent'};
+const mapReg=eid=>MAP.L.find(g=>g.e.id===eid),mapTop=(eid,tid)=>mapReg(eid).topics.find(p=>p.t.id===tid);
+function mapLevel(w){return w>520?0:w>200?1:2}
+function setVB(v){let [x,y,w]=v;w=Math.max(45,Math.min(1200,w));x=Math.max(-150,Math.min(1150-w,x));y=Math.max(-150,Math.min(1150-w,y));
+  MAP.vb=[x,y,w];const svg=$('#rmap');svg.setAttribute('viewBox',`${x} ${y} ${w} ${w}`);const z='z'+mapLevel(w);if(!svg.classList.contains(z)){svg.classList.remove('z0','z1','z2');svg.classList.add(z)}}
+let mapAnim=0;
+function zoomTo(cx,cy,w){const a=[...MAP.vb],b=[cx-w/2,cy-w/2,w],t0=performance.now(),id=++mapAnim,la=Math.log(a[2]),lb=Math.log(w);
+  const step=n=>{if(id!==mapAnim)return;let p=Math.min(1,(n-t0)/700);p=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+    const nw=Math.exp(la+(lb-la)*p),ac=[a[0]+a[2]/2,a[1]+a[2]/2],c=[ac[0]+(cx-ac[0])*p,ac[1]+(cy-ac[1])*p];setVB([c[0]-nw/2,c[1]-nw/2,nw]);if(p<1)requestAnimationFrame(step)};
+  requestAnimationFrame(step)}
+function crumbs(){const s=MAP.sel,e=s&&ECO.find(x=>x.id===s.e),t=s&&s.t&&LIB.themes.find(x=>x.id===s.t);
+  $('#crumbs').innerHTML=!s?'<b>All ecosystems</b> · click one to pop in':`<a data-c="all">All ecosystems</a> › ${t?`<a data-c="e">${esc(shortEco(e))}</a> › <b>${esc(t.name)}</b>`:`<b>${esc(shortEco(e))}</b>`}`;
+  $$('#crumbs a').forEach(a=>a.onclick=()=>a.dataset.c==='all'?mapAll():mapRegion(s.e));
+  $$('#rmap .tpc').forEach(c=>c.classList.toggle('sel',!!(t&&c.dataset.e===s.e&&c.dataset.t===s.t)))}
+function mapAll(){MAP.sel=null;COVSEL=null;zoomTo(500,500,1080);crumbs();$('#cellInfo').innerHTML=''}
+function mapRegion(eid){const g=mapReg(eid);MAP.sel={e:eid};COVSEL=null;zoomTo(g.x,g.y,g.R*2.45);crumbs();showRegion(eid)}
+function mapTopic(eid,tid,info=true){const p=mapTop(eid,tid);MAP.sel={e:eid,t:tid};COVSEL=[eid,tid];zoomTo(p.x,p.y,Math.max(62,p.r*2*2.3));crumbs();if(info)showCell(eid,tid)}
+function mapPopOut(){const s=MAP.sel;if(!s)return;s.t?mapRegion(s.e):mapAll()}
+function mapTip(el,ev){const tip=$('#mtip');if(!el){tip.classList.remove('on');return}const k=el.dataset.k,e=ECO.find(x=>x.id===el.dataset.e),g=mapReg(e.id);let h;
+  if(k==='r'||(MAP.sel==null&&mapLevel(MAP.vb[2])===0))h=`${esc(e.name)}<small>${g.tot} studies · ${g.gaps} not yet studied</small>`;
+  else if(k==='t'){const p=mapTop(e.id,el.dataset.t);h=`${esc(p.t.name)}<small>${esc(shortEco(e))} · ${p.n?p.n+(p.n===1?' study':' studies'):'not yet studied'}</small>`}
+  else{const x=LIB.documents.find(o=>o.id===el.dataset.d);h=`${esc(x.title)}<small>${esc(x.type)} · ${fmt(x.date)}${el.closest('.dg').classList.contains('cited')?' · cited in this answer':''}</small>`}
+  const box=$('.mapbox').getBoundingClientRect();tip.innerHTML=h;tip.classList.add('on');
+  const tx=Math.min(ev.clientX-box.left+14,box.width-260),ty=ev.clientY-box.top+16;tip.style.left=Math.max(6,tx)+'px';tip.style.top=(ty>box.height-70?ty-70:ty)+'px'}
+function mapEvents(){const svg=$('#rmap');let st=null,moved=false;
+  const pt=ev=>{const r=svg.getBoundingClientRect(),[x,y,w]=MAP.vb;return [x+(ev.clientX-r.left)/r.width*w,y+(ev.clientY-r.top)/r.height*w]};
+  svg.addEventListener('wheel',ev=>{ev.preventDefault();mapAnim++;const [px,py]=pt(ev),[x,y,w]=MAP.vb,nw=Math.max(45,Math.min(1200,w*Math.exp(ev.deltaY*.0015))),s=nw/w;setVB([px-(px-x)*s,py-(py-y)*s,nw])},{passive:false});
+  svg.addEventListener('pointerdown',ev=>{st={x:ev.clientX,y:ev.clientY,vb:[...MAP.vb]};moved=false});
+  window.addEventListener('pointermove',ev=>{if(!st)return;const dx=ev.clientX-st.x,dy=ev.clientY-st.y;if(!moved&&Math.hypot(dx,dy)<5)return;moved=true;mapAnim++;svg.classList.add('drag');const k=st.vb[2]/svg.getBoundingClientRect().width;setVB([st.vb[0]-dx*k,st.vb[1]-dy*k,st.vb[2]])});
+  window.addEventListener('pointerup',()=>{st=null;svg.classList.remove('drag')});
+  svg.addEventListener('pointermove',ev=>{if(!st)mapTip(ev.target.closest('[data-k]'),ev)});svg.addEventListener('pointerleave',()=>mapTip(null));
+  const act=el=>{const k=el&&el.dataset.k;if(!k){mapPopOut();return}const e=el.dataset.e,s=MAP.sel;
+    if(!s||s.e!==e){mapRegion(e);return}
+    if(k==='r'){if(s.t)mapRegion(e);return}
+    if(k==='t'){mapTopic(e,el.dataset.t);return}
+    if(!s.t||s.t!==el.dataset.t)mapTopic(e,el.dataset.t,false);showDoc(el.dataset.d,e,el.dataset.t)};
+  svg.addEventListener('click',ev=>{if(moved){moved=false;return}mapTip(null);act(ev.target.closest('[data-k]'))});
+  svg.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){const el=ev.target.closest('[data-k]');if(el){ev.preventDefault();act(el)}}else if(ev.key==='Escape')mapPopOut()});
+  $$('.mz button').forEach(b=>b.onclick=()=>{const [x,y,w]=MAP.vb;if(b.dataset.z==='home')return mapAll();const nw=b.dataset.z==='in'?w/1.6:w*1.6;zoomTo(x+w/2,y+w/2,Math.max(45,Math.min(1080,nw)))})}
+function applyFocus(){const f=COVF,svg=$('#rmap'),th=f?f.themes:[],eco=f&&f.ecosystem,cd=new Set((f&&f.citedDocs)||[]),any=!!(f&&(eco||th.length));
+  svg.classList.toggle('focus',any);
+  $$('#rmap .rg').forEach(g=>{const e=g.dataset.e;g.classList.toggle('on',any&&(eco?e===eco:true)&&(eco||th.length>0));
+    g.querySelectorAll('.tpc').forEach(c=>c.classList.toggle('on',any&&(eco?e===eco:true)&&(th.length?th.includes(c.dataset.t):true)));
+    g.querySelectorAll('.dg').forEach(d=>{const c=d.querySelector('.dc');d.classList.toggle('on',any&&(eco?e===eco:true)&&(th.length?th.includes(c.dataset.t):true));d.classList.toggle('cited',cd.has(d.dataset.d))})})}
+function renderCoverage(f){const fresh=f!==undefined&&f!==null;if(f!==undefined)COVF=f;if(!LIB||!ECO)return;f=COVF;const d=LIB,themes=f?f.themes:[];
+  if(!MAP||!$('#rmap')){MAP={L:mapLayout(),vb:[-40,-40,1080],sel:null};
+    $('#coverage').innerHTML=`<p class="covq" id="covq" style="display:none"></p><div class="mapbox">${mapSVG()}<div class="mbar"><div class="crumbs" id="crumbs"></div><div class="mz"><button type="button" data-z="in" aria-label="Zoom in">+</button><button type="button" data-z="out" aria-label="Zoom out">−</button><button type="button" data-z="home" aria-label="Show all ecosystems" style="font-size:13px">⤢</button></div></div><div class="mtip" id="mtip"></div></div>
+    <div class="hmleg"><span><i style="background:#fff;box-shadow:inset 0 0 0 1.5px var(--g)"></i>Study</span><span><i style="background:var(--g);opacity:.6"></i>Darker = more studies</span><span><i style="background:#fff;box-shadow:inset 0 0 0 1.5px var(--red)"></i>Not yet studied</span><span><i style="background:var(--gold)"></i>Cited in this answer</span></div>
+    <p class="muted" style="font-size:11px;margin-top:6px">Click a circle to pop in, click empty space to pop out. Scroll to zoom, drag to move.</p><div id="cellInfo"></div>`;
+    mapEvents();crumbs()}
   const tn=id=>(d.themes.find(t=>t.id===id)||{}).name||id,en=id=>(ECO.find(e=>e.id===id)||{}).name||id;
   let q='';if(f){
     if(f.cells.length)q=f.cells.map(c=>`<b>${esc(en(c.ecosystem))} × ${esc(tn(c.theme))}</b>: ${c.studies?`${c.studies} ${c.studies===1?'study':'studies'} in the library`:'<span class="st-red">not yet studied</span>'}`).join(' · ');
-    else if(f.ecosystem)q=`<b>${esc(en(f.ecosystem))}</b> highlighted. Name a topic (e.g. financing, AI, talent) to pinpoint a tile.`;
-    else if(themes.length)q=`<b>${themes.map(t=>esc(tn(t))).join(', ')}</b> across all ecosystems. Name an ecosystem or company to pinpoint a tile.`;
+    else if(f.ecosystem)q=`<b>${esc(en(f.ecosystem))}</b>. Name a topic (e.g. financing, AI, talent) to zoom further.`;
+    else if(themes.length)q=`<b>${themes.map(t=>esc(tn(t))).join(', ')}</b> across all ecosystems. Name an ecosystem or company to zoom in.`;
     else q='No specific ecosystem or topic detected in this question.';
-    q=`<p class="covq">Your question — ${q}</p>`}
-  const any=f&&(f.ecosystem||themes.length);
-  $('#coverage').innerHTML=`${q}<div class="hm${any?' focus':''}"><div></div>${d.themes.map(t=>`<div class="ch${themes.includes(t.id)?' on':''}" title="${esc(t.name)}"><span class="lg">${esc(THEME_SHORT[t.id][0])}</span><span class="sm">${esc(THEME_SHORT[t.id][1])}</span></div>`).join('')}
-  ${ECO.map(e=>{const row=f&&f.ecosystem===e.id;return `<div class="rh${row?' on':''}">${esc(shortEco(e))}</div>${d.themes.map(t=>{const n=d.coverage[e.id][t.id].length,col=themes.includes(t.id),k=cited[e.id+':'+t.id];
-    const hit=(row&&col)||(row&&!themes.length)||(col&&!f.ecosystem);const sel=COVSEL&&COVSEL[0]===e.id&&COVSEL[1]===t.id;
-    return `<button type="button" class="tile l${lvl(n)}${hit?(row&&col?' fx':' f'):''}${sel?' sel':''}" data-e="${e.id}" data-t="${t.id}" title="${esc(shortEco(e))} × ${esc(t.name)}: ${n?n+' studies':'not yet studied'}${k?' · cited in this answer':''}" aria-label="${esc(e.name)}, ${esc(t.name)}: ${n} studies">${n||'—'}${k?'<span class="dot"></span>':''}</button>`}).join('')}`}).join('')}</div>
-  <div class="hmleg"><i style="background:var(--cream);box-shadow:inset 0 0 0 1px #e6c9c5"></i>Not yet studied <i class="l1" style="background:#dbe8e4;margin-inline-start:8px"></i><i style="background:#a9cbc2"></i><i style="background:#5e9a8c"></i><i style="background:var(--g)"></i>More studies${f&&Object.keys(cited).length?'<span style="margin-inline-start:8px"><i style="width:7px;height:7px;border-radius:50%;background:var(--gold);vertical-align:middle"></i> cited in this answer</span>':''}</div>
-  <p class="muted" style="font-size:11px;margin-top:6px">${f?'Highlighting follows your latest question. ':''}Click any tile to see what's behind it.</p><div id="cellInfo"></div>`;
-  $$('#coverage .tile').forEach(b=>b.onclick=()=>{COVSEL=[b.dataset.e,b.dataset.t];renderCoverage();showCell(...COVSEL)});
-  if(COVSEL)showCell(...COVSEL);else $('#cellInfo').innerHTML=''}
+    $('#covq').innerHTML=`Your question — ${q}`;$('#covq').style.display=''}else $('#covq').style.display='none';
+  applyFocus();
+  if(fresh){if(f.ecosystem&&themes.length===1)mapTopic(f.ecosystem,themes[0]);else if(f.ecosystem)mapRegion(f.ecosystem);else mapAll()}}
+function showRegion(eid){const e=ECO.find(x=>x.id===eid),g=mapReg(eid),gaps=g.topics.filter(p=>!p.n);
+  $('#cellInfo').innerHTML=`<div class="cell"><h4>${esc(e.name)}</h4><div class="m">${g.tot} ${g.tot===1?'study':'studies'} across ${6-gaps.length} of 6 topics · ${esc(e.companies.slice(0,4).join(', '))}</div>
+    ${gaps.length?`<p style="font-size:13px;margin:10px 0 12px"><span class="st-red">Not yet studied:</span> ${gaps.map(p=>esc(p.t.name)).join(', ')}. Click a dashed circle for the suggested study.</p>`:'<p style="font-size:13px;margin:10px 0 12px">Every topic has at least one study.</p>'}
+    <button type="button" class="btn" id="cellAsk">Ask about ${esc(shortEco(e))}</button></div>`;
+  $('#cellAsk').onclick=()=>{$('#question').value=`What have we studied on ${e.name}?`;window.scrollTo({top:0,behavior:'smooth'});askQ()}}
+function showDoc(did,eid,tid){const x=LIB.documents.find(o=>o.id===did),t=LIB.themes.find(o=>o.id===tid),e=ECO.find(o=>o.id===eid);
+  $('#cellInfo').innerHTML=`<div class="cell"><h4><a class="ul" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a></h4><div class="m">${esc(x.type)} · ${fmt(x.date)} · ${x.passages} passages indexed</div>
+    <p style="font-size:13px;margin:10px 0 12px">Filed under ${esc(shortEco(e))} × ${esc(t.name)}${x.ecosystems.length>2?' (covers all ecosystems)':''}.</p><button type="button" class="btn" id="cellAsk">Ask about this</button></div>`;
+  $('#cellAsk').onclick=()=>{$('#question').value=`What does PIF say about ${t.name.toLowerCase()} in ${e.name}?`;window.scrollTo({top:0,behavior:'smooth'});askQ()}}
 function showCell(eid,tid){const d=LIB,e=ECO.find(x=>x.id===eid),t=d.themes.find(x=>x.id===tid),ids=d.coverage[eid][tid],docs=d.documents.filter(x=>ids.includes(x.id));
   const q=`What have we studied on ${t.name.toLowerCase()} in ${e.name}?`;
   $('#cellInfo').innerHTML=`<div class="cell${docs.length?'':' gap'}"><h4>${esc(e.name)} × ${esc(t.name)}</h4>

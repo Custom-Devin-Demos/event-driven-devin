@@ -197,7 +197,7 @@ function questionFocus(eco, themes, hits, answer) {
       if (n) citedCells[`${e.id}:${th.id}`] = n;
     }
   }
-  return { ecosystem: eco ? eco.id : null, themes, cells: focus, cited: citedCells };
+  return { ecosystem: eco ? eco.id : null, themes, cells: focus, cited: citedCells, citedDocs: [...cited].filter(Boolean) };
 }
 
 function coverage() {
