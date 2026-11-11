@@ -9424,6 +9424,14 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A DNB SITE — internal demo only, not affiliated with, endorsed by, or a real DNB product.',
   },
+  '63bb1294': {
+    slug: '63bb1294',
+    company: 'Peloton',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: '63bb1294.html', title: 'Peloton App: Your on-demand fitness companion' },
+    disclaimer: 'NOT ACTUALLY A PELOTON SITE — internal demo only, not affiliated with, endorsed by, or a real Peloton product.',
+  },
 };
 
 function getOncallSkin(slug) {

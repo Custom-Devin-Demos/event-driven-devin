@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Peloton App: Your on-demand fitness companion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #181a1d;
+        --panel: #222529;
+        --white: #ffffff;
+        --text-2: #e4e6e7;
+        --muted: #a8acb1;
+        --grey: #65666a;
+        --red: #df1c2f;
+        --coral: #ff5a5a;
+        --violet: #6d51fb;
+        --foot-ink: #222529;
+        --foot-muted: #65666a;
+        --foot-bar: #f5f7f9;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--bg); color: var(--bg); font-family: Inter, sans-serif; font-size: 16px; font-weight: 300; line-height: 27px; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, p { margin: 0; }
+      button { font-family: inherit; }
+      .wrap { width: min(1224px, 100% - 216px); margin: 0 auto; }
+
+      /* ---- global nav ---- */
+      .gnav { height: 72px; background: var(--bg); padding: 0 24px; display: flex; align-items: center; position: relative; }
+      .logo { display: block; width: 116px; height: 16px; }
+      .gnav .links { position: absolute; left: 334px; top: 0; height: 72px; display: flex; gap: 40px; }
+      .gnav .links a { display: flex; align-items: center; gap: 8px; height: 72px; font-size: 18px; font-weight: 500; line-height: 23.4px; color: #fff; }
+      .gnav .links a svg { width: 8px; height: 5px; }
+      .gnav .links a.on span { box-shadow: inset 0 -1px 0 #fff; padding-bottom: 2px; }
+      .gnav .icons { margin-left: auto; display: flex; gap: 24px; }
+      .gnav .icons a { width: 32px; height: 72px; display: flex; align-items: center; justify-content: center; }
+      .gnav .burger { display: none; }
+      .subnav { height: 72px; background: rgba(24, 26, 29, 0.9); padding: 0 32px; display: flex; align-items: center; color: #fff; border-top: 1px solid rgba(255,255,255,0.04); }
+      .subnav .name { font-size: 18px; font-weight: 500; line-height: 23.4px; }
+      .subnav nav { margin-left: auto; display: flex; gap: 24px; align-items: center; }
+      .subnav nav a { font-size: 14px; font-weight: 400; line-height: 24px; }
+      .subnav nav a.on { box-shadow: inset 0 -1px 0 #fff; }
+      .subnav .pick { display: none; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; height: 56px; padding: 0 22px; border-radius: 28px; border: 2px solid var(--red); background: var(--red); color: #fff; font-size: 16px; font-weight: 500; line-height: 20.8px; cursor: pointer; }
+      .btn.sm { height: 40px; border-radius: 20px; }
+      .btn.md { height: 48px; border-radius: 24px; }
+      .btn.ghost { background: transparent; border-color: #fff; }
+      .btn:disabled { opacity: 0.6; cursor: progress; }
+
+      /* ---- hero ---- */
+      .hero { padding: 80px 88px; background: var(--bg); }
+      .hero .grid { max-width: 1224px; margin: 0 auto; display: grid; grid-template-columns: 1fr 600px; gap: 24px; align-items: center; min-height: 608px; }
+      .rating { width: 165px; height: 56px; display: block; }
+      .hero h1 { max-width: 380px; margin-top: 35px; font-size: 64px; font-weight: 600; line-height: 83.2px; letter-spacing: -0.2px; color: #fff; }
+      .hero .sub { margin-top: 22px; font-size: 18px; font-weight: 400; line-height: 27px; color: var(--text-2); }
+      .hero .btn { margin-top: 43px; width: 172px; padding: 0; white-space: nowrap; }
+      .hero .fine { margin-top: 42px; font-size: 12px; line-height: 20px; color: var(--text-2); }
+      .hero .art img { width: 600px; height: 600px; border-radius: 24px; display: block; object-fit: cover; }
+      .fallback { background: radial-gradient(circle at 60% 40%, #34373d, #181a1d 70%); border-radius: 24px; }
+
+      /* ---- section heads ---- */
+      .sec { background: var(--bg); padding: 0 40px 80px; }
+      .h-sec { font-size: 32px; font-weight: 600; line-height: 41.6px; letter-spacing: -0.2px; color: #fff; }
+      .feat { margin-top: 24px; display: grid; grid-template-columns: 588px 294px 294px; gap: 24px; }
+      .feat .tile { position: relative; height: 392px; border-radius: 12px; overflow: hidden; background: #2a2d31; }
+      .feat .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .chip { position: absolute; left: 16px; bottom: 16px; padding: 8px 16px; border-radius: 9999px; background: rgba(101, 102, 106, 0.5); border: 1px solid transparent; color: #fff; font-size: 13px; font-weight: 400; line-height: 16px; backdrop-filter: blur(8px); }
+      .chip.on { border-color: #fff; }
+      .feat-cap { margin-top: 16px; font-size: 16px; font-weight: 400; line-height: 24px; color: #fff; }
+      .chips-m { display: none; }
+
+      .types { margin-top: 23px; padding: 16px 0; display: flex; gap: 16px; overflow: hidden; position: relative; }
+      .type { flex: 0 0 108px; height: 70px; border-radius: 10px; background: rgba(105, 113, 128, 0.25); border: 1px solid transparent; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 400; line-height: 16px; }
+      .type.on { border-color: #fff; font-weight: 600; }
+      .type svg { width: 20px; height: 20px; }
+      .types .more { position: absolute; right: 0; top: 16px; height: 70px; width: 21px; padding-left: 12px; background: var(--bg); display: flex; align-items: center; }
+      .strength { margin-top: 8px; display: grid; grid-template-columns: 776px 1fr; gap: 56px; }
+      .strength .poster { height: 437px; border-radius: 12px; overflow: hidden; background: #2a2d31; }
+      .strength .poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .classes h2 { font-size: 18px; font-weight: 500; line-height: 23.4px; color: #fff; }
+      .cls { margin-top: 16px; display: flex; align-items: center; gap: 16px; height: 76px; }
+      .cls img { width: 112px; height: 72px; border-radius: 8px; object-fit: cover; background: #2a2d31; }
+      .cls .t { font-size: 13px; font-weight: 600; line-height: 16px; color: #fff; }
+      .cls .s { font-size: 13px; font-weight: 300; line-height: 24px; color: var(--text-2); }
+      .cls > span { flex: 1; min-width: 0; }
+      .cls svg { flex: none; }
+      .see { display: inline-block; margin-top: 26px; font-size: 14px; font-weight: 400; line-height: 24px; color: #fff; box-shadow: inset 0 -1px 0 #fff; }
+
+      .center-h { max-width: 800px; margin: 0 auto; text-align: center; font-size: 44px; font-weight: 600; line-height: 57.2px; letter-spacing: -0.2px; color: #fff; }
+      .center-p { max-width: 800px; margin: 16px auto 0; text-align: center; font-size: 18px; font-weight: 400; line-height: 27px; color: var(--text-2); }
+      .personal { margin-top: 56px; display: grid; grid-template-columns: 560px 600px; justify-content: space-between; align-items: start; }
+      .acc { border-top: 1px solid rgba(228, 230, 231, 0.5); }
+      .acc .item { border-bottom: 1px solid rgba(228, 230, 231, 0.5); padding: 24px 0; display: grid; grid-template-columns: 40px 1fr 24px; }
+      .acc .item h2 { font-size: 20px; font-weight: 500; line-height: 26px; color: #fff; }
+      .acc .item p { grid-column: 2; margin-top: 15px; max-width: 496px; font-size: 16px; font-weight: 400; line-height: 24px; color: var(--text-2); }
+      .acc .item svg.ic { width: 24px; height: 24px; }
+      .personal .vid { width: 600px; height: 600px; border-radius: 24px; overflow: hidden; background: #000; }
+      .personal .vid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .acc .vid-m { display: none; }
+
+      /* ---- plans (form) ---- */
+      .plans { background: var(--bg); padding: 40px 40px 104px; text-align: center; }
+      .toggle { margin: 40px auto 0; width: 392px; height: 66px; border-radius: 50px; border: 1px solid var(--text-2); display: grid; grid-template-columns: 1fr 1fr; padding: 0; position: relative; }
+      .toggle button { border: 0; background: transparent; color: var(--text-2); font-size: 18px; font-weight: 500; line-height: 23.4px; border-radius: 50px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .toggle button small { font-size: 12px; font-weight: 400; line-height: 16px; color: var(--coral); }
+      .toggle button.on { background: #fff; color: var(--bg); margin: -1px 0 -1px -1px; }
+      .cards { margin: 40px auto 0; width: 960px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; text-align: left; }
+      .card { position: relative; height: 316px; border-radius: 12px; padding: 48px; border: 1px solid var(--muted); cursor: pointer; background: transparent; }
+      .card.on { border: 2px solid #fff; padding: 47px; }
+      .card .eye { font-size: 16px; font-weight: 500; line-height: 20.8px; color: #fff; }
+      .card .head { margin-top: 15px; max-width: 336px; font-size: 26px; font-weight: 600; line-height: 33.8px; letter-spacing: -0.2px; color: #fff; }
+      .card .inc { margin-top: 9px; font-size: 12px; font-weight: 400; line-height: 16px; color: #fff; }
+      .card .inc b { font-weight: 400; color: var(--coral); }
+      .card .price { position: absolute; left: 48px; bottom: 48px; font-size: 26px; font-weight: 600; line-height: 33.8px; letter-spacing: -0.2px; color: #fff; }
+      .badge { position: absolute; top: 12px; right: 12px; padding: 4px 8px; border-radius: 4px; background: var(--violet); color: #fff; font-size: 13px; font-weight: 600; line-height: 16px; }
+      .badge.cur { background: #fff; color: var(--bg); }
+      .fields { margin: 32px auto 0; width: 960px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; text-align: left; }
+      .field { position: relative; height: 56px; background: #fff; border: 1px solid var(--grey); border-radius: 4px; }
+      .field label { position: absolute; left: 16px; top: 7px; font-size: 12px; font-weight: 400; line-height: 16px; color: var(--grey); pointer-events: none; }
+      .field select, .field input { width: 100%; height: 54px; border: 0; background: transparent; padding: 22px 16px 6px; font: 400 16px/20px Inter, sans-serif; color: var(--bg); appearance: none; -webkit-appearance: none; outline: none; }
+      .field select { padding-right: 36px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23181a1d' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 16px center; }
+      .compare { display: inline-block; margin-top: 32px; font-size: 16px; font-weight: 500; line-height: 21px; color: #fff; box-shadow: inset 0 -1px 0 #fff; }
+      .equip { margin: 39px auto 0; width: 960px; height: 113px; border-radius: 8px; background: var(--panel); display: flex; align-items: center; gap: 32px; padding: 8px; text-align: left; }
+      .equip img { width: 131px; height: 89px; border-radius: 8px; object-fit: cover; background: #33363b; }
+      .equip p { max-width: 704px; font-size: 16px; font-weight: 300; line-height: 24px; color: var(--muted); }
+      .equip strong { font-weight: 600; color: #fff; }
+      #submitBtn { margin-top: 40px; width: 358px; }
+      .plans .note { margin-top: 40px; font-size: 14px; font-weight: 400; line-height: 24px; color: var(--muted); }
+      .result-box { display: none; margin: 24px auto 0; width: 960px; max-width: 100%; border-radius: 8px; padding: 16px 20px; text-align: left; font-size: 15px; line-height: 22px; font-weight: 400; }
+      .result-box.success { display: block; background: #12341f; border: 1px solid #2f8f4e; color: #d6f5df; }
+      .result-box.error { display: block; background: #3a1418; border: 1px solid var(--red); color: #ffd9dc; }
+      .result-box .error-title { font-weight: 600; color: #fff; margin-bottom: 2px; }
+
+      .promo { background: var(--bg); padding: 8px 40px 40px; }
+      .promo .box { max-width: 1224px; margin: 0 auto; min-height: 235px; border-radius: 12px; background: var(--panel); padding: 32px 12px; display: grid; grid-template-columns: 160px 392px 192px; gap: 48px; justify-content: center; align-items: center; text-align: center; }
+      .promo img { width: 160px; height: 120px; object-fit: contain; }
+      .promo .t { font-size: 26px; font-weight: 600; line-height: 33.8px; letter-spacing: -0.2px; color: #fff; padding: 0 26px; }
+      .promo .f { margin-top: 18px; font-size: 12px; line-height: 20px; color: var(--text-2); }
+      .promo .btn { width: 192px; height: 48px; border-radius: 24px; }
+
+      .news { background: var(--bg); padding: 80px 40px; text-align: center; }
+      .news h2 { font-size: 36px; font-weight: 600; line-height: 46.8px; letter-spacing: -0.2px; color: #fff; }
+      .news .p { margin-top: 23px; font-size: 16px; font-weight: 400; line-height: 24px; color: var(--muted); }
+      .news .row { margin: 48px auto 0; width: 680px; display: grid; grid-template-columns: 428px 240px; gap: 12px; }
+      .news .email { height: 56px; border-radius: 4px; border: 1px solid var(--grey); background: #fff; text-align: left; padding: 16px; font-size: 16px; font-weight: 400; color: var(--grey); line-height: 22px; }
+      .news .fine { margin: 24px auto 0; width: 680px; font-size: 13px; line-height: 24px; color: var(--muted); }
+      .news .fine u { text-decoration: underline; }
+
+      .faq { background: var(--bg); padding: 0 108px 80px; }
+      .faq .in { max-width: 1224px; margin: 0 auto; display: grid; grid-template-columns: 384px 808px; justify-content: space-between; }
+      .faq h2 { border-top: 1px solid rgba(228,230,231,0.5); padding-top: 16px; font-size: 32px; font-weight: 600; line-height: 41.6px; letter-spacing: -0.2px; color: #fff; }
+      .faq ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(228,230,231,0.5); }
+      .faq li { height: 73px; border-bottom: 1px solid rgba(228,230,231,0.5); display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 600; line-height: 24px; color: #fff; }
+
+      .foot-note { background: #fff; padding: 32px 48px 0; }
+      .foot-note p { font-size: 13px; line-height: 24px; color: var(--bg); padding-bottom: 32px; border-bottom: 1px solid rgba(101,102,106,0.3); }
+      footer { background: #fff; color: var(--bg); padding: 40px 48px 0; }
+      .fcols { display: grid; grid-template-columns: 920px 380px; justify-content: space-between; }
+      .fnav { display: grid; grid-template-columns: 287px 239px 198px 1fr; }
+      .fnav h3 { font-size: 14px; font-weight: 400; line-height: 24px; color: var(--foot-ink); margin-bottom: 16px; }
+      .fnav a { display: block; font-size: 14px; font-weight: 400; line-height: 17px; color: var(--foot-muted); margin-bottom: 10px; }
+      .fside h3 { font-size: 18px; font-weight: 500; line-height: 23.4px; }
+      .fside .row { margin-top: 17px; display: grid; grid-template-columns: 269px 101px; gap: 10px; }
+      .fside .in { height: 50px; border: 1px solid #888b93; border-radius: 2px; padding: 14px 12px 0; font-size: 14px; font-weight: 400; line-height: 21px; letter-spacing: 0.35px; }
+      .fside .sub { height: 50px; border-radius: 3px; background: var(--bg); color: #fff; font-size: 16px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+      .fside .legal { margin-top: 21px; font-size: 12px; line-height: 18px; letter-spacing: 0.3px; }
+      .fside .legal u { text-decoration: underline; }
+      .contact { margin-top: 32px; }
+      .contact div { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 500; line-height: 23.4px; margin-bottom: 13px; }
+      .social { display: flex; gap: 12px; margin-top: 18px; }
+      .social span { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); }
+      .getapp { margin-top: 40px; padding-bottom: 48px; }
+      .getapp h3 { font-size: 16px; font-weight: 500; line-height: 20.8px; }
+      .stores { margin-top: 20px; display: flex; gap: 16px; }
+      .stores span { height: 38px; padding: 0 14px; border-radius: 6px; background: #000; color: #fff; display: flex; align-items: center; font-size: 15px; font-weight: 600; line-height: 1; border: 1px solid #a6a6a6; }
+      .fbar { background: var(--foot-bar); padding: 17px 20px 48px; }
+      .fbar .loc { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; line-height: 18px; padding-bottom: 23px; border-bottom: 1px solid rgba(101,102,106,0.3); }
+      .fbar .flag { width: 24px; height: 24px; border-radius: 50%; background: repeating-linear-gradient(#b22234 0 2px, #fff 2px 4px); position: relative; overflow: hidden; }
+      .fbar .flag::after { content: ''; position: absolute; left: 0; top: 0; width: 12px; height: 12px; background: #3c3b6e; }
+      .fbar nav { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px 30px; font-size: 12px; font-weight: 400; line-height: 16px; }
+
+      @media (max-width: 1279px) {
+        .wrap { width: calc(100% - 80px); }
+        .feat { grid-template-columns: 2fr 1fr 1fr; }
+        .strength { grid-template-columns: 1.6fr 1fr; gap: 40px; }
+        .personal { grid-template-columns: 1fr 1fr; gap: 40px; }
+        .personal .vid { width: 100%; height: auto; aspect-ratio: 1; }
+        .gnav .links { left: 50%; transform: translateX(-50%); gap: 28px; }
+        .hero .grid { grid-template-columns: 1fr 1fr; }
+        .hero .art img { width: 100%; height: auto; aspect-ratio: 1; }
+        .faq .in { grid-template-columns: 1fr 2fr; gap: 32px; }
+        .fcols { grid-template-columns: 1fr; gap: 40px; }
+      }
+      @media (max-width: 1023px) {
+        .gnav .links { display: none; }
+        .cards, .fields, .equip { width: 100%; }
+        .fields { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 767px) {
+        .wrap { width: 100%; }
+        .gnav { height: 48px; padding: 0 16px; }
+        .logo { width: 87px; height: 12px; }
+        .gnav .icons { gap: 24px; }
+        .gnav .icons a { height: 48px; }
+        .gnav .burger { display: flex; }
+        .subnav { height: 56px; padding: 0 16px; }
+        .subnav .name { font-size: 16px; line-height: 20.8px; }
+        .subnav nav { display: none; }
+        .subnav .pick { display: flex; margin-left: auto; width: 122px; height: 40px; border-radius: 8px; border: 1px solid var(--muted); padding: 12px; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 400; line-height: 16px; }
+        .hero { padding: 32px 16px; text-align: center; }
+        .hero .grid { grid-template-columns: 1fr; gap: 0; min-height: 0; }
+        .rating { width: 141px; height: 48px; margin: 0 auto; }
+        .hero h1 { margin: 29px auto 0; max-width: 200px; font-size: 34px; line-height: 44.2px; }
+        .hero .sub { margin-top: 16px; font-size: 16px; line-height: 24px; }
+        .hero .art { margin-top: 26px; order: 2; }
+        .hero .copy { display: contents; }
+        .hero .cta { order: 3; }
+        .hero .btn { margin-top: 40px; width: 100%; height: 48px; border-radius: 24px; }
+        .hero .fine { margin-top: 26px; }
+        .sec { padding: 32px 16px; }
+        .h-sec { font-size: 26px; line-height: 33.8px; }
+        .chips-m { display: flex; gap: 8px; margin-top: 32px; }
+        .chips-m .chip { position: static; font-size: 13px; padding: 11px 25px; }
+        .feat { grid-template-columns: 1fr; margin-top: 16px; }
+        .feat .tile { height: 312px; }
+        .feat .tile .chip { display: none; }
+        .feat .tile:not(:first-child) { display: none; }
+        .feat-cap { font-size: 14px; line-height: 24px; }
+        .sec.types-sec { padding: 48px 16px; }
+        .types { margin-top: 16px; gap: 8px; }
+        .type { flex-basis: 90px; }
+        .strength { grid-template-columns: 1fr; gap: 24px; margin-top: 16px; }
+        .strength .poster { height: auto; aspect-ratio: 358 / 201; }
+        .classes h2 { font-size: 16px; line-height: 20.8px; }
+        .sec.pers-sec { padding: 32px 16px 0; }
+        .center-h { font-size: 30px; line-height: 39px; }
+        .center-p { font-size: 16px; line-height: 24px; padding: 0 16px; }
+        .personal { grid-template-columns: 1fr; margin-top: 32px; }
+        .personal > .vid { display: none; }
+        .acc .item h2 { font-size: 18px; line-height: 23.4px; }
+        .acc .item p { font-size: 14px; line-height: 21px; margin-top: 8px; }
+        .acc .vid-m { display: block; grid-column: 1 / -1; margin-top: 24px; border-radius: 16px; overflow: hidden; aspect-ratio: 1; }
+        .acc .vid-m img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .plans { padding: 24px 16px 48px; }
+        .toggle { width: 100%; height: 56px; margin-top: 32px; }
+        .toggle button { font-size: 16px; line-height: 20.8px; }
+        .cards { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+        .card { height: auto; min-height: 216px; padding: 24px 24px 92px; }
+        .card.on { padding: 23px 23px 91px; }
+        .card .eye { font-size: 14px; line-height: 18.2px; }
+        .card .head { font-size: 22px; line-height: 28.6px; margin-top: 16px; }
+        .card .price { left: 24px; bottom: 24px; font-size: 22px; line-height: 28.6px; }
+        .fields { grid-template-columns: 1fr; gap: 12px; margin-top: 24px; }
+        .compare { margin-top: 24px; font-size: 14px; line-height: 18px; }
+        .equip { height: auto; gap: 16px; margin-top: 32px; }
+        .equip img { width: 89px; height: 82px; }
+        .equip p { font-size: 12px; line-height: 16px; }
+        .equip strong { font-size: 13px; }
+        #submitBtn { width: 100%; height: 48px; margin-top: 40px; }
+        .h-plans { font-size: 26px; line-height: 33.8px; }
+        .promo { padding: 0 16px 32px; }
+        .promo .box { grid-template-columns: 1fr; gap: 24px; justify-items: center; padding: 32px 24px; }
+        .promo .t { font-size: 22px; line-height: 28.6px; padding: 0; }
+        .promo .f { margin-top: 0; }
+        .promo .box > div:nth-child(2) { display: contents; }
+        .promo .t { order: 2; } .promo .btn { order: 3; } .promo .f { order: 4; }
+        .promo img { order: 1; }
+        .news { padding: 32px 16px; }
+        .news h2 { font-size: 28px; line-height: 36.4px; }
+        .news .p { margin-top: 16px; font-size: 14px; line-height: 21px; }
+        .news .row { width: 100%; grid-template-columns: 1fr; gap: 16px; margin-top: 48px; }
+        .news .fine { width: 100%; }
+        .faq { padding: 48px 16px; }
+        .faq .in { grid-template-columns: 1fr; gap: 24px; }
+        .faq h2 { border: 0; padding: 0; font-size: 26px; line-height: 33.8px; }
+        .faq li { height: auto; min-height: 68px; padding: 16px 0; font-size: 14px; line-height: 18px; gap: 16px; }
+        .foot-note { padding: 24px 16px 0; }
+        footer { padding: 32px 32px 0; }
+        .fnav { grid-template-columns: 1fr 1fr; row-gap: 32px; }
+        .fside .row { grid-template-columns: 1fr 101px; }
+        .stores { flex-wrap: wrap; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="gnav">
+        <a href="#" aria-label="Peloton home">
+          <svg class="logo" viewBox="0 0 116 16" aria-hidden="true"><text x="0" y="15.4" fill="#fff" font-family="Inter, sans-serif" font-size="20.5" font-weight="800" letter-spacing="1.7" textLength="116" lengthAdjust="spacingAndGlyphs">PELOTON</text></svg>
+        </a>
+        <nav class="links">
+          <a href="#"><span>Bikes</span><svg viewBox="0 0 8 5"><path d="M.5.5 4 4 7.5.5" fill="none" stroke="#fff"/></svg></a>
+          <a href="#"><span>Treads</span><svg viewBox="0 0 8 5"><path d="M.5.5 4 4 7.5.5" fill="none" stroke="#fff"/></svg></a>
+          <a href="#"><span>Row</span><svg viewBox="0 0 8 5"><path d="M.5.5 4 4 7.5.5" fill="none" stroke="#fff"/></svg></a>
+          <a href="#" class="on"><span>Membership</span><svg viewBox="0 0 8 5"><path d="M.5.5 4 4 7.5.5" fill="none" stroke="#fff"/></svg></a>
+          <a href="#"><span>Accessories</span><svg viewBox="0 0 8 5"><path d="M.5.5 4 4 7.5.5" fill="none" stroke="#fff"/></svg></a>
+          <a href="#"><span>Deals</span><svg viewBox="0 0 8 5"><path d="M.5.5 4 4 7.5.5" fill="none" stroke="#fff"/></svg></a>
+          <a href="#"><span>Apparel</span></a>
+        </nav>
+        <div class="icons">
+          <a href="#" aria-label="Account"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="8" r="4.5"/><path d="M3.5 21c1.2-4.3 4.5-6.5 8.5-6.5s7.3 2.2 8.5 6.5"/></svg></a>
+          <a href="#" aria-label="Cart"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M2 4h3l2.2 11h11.3L21 7H6.2"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg></a>
+          <a href="#" class="burger" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.6"><path d="M3 6h18M3 12h18M3 18h18"/></svg></a>
+        </div>
+      </div>
+      <div class="subnav">
+        <span class="name">Peloton App</span>
+        <nav>
+          <a href="#">Overview</a><a href="#">Features</a><a href="#">Classes</a><a href="#membership" class="on">Membership</a>
+          <a href="#membership" class="btn sm">Try 30 days free</a>
+        </nav>
+        <span class="pick">Overview <svg width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.4"/></svg></span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="grid">
+          <div class="copy">
+            <img class="rating" src="https://images.onepeloton.com/peloton-cycle/image/fetch/fl_sanitize/https://images.ctfassets.net/7vk8puwnesgc/2dtCLpUflr4sHeQYTm4D1h/3fa94b20d6b9c37301d21b0201a43695/gemini-svg__20_.svg" alt="4.9 stars, 790,000 ratings on App Store" onerror="this.style.visibility='hidden'" />
+            <h1>Work out, your way</h1>
+            <p class="sub">Thousands of classes, no equipment needed.</p>
+            <div class="cta">
+              <a href="#membership" class="btn">Try 30 days free</a>
+              <p class="fine">New members try for free. Cancel anytime.¹</p>
+            </div>
+          </div>
+          <div class="art">
+            <img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_600/https://images.ctfassets.net/7vk8puwnesgc/6IOKFgf9hjEVuUPyC0K2Ul/40142047771a5bd684b000927ef52ad3/iphone_mock_app.png" alt="" onerror="this.outerHTML='<div class=&quot;fallback&quot; style=&quot;aspect-ratio:1&quot;></div>'" />
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="wrap">
+          <h2 class="h-sec">Everything you need to reach your goals</h2>
+          <div class="chips-m"><span class="chip on">Convenience</span><span class="chip">Metrics</span><span class="chip">Workouts</span></div>
+          <div class="feat">
+            <div class="tile"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_1200/https://images.ctfassets.net/7vk8puwnesgc/1CyklT1ewiWSja0ejv5aU5/045badd062ef750a4b1a64ca69807bcf/App_01-fallback.png" alt="" onerror="this.remove()" /><span class="chip on">Convenience</span></div>
+            <div class="tile"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_600/https://images.ctfassets.net/7vk8puwnesgc/3QrBXHgaPUR1eacTdwbMQM/1a77cfc31ba2a9d794e23c8df453eab3/AppFeature_02_IMAGE.png" alt="" onerror="this.remove()" /><span class="chip">Metrics</span></div>
+            <div class="tile"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_600/https://images.ctfassets.net/7vk8puwnesgc/3kl80U6pSQzhIHxs7IYFbg/56dffeb7365991478f335eb54ef3aa0e/AppFeature_03_IMAGE.png" alt="" onerror="this.remove()" /><span class="chip">Workouts</span></div>
+          </div>
+          <p class="feat-cap">Work out wherever you are — at home, the gym, or on the go.</p>
+        </div>
+      </section>
+
+      <section class="sec types-sec">
+        <div class="wrap">
+          <h2 class="h-sec">Keep your routine fresh with 15+ workout types</h2>
+          <div class="types">
+            <span class="type on"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="12" cy="3.5" r="1.6"/><path d="M5 9l4-3 3 2 3-1M9 6l-1 6 4 2-1 5M8 12l-3 4"/></svg>Strength</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="6" cy="8" r="1.6"/><path d="M3 15h14M7 10l3 3h5M9 12l-2 3"/></svg>Pilates</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="5" cy="14" r="3.3"/><circle cx="15" cy="14" r="3.3"/><path d="M5 14l4-6h5l1 6M9 8l1 6"/><circle cx="12" cy="3.5" r="1.4"/></svg>Cycling</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="12" cy="3.5" r="1.6"/><path d="M6 8l4-2 2 4 3 1M10 6l-2 6 3 2-1 4M8 12l-4 3"/></svg>Running</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="10" cy="3.5" r="1.6"/><path d="M4 7l6 2 6-2M10 9v4l-4 5M10 13l4 5"/></svg>Yoga</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><path d="M2 16h16M5 16l2-4h5l3 2"/><circle cx="9" cy="6" r="1.5"/><path d="M9 8l-1 4M9 9l5-1"/></svg>Rowing</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="10" cy="4" r="1.6"/><path d="M10 6v5M5 10l5 1 5-1M3 16c2-2 12-2 14 0"/></svg>Meditation</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="11" cy="3.5" r="1.6"/><path d="M11 6l-2 5 3 2-1 5M9 11l-4 1M11 6l5-2"/></svg>Stretching</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><circle cx="10" cy="3.5" r="1.6"/><path d="M10 6l-1 6 2 2v4M9 12l-2 6M10 7l3 3M10 7l-3 3"/></svg>Walking</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><path d="M2 17l5-8 3 4 3-6 5 10z"/></svg>Outdoor</span>
+            <span class="type"><svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.3"><path d="M10 17s-7-4.3-7-9a3.5 3.5 0 017-1 3.5 3.5 0 017 1c0 4.7-7 9-7 9z"/></svg>Cardio</span>
+            <span class="more"><svg width="8" height="12" viewBox="0 0 8 12"><path d="M1.5 1l5 5-5 5" fill="none" stroke="#fff" stroke-width="1.4"/></svg></span>
+          </div>
+          <div class="strength">
+            <div class="poster"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_1200/https://images.ctfassets.net/7vk8puwnesgc/5JyweoBdBcFAGJVlX9H7F6/9e37ea5f6cfcf22a724ab298297e86ee/Strength_Desktop_Poster.png" alt="" onerror="this.remove()" /></div>
+            <div class="classes">
+              <h2>Browse strength classes</h2>
+              <a class="cls" href="#"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_2.0,f_auto,q_auto:good,w_112/https://s3.amazonaws.com/peloton-ride-images/155748a4029b44d0a8373639870382b9/img_269e5f74e54f416b95832b2f84d1e16c" alt="" onerror="this.style.visibility='hidden'" /><span><span class="t">10 min Core Strength</span><br /><span class="s">Andy Speer · Strength</span></span><svg width="8" height="12" viewBox="0 0 8 12"><path d="M1.5 1l5 5-5 5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></a>
+              <a class="cls" href="#"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_2.0,f_auto,q_auto:good,w_112/https://s3.amazonaws.com/peloton-ride-images/6bd9a094b2ee41d39f2535695254230e/img_ec983aed47b54f8fbe52b67eca894e7c" alt="" onerror="this.style.visibility='hidden'" /><span><span class="t">30 min Full Body Strength</span><br /><span class="s">Erik Jäger · Strength</span></span><svg width="8" height="12" viewBox="0 0 8 12"><path d="M1.5 1l5 5-5 5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></a>
+              <a class="cls" href="#"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_2.0,f_auto,q_auto:good,w_112/https://s3.amazonaws.com/peloton-ride-images/be1e117c60f248d9bc27797167762468/img_a3da49b49d2d46378329d3b09312a398" alt="" onerror="this.style.visibility='hidden'" /><span><span class="t">20 min Upper Body Strength</span><br /><span class="s">Zacharias Niedzwiecki · Strength</span></span><svg width="8" height="12" viewBox="0 0 8 12"><path d="M1.5 1l5 5-5 5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></a>
+              <a class="cls" href="#"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_2.0,f_auto,q_auto:good,w_112/https://s3.amazonaws.com/peloton-ride-images/31aafeb92f734e0997dc139032924317/img_adaa4b472d2d42b5a1e09dbf46d40220" alt="" onerror="this.style.visibility='hidden'" /><span><span class="t">10 min Arms &amp; Light Weights</span><br /><span class="s">Emma Lovewell · Strength</span></span><svg width="8" height="12" viewBox="0 0 8 12"><path d="M1.5 1l5 5-5 5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></a>
+              <a class="see" href="#">See more classes</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec pers-sec">
+        <div class="wrap">
+          <h2 class="center-h">More personalized. More impactful. More Peloton.</h2>
+          <p class="center-p">Discover new features designed to help you lock in and level up your workouts.</p>
+          <div class="personal">
+            <div class="acc">
+              <div class="item">
+                <svg class="ic" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="4" r="2.3"/><circle cx="5" cy="9" r="2.3"/><circle cx="19" cy="9" r="2.3"/><circle cx="8" cy="17" r="2.3"/><circle cx="16" cy="17" r="2.3"/><circle cx="12" cy="11.5" r="1.6"/></svg>
+                <h2>Get personalized workouts and insights</h2>
+                <svg width="12" height="8" viewBox="0 0 12 8" style="margin-top:9px"><path d="M1 6.5l5-5 5 5" fill="none" stroke="#fff" stroke-width="1.6"/></svg>
+                <p>Training made for you, from Peloton IQ, an AI-powered intelligence that builds personalized workout plans, provides performance insights, &amp; recommends next steps.</p>
+                <div class="vid-m"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_600/https://images.ctfassets.net/7vk8puwnesgc/6mNZYBQJu6hmPE3rHRcNsd/8288c12e86698b6d88d01deb23cfa0b4/NextgenFeature_01_IMAGE.png" alt="" onerror="this.remove()" /></div>
+              </div>
+              <div class="item">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><circle cx="8" cy="7" r="3"/><circle cx="16" cy="7" r="3"/><path d="M2.5 20c.6-4 2.8-6 5.5-6s4.9 2 5.5 6M10.5 20c.6-4 2.8-6 5.5-6s4.9 2 5.5 6"/></svg>
+                <h2>Work out alongside a team</h2>
+                <svg width="12" height="8" viewBox="0 0 12 8" style="margin-top:9px"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg>
+              </div>
+              <div class="item">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><path d="M3 21l5-13 8 8zM12 7l1-4M16 9l4-2M17 13l4 1M10 4l1 1M19 4l1 1"/></svg>
+                <h2>Get recognized on your fitness journey</h2>
+                <svg width="12" height="8" viewBox="0 0 12 8" style="margin-top:9px"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg>
+              </div>
+            </div>
+            <div class="vid"><img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_600/https://images.ctfassets.net/7vk8puwnesgc/6mNZYBQJu6hmPE3rHRcNsd/8288c12e86698b6d88d01deb23cfa0b4/NextgenFeature_01_IMAGE.png" alt="" onerror="this.remove()" /></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="plans" id="membership">
+        <h2 class="h-sec h-plans">Upgrade your App Membership</h2>
+        <form id="upgradeForm" novalidate>
+          <div class="toggle" role="group" aria-label="Billing">
+            <button type="button" class="on" data-billing="monthly">Monthly</button>
+            <button type="button" data-billing="annual">Annual<small>Save up to $58</small></button>
+          </div>
+          <div class="cards">
+            <div class="card" data-plan="BASIC-12">
+              <span class="badge cur">Your plan</span>
+              <h3 class="eye">Peloton App One</h3>
+              <p class="head">Strength, yoga, HIIT, outdoor running, and more workouts</p>
+              <p class="price">$12.99/mo</p>
+            </div>
+            <div class="card on" data-plan="PLUS-24">
+              <span class="badge">Full app access</span>
+              <h3 class="eye">Peloton App+</h3>
+              <p class="head">Workouts on any exercise bike, treadmill, or rower</p>
+              <p class="inc">Includes <b>everything</b> in App One and access to Peloton Strength+</p>
+              <p class="price">$28.99/mo</p>
+            </div>
+          </div>
+          <div class="fields">
+            <div class="field">
+              <label for="currentPlan">Current membership</label>
+              <select id="currentPlan">
+                <option value="BASIC-12" selected>Peloton App One — $12.99/mo</option>
+                <option value="PLUS-24">Peloton App+ — $28.99/mo</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="newPlan">Switch to</label>
+              <select id="newPlan">
+                <option value="PLUS-24" selected>Peloton App+ — $28.99/mo</option>
+                <option value="ULTRA-36">Peloton App+ — Annual</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="addon">Auto-renew</label>
+              <select id="addon">
+                <option value="auto-renew-on" selected>On</option>
+                <option value="auto-renew-off">Off</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="promoCode">Promo code</label>
+              <input type="text" id="promoCode" placeholder="Optional" autocomplete="off" />
+            </div>
+          </div>
+          <a href="#" class="compare">Compare all features</a>
+          <div class="equip">
+            <img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_1024/https://images.ctfassets.net/7vk8puwnesgc/2BWIhxtBFoR09Wtlh5eXML/71029f663649a7f3e83624565cecda13/desktop-cfu-image.jpg" alt="" onerror="this.style.visibility='hidden'" />
+            <p><strong>Have Peloton equipment?</strong> You need an All-Access Membership instead. App+ and Strength+ access is included in your membership for your Bikes, Treads, and Row+ ($49.99/mo).</p>
+          </div>
+          <button class="btn md" id="submitBtn" type="submit">Upgrade to App+</button>
+          <p class="note">Signed in as CUST-3001. Cancel anytime.¹</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="promo">
+        <div class="box">
+          <img src="https://images.onepeloton.com/peloton-cycle/image/fetch/dpr_1.0,f_auto,q_auto:good,w_600/https://images.ctfassets.net/7vk8puwnesgc/13GLNg0uYfnKVamUMZZWvK/49f8a6d5c54e87561f184807dbbc2ffa/price-tag-green.png" alt="" onerror="this.style.visibility='hidden'" />
+          <div><p class="t">Eligible students, medical professionals, and more may save on Peloton App Membership.</p><p class="f">Offer cannot be combined with other promotions.</p></div>
+          <a href="#" class="btn ghost">Learn more</a>
+        </div>
+      </section>
+
+      <section class="news">
+        <h2>Sign up to get the latest from Peloton</h2>
+        <p class="p">Subscribe for a weekly dose of fitness, plus the latest promos, launches, and events.</p>
+        <div class="row"><div class="email">Email*</div><a href="#" class="btn ghost">Sign up</a></div>
+        <p class="fine">By providing your email address, you agree to receive marketing communications from Peloton. For more about how we use your information, see our <u>Privacy Policy</u>.</p>
+      </section>
+
+      <section class="faq">
+        <div class="in">
+          <h2>FAQs</h2>
+          <ul>
+            <li>Isn't Peloton just an exercise bike company?<svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></li>
+            <li>Can you use the Peloton App with any bike, treadmill, or rower?<svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></li>
+            <li>How much is the Peloton App?<svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></li>
+            <li>Can the Peloton App help me learn how to make a successful workout plan?<svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></li>
+            <li>Does the Peloton App have a place where I can keep my workout routine?<svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></li>
+            <li>How do I start working out with the Peloton App?<svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg></li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <div class="foot-note"><p>¹New App Members Only. Terms apply. Credit card required. After your free trial, App Membership is $12.99/mo for App One or $28.99/mo for App+. Cancel anytime before free trial ends.</p></div>
+    <footer>
+      <div class="fcols">
+        <nav class="fnav">
+          <div><h3>Shop and Learn</h3><a href="#">Home Trial</a><a href="#">Membership</a><a href="#">Refurbished Bikes</a><a href="#">Shop used: Peloton Repowered</a><a href="#">Special Pricing</a><a href="#">Purchasing Used Peloton Bikes</a><a href="#">Financing</a><a href="#">Instructors</a><a href="#">Peloton for Business</a><a href="#">The Peloton Report</a></div>
+          <div><h3>About</h3><a href="#">Our Story</a><a href="#">Team</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Blog</a><a href="#">Investors</a><a href="#">Impact &amp; Inclusion</a><a href="#">Peloton Member Stories</a></div>
+          <div><h3>Visit Us</h3><a href="#">Store locator</a><a href="#">Hotel Finder</a><a href="#">Book a Test Class</a><a href="#">Studio</a><a href="#">Events</a></div>
+          <div><h3>Support</h3><a href="#">Contact Peloton</a><a href="#">Member Support Center</a><a href="#">Order Replacement Parts</a><a href="#">Return Policy</a><a href="#">Warranties &amp; Protection Plans</a><a href="#">Delivery Information</a><a href="#">Product Recalls</a><a href="#">Security</a><a href="#">Consumer Health Data Policy</a><a href="#">Privacy Center</a></div>
+        </nav>
+        <div class="fside">
+          <h3>Sign up to get the latest</h3>
+          <div class="row"><div class="in">Your email *</div><span class="sub">Submit</span></div>
+          <p class="legal">By providing your email address, you agree to receive marketing communications from Peloton.<br /><br />We have updated our <u>Privacy Policy</u> to provide more information on how we collect and use your personal information.</p>
+          <div class="contact">
+            <div><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3.6 1l2.3 3.2-1.4 1.6a9 9 0 005.7 5.7l1.6-1.4L15 12.4 13.4 15C6.9 15 1 9.1 1 2.6z" fill="#181a1d"/></svg>1-866-679-9129</div>
+            <div><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1.5c3.9 0 7 2.6 7 5.8S11.9 13 8 13c-.8 0-1.5-.1-2.2-.3L2 14.5l1.1-3.1A5.5 5.5 0 011 7.3C1 4.1 4.1 1.5 8 1.5z" fill="#181a1d"/></svg>Start a live chat</div>
+            <div><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#181a1d"/><path d="M6 6a2 2 0 113 1.7c-.7.4-1 .8-1 1.6M8 11.2v.6" stroke="#fff" stroke-width="1.4" fill="none"/></svg>Visit support center</div>
+          </div>
+          <div class="social"><span></span><span></span><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="getapp">
+        <h3>Get the Peloton App</h3>
+        <div class="stores"><span>App Store</span><span>Google Play</span><span>amazon appstore</span><span>Roku</span></div>
+      </div>
+    </footer>
+    <div class="fbar">
+      <div class="loc"><span class="flag"></span>United States ($ USD)</div>
+      <nav><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Membership Terms</a><a href="#">IP Policy</a><a href="#">Cookie Settings</a><a href="#">Accessibility</a><a href="#">California Transparency Act</a><span>© Peloton 2012-2026, Peloton Interactive, Inc. All rights reserved.</span></nav>
+    </div>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        }).catch(function () {});
+      })();
+    </script>
+    <script>
+      (function () {
+        const newPlan = document.getElementById('newPlan');
+        const currentPlan = document.getElementById('currentPlan');
+        const toggle = document.querySelectorAll('.toggle button');
+        const cards = document.querySelectorAll('.card');
+        const sync = () => {
+          const annual = newPlan.value === 'ULTRA-36';
+          toggle.forEach((b) => b.classList.toggle('on', (b.dataset.billing === 'annual') === annual));
+          cards.forEach((c) => c.classList.toggle('on', c.dataset.plan === 'PLUS-24'));
+        };
+        toggle.forEach((b) => b.addEventListener('click', () => { newPlan.value = b.dataset.billing === 'annual' ? 'ULTRA-36' : 'PLUS-24'; sync(); }));
+        cards.forEach((c) => c.addEventListener('click', () => { if (c.dataset.plan === 'BASIC-12') currentPlan.value = 'BASIC-12'; sync(); }));
+        newPlan.addEventListener('change', sync);
+      })();
+      document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const show = (cls, title, detail) => {
+          result.className = 'result-box ' + cls;
+          result.textContent = '';
+          const t = document.createElement('div');
+          t.className = 'error-title';
+          t.textContent = title;
+          const d = document.createElement('div');
+          d.className = 'error-detail';
+          d.textContent = detail;
+          result.append(t, d);
+        };
+        btn.disabled = true;
+        btn.textContent = 'Updating your membership\u2026';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              accountId: 'CUST-3001',
+              currentPlanCode: document.getElementById('currentPlan').value,
+              targetPlanCode: document.getElementById('newPlan').value,
+              billingDay: 15,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            show('error', 'We couldn\u2019t update your membership', data.errorClass + ': ' + data.error);
+          } else {
+            const label = document.getElementById('newPlan').selectedOptions[0].textContent;
+            show('success', 'You\u2019re now on Peloton App+', label + ' is active on your account. A receipt has been sent to your email.');
+          }
+        } catch (err) {
+          show('error', 'Network error', err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Upgrade to App+';
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
