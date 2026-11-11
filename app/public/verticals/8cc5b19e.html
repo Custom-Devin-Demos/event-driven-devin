@@ -193,7 +193,8 @@
       const opt = (s) => s.options[s.selectedIndex];
       const secs = (ms) => `${(ms / 1000).toFixed(1).replace('.', ',')} s`;
       const amount = () => { const raw = amountInput.value.trim(); return /^\d+(\.\d{1,2})?$/.test(raw) ? parseFloat(raw) : NaN; };
-      const feeFor = (a) => Math.max(a * 0.001, 2.5);
+      const feeFor = (a) => Math.round(Math.max(a * 0.001, 2.5) * 100) / 100;
+      const cents = (v) => Math.round(v * 100);
       function render() {
         Object.keys(balances).forEach((k) => { const el = $(`bal-${k}`); if (el) el.textContent = nok.format(balances[k]); });
         $('fromBal').textContent = `Disponibelt: ${nok.format(balances[fromAccount.value])}`;
@@ -223,7 +224,7 @@
         const a = amount();
         if (fromAccount.value === toAccount.value) { show('notice', 'Velg en annen konto', 'Fra- og tilkonto kan ikke være den samme.'); toAccount.focus(); return; }
         if (!Number.isFinite(a) || a < 1) { show('notice', 'Sjekk beløpet', 'Skriv inn et beløp på minst 1 kr, med inntil to desimaler.'); amountInput.focus(); return; }
-        if (a + feeFor(a) > balances[fromAccount.value]) { show('notice', 'Ikke nok disponibelt', `Beløp og gebyr er mer enn disponibelt på ${opt(fromAccount).dataset.name}.`); amountInput.focus(); return; }
+        if (cents(a) + cents(feeFor(a)) > cents(balances[fromAccount.value])) { show('notice', 'Ikke nok disponibelt', `Beløp og gebyr er mer enn disponibelt på ${opt(fromAccount).dataset.name}.`); amountInput.focus(); return; }
         const from = fromAccount.value; const to = toAccount.value; const toName = opt(toAccount).dataset.name;
         pending = true; [btn, resetBtn, fromAccount, toAccount, amountInput].forEach((el) => { el.disabled = true; });
         btn.textContent = 'Overfører\u2026'; result.className = 'result-box'; result.textContent = '';
