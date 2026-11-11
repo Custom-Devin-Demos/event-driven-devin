@@ -47,6 +47,7 @@ const { runWithAlertDestination } = require('../services/alert-destination');
 const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
+const { searchSessions, bookSeat, changeCapacity } = require('../services/oncall-verticals/assessmentscheduling');
 const { generateReport } = require('../services/oncall-verticals/devicereports');
 const { refreshRefillQueue, REFILLS } = require('../services/oncall-verticals/refillqueue');
 const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
@@ -1316,6 +1317,57 @@ router.post('/api/oncall/examscheduling/appointments', async (req, res) => {
       code: error.code || 'BOOKING_FAILED',
       requestId: req.requestId,
     });
+  }
+});
+
+const ASSESSMENT_SCHEDULING_STATUS = {
+  INVALID_REQUEST: 400,
+  CENTRE_NOT_FOUND: 404,
+  SESSION_NOT_FOUND: 404,
+  SESSION_NOT_OPEN: 409,
+  DUPLICATE_BOOKING: 409,
+  NO_ACCOMMODATION_SEAT: 409,
+  CAPACITY_BELOW_COMMITTED: 409,
+};
+
+function sendAssessmentSchedulingError(req, res, error, fallbackCode) {
+  const status = ASSESSMENT_SCHEDULING_STATUS[error.code] || 500;
+  res.status(status).json({
+    success: false,
+    error: status === 500 ? 'scheduling-service could not process the request.' : error.message,
+    code: status === 500 ? fallbackCode : error.code,
+    requestId: req.requestId,
+  });
+}
+
+/**
+ * Northwind scheduling-service replica: session search, seat booking and
+ * session capacity changes for centre administrators.
+ */
+router.post('/api/oncall/assessmentscheduling/sessions/search', (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(searchSessions({ centerCode: body.centerCode, examCode: body.examCode, from: body.from, to: body.to }));
+  } catch (error) {
+    sendAssessmentSchedulingError(req, res, error, 'SEARCH_FAILED');
+  }
+});
+
+router.post('/api/oncall/assessmentscheduling/bookings', (req, res) => {
+  const body = req.body || {};
+  try {
+    res.status(201).json(bookSeat({ sessionId: body.sessionId, candidateNumber: body.candidateNumber, accommodationCode: body.accommodationCode }));
+  } catch (error) {
+    sendAssessmentSchedulingError(req, res, error, 'BOOKING_FAILED');
+  }
+});
+
+router.post('/api/oncall/assessmentscheduling/sessions/capacity', (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(changeCapacity({ sessionId: body.sessionId, capacity: body.capacity, reason: body.reason }));
+  } catch (error) {
+    sendAssessmentSchedulingError(req, res, error, 'CAPACITY_CHANGE_FAILED');
   }
 });
 

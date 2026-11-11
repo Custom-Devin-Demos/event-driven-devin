@@ -506,3 +506,37 @@ describe('B3 On-Call skin (fixed On-Call member, Slack only)', () => {
     expect(text).not.toContain(skin.onCallSlackMemberId);
   });
 });
+
+describe('per-skin repository override for auto sessions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSkinAlertMemory();
+  });
+
+  test('scopes the session to the override repo and links it on the alert card', async () => {
+    const skin = getOncallSkin('11a84bb4');
+    const result = await postOncallAlert(skin.vertical, { skin });
+
+    expect(result.ok).toBe(true);
+    const [prompt, options] = createDevinSession.mock.calls[0];
+    expect(options.repos).toEqual(['COG-GTM/SampleMvcWebApp']);
+    expect(prompt).toContain('https://github.com/COG-GTM/SampleMvcWebApp/tree/assessment-delivery-demo');
+    expect(prompt).not.toContain('https://github.com/COG-GTM/event-driven-devin');
+
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    expect(text).toContain('Repo: https://github.com/COG-GTM/SampleMvcWebApp/tree/assessment-delivery-demo');
+    expect(JSON.stringify(blocks)).toContain('Repo: https://github.com/COG-GTM/SampleMvcWebApp/tree/assessment-delivery-demo');
+    expect(JSON.stringify(blocks)).not.toContain('event-driven-devin');
+  });
+
+  test('skins without the override keep the default repo and pass no repos', async () => {
+    const skin = getOncallSkin(AUTO_SKIN_SLUG);
+    await postOncallAlert(skin.vertical, { skin });
+
+    const [prompt, options] = createDevinSession.mock.calls[0];
+    expect(options).not.toHaveProperty('repos');
+    expect(prompt).toContain('https://github.com/COG-GTM/event-driven-devin');
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain('Repo: https://github.com/COG-GTM/event-driven-devin');
+  });
+});
