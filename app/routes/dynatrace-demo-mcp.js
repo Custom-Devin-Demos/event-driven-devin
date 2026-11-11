@@ -177,7 +177,8 @@ function handleMessage(message, now) {
     return rpcError(message && message.id, -32600, 'Invalid Request');
   }
   const isNotification = message.id === undefined || message.id === null;
-  const { id, method, params = {} } = message;
+  const { id, method } = message;
+  const params = message.params || {};
 
   if (method === 'initialize') {
     const requested = params.protocolVersion;

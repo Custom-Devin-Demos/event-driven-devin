@@ -74,3 +74,12 @@ describe('Dynatrace demo stand-in MCP', () => {
     expect(get.status).toBe(405);
   });
 });
+
+describe('Dynatrace demo stand-in MCP params handling', () => {
+  test('null params get a JSON-RPC answer instead of a 500', async () => {
+    const init = await rpc({ jsonrpc: '2.0', id: 8, method: 'initialize', params: null });
+    expect(init.status).toBe(200);
+    const call = await (await rpc({ jsonrpc: '2.0', id: 9, method: 'tools/call', params: null })).json();
+    expect(call.error.code).toBe(-32602);
+  });
+});
