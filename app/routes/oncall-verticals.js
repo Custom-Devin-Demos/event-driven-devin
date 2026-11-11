@@ -48,7 +48,9 @@ const { runWithAlertDestination } = require('../services/alert-destination');
 const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
-const { searchSessions, bookSeat, changeCapacity } = require('../services/oncall-verticals/assessmentscheduling');
+const {
+  referenceData, searchSessions, getSession, getWaitlist, bookSeat, candidateBookings, changeCapacity,
+} = require('../services/oncall-verticals/assessmentscheduling');
 const { generateReport } = require('../services/oncall-verticals/devicereports');
 const { refreshRefillQueue, REFILLS } = require('../services/oncall-verticals/refillqueue');
 const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
@@ -1358,32 +1360,23 @@ function assessmentSchedulingBodyErrorHandler(err, req, res, next) {
  * Northwind scheduling-service replica: session search, seat booking and
  * session capacity changes for centre administrators.
  */
-router.post('/api/oncall/assessmentscheduling/sessions/search', (req, res) => {
-  const body = req.body || {};
-  try {
-    res.json(searchSessions({ centerCode: body.centerCode, examCode: body.examCode, from: body.from, to: body.to }));
-  } catch (error) {
-    sendAssessmentSchedulingError(req, res, error, 'SEARCH_FAILED');
-  }
-});
+function assessmentSchedulingRoute(path, handler, fallbackCode, status = 200) {
+  router.post(`/api/oncall/assessmentscheduling${path}`, (req, res) => {
+    try {
+      res.status(status).json(handler(req.body || {}));
+    } catch (error) {
+      sendAssessmentSchedulingError(req, res, error, fallbackCode);
+    }
+  });
+}
 
-router.post('/api/oncall/assessmentscheduling/bookings', (req, res) => {
-  const body = req.body || {};
-  try {
-    res.status(201).json(bookSeat({ sessionId: body.sessionId, candidateNumber: body.candidateNumber, accommodationCode: body.accommodationCode }));
-  } catch (error) {
-    sendAssessmentSchedulingError(req, res, error, 'BOOKING_FAILED');
-  }
-});
-
-router.post('/api/oncall/assessmentscheduling/sessions/capacity', (req, res) => {
-  const body = req.body || {};
-  try {
-    res.json(changeCapacity({ sessionId: body.sessionId, newCapacity: body.newCapacity, actor: body.actor, reason: body.reason }));
-  } catch (error) {
-    sendAssessmentSchedulingError(req, res, error, 'CAPACITY_CHANGE_FAILED');
-  }
-});
+assessmentSchedulingRoute('/reference', () => referenceData(), 'REFERENCE_FAILED');
+assessmentSchedulingRoute('/sessions/search', (b) => searchSessions({ centerCode: b.centerCode, examCode: b.examCode, from: b.from, to: b.to }), 'SEARCH_FAILED');
+assessmentSchedulingRoute('/sessions/detail', (b) => getSession({ sessionId: b.sessionId }), 'SESSION_FAILED');
+assessmentSchedulingRoute('/sessions/waitlist', (b) => getWaitlist({ sessionId: b.sessionId }), 'WAITLIST_FAILED');
+assessmentSchedulingRoute('/bookings', (b) => bookSeat({ sessionId: b.sessionId, candidateNumber: b.candidateNumber, accommodationCode: b.accommodationCode }), 'BOOKING_FAILED', 201);
+assessmentSchedulingRoute('/candidates/bookings', (b) => candidateBookings({ candidateNumber: b.candidateNumber }), 'BOOKINGS_FAILED');
+assessmentSchedulingRoute('/sessions/capacity', (b) => changeCapacity({ sessionId: b.sessionId, newCapacity: b.newCapacity, actor: b.actor }), 'CAPACITY_CHANGE_FAILED');
 
 router.post('/api/oncall/devicereports/reports', async (req, res) => {
   const body = req.body || {};
