@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Overføre | DNB Nettbank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --sea: #007272; --sea-dark: #14555A; --mint: #A5E1D2; --mint-soft: #E6F6F2; --ink: #333333; --muted: #6E6E6E; --line: #DCDCDC; --paper: #FFFFFF; --bg: #F8F8F8; --accent: var(--sea); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.5; color: var(--ink); background: var(--bg); }
+    a { color: var(--sea); }
+    .hdr { height: 72px; background: var(--paper); border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 24px; }
+    .hdr .l, .hdr .r { display: flex; align-items: center; gap: 8px; }
+    .hdr .r { justify-content: flex-end; }
+    .ib { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 0; background: none; color: var(--sea); font: 500 16px "Figtree", Arial, sans-serif; border-radius: 8px; }
+    .mark { display: flex; align-items: center; min-height: 44px; gap: 10px; color: var(--sea-dark); text-decoration: none; font-weight: 700; font-size: 26px; letter-spacing: .02em; }
+    .user { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 15px; }
+    .user i { width: 36px; height: 36px; border-radius: 50%; background: var(--mint); color: var(--sea-dark); font-style: normal; font-weight: 600; display: grid; place-items: center; font-size: 14px; }
+    .subnav { background: var(--sea-dark); color: #fff; }
+    .subnav ul { list-style: none; margin: 0 auto; padding: 0 24px; max-width: 1180px; display: flex; gap: 4px; overflow-x: auto; }
+    .subnav a { display: block; padding: 14px 14px 12px; color: #fff; text-decoration: none; font-weight: 500; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .subnav a[aria-current] { border-color: var(--mint); }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+    .crumbs { font-size: 14px; color: var(--muted); margin: 0 0 6px; }
+    h1 { font-size: 32px; font-weight: 700; line-height: 1.2; margin: 0 0 24px; color: var(--ink); }
+    .seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 24px; }
+    .seg a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 999px; text-decoration: none; color: var(--ink); font-weight: 500; font-size: 15px; }
+    .seg a[aria-current] { background: var(--sea); color: #fff; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+    .card { background: var(--paper); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 28px; }
+    .card + .card { margin-top: 20px; }
+    h2 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+    .sub { color: var(--muted); font-size: 15px; margin: 0 0 22px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 48px; border: 1px solid #8E8E8E; border-radius: 8px; background: #fff; padding: 0 14px; font: 400 16px "Figtree", Arial, sans-serif; color: var(--ink); }
+    .field small { display: block; color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .amt { position: relative; }
+    .amt input { padding-right: 52px; font-variant-numeric: tabular-nums; }
+    .amt span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .btn { min-height: 48px; padding: 0 28px; border-radius: 999px; border: 2px solid var(--sea); background: var(--sea); color: #fff; font: 600 16px "Figtree", Arial, sans-serif; cursor: pointer; }
+    .btn.sec { background: #fff; color: var(--sea); }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 18px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .sw-label { font-size: 14px; color: var(--muted); }
+    .sw-value { font-size: 26px; font-weight: 600; color: var(--sea-dark); }
+    .stopwatch.done .sw-value { color: #B71C1C; }
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 8px; font-size: 15px; }
+    .result-box b { display: block; margin-bottom: 2px; }
+    .result-box.success { display: block; background: var(--mint-soft); border-left: 4px solid var(--sea); }
+    .result-box.notice { display: block; background: #FDECEA; border-left: 4px solid #B71C1C; }
+    .acct { display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .acct:last-child { border-bottom: 0; }
+    .acct span { display: block; font-size: 14px; color: var(--muted); }
+    .acct b { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sum dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 10px; font-size: 15px; }
+    .sum dt { color: var(--muted); } .sum dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .sum .tot { border-top: 1px solid var(--line); padding-top: 10px; }
+    .promo { padding: 0; overflow: hidden; }
+    .promo img { display: block; width: 100%; height: 180px; object-fit: cover; }
+    .promo .alt { display: none; height: 180px; background: var(--sea-dark); }
+    .promo.fallback img { display: none; } .promo.fallback .alt { display: block; }
+    .promo div.txt { padding: 18px 22px 22px; }
+    .promo b { display: block; font-size: 17px; margin-bottom: 4px; }
+    .promo p { margin: 0 0 10px; color: var(--muted); font-size: 15px; }
+    .promo .txt a { display: inline-flex; align-items: center; min-height: 44px; }
+    footer { background: var(--sea-dark); color: #fff; }
+    footer .in { max-width: 1180px; margin: 0 auto; padding: 32px 24px; display: flex; flex-wrap: wrap; gap: 12px 28px; font-size: 15px; }
+    footer a { color: #fff; display: inline-flex; align-items: center; min-height: 44px; }
+    @media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 600px) {
+      .hdr { padding: 0 8px; } .hdr .ib span, .user span { display: none; } .mark { font-size: 22px; }
+      .subnav ul { padding: 0 12px; }
+      .wrap { padding: 22px 14px 44px; } h1 { font-size: 26px; margin-bottom: 18px; }
+      .card { padding: 20px 16px; } .two { grid-template-columns: 1fr; }
+      .seg { display: flex; } .seg a { flex: 1; justify-content: center; padding: 0 10px; }
+      .actions .btn { flex: 1 1 100%; }
+      footer .in { padding: 24px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <div class="l"><button type="button" class="ib" aria-label="Meny"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Meny</span></button></div>
+    <a class="mark" href="#" aria-label="DNB Nettbank">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="2" width="26" height="26" rx="13" fill="#007272"/><path d="M10 9h5.2c3.5 0 5.8 2.4 5.8 6s-2.3 6-5.8 6H10z" fill="none" stroke="#fff" stroke-width="2.6"/></svg>
+      DNB
+    </a>
+    <div class="r"><span class="user"><span>Ingrid Solberg</span><i aria-hidden="true">IS</i></span><button type="button" class="ib"><span>Logg ut</span><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h4M12 6l4 4-4 4M16 10H8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  </header>
+  <nav class="subnav" aria-label="Nettbank"><ul><li><a href="#">Oversikt</a></li><li><a href="#" aria-current="page">Betale og overføre</a></li><li><a href="#">Kontoer</a></li><li><a href="#">Kort</a></li><li><a href="#">Sparing</a></li><li><a href="#">Lån</a></li></ul></nav>
+  <main class="wrap">
+    <p class="crumbs">Betale og overføre</p>
+    <h1>Overføre</h1>
+    <nav class="seg" aria-label="Velg type"><a href="#">Betale</a><a href="#" aria-current="page">Overføre</a><a href="#">Forfall</a></nav>
+    <div class="grid">
+      <section class="card" aria-labelledby="formHead">
+        <h2 id="formHead">Overføre mellom egne kontoer</h2>
+        <p class="sub">Overføringer mellom egne kontoer i DNB er tilgjengelige med en gang.</p>
+        <form id="transferForm" novalidate aria-labelledby="formHead">
+          <div class="field">
+            <label for="fromAccount">Fra konto</label>
+            <select id="fromAccount">
+              <option value="DNB-12065473218" data-name="Brukskonto" data-balance="48215.40" selected>Brukskonto · 1206.54.73218</option>
+              <option value="DNB-12065588104" data-name="Sparekonto" data-balance="126480.00">Sparekonto · 1206.55.88104</option>
+            </select>
+            <small id="fromBal">&nbsp;</small>
+          </div>
+          <div class="field">
+            <label for="toAccount">Til konto</label>
+            <select id="toAccount">
+              <option value="DNB-12065588104" data-name="Sparekonto" selected>Sparekonto · 1206.55.88104</option>
+              <option value="DNB-12067731459" data-name="Superspar">Superspar · 1206.77.31459</option>
+              <option value="DNB-12069920376" data-name="BSU">BSU · 1206.99.20376</option>
+              <option value="DNB-12065473218" data-name="Brukskonto">Brukskonto · 1206.54.73218</option>
+            </select>
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="amount">Beløp</label>
+              <div class="amt"><input type="number" id="amount" value="2500" min="1" step="0.01" inputmode="decimal" aria-describedby="amtHelp"><span aria-hidden="true">kr</span></div>
+              <small id="amtHelp">Minst 1 kr</small>
+            </div>
+            <div class="field">
+              <label for="txDate">Dato</label>
+              <select id="txDate"><option selected>I dag</option></select>
+            </div>
+          </div>
+          <input type="hidden" id="accountTier" value="standard">
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn">Overfør</button>
+            <button type="reset" id="resetBtn" class="btn sec">Avbryt</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Tid til bekreftelse</span><span class="sw-value" id="sendTimerValue">0,0 s</span></div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <div>
+        <section class="card sum" aria-labelledby="sumHead">
+          <h2 id="sumHead">Oppsummering</h2>
+          <p class="sub">Kontroller før du overfører.</p>
+          <dl>
+            <dt>Fra</dt><dd id="sFrom">&mdash;</dd>
+            <dt>Til</dt><dd id="sTo">&mdash;</dd>
+            <dt>Beløp</dt><dd id="sAmt">&mdash;</dd>
+            <dt>Gebyr</dt><dd id="sFee">&mdash;</dd>
+            <dt class="tot">Belastes kontoen</dt><dd class="tot" id="sTot">&mdash;</dd>
+          </dl>
+        </section>
+        <section class="card" aria-labelledby="accHead">
+          <h2 id="accHead">Dine kontoer</h2>
+          <div class="acct"><div>Brukskonto<span>1206.54.73218</span></div><b id="bal-DNB-12065473218"></b></div>
+          <div class="acct"><div>Sparekonto<span>1206.55.88104</span></div><b id="bal-DNB-12065588104"></b></div>
+        </section>
+        <section class="card promo" id="promo">
+          <img src="https://media.web.dnb.no/is/image/dnbbank/11121043:Square-1?fit=constrain%2C1&amp;wid=800&amp;qlt=70" alt="" loading="lazy" onerror="document.getElementById('promo').className='card promo fallback'">
+          <div class="alt" aria-hidden="true"></div>
+          <div class="txt"><b>Finn ditt kundeprogram</b><p>Se fordelene du får med DNB Pluss og Sammen.</p><a href="#">Les mer</a></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer><div class="in"><span>DNB Bank ASA</span><a href="#">Kontakt</a><a href="#">Personvern</a><a href="#">Informasjonskapsler</a><a href="#">Sikkerhet</a><span>Eksempeldata.</span></div></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const fromAccount = $('fromAccount'); const toAccount = $('toAccount');
+      const amountInput = $('amount'); const accountTier = $('accountTier'); const btn = $('submitBtn'); const resetBtn = $('resetBtn');
+      const result = $('result'); const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const nok = new Intl.NumberFormat('nb-NO', { style: 'currency', currency: 'NOK' });
+      const balances = {};
+      [...fromAccount.options].forEach((o) => { balances[o.value] = Number(o.dataset.balance); });
+      let pending = false; let ticker = null;
+      const opt = (s) => s.options[s.selectedIndex];
+      const secs = (ms) => `${(ms / 1000).toFixed(1).replace('.', ',')} s`;
+      const amount = () => { const raw = amountInput.value.trim(); return /^\d+(\.\d{1,2})?$/.test(raw) ? parseFloat(raw) : NaN; };
+      const feeFor = (a) => Math.round(Math.max(a * 0.001, 2.5) * 100) / 100;
+      const cents = (v) => Math.round(v * 100);
+      function render() {
+        Object.keys(balances).forEach((k) => { const el = $(`bal-${k}`); if (el) el.textContent = nok.format(balances[k]); });
+        $('fromBal').textContent = `Disponibelt: ${nok.format(balances[fromAccount.value])}`;
+        $('sFrom').textContent = opt(fromAccount).dataset.name; $('sTo').textContent = opt(toAccount).dataset.name;
+        const a = amount(); const ok = Number.isFinite(a) && a >= 1;
+        $('sAmt').textContent = ok ? nok.format(a) : '\u2014';
+        $('sFee').textContent = ok ? nok.format(feeFor(a)) : '\u2014';
+        $('sTot').textContent = ok ? nok.format(a + feeFor(a)) : '\u2014';
+      }
+      function show(kind, title, body) {
+        result.className = `result-box ${kind}`; result.textContent = '';
+        const b = document.createElement('b'); b.textContent = title; result.appendChild(b); result.appendChild(document.createTextNode(body));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function clearStale() { if (pending) return; result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = secs(0); }
+      form.addEventListener('input', () => { clearStale(); render(); });
+      form.addEventListener('change', () => { clearStale(); render(); });
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { accountTier.value = 'standard'; clearStale(); render(); });
+      });
+      render();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        const a = amount();
+        if (fromAccount.value === toAccount.value) { show('notice', 'Velg en annen konto', 'Fra- og tilkonto kan ikke være den samme.'); toAccount.focus(); return; }
+        if (!Number.isFinite(a) || a < 1) { show('notice', 'Sjekk beløpet', 'Skriv inn et beløp på minst 1 kr, med inntil to desimaler.'); amountInput.focus(); return; }
+        if (cents(a) + cents(feeFor(a)) > cents(balances[fromAccount.value])) { show('notice', 'Ikke nok disponibelt', `Beløp og gebyr er mer enn disponibelt på ${opt(fromAccount).dataset.name}.`); amountInput.focus(); return; }
+        const from = fromAccount.value; const to = toAccount.value; const toName = opt(toAccount).dataset.name;
+        pending = true; [btn, resetBtn, fromAccount, toAccount, amountInput].forEach((el) => { el.disabled = true; });
+        btn.textContent = 'Overfører\u2026'; result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = secs(performance.now() - started); };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        let response = null;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          tick(); stopTimer(true);
+          if (!response.ok || !data.success) throw new Error('not sent');
+          const debited = Number(data.debitAmount || (data.receipt && data.receipt.totalDebit)) || a + feeFor(a);
+          const ref = String(data.transferId || '').slice(-8).toUpperCase();
+          if (data.duplicate) {
+            show('success', 'Overføringen er allerede utført', `${nok.format(a)} til ${toName} er allerede overført. Vi har ikke overført beløpet to ganger.${ref ? ' Referanse ' + ref + '.' : ''}`);
+            return;
+          }
+          balances[from] -= debited; if (Object.prototype.hasOwnProperty.call(balances, to)) balances[to] += a;
+          render();
+          show('success', 'Overføringen er utført', `${nok.format(a)} er overført til ${toName}. Belastet ${nok.format(debited)}.${ref ? ' Referanse ' + ref + '.' : ''}`);
+        } catch (_err) {
+          stopTimer(true);
+          if (response) show('notice', 'Overføringen ble ikke utført', 'Vi kunne ikke gjennomføre overføringen akkurat nå. Ingen penger er trukket fra kontoen. Prøv igjen om litt, eller kontakt DNB.');
+          else show('notice', 'Overføringen ble ikke utført', 'Vi fikk ikke kontakt med DNB. Sjekk internettforbindelsen og prøv igjen.');
+        } finally {
+          pending = false; [btn, resetBtn, fromAccount, toAccount, amountInput].forEach((el) => { el.disabled = false; });
+          btn.textContent = 'Overfør';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
