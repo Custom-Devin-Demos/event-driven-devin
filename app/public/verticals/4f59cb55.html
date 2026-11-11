@@ -256,7 +256,7 @@
         <dt class="total">Total</dt><dd class="total" id="sumTotal">&mdash;</dd>
       </dl>
       <button type="submit" class="btn" id="submitBtn">Place order</button>
-      <button type="reset" class="btn ghost" id="cancelBtn">Return to bag</button>
+      <button type="reset" class="btn ghost" id="cancelBtn">Start over</button>
       <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to place order</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
       <p class="status" id="paymentStatus">Sample bag and payment methods. No real payment is made.</p>
       <div id="result" class="result-box" role="status" aria-live="polite"></div>
@@ -448,10 +448,12 @@
             status.textContent = IDLE_STATUS;
             return;
           }
-          const charged = paid + ship;
+          const debit = Math.round(Number(data.debitAmount || data.receipt.totalDebit || data.receipt.amount) * 100);
+          const fee = Math.max(0, debit - paid);
+          const charged = debit + ship;
           balances[fromId] = Math.round((balances[fromId] || 0) * 100 - charged) / 100;
           result.className = 'result-box success';
-          result.textContent = `Thank you, Olivia. Order ${data.receipt.receiptId} was placed at ${at}: ${money.format(charged / 100)} charged to ${fromName} (bag ${money.format(paid / 100)}, delivery ${ship ? money.format(ship / 100) : 'free'}). ${toName}.${giftNote}`;
+          result.textContent = `Thank you, Olivia. Order ${data.receipt.receiptId} was placed at ${at}: ${money.format(charged / 100)} charged to ${fromName} (bag ${money.format(paid / 100)}, delivery ${ship ? money.format(ship / 100) : 'free'}${fee ? `, payment processing ${money.format(fee / 100)}` : ''}). ${toName}.${giftNote}`;
           status.textContent = 'We\u2019ve emailed your order confirmation.';
         } catch (_error) {
           stopTimer(true);
