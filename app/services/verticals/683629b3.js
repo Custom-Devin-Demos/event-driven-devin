@@ -3,7 +3,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const {
-  postMessage, findChannelByName, buildAlertBlocks, buildAlertText, resolveOnCallMember,
+  postMessage, findChannelByName, joinChannel, buildAlertBlocks, buildAlertText, resolveOnCallMember,
 } = require('../slack');
 const { getCustomerConfig } = require('../../../config/customers');
 const { PRODUCTS, MEMORY_OPTIONS, STORAGE_OPTIONS, DEMO_ACCOUNT } = require('./683629b3-catalog');
@@ -64,6 +64,25 @@ const FULFILLMENT_REGION = 'na';
  */
 function laneCodeFor(_item) {
   return `cto-${FULFILLMENT_REGION}-v2`;
+}
+
+/**
+ * The on-call bot (SRE Bot, SLACK_ONCALL_BOT_TOKEN) is the one that lives in
+ * #dell-oncall; the legacy SLACK_BOT_TOKEN only as a fallback.
+ */
+function slackToken(env = process.env) {
+  return env.SLACK_ONCALL_BOT_TOKEN || env.SLACK_BOT_TOKEN || '';
+}
+
+/** Post once; if the bot is not yet in the (public) channel, join and retry once. */
+async function postJoining(token, channel, text, blocks) {
+  try {
+    return await postMessage(token, channel, text, blocks);
+  } catch (error) {
+    if (!/not_in_channel/.test(error.message || '')) throw error;
+    await joinChannel(token, channel);
+    return postMessage(token, channel, text, blocks);
+  }
 }
 
 function validationError(message, code = 'INVALID_CART') {
@@ -218,7 +237,7 @@ function raiseIncident(error, quote, requestId) {
  * line: the channel's responder decides whether to investigate.
  */
 async function postAlertCard(alertData, requestId) {
-  const token = process.env.SLACK_BOT_TOKEN;
+  const token = slackToken();
   const channel = alertData.customerConfig.slackChannelId;
   if (!token || !channel) {
     logger.warn('Slack not configured \u2014 skipping Dell.com checkout alert post', { requestId });
@@ -230,7 +249,7 @@ async function postAlertCard(alertData, requestId) {
     ...buildAlertBlocks(alertData, { includeDevinOnCall: false }),
     { type: 'context', elements: [{ type: 'mrkdwn', text: RESPONDER_NOTES }] },
   ];
-  const ts = await postMessage(token, channel, text, blocks);
+  const ts = await postJoining(token, channel, text, blocks);
   logger.info('Dell.com checkout alert posted', { channel, ts, requestId });
   return { ok: true, channel, ts };
 }
@@ -303,7 +322,7 @@ function resetFeedbackState() {
 }
 
 function feedbackMode(env = process.env) {
-  return env.SLACK_BOT_TOKEN ? 'live' : 'dry-run';
+  return slackToken(env) ? 'live' : 'dry-run';
 }
 
 function reserveFeedbackSlot(now = Date.now()) {
@@ -354,9 +373,9 @@ async function submitFeedback(input) {
   if (typeof page !== 'string' || page.length > 200 || !/^\/[a-zA-Z0-9/_-]*$/.test(page)) {
     throw feedbackError('Report the bug from a valid page in this demo.');
   }
-  const token = process.env.SLACK_BOT_TOKEN;
+  const token = slackToken();
   if (!token) {
-    logger.warn('Dell.com bug report not sent \u2014 SLACK_BOT_TOKEN not configured', { route: FEEDBACK_ROUTE });
+    logger.warn('Dell.com bug report not sent \u2014 no Slack bot token configured', { route: FEEDBACK_ROUTE });
     return { status: 'dry-run', channel: FEEDBACK_CHANNEL.label };
   }
   if (!reserveFeedbackSlot()) {
@@ -377,7 +396,7 @@ async function submitFeedback(input) {
   ];
   try {
     // Fallback text is fixed: reporter text only ever travels in plain_text blocks.
-    const ts = await postMessage(token, channel, 'Dell.com demo \u2014 new bug report', blocks);
+    const ts = await postJoining(token, channel, 'Dell.com demo \u2014 new bug report', blocks);
     logger.info('Dell.com bug report posted', { channel, ts, route: FEEDBACK_ROUTE });
   } catch (error) {
     logger.error('Dell.com bug report failed', { error: error.message, route: FEEDBACK_ROUTE });

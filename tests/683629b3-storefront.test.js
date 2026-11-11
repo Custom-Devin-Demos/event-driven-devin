@@ -2,6 +2,7 @@
 jest.mock('../app/services/slack', () => ({
   postMessage: jest.fn(() => Promise.resolve('1730000000.000100')),
   findChannelByName: jest.fn(() => Promise.resolve({ id: 'C0FEEDBACK1', name: 'dell-com-feedback' })),
+  joinChannel: jest.fn(() => Promise.resolve()),
   buildAlertBlocks: jest.fn(() => [{ type: 'header', text: { type: 'plain_text', text: 'alert' } }]),
   buildAlertText: jest.fn((alertData) => `:rotating_light: ${alertData.issueTitle}`),
   resolveOnCallMember: jest.fn(() => Promise.resolve()),
@@ -22,7 +23,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const {
-  postMessage, findChannelByName, buildAlertBlocks, resolveOnCallMember,
+  postMessage, findChannelByName, joinChannel, buildAlertBlocks, resolveOnCallMember,
 } = require('../app/services/slack');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { Sentry } = require('../app/telemetry/sentry');
@@ -99,6 +100,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   postMessage.mockImplementation(() => Promise.resolve('1730000000.000100'));
   delete process.env.SLACK_BOT_TOKEN;
+  delete process.env.SLACK_ONCALL_BOT_TOKEN;
   delete process.env[FEEDBACK_CHANNEL.envVar];
   service.resetIncidentWindow();
   service.resetFeedbackState();
@@ -280,6 +282,17 @@ describe('683629b3 Dell.com storefront — Place order on-call trigger', () => {
     expect(isInstantPathEvent({ issueTitle: alert.issueTitle, culprit: alert.culprit, tags: [] })).toBe(true);
   });
 
+  test('the on-call bot token is preferred and a not_in_channel reply joins #dell-oncall and retries once', async () => {
+    process.env.SLACK_BOT_TOKEN = 'xoxb-legacy';
+    process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-sre-bot';
+    postMessage.mockImplementationOnce(() => Promise.reject(new Error('Slack API error: not_in_channel')));
+    const caught = await failOnce();
+    expect(await caught.alertPromise).toMatchObject({ ok: true, channel: ONCALL_CHANNEL.id });
+    expect(joinChannel).toHaveBeenCalledWith('xoxb-sre-bot', ONCALL_CHANNEL.id);
+    expect(postMessage).toHaveBeenCalledTimes(2);
+    expect(postMessage.mock.calls[1][0]).toBe('xoxb-sre-bot');
+  });
+
   test('an undelivered card reopens the window so the next checkout pages again', async () => {
     process.env.SLACK_BOT_TOKEN = 'xoxb-test';
     postMessage.mockImplementationOnce(() => Promise.reject(new Error('Slack API error: channel_not_found')));
@@ -397,6 +410,17 @@ describe('683629b3 Dell.com storefront — Contact Us bug report', () => {
     expect(failed.body.error).toBe('Unable to confirm delivery. Check #dell-com-feedback before retrying.');
     expect(failed.body.error).not.toContain('channel_not_found');
     expect(postMessage).toHaveBeenCalledTimes(1);
+  });
+
+  test('a bug report joins #dell-com-feedback when the bot is not a member yet', async () => {
+    process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-sre-bot';
+    postMessage.mockImplementationOnce(() => Promise.reject(new Error('Slack API error: not_in_channel')));
+    const res = await request('POST', FEEDBACK_ROUTE, report);
+    expect(res.status).toBe(201);
+    expect(joinChannel).toHaveBeenCalledWith('xoxb-sre-bot', 'C0FEEDBACK1');
+    expect(postMessage).toHaveBeenCalledTimes(2);
+    const config = await request('GET', `${API_BASE}/config`);
+    expect(config.body.feedbackMode).toBe('live');
   });
 
   test('limits bug reports to five per minute per process', async () => {
