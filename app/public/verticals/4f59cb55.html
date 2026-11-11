@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Checkout | MECCA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent: #000000; --ink: #000000; --muted: #5E5E5E; --line: #E5E5E5; --soft: #F5F5F5; --tile: #F6F6F6; --ok: #1F6B3A; --warn: #A3261C; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Figtree, Helvetica, Arial, sans-serif; font-size: 15px; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button { font-family: inherit; }
+    :focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+    .announce { background: #000; color: #fff; text-align: center; font-size: 13px; padding: 9px 16px; }
+    .announce a { color: #fff; text-underline-offset: 2px; margin-left: 4px; }
+    .masthead { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 40px 6px; }
+    .util { display: flex; gap: 28px; font-size: 14px; }
+    .util a { text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    .wordmark { font-weight: 600; font-size: 30px; letter-spacing: .2em; margin-right: -.2em; text-decoration: none; line-height: 1; min-height: 44px; display: inline-flex; align-items: center; }
+    .icons { display: flex; justify-content: flex-end; gap: 4px; }
+    .icons a { width: 44px; height: 44px; display: inline-grid; place-items: center; position: relative; text-decoration: none; }
+    .icons svg { width: 20px; height: 20px; }
+    .icons .count { position: absolute; top: 6px; right: 4px; min-width: 16px; height: 16px; border-radius: 8px; background: #000; color: #fff; font-size: 10px; font-weight: 600; display: grid; place-items: center; padding: 0 4px; }
+    .search { display: flex; justify-content: center; padding: 4px 40px 10px; }
+    .search label { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 420px; height: 40px; padding: 0 16px; background: var(--soft); border-radius: 20px; color: var(--muted); font-size: 13px; }
+    .search input { border: 0; background: transparent; font: inherit; color: var(--ink); flex: 1; min-width: 0; height: 100%; }
+    .search input:focus { outline: none; }
+    .cats { display: flex; justify-content: center; gap: 30px; padding: 0 40px; border-bottom: 1px solid var(--line); font-size: 15px; overflow-x: auto; scrollbar-width: none; }
+    .cats::-webkit-scrollbar { display: none; }
+    .cats a { text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap; }
+    .crumbs { max-width: 1240px; margin: 0 auto; padding: 18px 24px 0; font-size: 13px; color: var(--muted); }
+    .crumbs a { color: var(--muted); }
+    .head { max-width: 1240px; margin: 0 auto; padding: 10px 24px 0; }
+    .head h1 { font-weight: 400; font-size: 36px; line-height: 1.15; margin: 0; }
+    .head p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+    main { max-width: 1240px; margin: 24px auto 0; padding: 0 24px; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; align-items: start; }
+    h2 { font-weight: 400; font-size: 22px; margin: 0 0 4px; }
+    .sub { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+    .panel { border-top: 1px solid #000; padding: 20px 0 8px; }
+    .panel + .panel { margin-top: 24px; }
+    .line { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .line[hidden] { display: none; }
+    .thumb { width: 96px; height: 96px; background: var(--tile); display: grid; place-items: center; overflow: hidden; font-size: 11px; color: var(--muted); text-align: center; padding: 4px; }
+    .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: multiply; }
+    .brand { margin: 0 0 2px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .line h3 { margin: 0 0 4px; font-size: 15px; font-weight: 400; }
+    .meta { margin: 0; font-size: 13px; color: var(--muted); }
+    .price { font-weight: 600; font-size: 14px; margin: 6px 0 0; }
+    .qty { display: inline-flex; align-items: center; border: 1px solid #000; height: 44px; }
+    .qty button { width: 40px; height: 42px; border: 0; background: #fff; font-size: 18px; cursor: pointer; }
+    .qty button:disabled { opacity: .3; cursor: not-allowed; }
+    .qty output { min-width: 28px; text-align: center; font-weight: 500; }
+    .gwp { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 18px; align-items: center; margin: 18px 0 6px; padding: 16px; background: var(--soft); }
+    .gwp .thumb { background: #fff; }
+    .tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; border: 1px solid #000; padding: 3px 6px; margin-bottom: 6px; }
+    .tag.gold { background: #D4B15A; border-color: #D4B15A; }
+    .bar { height: 4px; background: #DADADA; margin-top: 10px; }
+    .bar i { display: block; height: 100%; width: 0; background: #000; transition: width .2s; }
+    .gwp p { margin: 0; font-size: 14px; }
+    .gwp .meta { margin-top: 4px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; height: 48px; border: 1px solid #8A8A8A; border-radius: 0; padding: 0 14px; font: 400 15px Figtree, Helvetica, Arial, sans-serif; color: var(--ink); background: #fff; }
+    .field input[readonly] { background: var(--soft); font-weight: 600; }
+    .help { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .summary { position: sticky; top: 16px; background: var(--soft); padding: 26px; }
+    .summary dl { margin: 14px 0 18px; display: grid; grid-template-columns: 1fr auto; gap: 10px 0; font-size: 14px; }
+    .summary dt { padding-right: 12px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; font-weight: 500; }
+    .summary .total { border-top: 1px solid #000; padding-top: 12px; font-size: 17px; font-weight: 600; color: var(--ink); }
+    .btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; padding: 0 24px; border: 1px solid #000; border-radius: 0; background: #000; color: #fff; font: 500 15px Figtree, Helvetica, Arial, sans-serif; cursor: pointer; }
+    .btn:hover { background: #2B2B2B; }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn.ghost { background: #fff; color: #000; margin-top: 10px; }
+    .btn.ghost:hover { background: var(--soft); }
+    .loop { font-size: 13px; margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
+    .loop b { font-weight: 600; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 600; }
+    .stopwatch.done .sw-value { color: var(--warn); }
+    .status { font-size: 12px; color: var(--muted); margin: 10px 0 0; text-align: center; }
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; font-size: 14px; line-height: 1.45; }
+    .result-box.success { display: block; background: #fff; border-left: 3px solid var(--ok); }
+    .result-box.notice { display: block; background: #fff; border-left: 3px solid var(--warn); color: var(--warn); }
+    .ship { margin-top: 14px; font-size: 13px; display: grid; gap: 6px; }
+    .ship div { display: flex; justify-content: space-between; gap: 12px; }
+    .recs { max-width: 1240px; margin: 56px auto 0; padding: 0 24px; }
+    .recs h2 { font-size: 28px; margin-bottom: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 16px; }
+    .tile .pic { aspect-ratio: 1 / 1; background: var(--tile); display: grid; place-items: center; overflow: hidden; position: relative; font-size: 12px; color: var(--muted); text-align: center; }
+    .tile .pic img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+    .tile .pic .tag { position: absolute; top: 10px; left: 10px; margin: 0; background: #fff; }
+    .tile .pic .tag.gold { background: #D4B15A; }
+    .tile .brand { margin-top: 12px; }
+    .tile h3 { margin: 0; font-size: 15px; font-weight: 400; min-height: 40px; }
+    .tile .price { margin: 6px 0 4px; }
+    .stars { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .stars span { color: #000; letter-spacing: 1px; }
+    .tile .btn { min-height: 44px; font-size: 14px; }
+    footer { margin-top: 72px; border-top: 1px solid var(--line); padding: 40px 40px 28px; font-size: 14px; }
+    footer .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; max-width: 1240px; margin: 0 auto; }
+    footer h4 { margin: 0 0 10px; font-size: 15px; font-weight: 600; }
+    footer a { display: flex; align-items: center; min-height: 36px; text-decoration: none; color: #333; }
+    footer .legal { max-width: 1240px; margin: 28px auto 0; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; font-size: 12px; color: var(--muted); }
+    footer .legal .wm { font-weight: 600; letter-spacing: .2em; font-size: 16px; color: #000; }
+    @media (max-width: 1024px) { main { grid-template-columns: minmax(0, 1fr); } .summary { position: static; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cats { justify-content: flex-start; } }
+    @media (max-width: 720px) {
+      .masthead { grid-template-columns: auto 1fr; padding: 10px 12px 4px 16px; }
+      .util { display: none; }
+      .wordmark { font-size: 24px; }
+      .search, .cats { padding-left: 16px; padding-right: 16px; }
+      .cats { gap: 22px; }
+      .crumbs, .head, main, .recs { padding-left: 16px; padding-right: 16px; }
+      .head h1 { font-size: 28px; }
+      .summary { padding: 18px; }
+      .line { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; }
+      .line .thumb { width: 72px; height: 72px; }
+      .line .qty { grid-column: 2; justify-self: start; }
+      .gwp { grid-template-columns: 72px minmax(0, 1fr); }
+      .gwp .thumb { width: 72px; height: 72px; }
+      .row2 { grid-template-columns: 1fr; }
+      .recs h2 { font-size: 22px; }
+      footer { padding: 32px 16px 24px; }
+      footer .cols { grid-template-columns: 1fr 1fr; }
+      footer .legal { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="announce">Free shipping on orders $25 or over! <a href="#">Learn more</a></div>
+  <header>
+    <div class="masthead">
+      <nav class="util" aria-label="Services"><a href="#">Services &amp; Events</a><a href="#">MECCA Memo</a><a href="#">Stores</a></nav>
+      <a class="wordmark" href="#" aria-label="MECCA home">MECCA</a>
+      <div class="icons">
+        <a href="#" aria-label="Account"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="10" cy="6.5" r="3.8"/><path d="M2.8 18.2c.9-3.6 3.8-5.6 7.2-5.6s6.3 2 7.2 5.6"/></svg></a>
+        <a href="#" aria-label="Wishlist"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M10 17s-7-4.3-7-9.2A3.8 3.8 0 0 1 10 5.6a3.8 3.8 0 0 1 7 2.2C17 12.7 10 17 10 17z"/></svg></a>
+        <a href="#bagTitle" aria-label="Bag"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3.5 6.5h13l-1 11h-11z"/><path d="M7 6.5V5a3 3 0 0 1 6 0v1.5"/></svg><span class="count" id="bagCount">0</span></a>
+      </div>
+    </div>
+    <div class="search"><label><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg><input type="search" placeholder="Search 150+ global beauty brands" aria-label="Search"></label></div>
+    <nav class="cats" aria-label="Shop"><a href="#">Brands</a><a href="#">Gifts</a><a href="#">New</a><a href="#">Makeup</a><a href="#">Skincare</a><a href="#">Fragrance</a><a href="#">Haircare</a><a href="#">Body</a><a href="#">Wellness</a><a href="#">Men&rsquo;s</a><a href="#">Edits</a></nav>
+  </header>
+
+  <div class="crumbs"><a href="#">Bag</a> / Checkout</div>
+  <section class="head">
+    <h1>Checkout</h1>
+    <p>Signed in as Olivia &middot; Beauty Loop Red member</p>
+  </section>
+
+  <form id="transferForm" novalidate>
+  <main>
+    <div>
+      <section class="panel" aria-labelledby="bagTitle">
+        <h2 id="bagTitle">Your bag</h2>
+        <p class="sub" id="bagSub">&nbsp;</p>
+        <div id="lines">
+          <div class="line" data-sku="I-081591" data-price="80.00">
+            <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-081591-I-081591-M1-MECCACOSMETICA-ToSaveFaceSPF50PlusSuperscreen75mL-hUhmXH1eRC2KhTn6TiehCQ.webp?t=w768" onerror="this.replaceWith('Superscreen')"></div>
+            <div><p class="brand">MECCA COSMETICA</p><h3>TO SAVE FACE SPF50+ Superscreen</h3><p class="meta">75 mL &middot; Satin finish</p><p class="price">$80.00</p></div>
+            <div class="qty"><button type="button" data-step="-1" aria-label="Remove one TO SAVE FACE SPF50+ Superscreen">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one TO SAVE FACE SPF50+ Superscreen">+</button></div>
+          </div>
+          <div class="line" data-sku="I-075198" data-price="88.00">
+            <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-075198-I-075198-M1-Tatcha-DewySkinCream-tZsMEiWzTKuxoayV1kcCQ.webp?t=w768" onerror="this.replaceWith('Dewy Skin Cream')"></div>
+            <div><p class="brand">Tatcha</p><h3>The Dewy Skin Cream</h3><p class="meta">Refillable</p><p class="price">$88.00</p></div>
+            <div class="qty"><button type="button" data-step="-1" aria-label="Remove one The Dewy Skin Cream">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one The Dewy Skin Cream">+</button></div>
+          </div>
+          <div class="line" data-sku="I-079508" data-price="35.00">
+            <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-079508-I-079508-M1-rhode-PeptideLipTint-w8pHEfVeTXt2UaTM4d9g.webp?t=w768" onerror="this.replaceWith('Peptide Lip Tint')"></div>
+            <div><p class="brand">rhode</p><h3>Peptide Lip Tint Nourishing Glaze</h3><p class="meta">Shade: Ribbon</p><p class="price">$35.00</p></div>
+            <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Peptide Lip Tint Nourishing Glaze">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one Peptide Lip Tint Nourishing Glaze">+</button></div>
+          </div>
+          <div class="line" data-sku="I-087276" data-price="39.00" hidden>
+            <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-087276-I-087276-M1-SUMMERFRIDAYS-LipButterBalmSugarPlum-URToiEsvRPeqoFZKcGk4Tw.webp?t=w768" onerror="this.replaceWith('Lip Butter Balm')"></div>
+            <div><p class="brand">Summer Fridays</p><h3>Lip Butter Balm</h3><p class="meta">Shade: Sugar Plum</p><p class="price">$39.00</p></div>
+            <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Lip Butter Balm">&minus;</button><output>0</output><button type="button" data-step="1" aria-label="Add one Lip Butter Balm">+</button></div>
+          </div>
+          <div class="line" data-sku="I-069423" data-price="45.00" hidden>
+            <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-069423-I-069423-M1-Tower28-SOSDailyRescueFacialSpray-hMRJR8fT0eUuO3QQcF3lw.webp?t=w768" onerror="this.replaceWith('SOS Facial Spray')"></div>
+            <div><p class="brand">Tower 28</p><h3>SOS Daily Rescue Facial Spray</h3><p class="meta">Refillable</p><p class="price">$45.00</p></div>
+            <div class="qty"><button type="button" data-step="-1" aria-label="Remove one SOS Daily Rescue Facial Spray">&minus;</button><output>0</output><button type="button" data-step="1" aria-label="Add one SOS Daily Rescue Facial Spray">+</button></div>
+          </div>
+          <div class="line" data-sku="I-086228" data-price="41.00" hidden>
+            <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-086228-I-086228-M1-GLOWRECIPE-GlassBalmMiniCollection-0eLqek1CREqznVtcLoITLg.webp?t=w768" onerror="this.replaceWith('Glass Balm Minis')"></div>
+            <div><p class="brand">Glow Recipe</p><h3>Glass Balm Mini Collection</h3><p class="meta">Limited edition</p><p class="price">$41.00</p></div>
+            <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Glass Balm Mini Collection">&minus;</button><output>0</output><button type="button" data-step="1" aria-label="Add one Glass Balm Mini Collection">+</button></div>
+          </div>
+          <div class="line" data-sku="I-085962" data-price="113.00" hidden>
+            <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-085962-I-085962-M1-TATCHA-DewySkinToGo-rgohgCc5TmCU0L6BIYXZg.webp?t=w768" onerror="this.replaceWith('Dewy Skin To Go')"></div>
+            <div><p class="brand">Tatcha</p><h3>Dewy Skin To Go</h3><p class="meta">Value set &middot; valued at $161</p><p class="price">$113.00</p></div>
+            <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Dewy Skin To Go">&minus;</button><output>0</output><button type="button" data-step="1" aria-label="Add one Dewy Skin To Go">+</button></div>
+          </div>
+        </div>
+        <div class="gwp" aria-live="polite">
+          <div class="thumb"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-087032-I-087032-M1-MECCACOSMETICA-TheSummerSeeker-hKvEg3fRXKVmfnj5Zbstg.webp?t=w768" onerror="this.replaceWith('Gift')"></div>
+          <div>
+            <span class="tag gold">Gift with purchase</span>
+            <p id="gwpTitle">MECCA COSMETICA Summer Seeker minis</p>
+            <p class="meta" id="gwpMeta">&nbsp;</p>
+            <div class="bar" aria-hidden="true"><i id="gwpBar"></i></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="deliveryTitle">
+        <h2 id="deliveryTitle">Delivery and payment</h2>
+        <p class="sub">Orders placed before 2pm AEDT ship the same business day.</p>
+        <div class="row2">
+          <div class="field">
+            <label for="toAccount">Delivery method</label>
+            <select id="toAccount">
+              <option value="">Choose a delivery method</option>
+              <option value="STD-SYD-2021" data-name="Standard delivery" data-number="12 Oxford St, Paddington NSW 2021 &middot; 2&ndash;5 business days" data-eta="2&ndash;5 business days" selected>Standard delivery &middot; Paddington NSW</option>
+              <option value="EXP-SYD-2021" data-name="Express delivery" data-number="12 Oxford St, Paddington NSW 2021 &middot; 1&ndash;2 business days" data-eta="1&ndash;2 business days">Express delivery &middot; Paddington NSW</option>
+              <option value="CNC-MAX-SYD" data-name="Click &amp; Collect" data-number="MECCA Maxima Sydney, Pitt Street Mall &middot; ready in 2 hours" data-eta="Ready in 2 hours">Click &amp; Collect &middot; MECCA Maxima Sydney</option>
+            </select>
+            <div class="help" id="toHelp"></div>
+          </div>
+          <div class="field">
+            <label for="fromAccount">Payment</label>
+            <select id="fromAccount">
+              <option value="VISA-2208" data-name="Visa ending 2208" data-number="Credit card" data-balance="3000.00" selected>Visa ending 2208</option>
+              <option value="MGC-5531" data-name="MECCA Gift Card" data-number="Gift card" data-balance="150.00">MECCA Gift Card</option>
+              <option value="PAYPAL-OL" data-name="PayPal" data-number="olivia.t@example.com" data-balance="1500.00">PayPal</option>
+            </select>
+            <div class="help" id="fromHelp"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="amount">Bag subtotal (AUD)</label>
+          <input type="number" id="amount" inputmode="decimal" readonly aria-describedby="amountHelp">
+          <div class="help" id="amountHelp"></div>
+        </div>
+        <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard" selected>standard</option></select>
+      </section>
+    </div>
+
+    <aside class="summary" aria-labelledby="sumTitle">
+      <h2 id="sumTitle">Order summary</h2>
+      <dl>
+        <dt>Items</dt><dd id="sumItems">&mdash;</dd>
+        <dt>Subtotal</dt><dd id="sumAmount">&mdash;</dd>
+        <dt>Gift with purchase</dt><dd id="sumGift">&mdash;</dd>
+        <dt>Delivery</dt><dd id="sumShip">&mdash;</dd>
+        <dt>Payment</dt><dd id="sumFrom">&mdash;</dd>
+        <dt>Payment processing</dt><dd id="sumFee">&mdash;</dd>
+        <dt class="total">Total</dt><dd class="total" id="sumTotal">&mdash;</dd>
+      </dl>
+      <button type="submit" class="btn" id="submitBtn">Place order</button>
+      <button type="reset" class="btn ghost" id="cancelBtn">Start over</button>
+      <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to place order</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+      <p class="status" id="paymentStatus">Sample bag and payment methods. No real payment is made.</p>
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      <div class="ship"><div><span>Delivery</span><b id="sumEta">&mdash;</b></div><div><span>Returns</span><b>30 days, free</b></div></div>
+      <p class="loop">You&rsquo;ll earn <b id="loopPoints">0</b> Beauty Loop points with this order.</p>
+    </aside>
+  </main>
+  </form>
+
+  <section class="recs" aria-labelledby="recsTitle">
+    <h2 id="recsTitle">You might also like</h2>
+    <div class="grid">
+      <div class="tile">
+        <div class="pic"><span class="tag">Limited edition</span><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-087276-I-087276-M1-SUMMERFRIDAYS-LipButterBalmSugarPlum-URToiEsvRPeqoFZKcGk4Tw.webp?t=w768" onerror="this.replaceWith('Summer Fridays')"></div>
+        <p class="brand">Summer Fridays</p><h3>Lip Butter Balm</h3><p class="price">$39.00</p><div class="stars"><span>&#9733;&#9733;&#9733;&#9733;&#9733;</span> (3474)</div>
+        <button type="button" class="btn" data-add="I-087276">Add to bag</button>
+      </div>
+      <div class="tile">
+        <div class="pic"><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-069423-I-069423-M1-Tower28-SOSDailyRescueFacialSpray-hMRJR8fT0eUuO3QQcF3lw.webp?t=w768" onerror="this.replaceWith('Tower 28')"></div>
+        <p class="brand">Tower 28</p><h3>SOS Daily Rescue Facial Spray</h3><p class="price">$45.00</p><div class="stars"><span>&#9733;&#9733;&#9733;&#9733;&#9733;</span> (2018)</div>
+        <button type="button" class="btn" data-add="I-069423">Add to bag</button>
+      </div>
+      <div class="tile">
+        <div class="pic"><span class="tag">Limited edition</span><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-086228-I-086228-M1-GLOWRECIPE-GlassBalmMiniCollection-0eLqek1CREqznVtcLoITLg.webp?t=w768" onerror="this.replaceWith('Glow Recipe')"></div>
+        <p class="brand">Glow Recipe</p><h3>Glass Balm Mini Collection</h3><p class="price">$41.00</p><div class="stars"><span>&#9733;&#9733;&#9733;&#9733;&#9734;</span> (12)</div>
+        <button type="button" class="btn" data-add="I-086228">Add to bag</button>
+      </div>
+      <div class="tile">
+        <div class="pic"><span class="tag gold">Value set</span><img alt="" loading="lazy" src="https://contenthub-delivery.mecca.com/api/public/content/I-085962-I-085962-M1-TATCHA-DewySkinToGo-rgohgCc5TmCU0L6BIYXZg.webp?t=w768" onerror="this.replaceWith('Tatcha')"></div>
+        <p class="brand">Tatcha</p><h3>Dewy Skin To Go</h3><p class="price">$113.00</p><div class="stars"><span>&#9733;&#9733;&#9733;&#9733;&#9733;</span> (1)</div>
+        <button type="button" class="btn" data-add="I-085962">Add to bag</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="cols">
+      <div><h4>Customer Care</h4><a href="#">Help &amp; Contact Us</a><a href="#">Shipping &amp; Delivery</a><a href="#">Returns &amp; Exchanges</a><a href="#">Payment Options</a></div>
+      <div><h4>Services</h4><a href="#">Book a Beauty Service</a><a href="#">Click &amp; Collect</a><a href="#">Gift Cards</a><a href="#">Store Locator</a></div>
+      <div><h4>Beauty Loop</h4><a href="#">Join Beauty Loop</a><a href="#">Rewards</a><a href="#">Beauty Loop T&amp;Cs</a></div>
+      <div><h4>About</h4><a href="#">MECCA Memo</a><a href="#">Careers</a><a href="#">Sustainability</a><a href="#">Privacy</a></div>
+    </div>
+    <div class="legal"><span class="wm">MECCA</span><span>Demo page. Sample bag, addresses and payment methods; prices shown in AUD.</span></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const button = $('submitBtn'); const cancelBtn = $('cancelBtn');
+      const result = $('result'); const status = $('paymentStatus');
+      const fromAccount = $('fromAccount'); const toAccount = $('toAccount'); const amountInput = $('amount'); const accountTier = $('accountTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const lines = Array.from(document.querySelectorAll('.line'));
+      const addButtons = Array.from(document.querySelectorAll('[data-add]'));
+      const START_QTY = lines.map((l) => Number(l.querySelector('output').textContent));
+      const money = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
+      const timeFmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' });
+      const GWP_THRESHOLD_CENTS = 15000; const FREE_SHIP_CENTS = 2500; const MAX_QTY = 5;
+      const SHIPPING_CENTS = { 'STD-SYD-2021': 995, 'EXP-SYD-2021': 1495, 'CNC-MAX-SYD': 0 };
+      const IDLE_STATUS = 'Sample bag and payment methods. No real payment is made.';
+      const IDLE = 'Place order';
+      const START_BAL = {}; Array.from(fromAccount.options).forEach((o) => { START_BAL[o.value] = Number(o.dataset.balance) || 0; });
+      const balances = Object.assign({}, START_BAL);
+      const START_FROM = fromAccount.value; const START_TO = toAccount.value;
+      let pending = false; let ticker = null;
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (s) => s.options[s.selectedIndex];
+      const qtyOf = (l) => Number(l.querySelector('output').textContent) || 0;
+      const subtotalCents = () => lines.reduce((sum, l) => sum + Math.round(Number(l.dataset.price) * 100) * qtyOf(l), 0);
+      const itemCount = () => lines.reduce((n, l) => n + qtyOf(l), 0);
+      function shippingCents(cents) {
+        if (!toAccount.value) return 0;
+        const base = SHIPPING_CENTS[toAccount.value] || 0;
+        return toAccount.value === 'STD-SYD-2021' && cents >= FREE_SHIP_CENTS ? 0 : base;
+      }
+      const processingCents = (cents) => (cents > 0 ? Math.max(Math.round(cents * 0.001), 250) : 0);
+      function render() {
+        const cents = subtotalCents(); const ship = shippingCents(cents); const n = itemCount(); const feeCents = processingCents(cents);
+        amountInput.value = (cents / 100).toFixed(2);
+        accountTier.value = 'standard';
+        lines.forEach((l) => {
+          const q = qtyOf(l); const [minus, plus] = l.querySelectorAll('button');
+          l.hidden = q === 0 && !l.dataset.keep;
+          minus.disabled = pending || q <= 0; plus.disabled = pending || q >= MAX_QTY;
+        });
+        addButtons.forEach((b) => { const l = lines.find((x) => x.dataset.sku === b.dataset.add); const q = qtyOf(l); b.disabled = pending || q >= MAX_QTY; b.textContent = q > 0 ? `In your bag (${q})` : 'Add to bag'; });
+        const from = selected(fromAccount); const to = toAccount.value ? selected(toAccount) : null;
+        set('bagCount', String(n));
+        set('bagSub', n ? `${n} ${n === 1 ? 'item' : 'items'} \u00b7 ships from MECCA Distribution Centre` : 'Your bag is empty.');
+        const unlocked = cents >= GWP_THRESHOLD_CENTS;
+        set('gwpMeta', unlocked ? 'Unlocked. Your gift is added to this order at no charge.' : `Spend ${money.format((GWP_THRESHOLD_CENTS - cents) / 100)} more to unlock (gift with every $150 spend, while stocks last).`);
+        $('gwpBar').style.width = `${Math.min(100, Math.round((cents / GWP_THRESHOLD_CENTS) * 100))}%`;
+        set('fromHelp', `${from.dataset.number} \u00b7 Available ${money.format(balances[fromAccount.value] || 0)}`);
+        set('toHelp', to ? to.dataset.number : 'Choose how you\u2019d like to receive your order.');
+        set('amountHelp', cents >= FREE_SHIP_CENTS ? 'Free standard shipping on orders $25 or over.' : `Spend ${money.format((FREE_SHIP_CENTS - cents) / 100)} more for free standard shipping.`);
+        set('sumItems', String(n));
+        set('sumAmount', cents > 0 ? money.format(cents / 100) : '\u2014');
+        set('sumGift', unlocked ? 'Free' : '\u2014');
+        set('sumShip', to ? (ship === 0 ? 'Free' : money.format(ship / 100)) : '\u2014');
+        set('sumFrom', from.dataset.name);
+        set('sumFee', cents > 0 ? money.format(feeCents / 100) : '\u2014');
+        set('sumTotal', cents > 0 ? money.format((cents + ship + feeCents) / 100) : '\u2014');
+        set('sumEta', to ? to.dataset.eta.replace('&ndash;', '\u2013') : '\u2014');
+        set('loopPoints', String(Math.floor(cents / 100)));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function clearResult() { result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s'; }
+      function notice(msg, focusEl) { result.className = 'result-box notice'; result.textContent = msg; if (focusEl) focusEl.focus(); }
+      function change(line, step) {
+        if (pending) return;
+        const out = line.querySelector('output');
+        out.textContent = String(Math.min(MAX_QTY, Math.max(0, qtyOf(line) + step)));
+        line.dataset.keep = qtyOf(line) === 0 ? '1' : '';
+        clearResult(); render();
+      }
+      lines.forEach((l) => l.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => change(l, Number(b.dataset.step)))));
+      addButtons.forEach((b) => b.addEventListener('click', () => {
+        const l = lines.find((x) => x.dataset.sku === b.dataset.add);
+        change(l, 1);
+      }));
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      const markStale = () => { if (!pending) clearResult(); };
+      form.addEventListener('input', markStale); form.addEventListener('change', markStale);
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => {
+          lines.forEach((l, i) => { l.querySelector('output').textContent = String(START_QTY[i]); l.dataset.keep = ''; });
+          fromAccount.value = START_FROM; toAccount.value = START_TO; accountTier.value = 'standard';
+          Object.assign(balances, START_BAL);
+          clearResult(); status.textContent = IDLE_STATUS;
+          render();
+        });
+      });
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const cents = subtotalCents();
+        if (!toAccount.value) { notice('Choose a delivery method.', toAccount); return; }
+        if (cents <= 0) { notice('Your bag is empty. Add a product to check out.', addButtons[0]); return; }
+        const ship = shippingCents(cents);
+        if (cents + ship + processingCents(cents) > Math.round((balances[fromAccount.value] || 0) * 100)) { notice(`${selected(fromAccount).dataset.name} doesn\u2019t cover the total. Choose another payment method.`, fromAccount); return; }
+        const devin = { devinUserId: '', devinOrgId: '', devinEmail: '' };
+        try { devin.devinUserId = localStorage.getItem('devinUserId') || ''; devin.devinOrgId = localStorage.getItem('devinOrgId') || ''; devin.devinEmail = localStorage.getItem('devinEmail') || ''; } catch (_e) {}
+        pending = true;
+        [button, cancelBtn, fromAccount, toAccount].forEach((el) => { el.disabled = true; });
+        render();
+        button.textContent = 'Placing order\u2026';
+        status.textContent = 'Confirming your order and gift with purchase\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        const fromId = fromAccount.value; const fromName = selected(fromAccount).dataset.name; const toName = selected(toAccount).dataset.name;
+        const giftNote = cents >= GWP_THRESHOLD_CENTS ? ' Your gift with purchase is included.' : '';
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value),
+              accountTier: accountTier.value,
+              devinUserId: devin.devinUserId,
+              devinOrgId: devin.devinOrgId,
+              devinEmail: devin.devinEmail,
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick(); stopTimer(true);
+          if (!response.ok) throw new Error('not placed');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Math.round(Number(data.receipt.amount) * 100);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = `This order was already placed at ${at} (order ${data.receipt.receiptId}). You haven\u2019t been charged again.`;
+            status.textContent = IDLE_STATUS;
+            return;
+          }
+          const debit = Math.round(Number(data.debitAmount || data.receipt.totalDebit || data.receipt.amount) * 100);
+          const fee = Math.max(0, debit - paid);
+          const charged = debit + ship;
+          balances[fromId] = Math.round((balances[fromId] || 0) * 100 - charged) / 100;
+          result.className = 'result-box success';
+          result.textContent = `Thank you, Olivia. Order ${data.receipt.receiptId} was placed at ${at}: ${money.format(charged / 100)} charged to ${fromName} (bag ${money.format(paid / 100)}, delivery ${ship ? money.format(ship / 100) : 'free'}${fee ? `, payment processing ${money.format(fee / 100)}` : ''}). ${toName}.${giftNote}`;
+          status.textContent = 'We\u2019ve emailed your order confirmation.';
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok
+            ? 'We couldn\u2019t place your order and you haven\u2019t been charged. Please try again in a few minutes.'
+            : 'We couldn\u2019t confirm your order. Check your email for a confirmation before trying again so you aren\u2019t charged twice.';
+          status.textContent = IDLE_STATUS;
+        } finally {
+          pending = false;
+          [button, cancelBtn, fromAccount, toAccount].forEach((el) => { el.disabled = false; });
+          button.textContent = IDLE;
+          render();
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
