@@ -58,28 +58,7 @@
   .btn.secondary { background: #fff; color: var(--fid-ink); border-color: var(--fid-ink); }
   .btn:disabled { opacity: .55; cursor: progress; }
 
-  body:not(.ops) .svc, body:not(.ops) #latency-check, body:not(.ops) .elapsed { display: none; }
   .slow-note { color: var(--fid-ink-3); font-size: 13px; margin-left: 6px; }
-  .svc { background: #fff; border: 1px solid var(--fid-line); border-left: 4px solid var(--fid-ink-3); border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
-  .svc.ok { border-left-color: var(--fid-gain); } .svc.breach { border-left-color: var(--fid-loss); }
-  .svc .ttl { font-weight: 600; display: flex; align-items: center; gap: 10px; }
-  .svc .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--fid-ink-3); display: inline-block; }
-  .svc.ok .dot { background: var(--fid-gain); } .svc.breach .dot { background: var(--fid-loss); }
-  .svc .meta { color: var(--fid-ink-2); font-size: 13px; margin-top: 6px; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 6px 18px; }
-  .svc .meta b { color: var(--fid-ink); }
-  .svc .meta .bad { color: var(--fid-loss); font-weight: 600; }
-  .svc .meter { height: 6px; background: var(--fid-sand); border-radius: 3px; margin-top: 10px; overflow: hidden; position: relative; }
-  .svc .meter > i { display: block; height: 100%; background: var(--fid-gain); width: 0; transition: width .2s linear; }
-  .svc.breach .meter > i { background: var(--fid-loss); }
-  .svc .meter > s { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--fid-ink); left: 100%; }
-  .svc .right { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
-  .svc .link { font-size: 13px; cursor: pointer; }
-  .svc pre { margin: 10px 0 0; background: var(--fid-paper); border: 1px solid var(--fid-line); border-radius: 6px; padding: 12px; font-size: 12px; overflow: auto; grid-column: 1 / -1; display: none; white-space: pre-wrap; }
-  .svc.show-sql pre { display: block; }
-  .samples { grid-column: 1 / -1; font-size: 13px; color: var(--fid-ink-2); display: none; }
-  .samples table { border-collapse: collapse; margin-top: 6px; }
-  .samples td, .samples th { padding: 4px 12px 4px 0; text-align: left; font-variant-numeric: tabular-nums; }
-  .svc.has-samples #samples, .svc.show-profile #profile { display: block; }
 
   .grid { background: #fff; border: 1px solid var(--fid-line); border-radius: 8px; overflow: hidden; }
   .grid-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--fid-line); }
@@ -96,8 +75,6 @@
   .skeleton i { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, #eeedea 25%, #f7f6f4 50%, #eeedea 75%); background-size: 200% 100%; animation: sh 1.2s infinite; }
   @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
   .loading-bar { padding: 14px 18px; display: flex; gap: 12px; align-items: center; color: var(--fid-ink-2); font-size: 13px; border-bottom: 1px solid var(--fid-line); }
-  .loading-bar .elapsed { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--fid-ink); }
-  .loading-bar .elapsed.slow { color: var(--fid-loss); }
   .spin { width: 14px; height: 14px; border: 2px solid var(--fid-line); border-top-color: var(--fid-green); border-radius: 50%; animation: rot .8s linear infinite; }
   @keyframes rot { to { transform: rotate(360deg); } }
 
@@ -138,27 +115,12 @@
       <button class="btn" id="refresh">Refresh positions</button>
       <button class="btn secondary">Trade</button>
       <button class="btn secondary">Transfer</button>
-      <button class="btn secondary" id="latency-check" title="Load the summary 5 times and report p50/p95 against the latency budget">Run latency check (5 loads)</button>
     </div>
 
-    <div class="svc" id="svc" data-testid="data-service">
-      <div>
-        <div class="ttl"><span class="dot"></span> Positions data service <span id="svc-state" style="font-weight:400;color:var(--fid-ink-3)">&mdash; loading</span></div>
-        <div class="meta" id="svc-meta"></div>
-        <div class="meter"><i id="meter-fill"></i><s></s></div>
-      </div>
-      <div class="right">
-        <span class="link" id="toggle-sql">Show Snowflake query</span>
-        <span class="link" id="toggle-profile">Query profile</span>
-      </div>
-      <pre id="sql"></pre>
-      <div class="samples" id="profile"></div>
-      <div class="samples" id="samples"></div>
-    </div>
 
     <div class="grid">
       <div class="grid-head"><h2>Positions</h2><span class="hint" id="grid-hint">Latest close from the market-data warehouse</span></div>
-      <div class="loading-bar" id="loading-bar"><span class="spin"></span> Loading positions&hellip; <span class="elapsed" id="elapsed">0.0 s</span><span class="slow-note" id="slow-note" hidden>This is taking longer than usual. Your positions will appear shortly.</span></div>
+      <div class="loading-bar" id="loading-bar"><span class="spin"></span> Loading positions&hellip; <span class="slow-note" id="slow-note" hidden>This is taking longer than usual. Your positions will appear shortly.</span></div>
       <table class="positions" data-testid="positions-table" id="positions" data-loaded="false">
         <thead><tr><th>Symbol</th><th>Last price</th><th>Today's change</th><th>Quantity</th><th>Current value</th><th>Cost basis</th><th>Total gain/loss</th></tr></thead>
         <tbody id="rows"></tbody>
@@ -176,9 +138,6 @@
 (function () {
   var params = new URLSearchParams(location.search);
   var reportsOff = params.get('reports') === 'off';
-  var opsMode = params.get('ops') === '1';
-  if (opsMode) document.body.classList.add('ops');
-  document.addEventListener('keydown', function (e) { if (e.altKey && e.key === '.') document.body.classList.toggle('ops'); });
   var $ = function (id) { return document.getElementById(id); };
   var budgetMs = 1500;
   var money = function (v, signed) {
@@ -189,7 +148,6 @@
   var pct = function (v) { return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; };
   var cls = function (v) { return v < 0 ? 'loss' : 'gain'; };
   var fmtMs = function (ms) { return ms == null ? 'n/a' : Math.round(ms).toLocaleString('en-US') + ' ms'; };
-  var fmtBytes = function (b) { return b == null ? 'n/a' : (b / 1e6).toFixed(1) + ' MB'; };
 
   var identityReady = fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
     if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
@@ -246,60 +204,16 @@
     $('rows').innerHTML = rows;
   }
 
-  function renderService(backend, clientMs) {
-    var svc = $('svc');
-    var sf = backend.snowflake || {};
-    var profile = sf.profile || {};
-    svc.classList.remove('ok', 'breach');
-    svc.classList.add(backend.breached ? 'breach' : 'ok');
-    $('svc-state').textContent = backend.breached ? '\u2014 over latency budget' : '\u2014 within latency budget';
-    var pruning = profile.partitionsTotal ? profile.partitionsScanned + ' / ' + profile.partitionsTotal + ' micro-partitions scanned' : 'profile on breach';
-    $('svc-meta').innerHTML =
-      '<span>Backend <b class="' + (backend.breached ? 'bad' : '') + '">' + fmtMs(backend.durationMs) + '</b> / budget <b>' + fmtMs(backend.budgetMs) + '</b></span>'
-      + '<span>Page <b>' + fmtMs(clientMs) + '</b></span>'
-      + '<span>Snowflake <b>' + fmtMs(sf.durationMs) + '</b> \u00B7 ' + (sf.mode === 'live' ? 'live warehouse' : 'embedded emulator') + '</span>'
-      + '<span>Rows shipped to app <b class="' + (sf.rowsReturned > 1000 ? 'bad' : '') + '">' + (sf.rowsReturned || 0).toLocaleString('en-US') + '</b></span>'
-      + '<span>' + pruning + (profile.bytesScanned ? ' \u00B7 ' + fmtBytes(profile.bytesScanned) : '') + '</span>'
-      + '<span>Query <b>' + (sf.queryId || 'n/a') + '</b> \u00B7 ' + (sf.database || '') + '.' + (sf.schema || '') + '</span>';
-    $('meter-fill').style.width = Math.min(100, (backend.durationMs / backend.budgetMs) * 100) + '%';
-    $('sql').textContent = sf.statement || '';
-    renderProfile(backend);
-  }
-
-  function renderProfile(backend) {
-    var sf = backend.snowflake || {};
-    var p = sf.profile;
-    var rows = [
-      ['Mode', sf.mode === 'live' ? 'Live Snowflake warehouse' : 'Embedded Snowflake emulator'],
-      ['Query id', sf.queryId || 'n/a'],
-      ['Snowflake round trip', fmtMs(sf.durationMs)],
-      ['Rows shipped to app', (sf.rowsReturned || 0).toLocaleString('en-US')],
-      ['Rows needed', String(window.__portfolioSummary && window.__portfolioSummary.totals ? window.__portfolioSummary.totals.positionCount : backend.positionCount || '')]
-    ];
-    if (p) {
-      rows.push(['Micro-partitions scanned', p.partitionsTotal ? p.partitionsScanned + ' of ' + p.partitionsTotal + (p.pruned ? ' (pruned)' : ' (no pruning)') : 'n/a']);
-      rows.push(['Bytes scanned', fmtBytes(p.bytesScanned)]);
-      rows.push(['Dedup in warehouse', p.dedupInWarehouse ? 'yes' : 'no \u2014 one row per historical day per position']);
-      rows.push(['Execution / compile', fmtMs(p.executionTimeMs) + ' / ' + fmtMs(p.compilationTimeMs)]);
-    } else {
-      rows.push(['Partition profile', 'Fetched from QUERY_HISTORY / GET_QUERY_OPERATOR_STATS when the budget is breached and attached to the alert']);
-    }
-    var html = '<b>Query profile</b> (last load)<table>';
-    rows.forEach(function (r) { html += '<tr><th>' + r[0] + '</th><td>' + r[1] + '</td></tr>'; });
-    $('profile').innerHTML = html + '</table>';
-  }
 
   var timer = null;
   function startElapsed() {
     var t0 = performance.now();
     $('loading-bar').style.display = 'flex';
-    $('elapsed').classList.remove('slow');
     $('slow-note').hidden = true;
     $('positions').setAttribute('data-loaded', 'false');
     timer = setInterval(function () {
       var s = (performance.now() - t0) / 1000;
-      $('elapsed').textContent = s.toFixed(1) + ' s';
-      if (s * 1000 > budgetMs) { $('elapsed').classList.add('slow'); $('slow-note').hidden = false; }
+      if (s * 1000 > budgetMs) $('slow-note').hidden = false;
     }, 100);
     return t0;
   }
@@ -317,7 +231,6 @@
       if (!data.success) throw new Error(data.error || 'Portfolio summary failed');
       window.__portfolioSummary = data;
       renderSummary(data);
-      renderService(data.backend, clientMs);
       window.__portfolioSummary.clientMs = clientMs;
       $('positions').setAttribute('data-loaded', 'true');
       $('refresh').disabled = false;
@@ -330,41 +243,6 @@
     });
   }
 
-  function percentile(values, p) {
-    var sorted = values.slice().sort(function (a, b) { return a - b; });
-    var idx = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1);
-    return sorted[Math.max(0, idx)];
-  }
-
-  $('latency-check').addEventListener('click', function () {
-    var btn = $('latency-check');
-    btn.disabled = true;
-    var samples = [];
-    var step = function (i) {
-      if (i >= 5) {
-        var ms = samples.map(function (s) { return s.clientMs; });
-        var p50 = percentile(ms, 50); var p95 = percentile(ms, 95);
-        var pass = p95 <= budgetMs;
-        var html = '<b>Latency check:</b> p50 ' + fmtMs(p50) + ' \u00B7 p95 <b class="' + (pass ? '' : 'bad') + '">' + fmtMs(p95) + '</b> vs budget ' + fmtMs(budgetMs) + ' \u2014 ' + (pass ? 'PASS' : 'FAIL')
-          + '<table><tr><th>Run</th><th>Page</th><th>Backend</th><th>Snowflake</th><th>Rows</th><th>Query</th></tr>';
-        samples.forEach(function (s, n) { html += '<tr><td>' + (n + 1) + '</td><td>' + fmtMs(s.clientMs) + '</td><td>' + fmtMs(s.backend.durationMs) + '</td><td>' + fmtMs(s.backend.snowflake.durationMs) + '</td><td>' + s.backend.snowflake.rowsReturned.toLocaleString('en-US') + '</td><td>' + s.backend.snowflake.queryId + '</td></tr>'; });
-        $('samples').innerHTML = html + '</table>';
-        $('svc').classList.add('has-samples');
-        window.__latencyCheck = { p50: p50, p95: p95, budgetMs: budgetMs, pass: pass, samples: samples };
-        btn.disabled = false;
-        return;
-      }
-      btn.textContent = 'Running latency check (' + (i + 1) + '/5)\u2026';
-      load().then(function (data) { samples.push(data); step(i + 1); }).catch(function () { btn.disabled = false; });
-    };
-    step(0);
-    btn.addEventListener('transitionend', function () {});
-    var reset = setInterval(function () { if (!btn.disabled) { btn.textContent = 'Run latency check (5 loads)'; clearInterval(reset); } }, 300);
-  });
-
-  $('refresh').addEventListener('click', function () { load().catch(function () {}); });
-  $('toggle-sql').addEventListener('click', function () { $('svc').classList.toggle('show-sql'); });
-  $('toggle-profile').addEventListener('click', function () { $('svc').classList.toggle('show-profile'); });
 
   load().catch(function () {});
 })();
