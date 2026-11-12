@@ -65,13 +65,13 @@ async function main() {
       IFF(symbol_id < ARRAY_SIZE(tickers), tickers[symbol_id]::VARCHAR, 'SYM' || LPAD(symbol_id, 4, '0')) AS SYMBOL,
       price_date AS PRICE_DATE,
       ROUND(base_price * drift * (1 + (UNIFORM(-100, 100, RANDOM(42)) / 10000.0)), 2) AS CLOSE_PRICE,
-      ROUND(base_price * drift * (1 + (UNIFORM(-120, 120, RANDOM(7)) / 10000.0)), 2) AS PREV_CLOSE,
+      ROUND(base_price * drift_prev * (1 + (UNIFORM(-100, 100, RANDOM(42)) / 10000.0)), 2) AS PREV_CLOSE,
       UNIFORM(100000, 90000000, RANDOM(3)) AS VOLUME,
       CURRENT_TIMESTAMP() AS LOADED_AT
     FROM (
       SELECT *,
              (1 + 0.35 * SIN(day_offset / 97.0 + MOD(symbol_id, 7)) + 0.00025 * day_offset) AS drift,
-             (1 + 0.35 * SIN((${days} - 1) / 97.0 + MOD(symbol_id, 7)) + 0.00025 * (${days} - 1)) AS drift_today,
+             (1 + 0.35 * SIN((day_offset - 1) / 97.0 + MOD(symbol_id, 7)) + 0.00025 * (day_offset - 1)) AS drift_prev,
              ARRAY_CONSTRUCT(${priceArray}) AS targets,
              IFF(symbol_id < ARRAY_SIZE(tickers),
                  targets[symbol_id]::FLOAT / (1 + 0.35 * SIN((${days} - 1) / 97.0 + MOD(symbol_id, 7)) + 0.00025 * (${days} - 1)),
