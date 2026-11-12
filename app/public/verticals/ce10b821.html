@@ -1424,7 +1424,21 @@ I am 5'2 but good size and length. I normally wear 27 but 26 was just fit for me
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody),
     })
-      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (res) {
+        return res.text().then(function (text) {
+          var data;
+          try { data = JSON.parse(text); } catch (e) { data = null; }
+          if (!data || typeof data !== 'object') {
+            data = res.ok ? { success: true } : {
+              success: false,
+              errorClass: res.status === 504 ? 'GatewayTimeout' : 'HTTPError',
+              error: 'HTTP ' + res.status,
+              code: res.status === 504 ? 'GATEWAY_TIMEOUT' : 'CHECKOUT_FAILED',
+            };
+          }
+          return { ok: res.ok, data: data };
+        });
+      })
       .then(function (r) {
         if (!r.ok || r.data.error || r.data.success === false) {
           showResult('err', 'We couldn\u2019t place your order',
