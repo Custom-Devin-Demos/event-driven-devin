@@ -84,18 +84,29 @@ function easternParts(now) {
   }).formatToParts(now).reduce((acc, part) => Object.assign(acc, { [part.type]: part.value }), {});
 }
 
+const NYSE_HOLIDAYS = new Set([
+  '2026-01-01', '2026-01-19', '2026-02-16', '2026-04-03', '2026-05-25', '2026-06-19', '2026-07-03',
+  '2026-09-07', '2026-11-26', '2026-12-25',
+  '2027-01-01', '2027-01-18', '2027-02-15', '2027-03-26', '2027-05-31', '2027-06-18', '2027-07-05',
+  '2027-09-06', '2027-11-25', '2027-12-24',
+]);
+
+function isTradingDay(date) {
+  return date.getUTCDay() !== 0 && date.getUTCDay() !== 6 && !NYSE_HOLIDAYS.has(isoDate(date));
+}
+
 function shiftTradingDays(date, step) {
   const next = new Date(date.getTime());
   do {
     next.setUTCDate(next.getUTCDate() + step);
-  } while (next.getUTCDay() === 0 || next.getUTCDay() === 6);
+  } while (!isTradingDay(next));
   return next;
 }
 
 function calendar(now = new Date()) {
   const parts = easternParts(now);
   let announced = new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day)));
-  if (announced.getUTCDay() === 0 || announced.getUTCDay() === 6) announced = shiftTradingDays(announced, -1);
+  if (!isTradingDay(announced)) announced = shiftTradingDays(announced, -1);
   const effective = shiftTradingDays(announced, 1);
   const offset = (easternParts(new Date(`${isoDate(effective)}T14:30:00Z`)).timeZoneName || 'GMT-5').replace('GMT', '') || '-5';
   const sign = offset.startsWith('-') ? '-' : '+';
@@ -155,7 +166,7 @@ function seedState() {
   RUNS.splice(0, RUNS.length, ...PRIOR_REBALANCES.map((prior) => {
     cursor = new Date(`${announcedDate}T00:00:00Z`);
     cursor.setUTCDate(cursor.getUTCDate() - prior.daysAgo);
-    if (cursor.getUTCDay() === 0 || cursor.getUTCDay() === 6) cursor = shiftTradingDays(cursor, -1);
+    if (!isTradingDay(cursor)) cursor = shiftTradingDays(cursor, -1);
     const effective = isoDate(shiftTradingDays(cursor, 1));
     return {
       runId: `RBL-${effective.replace(/-/g, '')}-01`,

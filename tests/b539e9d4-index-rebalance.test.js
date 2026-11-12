@@ -46,6 +46,12 @@ describe('pre-open rebalance', () => {
     const cal = svc.calendar(new Date('2026-11-13T23:30:00Z'));
     expect(cal).toEqual({ announcedDate: '2026-11-13', effectiveDate: '2026-11-16', marketOpenAt: '2026-11-16T14:30:00.000Z' });
     expect(svc.calendar(new Date('2026-07-01T22:00:00Z')).marketOpenAt).toBe('2026-07-02T13:30:00.000Z');
+    expect(svc.calendar(new Date('2026-11-25T23:00:00Z')).effectiveDate).toBe('2026-11-27');
+  });
+
+  test('Sentry issue webhooks treat the rebalance as an instant-path alert', () => {
+    const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
+    expect(isInstantPathEvent({ culprit: 'app/services/verticals/b539e9d4.js — runRebalance', tags: [] })).toBe(true);
   });
 
   // Planted defect: KSTL.B resolves to the Class A line. Devin's fix PR flips this to a passing release.
