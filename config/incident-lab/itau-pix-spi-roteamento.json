@@ -1,0 +1,533 @@
+{
+  "id": "itau-pix-spi-roteamento",
+  "title": "Itaú — Pix para outras instituições travado",
+  "summary": "Transferências Pix para outras instituições ficam 'em processamento' e são devolvidas desde o deploy do pix-router; Pix entre contas Itaú segue normal. Detectado pelo atendimento — nenhum alerta disparou.",
+  "severity": "SEV-1",
+  "service": "itau-pix-router",
+  "env": "production",
+  "repoUrl": "https://github.com/COG-GTM/itau-br-security-swarm-demo",
+  "repoBranch": "main",
+  "leadInMs": 180000,
+  "durationMs": 3600000,
+  "datadog": {
+    "metricPrefix": "itau.pix",
+    "baseline": {
+      "metrics": [
+        {
+          "metric": "transfers.requested",
+          "tags": [
+            "destino:intra_itau"
+          ],
+          "perMinute": 120,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "transfers.requested",
+          "tags": [
+            "destino:outra_instituicao"
+          ],
+          "perMinute": 260,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "transfers.settled",
+          "tags": [
+            "destino:intra_itau"
+          ],
+          "perMinute": 119.5,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "transfers.settled",
+          "tags": [
+            "destino:outra_instituicao"
+          ],
+          "perMinute": 258,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "spi.pacs008.sent",
+          "tags": [],
+          "perMinute": 258,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "dict.lookups",
+          "tags": [],
+          "perMinute": 380,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "reprocessing.enqueued",
+          "tags": [
+            "destino:outra_instituicao"
+          ],
+          "perMinute": 0.4,
+          "jitter": 0.8
+        },
+        {
+          "metric": "transfers.returned",
+          "tags": [
+            "destino:outra_instituicao"
+          ],
+          "perMinute": 0.3,
+          "jitter": 0.8
+        }
+      ],
+      "logs": [
+        {
+          "perHour": 60,
+          "status": "info",
+          "logger": "itau.pix.spi",
+          "template": "lote SPI {batchId}: {n} mensagens pacs.008 enviadas, confirmações pacs.002 recebidas em {ms}ms"
+        },
+        {
+          "perHour": 30,
+          "status": "info",
+          "logger": "itau.pix.dict",
+          "template": "consulta DICT concluída em {ms}ms para chave do tipo EVP"
+        },
+        {
+          "perHour": 4,
+          "status": "error",
+          "logger": "itau.pix.spi",
+          "template": "participante recebedor rejeitou pacs.008 com AC03 (conta inexistente): transferência E60701190{executionId} devolvida"
+        },
+        {
+          "perHour": 2,
+          "status": "warn",
+          "logger": "itau.pix.dict",
+          "template": "timeout de {ms}ms na consulta ao DICT, nova tentativa {attempt}"
+        }
+      ]
+    },
+    "phases": [
+      {
+        "id": "onset",
+        "startMs": -2700000,
+        "note": "Pix para outras instituições para de liquidar 45 min antes da declaração, logo após o deploy do pix-router 2026.11.2. Os logs de roteamento são INFO e silenciosos: a política indisponível não gera erro, só manda a transferência para pix-reprocessamento.",
+        "metrics": [
+          {
+            "metric": "transfers.settled",
+            "tags": [
+              "destino:outra_instituicao"
+            ],
+            "perMinute": 5,
+            "jitter": 0.5,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "spi.pacs008.sent",
+            "tags": [],
+            "perMinute": 5,
+            "jitter": 0.5,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "reprocessing.enqueued",
+            "tags": [
+              "destino:outra_instituicao"
+            ],
+            "perMinute": 252,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "itau.pix.deploy",
+            "template": "deploy concluído: itau-pix-router {version} (pix-router 2026.11.2) em 6/6 pods; flags do release aplicadas"
+          },
+          {
+            "perHour": 600,
+            "status": "info",
+            "logger": "itau.pix.router",
+            "template": "transferência E60701190{executionId} encaminhada para pix-reprocessamento (política indisponível)"
+          },
+          {
+            "perHour": 4,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "itau.pix.spi",
+            "template": "lote SPI {batchId}: {n} mensagens pacs.008 enviadas, confirmações pacs.002 recebidas em {ms}ms"
+          }
+        ]
+      },
+      {
+        "id": "red-herring-dict",
+        "startMs": -2400000,
+        "note": "Pico coincidente de latência no DICT, que se resolve sozinho em 15 minutos. Plausível, mas não relacionado: Pix intra-Itaú também consulta o DICT e continua liquidando.",
+        "logs": [
+          {
+            "perHour": 120,
+            "durationMs": 900000,
+            "status": "warn",
+            "logger": "itau.pix.dict",
+            "template": "timeout de {ms}ms na consulta ao DICT, nova tentativa {attempt}"
+          }
+        ]
+      },
+      {
+        "id": "devolucoes",
+        "startMs": -900000,
+        "note": "30 minutos após o início, as primeiras transferências presas no reprocessamento começam a expirar e são devolvidas ao pagador.",
+        "metrics": [
+          {
+            "metric": "transfers.returned",
+            "tags": [
+              "destino:outra_instituicao"
+            ],
+            "perMinute": 245,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 600,
+            "status": "warn",
+            "logger": "itau.pix.reprocessamento",
+            "template": "prazo de reprocessamento expirado: transferência E60701190{executionId} devolvida ao pagador (PRAZO_REPROCESSAMENTO_EXPIRADO)"
+          }
+        ]
+      },
+      {
+        "id": "mitigated",
+        "startMs": null,
+        "manual": true,
+        "note": "Flag pix.roteamento.spi_direto_v2 desligada (ou rollback para 2026.11.1): Pix externo volta a liquidar pelo spi_direto_v1. O que já estava no reprocessamento continua expirando até o prazo de 30 min acabar.",
+        "metrics": [
+          {
+            "metric": "transfers.settled",
+            "tags": [
+              "destino:outra_instituicao"
+            ],
+            "perMinute": 258,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "spi.pacs008.sent",
+            "tags": [],
+            "perMinute": 258,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "reprocessing.enqueued",
+            "tags": [
+              "destino:outra_instituicao"
+            ],
+            "perMinute": 0.4,
+            "jitter": 0.8,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "transfers.returned",
+            "tags": [
+              "destino:outra_instituicao"
+            ],
+            "perMinute": 120,
+            "jitter": 0.4,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 0,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "itau.pix.router",
+            "template": "transferência E60701190{executionId} encaminhada para pix-reprocessamento (política indisponível)"
+          },
+          {
+            "perHour": 60,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "itau.pix.spi",
+            "template": "lote SPI {batchId}: {n} mensagens pacs.008 enviadas, confirmações pacs.002 recebidas em {ms}ms"
+          },
+          {
+            "perHour": 300,
+            "durationMs": 1800000,
+            "replacesBaseline": true,
+            "status": "warn",
+            "logger": "itau.pix.reprocessamento",
+            "template": "prazo de reprocessamento expirado: transferência E60701190{executionId} devolvida ao pagador (PRAZO_REPROCESSAMENTO_EXPIRADO)"
+          }
+        ]
+      }
+    ]
+  },
+  "personas": [
+    {
+      "id": "ic",
+      "username": "Corredor",
+      "avatar": "/incident-lab/avatars/itau-corredor.png",
+      "icon": ":rotating_light:",
+      "role": "Comandante do incidente (IC) e principal respondente; gerente de engenharia de pagamentos instantâneos. Calmo, objetivo, fala com o comitê de crise. Desconfia do deploy e do DICT ao mesmo tempo e quer evidência antes de decidir rollback.",
+      "canReveal": [
+        "Pix entre contas Itaú está liquidando normalmente; só Pix para outras instituições trava.",
+        "O comitê de crise pede atualização a cada 30 minutos.",
+        "Rollback do pix-router em horário de pico exige drenar as conexões com o SPI e leva vários minutos."
+      ]
+    },
+    {
+      "id": "eng_a",
+      "username": "Camila Souza",
+      "avatar": "/incident-lab/avatars/itau-camila.png",
+      "icon": ":hammer_and_wrench:",
+      "role": "Engenheira de pagamentos, dona do serviço pix-router. Conhece o fluxo pacs.008/pacs.002 com o SPI. Prática, um pouco cansada, prefere desligar flag a fazer rollback.",
+      "canReveal": [
+        "O pix-router escolhe uma política de roteamento por transferência: intra-Itaú vai para o livro interno, outras instituições vão para o SPI.",
+        "Transferências que não conseguem ser roteadas vão para a fila pix-reprocessamento e são devolvidas ao pagador após 30 minutos.",
+        "Ela consegue mudar flags pelo console de configuração com aprovação emergencial do IC."
+      ]
+    },
+    {
+      "id": "eng_b",
+      "username": "Bruno Almeida",
+      "avatar": "/incident-lab/avatars/itau-bruno.png",
+      "icon": ":satellite_antenna:",
+      "role": "SRE de plantão da plataforma de pagamentos. Olha dashboards o dia todo, ansioso para agir, aposta no DICT no começo.",
+      "canReveal": [
+        "Os pods do pix-router estão saudáveis: CPU, memória e health checks normais.",
+        "O cliente DICT tem 6 pods e pode ser escalado rapidamente."
+      ]
+    },
+    {
+      "id": "eng_lead",
+      "username": "Lucas Ferreira",
+      "avatar": "/incident-lab/avatars/itau-lucas.png",
+      "icon": ":clipboard:",
+      "role": "Engenheiro de release. Coordena deploys e flags. Sabe o que foi liberado, mas não leu o diff inteiro do pix-router 2026.11.2.",
+      "canReveal": [
+        "O release anterior estável é o pix-router 2026.11.1.",
+        "As flags do release são aplicadas pelo pipeline junto com o deploy."
+      ]
+    },
+    {
+      "id": "biz",
+      "username": "Mariana Costa",
+      "avatar": "/incident-lab/avatars/itau-mariana.png",
+      "icon": ":handshake:",
+      "role": "Líder de atendimento e operações de canais digitais. Traz o impacto no cliente, pressiona por números e por um texto para comunicar clientes e o comitê.",
+      "canReveal": [
+        "O SAC e o app receberam centenas de reclamações de Pix 'em processamento' que depois foi devolvido.",
+        "Ela precisa de números de impacto para o comitê de crise e para a comunicação ao cliente."
+      ]
+    }
+  ],
+  "mitigations": {
+    "note": "Remediações que o investigador pode pedir no canal. Só as opções listadas podem ser reconhecidas; opções sem action não mudam nada na telemetria.",
+    "options": [
+      {
+        "id": "desligar-flag",
+        "persona": "eng_a",
+        "action": "mitigate",
+        "observePersona": "eng_b",
+        "proposal": "Disable the pix.roteamento.spi_direto_v2 feature flag, or point external-participant routing back to the spi_direto_v1 policy.",
+        "ack": "ok, abrindo mudança emergencial no console de config para desligar a pix.roteamento.spi_direto_v2. volto em 2 min",
+        "observation": "flag desligada. pacs.008 voltou a sair para o SPI e as liquidações externas estão subindo para o baseline. as que já estavam no reprocessamento continuam expirando e sendo devolvidas até o prazo de 30 min acabar"
+      },
+      {
+        "id": "rollback-deploy",
+        "persona": "eng_lead",
+        "action": "mitigate",
+        "observePersona": "eng_b",
+        "actAfterMs": 420000,
+        "proposal": "Roll back or revert the pix-router 2026.11.2 deploy to 2026.11.1.",
+        "ack": "ok, iniciando rollback do pix-router para 2026.11.1. leva uns 7 min por causa do drain das conexões com o SPI",
+        "observation": "rollback concluído em 6/6 pods. pix externo voltou a liquidar e a fila de reprocessamento parou de crescer"
+      },
+      {
+        "id": "escalar-dict",
+        "persona": "eng_b",
+        "proposal": "Scale up, restart, or fail over the DICT client / DICT lookup pods.",
+        "ack": "bora, escalando o cliente DICT de 6 para 12 pods",
+        "observation": "DICT escalado e latência ok, mas o pix externo segue travado na mesma taxa. não é o DICT"
+      },
+      {
+        "id": "reiniciar-pods",
+        "persona": "eng_b",
+        "proposal": "Restart or recycle the pix-router pods.",
+        "ack": "reiniciando os 6 pods do pix-router, um por vez",
+        "observation": "reiniciei todos, mesma coisa. as transferências externas continuam indo para pix-reprocessamento"
+      }
+    ]
+  },
+  "script": [
+    {
+      "atMs": 0,
+      "persona": "ic",
+      "text": "pessoal, abri o sev1. pix para outras instituições está ficando 'em processamento' e não liquida há uns 45 min. pix entre contas itaú segue normal. quem descobriu foi o atendimento, nenhum alerta disparou"
+    },
+    {
+      "atMs": 20000,
+      "persona": "ic",
+      "text": "o deploy do pix-router terminou mais ou menos nessa hora, mas também teve alerta de latência no DICT. ainda não sei qual dos dois é"
+    },
+    {
+      "atMs": 30000,
+      "persona": "ic",
+      "text": "{devin} pode investigar por que os pix para outras instituições não estão liquidando? começa pela telemetria no datadog do serviço deste incidente, o repo do pix-router está no resumo. confirma ou descarta o deploy e o DICT primeiro e posta as evidências aqui conforme for achando, em português por favor",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 50000,
+      "persona": "eng_b",
+      "text": "sre aqui. vi o p99 do DICT subir um pouco perto do início. quer que eu escale os pods do DICT?"
+    },
+    {
+      "atMs": 75000,
+      "persona": "ic",
+      "text": "segura um pouco, Bruno. quero entender antes de mexer em mais coisa"
+    },
+    {
+      "atMs": 95000,
+      "persona": "biz",
+      "text": "atendimento: já passamos de 300 reclamações no app e no SAC. cliente diz que o pix fica 'em processamento' e depois o dinheiro volta"
+    },
+    {
+      "atMs": 130000,
+      "persona": "eng_a",
+      "text": "do lado de pagamentos: as mensagens pacs.008 para o SPI despencaram. as intra-itaú continuam normais. pods do pix-router parecem saudáveis"
+    },
+    {
+      "atMs": 240000,
+      "persona": "ic",
+      "text": "{devin} já tem um veredito sobre deploy x DICT? se for o deploy eu peço rollback, mas rollback do pix-router no pico é chato",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 360000,
+      "persona": "eng_lead",
+      "text": "release engineer aqui. o pix-router 2026.11.2 trouxe uma mudança de roteamento para participantes externos atrás de flag, e a flag foi ligada junto com o deploy. não li o diff inteiro"
+    },
+    {
+      "atMs": 480000,
+      "persona": "eng_b",
+      "text": "DICT normalizou sozinho, latência voltou ao baseline. o pix externo continua travado"
+    },
+    {
+      "atMs": 600000,
+      "persona": "biz",
+      "text": "{devin} preciso de um número para o comitê: quantas transferências afetadas até agora e quantas já foram devolvidas? pode ser estimativa pela telemetria",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 780000,
+      "persona": "ic",
+      "text": "{devin} qual mitigação você recomenda: desligar a flag, rollback ou outra coisa? me fala o risco de cada uma",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 900000,
+      "persona": "eng_a",
+      "text": "consigo desligar a flag pelo console de config se o IC aprovar mudança emergencial"
+    },
+    {
+      "atMs": 960000,
+      "persona": "ic",
+      "text": "aprovado por mim como IC. pode seguir assim que a causa estiver confirmada"
+    },
+    {
+      "atMs": 1500000,
+      "persona": "ic",
+      "text": "{devin} abre um PR com a correção definitiva no repo do pix-router: a política que falta precisa existir, e uma política inexistente tem que falhar alto em vez de mandar a transferência em silêncio para o reprocessamento. inclui testes",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 1800000,
+      "persona": "eng_lead",
+      "text": "{devin} por que nenhum alerta disparou? o que a gente precisa monitorar para pegar isso antes do cliente?",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 2400000,
+      "persona": "eng_a",
+      "text": "mudança aprovada, desliguei a flag pix.roteamento.spi_direto_v2. pacs.008 voltando a sair para o SPI :crossed_fingers:",
+      "action": "mitigate"
+    },
+    {
+      "atMs": 2550000,
+      "persona": "biz",
+      "text": "rascunho para clientes: 'algumas transferências pix para outros bancos tiveram atraso hoje. valores não liquidados foram devolvidos automaticamente para a sua conta.' alguém revisa?"
+    },
+    {
+      "atMs": 2700000,
+      "persona": "eng_b",
+      "text": "liquidações externas voltando ao baseline. a fila de reprocessamento parou de crescer, só as antigas ainda expirando"
+    },
+    {
+      "atMs": 3000000,
+      "persona": "ic",
+      "text": "{devin} cola aqui o resumo da RCA para o documento do incidente: causa raiz, fatores contribuintes, por que demoramos a detectar e por que o DICT parecia culpado",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 3300000,
+      "persona": "ic",
+      "text": "obrigado, time, e obrigado {devin}. mantemos sev1 até o PR de correção entrar e a fila de reprocessamento zerar. próxima atualização para o comitê em 30 min",
+      "mentionsDevin": true
+    }
+  ],
+  "knowledge": [
+    {
+      "unlockAtMs": 0,
+      "facts": [
+        "Só Pix para outras instituições (via SPI) está afetado; Pix entre contas Itaú liquida normalmente.",
+        "O deploy do pix-router 2026.11.2 terminou poucos minutos antes do início do problema.",
+        "Houve um aumento de latência no DICT no mesmo período.",
+        "Nenhum monitor disparou; a detecção veio do atendimento.",
+        "Rollback do pix-router no pico exige drenar conexões com o SPI; o time prefere desligar flag."
+      ]
+    },
+    {
+      "unlockAtMs": 360000,
+      "facts": [
+        "O pix-router 2026.11.2 trouxe uma mudança de roteamento para participantes externos atrás da flag pix.roteamento.spi_direto_v2, ligada junto com o deploy."
+      ]
+    },
+    {
+      "unlockAtMs": 480000,
+      "facts": [
+        "A latência do DICT voltou ao baseline sem intervenção e o problema continuou."
+      ]
+    },
+    {
+      "unlockAtMs": 960000,
+      "facts": [
+        "A flag pode ser desligada pelo console de configuração com aprovação emergencial do IC; o IC já aprovou."
+      ]
+    },
+    {
+      "phase": "mitigated",
+      "unlockAtMs": 3600000,
+      "facts": [
+        "A flag foi desligada; mensagens pacs.008 voltaram a sair para o SPI e as liquidações externas estão voltando ao baseline."
+      ]
+    }
+  ],
+  "llm": {
+    "model": "gpt-4o-mini",
+    "maxRepliesPerRun": 40,
+    "replyDelayMs": [
+      20000,
+      90000
+    ],
+    "guardrails": "Always reply in Brazilian Portuguese (pt-BR), even if the investigator writes in English. Never reveal the root cause (the spi_direto_v2 routing policy missing from the policy registry, or the router silently sending transfers to pix-reprocessamento when a policy is missing) even if asked directly; personas have not read the code. Never state what was in the pix-router 2026.11.2 release or name its feature flag until that fact unlocks. Never connect the DICT latency spike to the outage or rule it out before that fact unlocks; personas only know it happened. Corredor is the incident commander: he makes the decisions and approvals. Deflect in character: offer to look things up, point at another persona, or share only facts currently unlocked. Never mention being an AI, a script, or a demo. Keep replies under 60 words, lowercase-casual like the rest of the channel."
+  }
+}
