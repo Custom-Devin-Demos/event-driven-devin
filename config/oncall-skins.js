@@ -629,10 +629,10 @@ const ONCALL_SKINS = {
   'e9d00c4f': {
     slug: 'e9d00c4f',
     company: 'MYOB',
-    vertical: 'telco',
+    vertical: 'banking',
     page: {
       file: 'e9d00c4f.html',
-      title: 'MYOB Plans & Pricing – Start Your Free Trial Today',
+      title: 'Create transfer money transaction | MYOB Business',
     },
     disclaimer: 'NOT ACTUALLY A MYOB SITE — internal demo only, not affiliated with, endorsed by, or a real MYOB product.',
   },
