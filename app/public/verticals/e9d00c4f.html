@@ -248,7 +248,7 @@
       var bal = function (id) { var s = document.getElementById(id); return parseFloat(s.options[s.selectedIndex].getAttribute('data-balance')) || 0; };
       var set = function (id, n) { var el = document.getElementById(id); el.textContent = fmt(n); el.className = n < 0 ? 'neg' : ''; };
       function refresh() {
-        var amt = parseFloat(String(document.getElementById('amount').value).replace(/[^0-9.]/g, '')) || 0;
+        var amt = Number(String(document.getElementById('amount').value).replace(/[$,\s]/g, '')); if (!(amt > 0)) amt = 0;
         set('fromNow', bal('fromAccount')); set('fromAfter', bal('fromAccount') - amt);
         set('toNow', bal('toAccount')); set('toAfter', bal('toAccount') + amt);
       }
@@ -262,12 +262,18 @@
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
       const ref = document.getElementById('reference').value;
+      const amount = Number(String(document.getElementById('amount').value).replace(/[$,\s]/g, ''));
+      if (!(amount > 0)) {
+        result.className = 'result-box show error';
+        result.innerHTML = '<strong>Amount is required</strong>Enter an amount greater than $0.00.';
+        return;
+      }
       btn.disabled = true; btn.textContent = 'Recording...';
       result.className = 'result-box';
       try {
         const res = await fetch('/api/banking/transfer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(String(document.getElementById('amount').value).replace(/[^0-9.]/g, '')), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json().catch(() => ({}));
         const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
