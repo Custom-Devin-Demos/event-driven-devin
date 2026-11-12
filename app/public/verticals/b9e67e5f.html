@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electronic Prior Authorization | Surescripts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: proxima-nova, 'Figtree', 'Helvetica Neue', Arial, sans-serif;
+      --blue: #005677;
+      --ink: #002A3B;
+      --text: #415363;
+      --sky: #009DD1;
+      --orange: #F26027;
+      --gray: #F2F2F3;
+      --white: #FFFFFF;
+      --shadow: rgba(0, 42, 59, 0.08) 0px 4px 8px 0px;
+      --shadow-strong: rgba(0, 42, 59, 0.24) 0px 4px 8px 0px;
+      --container: 1264px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: var(--font); color: var(--text); background: var(--white); overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    h1, h2, h3, h4, h5, h6, p { margin: 0; font-weight: 400; }
+    ul, ol { margin: 0; padding: 0; list-style: none; }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 20px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; font-family: var(--font); font-size: 16px; font-weight: 600; line-height: 18.88px; padding: 13px 23px; border: 2px solid transparent; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+    .btn-orange { background: var(--orange); border-color: var(--orange); color: var(--white); }
+    .btn-blue { background: var(--blue); border-color: var(--blue); color: var(--white); }
+    .btn-white { background: var(--white); border-color: var(--white); color: var(--blue); }
+    .btn-outline { background: transparent; border-color: var(--white); color: var(--white); border-radius: 5px; }
+    .eyebrow { display: block; font-size: 14px; font-weight: 600; line-height: 16.8px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--sky); margin: 1px 0 6px; }
+    .h2 { font-size: 48px; line-height: 52.8px; color: var(--ink); max-width: 1016px; }
+    .lead { font-size: 18px; line-height: 21.6px; color: var(--text); margin-top: 16px; max-width: 1016px; }
+
+    /* Header */
+    .site-header { position: sticky; top: 0; z-index: 50; background: var(--white); box-shadow: var(--shadow); }
+    .top-nav { background: var(--blue); height: 40px; }
+    .top-nav .container { display: flex; justify-content: flex-end; align-items: center; height: 40px; padding-right: 28px; gap: 38px; }
+    .top-nav a { font-size: 18px; font-weight: 600; line-height: 24.84px; color: var(--white); padding: 5px 0; display: inline-flex; align-items: center; gap: 6px; }
+    .main-nav .container { display: flex; align-items: center; height: 96px; }
+    .logo { display: flex; align-items: center; width: 182px; height: 48px; flex: none; }
+    .logo svg { width: 182px; height: 48px; }
+    .nav-links { display: flex; gap: 40px; margin-left: 81px; }
+    .nav-links a { font-size: 18px; font-weight: 600; line-height: 18px; color: var(--blue); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 0; }
+    .search-icon { width: 24px; height: 24px; margin-right: 40px; color: var(--blue); }
+    .hamburger { display: none; width: 27px; height: 25px; flex-direction: column; justify-content: space-between; position: relative; }
+    .hamburger span { display: block; height: 3px; background: var(--blue); border-radius: 2px; }
+    .hamburger::before { content: ''; position: absolute; inset: -10px; }
+
+    .breadcrumb { height: 31px; display: flex; align-items: center; }
+    .breadcrumb .container { width: 100%; }
+    .breadcrumb ul { display: flex; padding-top: 5px; }
+    .breadcrumb li { font-size: 14px; line-height: 21px; color: var(--text); margin-right: 16px; position: relative; }
+    .breadcrumb li:not(:last-child)::after { content: '/'; position: absolute; right: -10px; color: rgba(65,83,99,.5); }
+    .breadcrumb li:first-child a { color: rgba(65,83,99,.5); font-weight: 500; }
+
+    /* Hero */
+    .hero { position: relative; min-height: 520px; padding: 72px 0 116px; overflow: hidden; }
+    .hero .bg-img { position: absolute; inset: 0; height: 520px; }
+    .hero .bg-img img { width: 100%; height: 520px; object-fit: cover; object-position: right center; }
+    .hero .bg-img.fallback { background: radial-gradient(ellipse 60% 120% at 82% 50%, #cfe6ef 0 58%, #6cc04a 58% 61%, transparent 61%); }
+    .hero .mobile-bg-img { display: none; }
+    .stat-card.m { display: none; }
+    .tabs .plus, .dots.ins-dots { display: none; }
+    .hero .container { position: relative; display: flex; align-items: flex-start; }
+    .hero .content { width: 650px; padding-left: 0; }
+    .hero h6 { font-size: 18px; font-weight: 700; line-height: 21.6px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--sky); margin-bottom: 13px; }
+    .hero h1 { font-size: 56px; line-height: 61.6px; color: var(--blue); margin-bottom: 36px; }
+    .stat-card { position: absolute; left: 841px; top: 222px; width: 363px; background: var(--white); border-radius: 8px; padding: 20px; box-shadow: var(--shadow); }
+    .stat-card .t { font-size: 32px; line-height: 35.2px; color: var(--blue); margin-bottom: 6px; }
+    .stat-card p { font-size: 18px; line-height: 27px; color: var(--ink); }
+    .stat-card sup { font-size: 11px; }
+
+    /* PA request form (sits where the hero CTA is) */
+    .pa-form { background: var(--white); border-radius: 8px; box-shadow: var(--shadow-strong); padding: 24px; width: 600px; }
+    .pa-form .form-title { font-size: 20px; font-weight: 600; line-height: 24px; color: var(--ink); margin-bottom: 4px; }
+    .pa-form .form-sub { font-size: 16px; line-height: 22px; color: var(--text); margin-bottom: 16px; }
+    .pa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+    .pa-grid .full { grid-column: 1 / -1; }
+    .field label { display: block; font-size: 14px; font-weight: 600; line-height: 18px; color: var(--ink); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; height: 48px; padding: 0 14px; font-family: var(--font); font-size: 16px; color: var(--ink); background: var(--white); border: 1px solid #A9B6C0; border-radius: 4px; appearance: none; -webkit-appearance: none; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23005677' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    .field select:focus, .field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,157,209,.2); }
+    .pa-actions { display: flex; align-items: center; gap: 16px; margin-top: 20px; }
+    .pa-actions .btn { min-height: 49px; }
+    .pa-actions .btn:disabled { opacity: .6; cursor: wait; }
+    .pa-actions .note { font-size: 14px; line-height: 19.6px; color: var(--text); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 4px; font-size: 16px; line-height: 22px; }
+    .result-box.success { display: block; background: #E8F5EC; border-left: 4px solid #2E8540; color: #1D4F2A; }
+    .result-box.error { display: block; background: #FDECE6; border-left: 4px solid var(--orange); color: #7A2A0C; }
+    .result-box .rt { font-weight: 600; margin-bottom: 2px; }
+    .result-box .rd { font-size: 14px; opacity: .9; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; display: none; }
+    .loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Sticky tabs */
+    .sticky-bar { position: relative; z-index: 3; margin-top: -44px; }
+    .sticky-bar ul { display: flex; height: 80px; background: var(--white); border-radius: 8px; box-shadow: var(--shadow); margin: 0 1px; }
+    .sticky-bar li { flex: 1; border-right: 1px solid var(--gray); }
+    .sticky-bar li:last-child { border-right: 0; }
+    .sticky-bar li a { display: flex; align-items: center; justify-content: center; height: 80px; padding: 10px; font-size: 18px; font-weight: 600; line-height: 21.6px; color: var(--blue); }
+    .sticky-bar li.active { background: var(--orange); border-radius: 8px 0 0 8px; }
+    .sticky-bar li.active a { color: var(--white); }
+    .sticky-bar .drop-btn { display: none; }
+
+    /* Three cards */
+    .cards { position: relative; margin-top: -42px; padding: 72px 0; background: var(--gray); }
+    .cards .intro { padding-top: 25px; }
+    .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 24px; margin-top: 64px; }
+    .card { background: var(--white); border-radius: 8px; padding: 56px 40px; box-shadow: var(--shadow-strong); margin-bottom: 24px; }
+    .card .icon { width: 48px; height: 48px; margin-bottom: 16px; }
+    .card .tt { font-size: 24px; line-height: 28.56px; color: var(--blue); margin-bottom: 9px; }
+    .stat-item { margin-top: 30px; padding-left: 20px; border-left: 2px solid var(--sky); }
+    .stat-item p { font-size: 18px; line-height: 27px; color: var(--blue); }
+
+    .ribbon { background: var(--blue); padding: 40px 0; }
+    .ribbon .container { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .ribbon p { font-size: 18px; line-height: 21.6px; color: var(--white); }
+
+    /* Benefits */
+    .benefits { padding: 72px 0; }
+    .tabs { display: flex; flex-wrap: wrap; margin: 47px -6px 41px; }
+    .tabs li { margin: 7px 6px; height: 55px; padding: 0 19px; display: flex; align-items: center; border: 2px solid var(--blue); border-radius: 28px; font-size: 18px; font-weight: 600; line-height: 27px; color: var(--blue); }
+    .tabs li.active { background: var(--orange); border-color: var(--orange); color: var(--white); }
+    .tab-body { display: grid; grid-template-columns: 514px 1fr; gap: 0 4px; }
+    .tab-body h3 { font-size: 32px; line-height: 35.2px; color: var(--ink); padding-right: 17px; margin-bottom: 15px; max-width: 395px; }
+    .tab-body .copy { font-size: 18px; line-height: 27px; color: var(--text); max-width: 395px; }
+    .blocks { display: grid; grid-template-columns: 1fr 1fr; margin: 0 -16px; }
+    .block { margin: 0 16px 36px; padding-right: 28px; }
+    .block img { width: 48px; height: 48px; margin-bottom: 16px; }
+    .block h6 { font-size: 20px; font-weight: 600; line-height: 24px; color: var(--ink); margin-bottom: 11px; }
+    .block p { font-size: 18px; line-height: 28.8px; color: var(--text); }
+    .block sup { font-size: 11px; }
+    .how { margin-top: 48px; padding: 55px 0 70px; }
+    .how h3 { font-size: 32px; line-height: 35.2px; color: var(--ink); margin-bottom: 40px; }
+    .how-grid { display: grid; grid-template-columns: 596px 580px; justify-content: space-between; align-items: start; }
+    .tab-card { position: relative; padding: 24px 60px 22px 16px; border-top: 2px solid var(--gray); background: var(--white); }
+    .tab-card h6 { font-size: 24px; line-height: 28.8px; color: var(--ink); }
+    .tab-card p { display: none; font-size: 18px; line-height: 27px; color: var(--text); }
+    .tab-card::after { content: ''; position: absolute; right: 24px; top: 30px; width: 10px; height: 10px; border-right: 2px solid var(--blue); border-bottom: 2px solid var(--blue); transform: rotate(45deg); }
+    .tab-card.active { padding: 16px 60px 26px 15px; margin-bottom: 7px; border-top: 3px solid var(--orange); border-radius: 8px; box-shadow: var(--shadow); }
+    .tab-card.active h6 { color: var(--orange); margin-bottom: 7px; }
+    .tab-card.active p { display: block; }
+    .tab-card.active::after { transform: rotate(-135deg); top: 28px; border-color: var(--orange); }
+    .tab-card:last-child { border-bottom: 2px solid var(--gray); }
+    .how-img { width: 580px; height: 500px; border-radius: 8px; object-fit: cover; background: #d9e6ec; }
+
+    /* Curve */
+    .curve { position: relative; padding: 72px 0 196px; color: var(--white); overflow: hidden; }
+    .curve::before { content: ''; position: absolute; left: 50%; bottom: 0; width: 170%; height: 1400px; transform: translateX(-50%); background: var(--blue); border-radius: 0 0 50% 50% / 0 0 970px 970px; }
+    .curve .container { position: relative; }
+    .curve .eyebrow { color: var(--white); }
+    .curve .h2 { color: var(--white); }
+    .curve .lead { color: var(--white); }
+    .curve .three { margin-top: 64px; }
+    .curve .col .tt { font-size: 24px; line-height: 28.56px; margin-bottom: 9px; max-width: 362px; }
+    .curve .col p { font-size: 18px; line-height: 27px; max-width: 362px; }
+
+    .intro-sec { padding: 72px 0 40px; }
+    .intro-sec .row { display: flex; align-items: flex-end; justify-content: space-between; }
+    .intro-sec .btn { margin-top: 24px; }
+    .testimonial { padding-bottom: 0; overflow: hidden; }
+    .t-track { display: flex; gap: 36px; }
+    .t-card { flex: none; width: 1179px; background: var(--blue); border-radius: 8px; padding: 53px 173px 70px 58px; min-height: 395px; display: flex; align-items: center; }
+    .t-card p { font-size: 24px; line-height: 28.56px; color: var(--white); font-style: italic; }
+    .t-card .name { display: block; font-size: 20px; font-weight: 600; color: var(--white); margin-top: 18px; }
+    .t-card .role { display: block; font-size: 18px; color: var(--white); margin-top: 2px; }
+    .dots { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 52px 0 40px; }
+    .dots .arr { width: 10px; height: 10px; border-left: 2px solid var(--blue); border-bottom: 2px solid var(--blue); transform: rotate(45deg); margin: 0 6px; }
+    .dots .arr.next { transform: rotate(-135deg); }
+    .dots i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #A9B6C0; display: block; }
+    .dots i.on { background: var(--orange); border-color: var(--orange); }
+
+    .faq-intro { padding: 72px 0 40px; }
+    .accordion { position: relative; padding: 28px 150px 28px 0; margin-top: 3px; border-bottom: 3px solid var(--gray); }
+    .accordion:first-child { border-top: 3px solid var(--gray); }
+    .accordion h3 { font-size: 20px; font-weight: 600; line-height: 22px; color: var(--blue); }
+    .accordion::after { content: '+'; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border: 3px solid var(--blue); border-radius: 50%; color: var(--blue); font-size: 30px; font-weight: 700; line-height: 23px; text-align: center; }
+
+    .insights { padding-bottom: 72px; }
+    .ins-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 24px; }
+    .ins { position: relative; background: var(--white); border-radius: 8px; box-shadow: var(--shadow); padding: 1px 24px 78px; margin-top: 120px; margin-bottom: 24px; }
+    .ins .img { margin-top: -120px; height: 180px; border-radius: 8px; overflow: hidden; background: #cfe0e8; }
+    .ins .img img { width: 100%; height: 180px; object-fit: cover; }
+    .ins .dt { margin-top: 24px; font-size: 14px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--sky); line-height: 18.8px; }
+    .ins .dt span + span::before { content: '|'; margin: 0 8px; }
+    .ins h5 { font-size: 20px; line-height: 24.2px; color: var(--ink); margin-top: 10px; }
+    .ins .author { font-size: 14px; font-weight: 600; line-height: 21px; color: var(--ink); margin-top: 12px; }
+    .ins .author a { text-decoration: underline; color: var(--blue); }
+    .ins .more { position: absolute; left: 24px; bottom: 26px; font-size: 18px; font-weight: 600; color: var(--blue); }
+
+    .footnotes { padding-bottom: 70px; }
+    .footnotes .wrap { border-top: 3px solid var(--gray); padding-top: 22px; position: relative; }
+    .footnotes .wrap::after { content: ''; position: absolute; right: 8px; top: 34px; width: 11px; height: 11px; border-left: 2px solid var(--blue); border-top: 2px solid var(--blue); transform: rotate(45deg); }
+    .footnotes .ttl { font-size: 18px; font-weight: 600; color: var(--ink); line-height: 26px; margin-bottom: 10px; }
+    .footnotes ol { list-style: decimal; padding-left: 24px; }
+    .footnotes li { font-size: 18px; line-height: 27px; color: var(--text); }
+    .footnotes li u { color: var(--blue); }
+    .footnotes .rm { display: inline-block; margin-top: 6px; font-size: 16px; font-weight: 600; color: var(--blue); text-decoration: underline; }
+
+    .footer-cta { position: relative; padding: 220px 0 95px; overflow: hidden; }
+    .footer-cta::before { content: ''; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 127%; height: 1084px; background: var(--orange); border-radius: 75% 75% 0 0; }
+    .footer-cta .container { position: relative; display: flex; justify-content: space-between; align-items: center; }
+    .footer-cta h2 { font-size: 48px; line-height: 52.8px; color: var(--white); max-width: 649px; margin-bottom: 15px; }
+    .footer-cta .cta { width: 463px; margin-right: 1px; }
+    .footer-cta .cta p { font-size: 18px; line-height: 21.6px; color: var(--white); margin-bottom: 24px; }
+
+    footer { background: var(--blue); padding: 80px 0 55px; color: #F2F2F3; }
+    .f-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .f-col { padding-right: 10px; }
+    .f-logo svg { width: 190px; height: 50px; }
+    .social { display: flex; gap: 12px; margin: 32px 0 37px; }
+    .social a { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+    .social svg { width: 18px; height: 18px; fill: var(--white); }
+    .f-col .h { display: block; font-size: 18px; font-weight: 700; line-height: 24.66px; letter-spacing: 1.8px; color: #F2F2F3; text-transform: uppercase; padding-top: 23px; margin-bottom: 18px; }
+    .f-col li a { display: inline-block; font-size: 18px; line-height: 21.96px; color: #F2F2F3; margin-bottom: 22px; }
+    .f-col .spacer { height: 65px; }
+    .f-col p { font-size: 18px; line-height: 27px; margin-bottom: 18px; }
+    .copyright { display: flex; justify-content: space-between; align-items: center; margin-top: 43px; padding-top: 20px; }
+    .copyright p, .copyright a { font-size: 18px; line-height: 21.6px; color: #F2F2F3; }
+    .copyright ul { display: flex; }
+    .copyright li { margin-left: 65px; }
+    .copyright li:first-child { margin-left: 0; }
+
+    @media (max-width: 1199px) {
+      .nav-links { gap: 24px; margin-left: 40px; }
+      .stat-card { display: none; }
+      .how-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .how-img { width: 100%; }
+      .t-card { width: calc(100vw - 80px); padding-right: 58px; }
+    }
+    @media (max-width: 991px) {
+      .top-nav, .nav-links, .main-nav .btn-blue { display: none; }
+      .main-nav .container { height: 75px; padding: 0 16px; }
+      .logo, .logo svg { width: 164px; height: 43px; }
+      .search-icon { width: 27px; height: 27px; margin-right: 24px; }
+      .hamburger { display: flex; }
+      .container { padding: 0 16px; }
+      .breadcrumb li { font-size: 14px; }
+      .hero { padding: 25px 0 0; min-height: 0; }
+      .hero .bg-img { display: none; }
+      .hero .container { display: block; }
+      .hero .content { width: 100%; padding-left: 4px; }
+      .hero h6 { font-size: 14px; line-height: 16.8px; letter-spacing: 1.4px; margin-bottom: 7px; }
+      .hero h1 { font-size: 46px; line-height: 50.6px; margin-bottom: 24px; }
+      .pa-form { width: 100%; padding: 20px; }
+      .hero .mobile-bg-img { display: block; position: relative; margin-top: 24px; }
+      .hero .mobile-bg-img img { width: 100%; height: auto; aspect-ratio: 390 / 241; object-fit: cover; }
+      .hero .container .stat-card { display: none; }
+      .hero .mobile-bg-img .stat-card.m { display: flex; align-items: center; position: absolute; left: 20px; right: 20px; top: auto; bottom: 37px; width: auto; margin: 0; padding: 12px 20px; box-shadow: var(--shadow-strong); }
+      .stat-card .t { font-size: 24px; line-height: 26.4px; margin: 0; width: 111px; flex: none; }
+      .stat-card p { font-size: 14px; line-height: 19.6px; margin-left: 8px; }
+      .sticky-bar { margin-top: 28px; }
+      .sticky-bar ul { display: none; }
+      .sticky-bar .container { padding: 0; }
+      .sticky-bar .drop-btn { display: flex; justify-content: space-between; align-items: center; height: 66px; padding: 22px 16px; background: var(--white); box-shadow: var(--shadow); font-size: 18px; font-weight: 600; color: var(--blue); }
+      .sticky-bar .drop-btn b { width: 24px; height: 24px; border: 2px solid var(--blue); border-radius: 50%; position: relative; }
+      .sticky-bar .drop-btn b::before, .sticky-bar .drop-btn b::after { content: ''; position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; background: var(--blue); transform: translate(-50%, -50%); }
+      .sticky-bar .drop-btn b::after { transform: translate(-50%, -50%) rotate(90deg); }
+      .cards { margin-top: 0; padding: 48px 0; }
+      .cards .intro { padding-top: 0; }
+      .h2 { font-size: 36px; line-height: 39.6px; }
+      .lead { font-size: 18px; line-height: 23px; }
+      .three { grid-template-columns: 1fr; margin-top: 40px; }
+      .card { padding: 20px; margin-bottom: 30px; }
+      .card .tt { margin-bottom: 4px; }
+      .stat-item { margin-top: 24px; }
+      .ribbon .container { flex-direction: column; align-items: flex-start; }
+      .benefits { padding: 48px 0; }
+      .tabs { margin: 32px 0 24px; display: block; }
+      .tabs li { display: none; }
+      .tabs li.active { display: flex; justify-content: space-between; height: 56px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--blue); font-size: 18px; }
+      .tabs li.active .plus { display: block; width: 24px; height: 24px; border: 2px solid var(--blue); border-radius: 50%; position: relative; }
+      .tabs li.active .plus::before, .tabs li.active .plus::after { content: ''; position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; background: var(--blue); transform: translate(-50%, -50%); }
+      .tabs li.active .plus::after { transform: translate(-50%, -50%) rotate(90deg); }
+      .block img { width: 40px; height: 40px; margin-bottom: 12px; }
+      .block h6 { font-size: 18px; line-height: 21.6px; margin-bottom: 8px; }
+      .block p { font-size: 14px; line-height: 21px; }
+      .tab-body { grid-template-columns: 1fr; }
+      .tab-body h3, .tab-body .copy { max-width: none; }
+      .tab-body .copy { margin-bottom: 32px; }
+      .blocks { grid-template-columns: 1fr; margin: 0; }
+      .block { margin: 0 0 32px; padding: 0; }
+      .how { margin-top: 16px; padding: 32px 0 48px; }
+      .how h3 { font-size: 36px; line-height: 39.6px; margin-bottom: 24px; }
+      .how-grid { grid-template-columns: 1fr; gap: 24px; }
+      .tab-card h6 { font-size: 18px; line-height: 21.6px; }
+      .tab-card.active h6 { margin-bottom: 4px; }
+      .how-img { height: auto; aspect-ratio: 580 / 500; }
+      .curve { padding: 56px 0 140px; }
+      .curve::before { width: 260%; border-radius: 0 0 50% 50% / 0 0 1000px 1000px; }
+      .curve .three { gap: 24px; margin-top: 32px; }
+      .curve .col .tt { margin-bottom: 4px; }
+      .intro-sec { padding: 56px 0 32px; }
+      .intro-sec .row { display: block; }
+      .t-card { width: calc(100vw - 32px); padding: 59px 24px 76px; min-height: 0; }
+      .t-card p { font-size: 20px; line-height: 23.8px; }
+      .faq-intro { padding: 56px 0 32px; }
+      .accordion { padding: 28px 52px 28px 0; }
+      .ins-grid { grid-template-columns: 1fr; }
+      .ins-grid .ins:nth-child(n+2) { display: none; }
+      .dots.ins-dots { display: flex; padding: 24px 0 0; }
+      .ins { padding: 0 16px 70px; margin-top: 100px; }
+      .ins .img { margin-top: -100px; }
+      .ins .more { left: 16px; }
+      .footnotes li { font-size: 16px; line-height: 24px; }
+      .footer-cta { padding: 100px 0 55px; }
+      .footer-cta::before { width: 340%; height: 2000px; }
+      .footer-cta .container { display: block; }
+      .footer-cta h2 { font-size: 36px; line-height: 39.24px; margin-bottom: 24px; }
+      .footer-cta .cta { width: auto; }
+      .footer-cta .cta p { font-size: 20px; line-height: 24px; }
+      footer { padding: 56px 0 40px; }
+      .f-row { grid-template-columns: 1fr 1fr; gap: 0 16px; }
+      .f-col:first-child, .f-col:last-child { grid-column: 1 / -1; }
+      .f-col .spacer { height: 60px; }
+      .f-col li a { font-size: 16px; line-height: 20px; margin-bottom: 16px; }
+      .f-col p { font-size: 16px; line-height: 24px; }
+      .f-col .h { font-size: 14px; line-height: 19.18px; letter-spacing: 1.4px; }
+      .copyright { flex-direction: column-reverse; align-items: flex-start; gap: 24px; }
+      .copyright ul { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+      .copyright p, .copyright a { font-size: 16px; }
+      .copyright li { margin-left: 0; }
+    }
+    @media (max-width: 520px) {
+      .pa-grid { grid-template-columns: 1fr; }
+      .pa-actions { flex-direction: column; align-items: stretch; }
+      .pa-actions .btn { width: 100%; }
+      .accordion h3 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="top-nav">
+      <div class="container">
+        <a href="#">Logins &amp; support <svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" stroke-width="2"/></svg></a>
+        <a href="#">Prior Authorization Portal <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 11L11 3M5 3h6v6" fill="none" stroke="#fff" stroke-width="2"/></svg></a>
+      </div>
+    </div>
+    <div class="main-nav">
+      <div class="container">
+        <a class="logo" href="#" aria-label="Surescripts home">
+          <svg viewBox="0 0 182 48" aria-hidden="true">
+            <path d="M6 20 C 22 4, 52 2, 74 12" fill="none" stroke="#005677" stroke-width="3.2" stroke-linecap="round"/>
+            <text x="0" y="40" fill="#005677" font-family="proxima-nova, Figtree, Arial, sans-serif" font-size="33" font-weight="500" letter-spacing="-0.6">surescripts</text>
+            <text x="172" y="27" fill="#005677" font-family="Arial, sans-serif" font-size="6">&#174;</text>
+          </svg>
+        </a>
+        <nav class="nav-links" aria-label="Main">
+          <a href="#">Who we serve</a>
+          <a href="#">Products</a>
+          <a href="#">Why Surescripts</a>
+          <a href="#">Insights</a>
+          <a href="#">About us</a>
+        </nav>
+        <div class="nav-right">
+          <svg class="search-icon" viewBox="0 0 24 24" aria-label="Search"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.5 15.5L22 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+          <a class="btn btn-blue" href="#">Contact sales</a>
+          <a class="hamburger" href="#" aria-label="Menu"><span></span><span></span><span></span></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="breadcrumb">
+    <div class="container"><ul><li><a href="#">Home</a></li><li>Products</li><li>Electronic Prior Authorization</li></ul></div>
+  </section>
+
+  <section class="hero" id="overview">
+    <div class="bg-img"><img src="https://surescripts.widen.net/content/3zyw5eecdd/web/WhatWeDo_OurProducts_ElectronicPriorAuthorization_Banner_Desktop.jpg?w=1600&h=520&crop=yes" alt="" onerror="this.parentNode.classList.add('fallback');this.remove()"></div>
+    <div class="container">
+      <div class="content">
+        <h6>Electronic Prior Authorization</h6>
+        <h1>Streamline the prescription authorization process</h1>
+        <div class="pa-form">
+          <div class="form-title">Start a prior authorization request</div>
+          <div class="form-sub">Send the request to the patient&rsquo;s benefit plan and receive the question set in your workflow.</div>
+          <form id="claimForm">
+            <div class="pa-grid">
+              <div class="field full">
+                <label for="policyId">Patient</label>
+                <select id="policyId">
+                  <option value="POL-5001">Maria Alvarez &mdash; Member ID SRX-5001</option>
+                  <option value="POL-5002">James Whitfield &mdash; Member ID SRX-5002</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="claimType">Medication</label>
+                <select id="claimType">
+                  <option value="collision">Humira 40 mg/0.4 mL pen</option>
+                  <option value="comprehensive">Ozempic 1 mg/dose pen</option>
+                  <option value="liability">Dupixent 300 mg/2 mL pen</option>
+                  <option value="property_damage">Eliquis 5 mg tablet</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="amount">Days supply</label>
+                <input type="number" id="amount" value="28" min="1" step="1" inputmode="numeric" required>
+              </div>
+              <div class="field full">
+                <label for="description">Diagnosis (ICD-10)</label>
+                <input type="text" id="description" value="M05.79 &mdash; Rheumatoid arthritis, multiple sites" required>
+              </div>
+            </div>
+            <div class="pa-actions">
+              <button type="submit" class="btn btn-orange" id="submitBtn"><span class="spinner"></span><span class="label">Submit prior authorization</span></button>
+              <span class="note">Prescriber: Dr. Priya Raman, NPI 1093817465</span>
+            </div>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="stat-card"><div class="t">&lt;4 minutes</div><p>to return the average response<sup>2</sup></p></div>
+    </div>
+    <div class="mobile-bg-img"><img src="https://surescripts.widen.net/content/9e6676bc-3d92-4de0-b2a9-6ec911cdf60e" alt="" onerror="this.parentNode.style.cssText='background:#cfe6ef;height:241px';this.remove()"><div class="stat-card m"><div class="t">&lt;4 minutes</div><p>to return the average response<sup>2</sup></p></div></div>
+  </section>
+
+  <section class="sticky-bar">
+    <div class="container">
+      <div class="drop-btn">Overview <b></b></div>
+      <ul>
+        <li class="active"><a href="#overview">Overview</a></li>
+        <li><a href="#closer-look">A closer look</a></li>
+        <li><a href="#features">Features in focus</a></li>
+        <li><a href="#stories">Success stories</a></li>
+        <li><a href="#faqs">FAQs</a></li>
+        <li><a href="#insights">Insights</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="container">
+      <div class="intro">
+        <h2 class="h2">The key to faster submissions and approvals</h2>
+        <p class="lead">Whether your job is to request prior authorizations, submit clinical content for review or make final determinations, your organization needs the right tools and intelligence at your fingertips and within your workflow.</p>
+      </div>
+      <div class="three">
+        <div class="card">
+          <img class="icon" src="https://surescripts.widen.net/content/e8d99581-6ed7-4fd7-9c13-500a2eccb469" alt="" onerror="this.style.visibility='hidden'">
+          <div class="tt">Key challenges</div>
+          <div class="stat-item"><p>Coverage criteria disconnected from the point of prescribing</p></div>
+          <div class="stat-item"><p>Manual back-and-forth delays care</p></div>
+          <div class="stat-item"><p>Delays drive abandonment &amp; unnecessary costs</p></div>
+        </div>
+        <div class="card">
+          <img class="icon" src="https://surescripts.widen.net/content/30a59f8d-ec3a-45f8-87e3-8c0b3f263787" alt="" onerror="this.style.visibility='hidden'">
+          <div class="tt">How we help</div>
+          <div class="stat-item"><p>Direct connections between prescribers &amp; benefit plans</p></div>
+          <div class="stat-item"><p>Patient-specific criteria delivered inside existing workflows</p></div>
+          <div class="stat-item"><p>Requests are submitted with complete determination information</p></div>
+        </div>
+        <div class="card">
+          <img class="icon" src="https://surescripts.widen.net/content/c0a66ec7-d051-4704-8af7-4c884e0d72b4" alt="" onerror="this.style.visibility='hidden'">
+          <div class="tt">Outcomes</div>
+          <div class="stat-item"><p>Faster determinations</p></div>
+          <div class="stat-item"><p>More patients start therapy sooner</p></div>
+          <div class="stat-item"><p>Fewer delays between patients and covered treatment</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ribbon">
+    <div class="container">
+      <p>Providers: If your EHR doesn&rsquo;t yet offer Electronic Prior Authorization, use our Prior Authorization Portal instead.</p>
+      <a class="btn btn-white" href="#">Get started</a>
+    </div>
+  </div>
+
+  <section class="benefits" id="closer-look">
+    <div class="container">
+      <span class="eyebrow">A closer look</span>
+      <h2 class="h2">What can Electronic Prior Authorization do for you?</h2>
+      <p class="lead">Choose your organization type to see how Electronic Prior Authorization can help improve speed to therapy.</p>
+      <ul class="tabs"><li class="active">EHR vendors<span class="plus"></span></li><li>Health plans</li><li>Health systems</li><li>PBMs</li></ul>
+      <div class="tab-body">
+        <div>
+          <h3>Fast-track prior authorizations at the point of care</h3>
+          <p class="copy">Alleviate delays and patient frustration with a fully integrated solution that lets users proactively initiate requests and receive quick responses. A faster process with fewer clicks outside your system helps care teams spend more time with patients.</p>
+        </div>
+        <div class="blocks">
+          <div class="block"><img src="https://surescripts.widen.net/content/a5e2ccc7-a12f-41a7-b88a-e0f4795c1e4e" alt="" onerror="this.style.visibility='hidden'"><h6>Simplify authorization workflows</h6><p>Make it easier to proactively submit clinical information to pharmacy benefit plans for efficient determinations and quickly respond to pharmacies.</p></div>
+          <div class="block"><img src="https://surescripts.widen.net/content/81192c74-d2b7-4a5f-b2ee-c01c45d6daf5" alt="" onerror="this.style.visibility='hidden'"><h6>Improve time to therapy</h6><p>Surface prior authorization responses within the workflow so prescriptions can be processed sooner.</p></div>
+          <div class="block"><img src="https://surescripts.widen.net/content/57ca78b0-d153-40f8-9225-eaf3c0246389" alt="" onerror="this.style.visibility='hidden'"><h6>Automate user tasks and workflows</h6><p>Create routing rules for prior authorization tasks so others can assist prescribers in managing requests, submitting clinical information and following up on denials and approvals.</p></div>
+          <div class="block"><img src="https://surescripts.widen.net/content/bb584048-1f54-40ba-8720-e67c24a3caa2" alt="" onerror="this.style.visibility='hidden'"><h6>Improve prescription pickup rates</h6><p>Ensure prescriptions are ready for patients when they go to the pharmacy. One health system improved its pickup rate by six percentage points using Surescripts.<sup>3</sup></p></div>
+        </div>
+      </div>
+      <div class="how">
+        <h3>How it works for EHR vendors</h3>
+        <div class="how-grid">
+          <div>
+            <div class="tab-card"><h6>A provider prescribes a new medication and sees that prior authorization is needed.</h6><p>Eligibility and formulary data is provided in the E-Prescribing workflow, including prior authorization requirements.</p></div>
+            <div class="tab-card active"><h6>They start a request and receive a dynamic prior authorization question set in the EHR.</h6><p>The request triggers the benefit plan to send the appropriate question set to your electronic health record (EHR).</p></div>
+            <div class="tab-card"><h6>The prescriber or their staff answer the questions and receives a decision in minutes.</h6><p>Users complete only the required information, without leaving your EHR. Benefit plans respond within the same workflow.</p></div>
+            <div class="tab-card"><h6>The prescription is already authorized by the time the patient arrives at the pharmacy.</h6><p>Fast approval increases speed to therapy to support adherence.</p></div>
+          </div>
+          <img class="how-img" src="https://surescripts.widen.net/content/9fde5f80-2619-4ade-a40d-dd181e0caf24" alt="" onerror="this.removeAttribute('src')">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="curve" id="features">
+    <div class="container">
+      <span class="eyebrow">Features in focus</span>
+      <h2 class="h2">A smarter prior authorization process</h2>
+      <p class="lead">We collaborate across healthcare to bring more intelligence into prior authorization workflows&mdash;which means a faster, better care experience for patients.</p>
+      <div class="three">
+        <div class="col"><div class="tt">One connection to a whole network</div><p>Get the connections you need to all the providers, pharmacies and payers involved in medication prior authorizations by partnering with Surescripts.</p></div>
+        <div class="col"><div class="tt">Adding intelligence to data</div><p>We&rsquo;re constantly innovating to further optimize the process with enhancements such as validating patient identity, NDC codes and provider credentials.</p></div>
+        <div class="col"><div class="tt">Integrated workflows</div><p>We are pioneers in bringing prior authorization into the familiar, efficient workflows care teams already use within their EHRs and other technology platforms.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="intro-sec" id="stories">
+    <div class="container">
+      <span class="eyebrow">Success stories</span>
+      <h2 class="h2">Real-world results</h2>
+      <a class="btn btn-orange" href="#">Hear from others</a>
+    </div>
+  </section>
+  <section class="testimonial">
+    <div class="container">
+      <div class="t-track">
+        <div class="t-card"><div><p>&ldquo;We are finishing 10 electronic prior authorizations in the time it takes to finish one or two manually during a day.&rdquo;</p><span class="name">Candace Minter, Pharm.D.</span><span class="role">Pharmacy Operations Manager, Sentara Medical Group</span></div></div>
+        <div class="t-card"><div><p>&ldquo;It saves a significant amount of time&mdash;up to 45 minutes per medication authorization in some cases.&rdquo;</p><span class="name">Jennifer Kohlbeck</span><span class="role">Supervisor of Clinic Operations, Advocate Aurora Health</span></div></div>
+      </div>
+      <div class="dots"><span class="arr"></span><i class="on"></i><i></i><span class="arr next"></span></div>
+    </div>
+  </section>
+
+  <section class="faq-intro" id="faqs">
+    <div class="container">
+      <span class="eyebrow">FAQs</span>
+      <h2 class="h2">Find out more about Electronic Prior Authorization</h2>
+    </div>
+  </section>
+  <section class="faqs">
+    <div class="container">
+      <div class="accordion"><h3>Can Electronic Prior Authorization help complete prior authorizations either before or after the prescription reaches the pharmacy?</h3></div>
+      <div class="accordion"><h3>I&rsquo;ve found that other prior authorization solutions have often indicated that prior authorizations were needed incorrectly. Does Surescripts have a more accurate way to validate that prior authorizations are truly required?</h3></div>
+      <div class="accordion"><h3>If a prescriber doesn&rsquo;t use an EHR that integrates with Electronic Prior Authorization, can they still submit prior authorization requests electronically?</h3></div>
+      <div class="accordion"><h3>What are &ldquo;question sets&rdquo;? Do they replace old-fashioned paper forms or PDF forms?</h3></div>
+      <div class="accordion"><h3>Is the overall use of electronic prior authorization increasing or decreasing?</h3></div>
+      <div class="accordion"><h3>If a prescriber has questions about the Electronic Prior Authorization process, status, connections or best practices, what&rsquo;s the best way to get answers?</h3></div>
+      <div class="accordion"><h3>How do organizations get connected to Surescripts Electronic Prior Authorization?</h3></div>
+    </div>
+  </section>
+
+  <section class="intro-sec" id="insights">
+    <div class="container">
+      <span class="eyebrow">Insights</span>
+      <h2 class="h2">Keep pace with healthcare innovation</h2>
+      <a class="btn btn-orange" href="#">See more</a>
+    </div>
+  </section>
+  <section class="insights">
+    <div class="container">
+      <div class="ins-grid">
+        <div class="ins"><div class="img"><img src="https://surescripts.widen.net/content/zzgu9lstiy/web/2932-2_1224x516-Insights_Image.jpg?w=345&h=220&crop=yes" alt="" onerror="this.remove()"></div><div class="dt"><span>August 18, 2026</span><span>9 min</span></div><h5>Weathering Every Storm: What Industry-Leading Cyber Resilience Looks Like</h5><div class="author">by <a href="#">Judy Molenaar</a></div><a class="more" href="#">Read the article &rsaquo;</a></div>
+        <div class="ins"><div class="img"><img src="https://surescripts.widen.net/content/hih8djobh7/web/2861-3_IIA_Insights-Feature-Graphic_FINAL.jpg?w=345&h=220&crop=yes" alt="" onerror="this.remove()"></div><div class="dt"><span>July 14, 2026</span><span>9 min</span></div><h5>4 Ways to Capitalize on the Momentum Behind the Proposed CMS Rule</h5><div class="author">by Deanne Primozic, Vice President, Policy &amp; Federal Affairs, Surescripts</div><a class="more" href="#">Read the article &rsaquo;</a></div>
+        <div class="ins"><div class="img"><img src="https://surescripts.widen.net/content/uzfdqewtfj/web/2704-2_ForbesByline1_FeatureGraphic_FINAL.jpg?w=345&h=220&crop=yes" alt="" onerror="this.remove()"></div><div class="dt"><span>July 8, 2026</span><span>2 min</span></div><h5>In the News: How a New CMS Rule Could Change Prior Authorization</h5><a class="more" href="#">Read the article &rsaquo;</a></div>
+      </div>
+      <div class="dots ins-dots"><span class="arr"></span><i class="on"></i><i></i><i></i><span class="arr next"></span></div>
+    </div>
+  </section>
+
+  <section class="footnotes">
+    <div class="container">
+      <div class="wrap">
+        <div class="ttl">References</div>
+        <ol>
+          <li>Surescripts, &ldquo;<u>How Aurora Health Care Used Electronic Prior Authorization To Cut Clinic Staff Overtime By More Than Half</u>,&rdquo; July 25, 2019.</li>
+          <li>Surescripts, &ldquo;<u>2022 National Progress Report</u>,&rdquo; March 2023, p. 9.</li>
+          <li>Surescripts, &ldquo;How Aurora Health Care Used Electronic Prior Authorization To Cut Clinic Staff Overtime By More Than Half.&rdquo;</li>
+        </ol>
+        <a class="rm" href="#">Read more</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="footer-cta">
+    <div class="container">
+      <h2>Put Electronic Prior Authorization to work for your organization</h2>
+      <div class="cta">
+        <p>Connect with our team to explore how Electronic Prior Authorization can help you increase patient safety, reduce costs and ensure quality care.</p>
+        <a class="btn btn-white" href="#">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="f-row">
+        <div class="f-col">
+          <a class="f-logo" href="#" aria-label="Surescripts home">
+            <svg viewBox="0 0 182 48" aria-hidden="true">
+              <path d="M6 20 C 22 4, 52 2, 74 12" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+              <text x="0" y="40" fill="#fff" font-family="proxima-nova, Figtree, Arial, sans-serif" font-size="33" font-weight="500" letter-spacing="-0.6">surescripts</text>
+            </svg>
+          </a>
+          <div class="social">
+            <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M14 8V6c0-.9.6-1 1-1h3V1h-4c-3.3 0-4 2.4-4 4v3H7v4h3v11h4V12h3.5l.5-4z"/></svg></a>
+            <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M2 8h4.5v14H2zM4.3 1a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM9 8h4.3v2c.6-1.1 2.1-2.3 4.3-2.3 4.6 0 5.4 3 5.4 6.9V22h-4.5v-6.6c0-1.6 0-3.6-2.2-3.6s-2.6 1.7-2.6 3.5V22H9z"/></svg></a>
+            <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M18.2 2h3.4l-7.4 8.5L23 22h-6.8l-5.3-7-6.1 7H1.4l7.9-9L1 2h7l4.8 6.4zm-1.2 18h1.9L7.1 4H5.1z"/></svg></a>
+            <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 00.5 6.2 31 31 0 000 12a31 31 0 00.5 5.8 3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1A31 31 0 0024 12a31 31 0 00-.5-5.8zM9.6 15.6V8.4l6.3 3.6z"/></svg></a>
+          </div>
+          <a class="btn btn-outline" href="#">Contact us</a>
+        </div>
+        <div class="f-col">
+          <span class="h">Support &amp; logins</span>
+          <ul><li><a href="#">Get assistance</a></li><li><a href="#">Workbench &#8599;</a></li><li><a href="#">Independent Pharmacy Helpline</a></li><li><a href="#">Case management &#8599;</a></li></ul>
+        </div>
+        <div class="f-col">
+          <div class="spacer"></div>
+          <ul><li><a href="#">Learning Center</a></li><li><a href="#">Technical documentation &#8599;</a></li><li><a href="#">Prior Authorization Portal &#8599;</a></li><li><a href="#">Glossary</a></li></ul>
+        </div>
+        <div class="f-col">
+          <span class="h">Subscribe</span>
+          <p>Keep up with the latest healthcare intelligence resources and insights.</p>
+          <a class="btn btn-outline" href="#">Subscribe</a>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>Copyright &copy; 2026 Surescripts</p>
+        <ul><li><a href="#">Your Privacy Choices</a></li><li><a href="#">Privacy Office</a></li><li><a href="#">Sitemap</a></li><li><a href="#">Website User Agreement</a></li></ul>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function ensureLockedConfig() {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    document.getElementById('claimForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      function render(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '';
+        var t = document.createElement('div'); t.className = 'rt'; t.textContent = title;
+        var d = document.createElement('div'); d.className = 'rd'; d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+      }
+      btn.disabled = true;
+      btn.classList.add('loading');
+      label.textContent = 'Sending to benefit plan…';
+      result.className = 'result-box';
+      var started = Date.now();
+      try {
+        var response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: document.getElementById('description').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = {};
+        try { data = await response.json(); } catch (parseErr) { data = {}; }
+        var elapsed = ((Date.now() - started) / 1000).toFixed(1);
+        if (response.ok) {
+          render('success', 'Prior authorization request sent' + (data.claimId ? ' — PA ' + String(data.claimId).slice(0, 8).toUpperCase() : ''),
+            'The benefit plan acknowledged the request. Completed in ' + elapsed + ' s');
+        } else {
+          render('error', 'The prior authorization request could not be sent to the benefit plan. Please try again.',
+            (data.error ? data.error + ' · ' : '') + 'HTTP ' + response.status + (data.requestId ? ' · request ' + data.requestId : '') + ' · ' + elapsed + ' s');
+        }
+      } catch (err) {
+        render('error', 'Network error', err.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = 'Submit prior authorization';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
