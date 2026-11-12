@@ -5607,6 +5607,41 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BOEING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Boeing or Boeing Global Services product.',
   },
+  d4323ff8: {
+    slug: 'd4323ff8',
+    company: 'Halliburton',
+    brandMark: 'H',
+    vertical: 'fieldticket',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/myhalliburton', '/halliburton-field-tickets'],
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the myHalliburton Commerce Central field ticket page linked above. Its "Approve field ticket" form (ticket number, approver, PO and AFE numbers, confirmation) posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 myHalliburton field ticket: Approve", release commerce-central@2026.11.2, owner team field-ticket-oncall: approving ZEUS electric fracturing field ticket FT-4471093 (Ridgeback State 14-2H, Delaware Basin) fails immediately with HTTP 500, so the ticket never posts to invoicing, while cementing, wireline and Baroid tickets approve normally.',
+        'Use "myHalliburton", "field ticket" and "Approve" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Travis Mendez (field-ticket-oncall)". Travis Mendez is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: 'd4323ff8.html', title: 'Field tickets | myHalliburton' },
+    theme: {
+      '--accent': '#CC0000',
+      '--ink': '#43494E',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#43494E',
+      '--chrome-text': '#FFFFFF',
+      '--cta': '#CC0000',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 myHalliburton field ticket: Approve',
+      release: 'commerce-central@2026.11.2',
+      team: 'field-ticket-oncall',
+      symptom: 'Approving ZEUS electric fracturing field ticket FT-4471093 (Ridgeback State 14-2H, Delaware Basin) fails immediately with HTTP 500; no approval number is issued. Cementing, wireline and Baroid tickets approve normally. Latency is normal.',
+      impact: "Operators can't approve ZEUS frac field tickets in myHalliburton, so they never post to invoicing; the page shows \"We couldn't approve this field ticket.\"",
+    },
+    disclaimer: 'NOT ACTUALLY A HALLIBURTON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Halliburton or myHalliburton product.',
+  },
+
 
   '2993853c': {
     slug: '2993853c',
@@ -9576,6 +9611,26 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     page: { file: '63bb1294.html', title: 'Peloton App: Your on-demand fitness companion' },
     disclaimer: 'NOT ACTUALLY A PELOTON SITE — internal demo only, not affiliated with, endorsed by, or a real Peloton product.',
+  },
+  'ce10b821': {
+    slug: 'ce10b821',
+    company: 'Gap',
+    vertical: 'storepickup',
+    oncallOnly: true,
+    // Add to Bag sits bottom-right in the first viewport at 1440x900.
+    ribbonSide: 'left',
+    page: { file: 'ce10b821.html', title: 'The Hailey Low Rise Loose Jean | Gap' },
+    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
+  },
+  '9c7ec245': {
+    slug: '9c7ec245',
+    company: 'eBay',
+    vertical: 'banking',
+    page: {
+      file: '9c7ec245.html',
+      title: 'Payouts on demand | Seller Center',
+    },
+    disclaimer: 'NOT ACTUALLY AN EBAY SITE — internal demo only, not affiliated with, endorsed by, or a real eBay product.',
   },
 };
 

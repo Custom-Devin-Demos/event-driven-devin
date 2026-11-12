@@ -1177,7 +1177,27 @@ const ALERT_SCENARIOS = {
     impact: "Operators in Côte d'Ivoire can't raise an AOG request: the grounded airplane never reaches a Boeing AOG desk and the form shows \"We couldn't submit your AOG request.\"",
     alertOnStatus: [500],
     unlisted: true,
+  },  fieldticket: {
+    vertical: 'fieldticket',
+    page: 'd4323ff8.html',
+    apiPath: '/api/d4323ff8/field-tickets/approve',
+    oncallApiPath: '/api/oncall/fieldticket/approve',
+    owner: 'Travis Mendez (field-ticket-oncall)',
+    brand: 'myHalliburton Commerce Central (Field ticket approval)',
+    service: 'commerce-central-api',
+    endpoint: 'POST /api/oncall/fieldticket/approve',
+    monitor: '5xx rate — POST /api/oncall/fieldticket/approve',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/fieldticket/approve,http.status_code:500}',
+    metricValue: '500 on field ticket Approve for ZEUS electric frac tickets',
+    threshold: '> 1% error rate',
+    baseline: '<0.1% (7-day)',
+    release: 'commerce-central@2026.11.2',
+    symptom: 'Approving a field ticket in myHalliburton fails immediately with HTTP 500 for ZEUS electric fracturing tickets (e.g. FT-4471093, Ridgeback State 14-2H, Delaware Basin). Cementing, wireline and Baroid tickets approve normally and latency is normal. Onset coincides with the ft-sync@2026.11.10 field ticket sync.',
+    impact: "Operators can't approve ZEUS frac field tickets, so the ticket never posts to invoicing; the page shows \"We couldn't approve this field ticket.\"",
+    alertOnStatus: [500],
+    unlisted: true,
   },
+
 
   f8555891: {
     vertical: 'f8555891',
