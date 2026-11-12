@@ -218,7 +218,7 @@ async function reportLatencyBreach(context) {
     extra: alertContext,
   });
 
-  await createSessionAndAlert({
+  const delivery = await createSessionAndAlert({
     issueTitle: `LatencyBudgetExceeded: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'loadPortfolioSummary(app/services/verticals/0166f378)',
@@ -233,6 +233,7 @@ async function reportLatencyBreach(context) {
       profile, queryId: snowflake.queryId, durationMs, budgetMs, rowsReturned: snowflake.rowsReturned, mode: snowflake.mode,
     }),
     customer: CUSTOMER,
+    skipVulnerablePr: true,
     slackMemberId: data.devinEmail ? '' : SLACK_MEMBER_ID,
     slackMemberIdFallback: SLACK_MEMBER_ID,
     tags: [
@@ -256,6 +257,9 @@ async function reportLatencyBreach(context) {
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
   });
+  if (!delivery) {
+    throw new Error('alert was not delivered to Slack or Teams');
+  }
 }
 
 /**
@@ -304,6 +308,7 @@ async function loadPortfolioSummary(data = {}) {
       reportLatencyBreach({
         requestId, durationMs, budgetMs: LATENCY_SLO.budgetMs, snowflake, data: { ...data, ownerId },
       }).catch((alertError) => {
+        if (lastAlertAt === now) lastAlertAt = 0;
         logger.error('Failed to create Devin session for Fidelity portfolio latency breach', { error: alertError.message, requestId });
       });
     }

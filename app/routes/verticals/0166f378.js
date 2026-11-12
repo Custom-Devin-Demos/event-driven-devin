@@ -4,8 +4,13 @@ const { PORTFOLIO } = require('../../services/verticals/0166f378-portfolio');
 
 const router = express.Router();
 
+/**
+ * `?reports=off` suppresses the alert pipeline in every environment (frontend perf
+ * probes default to it; pass `--live-alerts` to page). `x-synthetic` is local-only.
+ */
 function isReproductionRequest(req) {
-  return (Boolean(req.headers['x-synthetic']) || req.query.reports === 'off') && process.env.NODE_ENV !== 'production';
+  if (req.query.reports === 'off') return true;
+  return Boolean(req.headers['x-synthetic']) && process.env.NODE_ENV !== 'production';
 }
 
 router.get('/api/0166f378/config', (req, res) => {
