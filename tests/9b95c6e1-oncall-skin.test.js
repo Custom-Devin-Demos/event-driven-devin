@@ -111,6 +111,7 @@ describe('Logicbroker Order Routing on-call skin', () => {
       const plan = await evaluated.json();
       expect(plan.allocations).toHaveLength(5);
       expect(plan.allocations.map((item) => item.quantity)).toEqual([100, 10, 15, 30, 45]);
+      expect(plan.allocations.map((item) => item.slaCutoff)).toEqual(['18:00 ET', '18:00 ET', '20:00 ET', '18:00 ET', '17:00 ET']);
       expect(plan.allocations.reduce((sum, item) => sum + item.quantity, 0)).toBe(200);
       const release = await post(API + '/release', { orderId, allocations: [] });
       expect(release.status).toBe(500);
@@ -120,6 +121,33 @@ describe('Logicbroker Order Routing on-call skin', () => {
     expect(Sentry.captureException.mock.calls[0][0].message).toContain("reading 'cutoffHour'");
     expect(incrementMetric).toHaveBeenCalledWith('logicbroker.routing.failure', expect.objectContaining({ service: 'lb-order-routing-api' }));
     expect(declareDatadogIncident).not.toHaveBeenCalled();
+  });
+  test('with the missing rule restored, late releases schedule all POs without dropping suppliers', async () => {
+    let service;
+    jest.isolateModules(() => { service = require('../app/services/oncall-verticals/logicbroker-routing'); });
+    service.SLA_CUTOFF_RULES.GROUND_3PL = { cutoffHour: 17 };
+    jest.useFakeTimers();
+    try {
+      for (const [time, groundDate, expressDate] of [
+        ['2026-11-12T23:00:00Z', '2026-11-13', '2026-11-12'],
+        ['2026-11-13T23:00:00Z', '2026-11-16', '2026-11-13'],
+        ['2026-11-14T12:00:00Z', '2026-11-16', '2026-11-16'],
+      ]) {
+        jest.setSystemTime(new Date(time));
+        const result = await service.releaseSupplierPOs({ orderId: 'PO28371271-001' });
+        expect(result.success).toBe(true);
+        expect(result.allocations).toHaveLength(5);
+        expect(result.allocations.every((item) => item.status === 'Released')).toBe(true);
+        expect(result.allocations.reduce((sum, item) => sum + item.quantity, 0)).toBe(200);
+        expect(result.allocations.map((item) => item.shipBy)).toEqual([
+          groundDate + ' 18:00 ET', groundDate + ' 18:00 ET', expressDate + ' 20:00 ET',
+          groundDate + ' 18:00 ET', groundDate + ' 17:00 ET',
+        ]);
+      }
+    } finally {
+      jest.useRealTimers();
+      delete service.SLA_CUTOFF_RULES.GROUND_3PL;
+    }
   });
   test('empty and invalid routing requests are rejected without telemetry', async () => {
     for (const endpoint of ['/evaluate', '/release']) {
