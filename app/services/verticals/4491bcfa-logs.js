@@ -17,17 +17,20 @@ const SOURCE_IP = '203.0.113.47';
 const USER_AGENT = 'python-requests/2.31.0';
 const OWNER_ACCOUNT = 'EA-100000';
 const WINDOW_MINUTES = 5;
-const WINDOW_START = '2026-11-11T03:58:12Z';
+const WINDOW_MS = WINDOW_MINUTES * 60 * 1000;
+// Anchored to process start so the window the alert reports is always the
+// five minutes leading up to the run, not a date baked into the source.
+const WINDOW_END_MS = Date.now();
+const WINDOW_START_MS = WINDOW_END_MS - WINDOW_MS;
+const WINDOW_START = new Date(WINDOW_START_MS).toISOString();
 
 // 213 distinct account ids already pulled cross-account in the window; the 214th
 // distinct id arrives live when the demo changes the account in the URL.
 const SEEDED_IDS = ACCOUNT_IDS.filter((id) => id !== OWNER_ACCOUNT).slice(0, 213);
 
 function buildSeededLog() {
-  const start = new Date(WINDOW_START).getTime();
-  const spanMs = WINDOW_MINUTES * 60 * 1000;
   return SEEDED_IDS.map((accountId, i) => {
-    const ts = new Date(start + Math.round((i / SEEDED_IDS.length) * spanMs)).toISOString();
+    const ts = new Date(WINDOW_START_MS + Math.round((i / SEEDED_IDS.length) * WINDOW_MS)).toISOString();
     return {
       ts,
       ip: SOURCE_IP,
