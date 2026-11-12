@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EA Account</title>
+<link rel="icon" type="image/x-icon" href="/verticals/assets/4491bcfa/favicon.ico">
+<style>
+  @font-face { font-family: 'EA Text'; font-weight: 400; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsText-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'EA Text'; font-weight: 300; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsText-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'EA Text'; font-weight: 700; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsText-Bold.woff2') format('woff2'); }
+  @font-face { font-family: 'EA Display'; font-weight: 700; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsDisplay-Bold.woff2') format('woff2'); }
+  :root {
+    --bg: #00071f;
+    --panel: #0b1433;
+    --panel-2: #101c42;
+    --line: #222e55;
+    --fg: #ffffff;
+    --muted: #9aa3bd;
+    --accent: #ff4d4d;
+    --accent-2: #255af6;
+    --radius: 10px;
+    --font: 'EA Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --display: 'EA Display', var(--font);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .topbar { background: #000716; color: var(--muted); font-size: 12px; padding: 6px 24px; border-bottom: 1px solid var(--line); }
+  header.site { background: #00071f; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 50; }
+  .nav { max-width: 1180px; margin: 0 auto; display: flex; align-items: center; gap: 28px; padding: 14px 24px; }
+  .logo { height: 26px; display: flex; align-items: center; }
+  .logo img { height: 26px; width: auto; display: block; }
+  .nav .links { display: flex; gap: 22px; font-size: 14px; color: #dfe3ef; }
+  .nav .links span { cursor: default; opacity: .9; }
+  .nav .spacer { flex: 1; }
+  .nav .acct { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #dfe3ef; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+  .page-title { font-family: var(--display); font-size: 28px; font-weight: 700; letter-spacing: .3px; margin: 6px 0 2px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+  .layout { display: grid; grid-template-columns: 230px 1fr; gap: 26px; }
+  .side { border-right: 1px solid var(--line); padding-right: 18px; }
+  .side a { display: block; padding: 10px 12px; border-radius: 8px; color: var(--muted); font-size: 14px; margin-bottom: 4px; cursor: pointer; }
+  .side a.active { background: var(--panel-2); color: #fff; }
+  .side a:hover { background: var(--panel); color: #fff; }
+  .viewing { background: rgba(255,77,77,.08); border: 1px solid rgba(255,77,77,.35); color: #ffd4d4; border-radius: var(--radius); padding: 11px 14px; font-size: 13px; margin-bottom: 18px; display: none; }
+  .viewing.show { display: block; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 18px; }
+  .card h2 { font-family: var(--display); font-size: 16px; margin: 0 0 16px; letter-spacing: .4px; text-transform: uppercase; color: #cfd5e8; }
+  .profile-head { display: flex; align-items: center; gap: 18px; margin-bottom: 8px; }
+  .profile-head .big { width: 72px; height: 72px; border-radius: 50%; font-size: 28px; }
+  .profile-head .name { font-family: var(--display); font-size: 22px; font-weight: 700; }
+  .profile-head .ead { color: var(--muted); font-size: 14px; }
+  .kv { display: grid; grid-template-columns: 180px 1fr; gap: 10px 16px; font-size: 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; color: #eef1f8; }
+  .plat { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .plat:last-child { border-bottom: none; }
+  .plat .p-name { font-weight: 700; }
+  .plat .p-sub { color: var(--muted); font-size: 13px; }
+  .pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 700; }
+  .pill.on { background: rgba(60,200,120,.14); color: #6ff0a6; }
+  .pill.off { background: rgba(255,77,77,.14); color: #ff9a9a; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+  footer.site { border-top: 1px solid var(--line); margin-top: 40px; color: var(--muted); font-size: 12px; }
+  .foot { max-width: 1180px; margin: 0 auto; padding: 22px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .foot .foot-logo img { height: 18px; opacity: .8; }
+  .demo-label { margin-left: auto; font-size: 11px; letter-spacing: .5px; color: #6b7391; border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+  .back { color: var(--muted); }
+  #toast { position: fixed; top: 18px; left: 50%; transform: translateX(-50%) translateY(-24px); max-width: 640px; width: calc(100% - 40px); background: #c0202c; color: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.4); padding: 14px 44px 14px 18px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 2000; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  #toast .t-title { font-weight: 700; margin-bottom: 3px; }
+  #toast .t-body { font-size: 13px; opacity: .95; }
+  #toast .t-close { position: absolute; top: 10px; right: 12px; cursor: pointer; font-size: 18px; line-height: 1; opacity: .9; }
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; }
+    .side { border-right: none; border-bottom: 1px solid var(--line); padding: 0 0 12px; display: flex; gap: 6px; overflow-x: auto; }
+    .nav .links { display: none; }
+    .kv { grid-template-columns: 1fr; gap: 2px 0; }
+    .kv dt { margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<div id="toast"><span class="t-close" onclick="hideToast()">&times;</span><div class="t-title"></div><div class="t-body"></div></div>
+<div class="topbar">Electronic Arts</div>
+<header class="site">
+  <div class="nav">
+    <a class="logo" href="/4491bcfa"><img src="/verticals/assets/4491bcfa/ea-logo-white.svg" alt="Electronic Arts"></a>
+    <div class="links">
+      <span>My Account</span><span>Order History</span><span>Subscriptions</span><span>Security</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="acct">
+      <span id="me-name">Signed in</span>
+      <span class="avatar" id="me-avatar" style="background:#444">EA</span>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="page-title">EA Account</div>
+  <div class="subtitle">Manage your profile, linked platforms, and sign-in &amp; security settings.</div>
+
+  <div class="viewing" id="viewing"></div>
+
+  <div class="layout">
+    <nav class="side">
+      <a data-tab="profile" class="active">Profile</a>
+      <a data-tab="platforms">Linked platforms</a>
+      <a data-tab="security">Sign-in &amp; security</a>
+    </nav>
+    <div class="content">
+      <section class="tab active" id="tab-profile">
+        <div class="card">
+          <div class="profile-head">
+            <span class="avatar big" id="p-avatar">EA</span>
+            <div>
+              <div class="name" id="p-name">—</div>
+              <div class="ead" id="p-ead">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Account details</h2>
+          <dl class="kv">
+            <dt>EA Account ID</dt><dd id="p-id">—</dd>
+            <dt>Email address</dt><dd id="p-email">—</dd>
+            <dt>Country / region</dt><dd id="p-country">—</dd>
+            <dt>Location</dt><dd id="p-location">—</dd>
+            <dt>Member since</dt><dd id="p-since">—</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-platforms">
+        <div class="card">
+          <h2>Linked platforms</h2>
+          <div id="plat-list"></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-security">
+        <div class="card">
+          <h2>Sign-in &amp; security</h2>
+          <dl class="kv">
+            <dt>Two-factor (login verification)</dt><dd id="s-2fa">—</dd>
+            <dt>Email verification</dt><dd id="s-email">—</dd>
+            <dt>Last sign-in</dt><dd id="s-last">—</dd>
+            <dt>Last sign-in IP</dt><dd id="s-ip">—</dd>
+            <dt>Last sign-in device</dt><dd id="s-device">—</dd>
+          </dl>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<footer class="site">
+  <div class="foot">
+    <span class="foot-logo"><img src="/verticals/assets/4491bcfa/ea-logo-white.svg" alt="EA"></span>
+    <a class="back" href="/">&larr; All Demos</a>
+    <span class="demo-label">DEMO ENVIRONMENT &middot; SYNTHETIC DATA</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var toast = document.getElementById('toast');
+  window.hideToast = function () { toast.classList.remove('show'); };
+  function showToast(title, body) {
+    toast.querySelector('.t-title').textContent = title;
+    toast.querySelector('.t-body').textContent = body || '';
+    toast.classList.add('show');
+  }
+  function q(id) { return document.getElementById(id); }
+  function identityQS() {
+    var p = new URLSearchParams();
+    var u = localStorage.getItem('devinUserId'); if (u) p.set('devinUserId', u);
+    var o = localStorage.getItem('devinOrgId'); if (o) p.set('devinOrgId', o);
+    var e = localStorage.getItem('devinEmail'); if (e) p.set('devinEmail', e);
+    return p.toString();
+  }
+  var SESSION = '';
+  var MY_ID = '';
+
+  // Tabs
+  document.querySelectorAll('.side a').forEach(function (el) {
+    el.addEventListener('click', function () {
+      document.querySelectorAll('.side a').forEach(function (a) { a.classList.remove('active'); });
+      el.classList.add('active');
+      var t = el.getAttribute('data-tab');
+      document.querySelectorAll('.tab').forEach(function (s) { s.classList.remove('active'); });
+      q('tab-' + t).classList.add('active');
+    });
+  });
+
+  function paramAccount() {
+    return new URLSearchParams(location.search).get('account') || '';
+  }
+
+  function render(p) {
+    q('p-avatar').textContent = (p.displayName || 'EA').slice(0, 2).toUpperCase();
+    q('p-avatar').style.background = p.avatarColor || '#444';
+    q('p-name').textContent = p.displayName;
+    q('p-ead').textContent = '@' + p.eaId;
+    q('p-id').textContent = p.accountId;
+    q('p-email').textContent = p.email;
+    q('p-country').textContent = p.country;
+    q('p-location').textContent = p.location;
+    q('p-since').textContent = p.memberSince;
+
+    var list = q('plat-list'); list.innerHTML = '';
+    (p.linkedPlatforms || []).forEach(function (lp) {
+      var row = document.createElement('div');
+      row.className = 'plat';
+      row.innerHTML = '<div><div class="p-name"></div><div class="p-sub"></div></div><div class="p-sub"></div>';
+      row.querySelector('.p-name').textContent = lp.platform;
+      row.children[0].querySelector('.p-sub').textContent = lp.handle;
+      row.children[1].textContent = 'Linked ' + lp.linkedOn;
+      list.appendChild(row);
+    });
+
+    q('s-2fa').innerHTML = p.security && p.security.twoFactorEnabled
+      ? '<span class="pill on">On</span>' : '<span class="pill off">Off</span>';
+    q('s-email').innerHTML = p.security && p.security.loginVerificationEmail
+      ? '<span class="pill on">Verified</span>' : '<span class="pill off">Not verified</span>';
+    if (p.lastLogin) {
+      q('s-last').textContent = p.lastLogin.at;
+      q('s-ip').textContent = p.lastLogin.ip;
+      q('s-device').textContent = p.lastLogin.device + ' — ' + p.lastLogin.location;
+    }
+
+    var banner = q('viewing');
+    if (p.accountId !== MY_ID) {
+      banner.classList.add('show');
+      banner.textContent = 'You are viewing EA Account ' + p.accountId + ' (' + p.displayName + '). This is not your account.';
+    } else {
+      banner.classList.remove('show');
+    }
+  }
+
+  function loadProfile(accountId) {
+    var qs = identityQS();
+    fetch('/api/accounts/' + encodeURIComponent(accountId) + '/profile' + (qs ? ('?' + qs) : ''), {
+      headers: { 'x-ea-session': SESSION }
+    }).then(function (res) {
+      return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; });
+    }).then(function (r) {
+      if (!r.ok || !r.data.success) {
+        showToast('Unable to load account (HTTP ' + r.status + ')',
+          (r.data.error || 'Request failed') + ' · code ' + (r.data.code || 'UNKNOWN'));
+        return;
+      }
+      render(r.data.profile);
+    }).catch(function () {
+      showToast('Network error', 'Could not reach the account service.');
+    });
+  }
+
+  fetch('/api/4491bcfa/session').then(function (r) { return r.json(); }).then(function (s) {
+    SESSION = s.session.sessionId;
+    MY_ID = s.me.accountId;
+    q('me-name').textContent = s.me.displayName;
+    q('me-avatar').textContent = (s.me.displayName || 'EA').slice(0, 2).toUpperCase();
+    q('me-avatar').style.background = s.me.avatarColor || '#444';
+    loadProfile(paramAccount() || MY_ID);
+  }).catch(function () { showToast('Unable to start session', 'The account service is unavailable.'); });
+})();
+</script>
+</body>
+</html>
