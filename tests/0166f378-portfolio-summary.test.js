@@ -1,5 +1,7 @@
 /* global describe, expect, test, jest, beforeEach, afterAll, setImmediate */
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 
 jest.mock('../app/services/devin-session', () => ({
@@ -62,6 +64,13 @@ afterAll(() => {
 
 describe('Fidelity Portfolio Summary (0166f378)', () => {
   jest.setTimeout(30000);
+
+  test('page wires the Refresh positions button to reload the summary', () => {
+    const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/0166f378.html'), 'utf8');
+    expect(html).toMatch(/<button[^>]*id="refresh"/);
+    expect(html).toMatch(/\$\('refresh'\)\.addEventListener\('click',\s*function \(\) \{ load\(\)/);
+    expect(html).not.toMatch(/id="latency-check"|id="svc"|toggle-sql|toggle-profile|classList\.toggle\('ops'\)/);
+  });
 
   test('config endpoint publishes the latency budget and accounts', async () => {
     const res = await get('/api/0166f378/config');
