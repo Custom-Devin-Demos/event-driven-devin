@@ -77,7 +77,7 @@
   .samples { grid-column: 1 / -1; font-size: 13px; color: var(--fid-ink-2); display: none; }
   .samples table { border-collapse: collapse; margin-top: 6px; }
   .samples td, .samples th { padding: 4px 12px 4px 0; text-align: left; font-variant-numeric: tabular-nums; }
-  .svc.has-samples .samples { display: block; }
+  .svc.has-samples #samples, .svc.show-profile #profile { display: block; }
 
   .grid { background: #fff; border: 1px solid var(--fid-line); border-radius: 8px; overflow: hidden; }
   .grid-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--fid-line); }
@@ -150,6 +150,7 @@
         <span class="link" id="toggle-profile">Query profile</span>
       </div>
       <pre id="sql"></pre>
+      <div class="samples" id="profile"></div>
       <div class="samples" id="samples"></div>
     </div>
 
@@ -257,6 +258,30 @@
       + '<span>Query <b>' + (sf.queryId || 'n/a') + '</b> \u00B7 ' + (sf.database || '') + '.' + (sf.schema || '') + '</span>';
     $('meter-fill').style.width = Math.min(100, (backend.durationMs / backend.budgetMs) * 100) + '%';
     $('sql').textContent = sf.statement || '';
+    renderProfile(backend);
+  }
+
+  function renderProfile(backend) {
+    var sf = backend.snowflake || {};
+    var p = sf.profile;
+    var rows = [
+      ['Mode', sf.mode === 'live' ? 'Live Snowflake warehouse' : 'Embedded Snowflake emulator'],
+      ['Query id', sf.queryId || 'n/a'],
+      ['Snowflake round trip', fmtMs(sf.durationMs)],
+      ['Rows shipped to app', (sf.rowsReturned || 0).toLocaleString('en-US')],
+      ['Rows needed', String(window.__portfolioSummary && window.__portfolioSummary.totals ? window.__portfolioSummary.totals.positionCount : backend.positionCount || '')]
+    ];
+    if (p) {
+      rows.push(['Micro-partitions scanned', p.partitionsTotal ? p.partitionsScanned + ' of ' + p.partitionsTotal + (p.pruned ? ' (pruned)' : ' (no pruning)') : 'n/a']);
+      rows.push(['Bytes scanned', fmtBytes(p.bytesScanned)]);
+      rows.push(['Dedup in warehouse', p.dedupInWarehouse ? 'yes' : 'no \u2014 one row per historical day per position']);
+      rows.push(['Execution / compile', fmtMs(p.executionTimeMs) + ' / ' + fmtMs(p.compilationTimeMs)]);
+    } else {
+      rows.push(['Partition profile', 'Fetched from QUERY_HISTORY / GET_QUERY_OPERATOR_STATS when the budget is breached and attached to the alert']);
+    }
+    var html = '<b>Query profile</b> (last load)<table>';
+    rows.forEach(function (r) { html += '<tr><th>' + r[0] + '</th><td>' + r[1] + '</td></tr>'; });
+    $('profile').innerHTML = html + '</table>';
   }
 
   var timer = null;
@@ -284,9 +309,9 @@
       var clientMs = performance.now() - t0;
       stopElapsed();
       if (!data.success) throw new Error(data.error || 'Portfolio summary failed');
+      window.__portfolioSummary = data;
       renderSummary(data);
       renderService(data.backend, clientMs);
-      window.__portfolioSummary = data;
       window.__portfolioSummary.clientMs = clientMs;
       $('positions').setAttribute('data-loaded', 'true');
       $('refresh').disabled = false;
@@ -333,7 +358,7 @@
 
   $('refresh').addEventListener('click', function () { load().catch(function () {}); });
   $('toggle-sql').addEventListener('click', function () { $('svc').classList.toggle('show-sql'); });
-  $('toggle-profile').addEventListener('click', function () { $('svc').classList.toggle('has-samples'); });
+  $('toggle-profile').addEventListener('click', function () { $('svc').classList.toggle('show-profile'); });
 
   load().catch(function () {});
 })();
