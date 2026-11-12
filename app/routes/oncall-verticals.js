@@ -26,6 +26,7 @@ const { generateQuote } = require('../services/oncall-verticals/softwarequote');
 const { enterOrder: enterBookbuildOrder } = require('../services/oncall-verticals/bookbuild');
 const { quoteRates } = require('../services/oncall-verticals/shippingrates');
 const { submitAogRequest } = require('../services/oncall-verticals/aogrequest');
+const { approveFieldTicket } = require('../services/oncall-verticals/fieldticket');
 const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
@@ -1104,6 +1105,26 @@ router.post('/api/oncall/aogrequest/requests', async (req, res) => {
       field: invalid ? error.field : undefined,
       errorClass: error.name,
       code: error.code || 'AOG_REQUEST_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/fieldticket/approve — myHalliburton Commerce Central
+ * field ticket approval (customer e-sign)
+ */
+router.post('/api/oncall/fieldticket/approve', async (req, res) => {
+  try {
+    res.json(await approveFieldTicket(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_REQUEST';
+    res.status(invalid ? 400 : 500).json({
+      success: false,
+      error: invalid ? error.message : "We couldn't approve this field ticket. Please try again later.",
+      field: invalid ? error.field : undefined,
+      errorClass: error.name,
+      code: error.code || 'FIELD_TICKET_APPROVAL_FAILED',
       requestId: req.requestId,
     });
   }
