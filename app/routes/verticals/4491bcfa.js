@@ -1,6 +1,9 @@
 const express = require('express');
 const {
   getProfile,
+  getCard,
+  getFriends,
+  getMonitor,
   getPlatforms,
   getSecurity,
   getPortalSession,
@@ -49,6 +52,20 @@ router.get('/api/4491bcfa/session', (_req, res) => {
   res.json(getPortalSession());
 });
 
+router.get('/api/4491bcfa/friends', (req, res) => {
+  try {
+    res.json(getFriends(readSession(req)));
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, error: error.message, code: error.code || 'FRIENDS_FAILED' });
+  }
+});
+
+// Presenter Security view: the detection counter for the portal session.
+router.get('/api/4491bcfa/monitor', (_req, res) => {
+  res.json(getMonitor());
+});
+
+router.get('/api/accounts/:accountId/card', (req, res) => handle(req, res, getCard));
 router.get('/api/accounts/:accountId/profile', (req, res) => handle(req, res, getProfile));
 router.get('/api/accounts/:accountId/linked-platforms', (req, res) => handle(req, res, getPlatforms));
 router.get('/api/accounts/:accountId/security', (req, res) => handle(req, res, getSecurity));

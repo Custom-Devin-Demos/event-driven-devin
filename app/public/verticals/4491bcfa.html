@@ -70,9 +70,78 @@
   .side a.active { background: linear-gradient(180deg, var(--panel-2), var(--panel)); color: #fff; border-color: var(--line); }
   .side a.active svg { opacity: 1; }
   .side a:hover:not(.active) { background: var(--panel); color: #fff; }
-  .viewing { display: none; align-items: center; gap: 12px; background: rgba(255,77,77,.1); border: 1px solid rgba(255,77,77,.4); color: #ffd4d4; border-radius: 12px; padding: 12px 16px; font-size: 13.5px; margin-bottom: 20px; }
-  .viewing.show { display: flex; }
-  .viewing svg { width: 18px; height: 18px; flex: 0 0 auto; }
+  .friends { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .friend { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line-soft); border-radius: 12px; background: rgba(255,255,255,.015); cursor: pointer; text-align: left; color: inherit; font-family: inherit; }
+  .friend:hover { background: var(--panel-hover); border-color: var(--line); }
+  .friend .fn { font-weight: 700; font-size: 14px; line-height: 1.2; }
+  .friend .fs { color: var(--muted); font-size: 12px; }
+  .friend .online { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-left: auto; flex: 0 0 auto; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,3,10,.72); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 80; padding: 20px; }
+  .modal-bg.show { display: flex; }
+  .modal { width: 100%; max-width: 420px; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 18px; padding: 26px; position: relative; }
+  .modal .x { position: absolute; top: 14px; right: 16px; cursor: pointer; color: var(--muted); font-size: 22px; line-height: 1; background: none; border: none; }
+  .modal .mh { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .modal .mh .nm { font-family: var(--display); font-size: 20px; font-weight: 700; }
+  .modal .mh .sub { color: var(--muted); font-size: 13px; }
+  .modal .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .modal .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: rgba(255,255,255,.04); border: 1px solid var(--line-soft); font-size: 12.5px; font-weight: 700; }
+  .modal .chip i { width: 22px; height: 22px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 10px; }
+  .modal .actions { display: flex; gap: 10px; margin-top: 22px; }
+  /* Presenter Security view (?ops=1 or Alt+.) */
+  .ops-fab { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: none; align-items: center; gap: 8px; background: #11182f; border: 1px solid var(--line); color: #dfe5f5; border-radius: 999px; padding: 10px 16px; font: 700 13px var(--font); cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  body.ops-on .ops-fab { display: inline-flex; }
+  .ops { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100%; background: #070b18; border-left: 1px solid var(--line); z-index: 90; transform: translateX(100%); transition: transform .25s ease; display: flex; flex-direction: column; font-size: 13px; }
+  .ops.open { transform: translateX(0); }
+  .ops .oh { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--line-soft); }
+  .ops .oh b { font-family: var(--display); font-size: 15px; }
+  .ops .oh .tag { font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+  .ops .oh .x { margin-left: auto; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+  .ops .ob { overflow-y: auto; padding: 18px 20px 30px; }
+  .ops .sec { border: 1px solid var(--line-soft); border-radius: 14px; padding: 16px; margin-bottom: 16px; background: rgba(255,255,255,.015); }
+  .ops .sec h3 { margin: 0 0 4px; font-family: var(--display); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .ops .sec p.d { margin: 0 0 12px; color: var(--muted-2); font-size: 12.5px; }
+  .ops .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ops select { background: #0c1430; color: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: 13px var(--font); flex: 1; min-width: 0; }
+  .ops .btn { padding: 9px 16px; font-size: 12.5px; }
+  .ops .btn.red { background: #c42531; } .ops .btn.red:hover { background: #dd2e3b; }
+  .ops .btn:disabled { opacity: .55; cursor: default; }
+  .verdict { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--line); background: #0c1430; }
+  .verdict .vb { font: 700 12px var(--font); letter-spacing: 1.2px; padding: 5px 10px; border-radius: 6px; background: #2b3660; color: #cfd6ea; }
+  .verdict.bad { border-color: rgba(255,77,77,.55); background: rgba(255,77,77,.08); }
+  .verdict.bad .vb { background: var(--danger); color: #fff; }
+  .verdict.good { border-color: rgba(53,208,127,.55); background: rgba(53,208,127,.08); }
+  .verdict.good .vb { background: var(--ok); color: #00140a; }
+  .verdict .vt b { display: block; font-size: 14px; }
+  .verdict .vt span { color: var(--muted); font-size: 12px; }
+  .reqline { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #c9d2ea; background: #040814; border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; margin-top: 12px; word-break: break-all; }
+  .reqline .m { color: var(--accent-hi); font-weight: 700; }
+  .reqline .h { color: var(--muted-2); }
+  .hstatus { display: inline-flex; align-items: center; gap: 6px; font: 700 12px ui-monospace, Menlo, monospace; padding: 3px 9px; border-radius: 6px; }
+  .hstatus.s2 { background: rgba(255,77,77,.16); color: #ff9a9a; }
+  .hstatus.s4 { background: rgba(53,208,127,.16); color: #6ff0a6; }
+  .resp { margin-top: 10px; }
+  .resp .rh { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--muted); font-size: 12px; }
+  .resp pre { margin: 0; max-height: 300px; overflow: auto; font: 11.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; background: #040814; border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 0; color: #b9c3de; }
+  .resp pre span { display: block; padding: 0 12px; }
+  .resp pre span.leak { background: rgba(255,77,77,.16); color: #ffb3b3; box-shadow: inset 3px 0 0 var(--danger); }
+  .counters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 12px; }
+  .counter { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line-soft); background: #0a1024; }
+  .counter .n { font-family: var(--display); font-size: 30px; line-height: 1; }
+  .counter .l { color: var(--muted); font-size: 11.5px; letter-spacing: .6px; text-transform: uppercase; margin-top: 6px; }
+  .counter.leak .n { color: var(--danger); } .counter.block .n { color: var(--ok); }
+  .gauge .gl { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .gauge .gl b { color: #fff; }
+  .gauge .bar { position: relative; height: 10px; border-radius: 6px; background: #0c1430; border: 1px solid var(--line-soft); overflow: visible; }
+  .gauge .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: linear-gradient(90deg, #346bf1, #ff4d4d); width: 0; transition: width .15s; }
+  .gauge .th { position: absolute; top: -5px; bottom: -5px; width: 2px; background: #fff; }
+  .gauge .thl { position: absolute; top: 14px; transform: translateX(-50%); color: var(--muted-2); font-size: 10.5px; white-space: nowrap; }
+  .alert-state { margin-top: 26px; display: none; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(255,77,77,.1); border: 1px solid rgba(255,77,77,.5); color: #ffd4d4; font-size: 12.5px; }
+  .alert-state.show { display: flex; }
+  .alert-state b { color: #fff; }
+  .alert-state .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); margin-top: 4px; flex: 0 0 auto; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  .tail { margin-top: 12px; font: 11px/1.6 ui-monospace, Menlo, monospace; background: #040814; border: 1px solid var(--line-soft); border-radius: 10px; padding: 8px 12px; height: 132px; overflow: hidden; color: var(--muted); }
+  .tail .ok { color: #ff9a9a; } .tail .no { color: #6ff0a6; }
   .card { background: linear-gradient(180deg, var(--panel) 0%, #0a1026 100%); border: 1px solid var(--line); border-radius: 16px; padding: 24px 26px; margin-bottom: 20px; }
   .card h2 { font-family: var(--display); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 0 0 18px; display: flex; align-items: center; gap: 9px; }
   .card h2 svg { width: 16px; height: 16px; color: var(--accent-hi); }
@@ -138,6 +207,7 @@
     .kv { grid-template-columns: 1fr; }
     .kv dt { padding-bottom: 0; border-top: 1px solid var(--line-soft); } .kv dd { padding-top: 4px; border-top: none; }
     .kv dt:first-of-type { border-top: none; }
+    .friends { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
@@ -179,11 +249,6 @@
 </section>
 
 <div class="wrap">
-  <div class="viewing" id="viewing">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-    <span id="viewing-text"></span>
-  </div>
-
   <div class="layout">
     <aside class="side">
       <div class="grp">Account</div>
@@ -213,6 +278,10 @@
             <dt>Location</dt><dd id="p-location">—</dd>
           </dl>
         </div>
+        <div class="card">
+          <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.2a5.5 5.5 0 0 1 6 5.8"/></svg>Friends</h2>
+          <div class="friends" id="friends"></div>
+        </div>
       </section>
 
       <section class="tab" id="tab-platforms">
@@ -241,6 +310,56 @@
     </div>
   </div>
 </div>
+
+<div class="modal-bg" id="friend-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="fm-name">
+    <button class="x" type="button" data-close="friend-modal" aria-label="Close">&times;</button>
+    <div class="mh">
+      <span class="avatar" id="fm-avatar" style="width:60px;height:60px;font-size:22px">EA</span>
+      <div><div class="nm" id="fm-name">—</div><div class="sub" id="fm-sub">—</div></div>
+    </div>
+    <div class="chips" id="fm-plats"></div>
+    <div class="actions"><button class="btn" type="button" data-close="friend-modal">Invite to play</button><button class="btn ghost" type="button" data-close="friend-modal">Close</button></div>
+  </div>
+</div>
+
+<button class="ops-fab" type="button" id="ops-fab"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v6c0 4 3 6.5 7 8 4-1.5 7-4 7-8V6l-7-3z"/></svg>Security view</button>
+<aside class="ops" id="ops" aria-label="Security view">
+  <div class="oh"><b>Security view</b><span class="tag">Presenter only</span><button class="x" type="button" id="ops-close" aria-label="Close">&times;</button></div>
+  <div class="ob">
+    <div class="verdict" id="verdict"><span class="vb" id="verdict-badge">NOT TESTED</span><div class="vt"><b id="verdict-title">Ownership check on /api/accounts/{id}/profile</b><span id="verdict-sub">Send a cross-account request to test it.</span></div></div>
+
+    <div class="sec">
+      <h3>API inspector</h3>
+      <p class="d">Replays the page's own profile request, signed in as <b id="ops-me">—</b>, with a friend's account ID swapped in.</p>
+      <div class="row">
+        <select id="insp-target" aria-label="Target account"></select>
+        <button class="btn" type="button" id="insp-send">Send request</button>
+      </div>
+      <div class="reqline" id="insp-req"><span class="m">GET</span> /api/accounts/{id}/profile<br><span class="h">x-ea-session: —</span></div>
+      <div class="resp" id="insp-resp" hidden>
+        <div class="rh"><span>Response</span><span class="hstatus" id="insp-status">—</span><span id="insp-note"></span></div>
+        <pre id="insp-body"></pre>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Enumeration replay</h3>
+      <p class="d">Runs the same sequential-ID sweep seen in the gateway log (one session, one IP) against the next unread accounts.</p>
+      <button class="btn red" type="button" id="sweep-run">Run attacker script</button>
+      <div class="counters">
+        <div class="counter leak"><div class="n" id="c-leak">0</div><div class="l">Profiles leaked (200)</div></div>
+        <div class="counter block"><div class="n" id="c-block">0</div><div class="l">Requests blocked (401/403)</div></div>
+      </div>
+      <div class="gauge">
+        <div class="gl"><span>Distinct accounts read by session · last <span id="g-win">5</span> min</span><b><span id="g-count">—</span> / <span id="g-th">214</span></b></div>
+        <div class="bar"><div class="fill" id="g-fill"></div><div class="th" id="g-th-mark"></div><div class="thl" id="g-th-label">alert threshold</div></div>
+      </div>
+      <div class="alert-state" id="alert-state"><span class="dot"></span><div><b>SEC-HIGH raised</b> — Possible account enumeration on /api/accounts/*/profile. Posted to the IR channel; Devin is responding.</div></div>
+      <div class="tail" id="tail"></div>
+    </div>
+  </div>
+</aside>
 
 <footer class="site">
   <div class="foot">
@@ -274,6 +393,7 @@
   }
   function q(id) { return document.getElementById(id); }
   function initials(name) { return (name || 'EA').split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase(); }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function identityQS() {
     var p = new URLSearchParams();
     var u = localStorage.getItem('devinUserId'); if (u) p.set('devinUserId', u);
@@ -288,8 +408,18 @@
     'Nintendo Switch': { bg: '#e60012', mark: 'NS' },
     'Epic Games': { bg: '#2a2a2a', mark: 'EG' }
   };
+  function platStyle(name) { return PLATFORM_STYLE[name] || { bg: '#2b3660', mark: (name || '?').slice(0, 2).toUpperCase() }; }
   var SESSION = '';
   var MY_ID = '';
+  var FRIENDS = [];
+
+  function api(path) {
+    var qs = identityQS();
+    return fetch(path + (qs ? ((path.indexOf('?') >= 0 ? '&' : '?') + qs) : ''), { headers: { 'x-ea-session': SESSION } })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) { return { ok: res.ok, status: res.status, data: data }; });
+      });
+  }
 
   document.querySelectorAll('.side a').forEach(function (el) {
     el.addEventListener('click', function () {
@@ -300,8 +430,6 @@
       q('tab-' + t).classList.add('active');
     });
   });
-
-  function paramAccount() { return new URLSearchParams(location.search).get('account') || ''; }
 
   function render(p) {
     var ini = initials(p.displayName);
@@ -316,7 +444,7 @@
 
     var list = q('plat-list'); list.innerHTML = '';
     (p.linkedPlatforms || []).forEach(function (lp) {
-      var st = PLATFORM_STYLE[lp.platform] || { bg: '#2b3660', mark: (lp.platform || '?').slice(0, 2).toUpperCase() };
+      var st = platStyle(lp.platform);
       var row = document.createElement('div');
       row.className = 'plat';
       row.innerHTML = '<span class="badge"></span>'
@@ -338,31 +466,173 @@
       q('s-ip').textContent = p.lastLogin.ip;
       q('s-device').textContent = p.lastLogin.device + ' — ' + p.lastLogin.location;
     }
-
-    var banner = q('viewing');
-    if (p.accountId !== MY_ID) {
-      banner.classList.add('show');
-      q('viewing-text').textContent = 'You are viewing EA Account ' + p.accountId + ' (' + p.displayName + '). This is not your account.';
-    } else {
-      banner.classList.remove('show');
-    }
   }
 
-  function loadProfile(accountId) {
-    var qs = identityQS();
-    fetch('/api/accounts/' + encodeURIComponent(accountId) + '/profile' + (qs ? ('?' + qs) : ''), {
-      headers: { 'x-ea-session': SESSION }
-    }).then(function (res) {
-      return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; });
-    }).then(function (r) {
+  function loadMyProfile() {
+    api('/api/accounts/' + encodeURIComponent(MY_ID) + '/profile').then(function (r) {
       if (!r.ok || !r.data.success) {
-        showToast('Unable to load account (HTTP ' + r.status + ')',
+        showToast('Unable to load your account (HTTP ' + r.status + ')',
           (r.data.error || 'Request failed') + ' · code ' + (r.data.code || 'UNKNOWN'));
         return;
       }
       render(r.data.profile);
     }).catch(function () { showToast('Network error', 'Could not reach the account service.'); });
   }
+
+  // ---- Friends (public cards only) ----
+  function renderFriends() {
+    var grid = q('friends'); grid.innerHTML = '';
+    FRIENDS.forEach(function (f) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'friend'; b.setAttribute('data-account', f.accountId);
+      b.innerHTML = '<span class="avatar" style="width:38px;height:38px;font-size:14px"></span><div><div class="fn"></div><div class="fs"></div></div><span class="online"></span>';
+      var av = b.querySelector('.avatar'); av.textContent = initials(f.displayName); av.style.background = f.avatarColor;
+      b.querySelector('.fn').textContent = f.displayName;
+      b.querySelector('.fs').textContent = '@' + f.eaId;
+      b.addEventListener('click', function () { openFriend(f.accountId); });
+      grid.appendChild(b);
+    });
+    var sel = q('insp-target'); sel.innerHTML = '';
+    FRIENDS.forEach(function (f) {
+      var o = document.createElement('option'); o.value = f.accountId; o.textContent = f.accountId + ' · ' + f.displayName;
+      sel.appendChild(o);
+    });
+    updateReqLine();
+  }
+
+  function openFriend(accountId) {
+    api('/api/accounts/' + encodeURIComponent(accountId) + '/card').then(function (r) {
+      if (!r.ok || !r.data.success) {
+        showToast('Unable to load player (HTTP ' + r.status + ')', (r.data.error || 'Request failed') + ' · code ' + (r.data.code || 'UNKNOWN'));
+        return;
+      }
+      var c = r.data.card;
+      q('fm-avatar').textContent = initials(c.displayName); q('fm-avatar').style.background = c.avatarColor;
+      q('fm-name').textContent = c.displayName;
+      q('fm-sub').textContent = '@' + c.eaId + ' · ' + c.country;
+      var chips = q('fm-plats'); chips.innerHTML = '';
+      (c.platforms || []).forEach(function (name) {
+        var st = platStyle(name);
+        var ch = document.createElement('span'); ch.className = 'chip';
+        ch.innerHTML = '<i></i><span></span>';
+        ch.querySelector('i').textContent = st.mark; ch.querySelector('i').style.background = st.bg;
+        ch.querySelector('span').textContent = name;
+        chips.appendChild(ch);
+      });
+      q('friend-modal').classList.add('show');
+    }).catch(function () { showToast('Network error', 'Could not reach the account service.'); });
+  }
+  document.querySelectorAll('[data-close]').forEach(function (el) {
+    el.addEventListener('click', function () { q(el.getAttribute('data-close')).classList.remove('show'); });
+  });
+  q('friend-modal').addEventListener('click', function (e) { if (e.target === q('friend-modal')) q('friend-modal').classList.remove('show'); });
+
+  // ---- Presenter Security view ----
+  var SENSITIVE = /^\s*"(email|ip|linkedPlatforms|lastLogin|handle|security|twoFactorEnabled|loginVerificationEmail|location)"/;
+  function openOps() { document.body.classList.add('ops-on'); q('ops').classList.add('open'); refreshMonitor(); }
+  q('ops-fab').addEventListener('click', openOps);
+  q('ops-close').addEventListener('click', function () { q('ops').classList.remove('open'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '.' && e.altKey) openOps();
+    if (e.key === 'Escape') { q('ops').classList.remove('open'); q('friend-modal').classList.remove('show'); }
+  });
+
+  function setVerdict(state, title, sub) {
+    var v = q('verdict');
+    v.classList.remove('bad', 'good');
+    if (state === 'bad') { v.classList.add('bad'); q('verdict-badge').textContent = 'EXPOSED'; }
+    else if (state === 'good') { v.classList.add('good'); q('verdict-badge').textContent = 'BLOCKED'; }
+    else q('verdict-badge').textContent = 'NOT TESTED';
+    q('verdict-title').textContent = title;
+    q('verdict-sub').textContent = sub;
+  }
+
+  function updateReqLine() {
+    var target = q('insp-target').value || '{id}';
+    q('insp-req').innerHTML = '<span class="m">GET</span> /api/accounts/' + esc(target) + '/profile<br><span class="h">x-ea-session: ' + esc(SESSION || '—') + '  (owner ' + esc(MY_ID || '—') + ')</span>';
+  }
+  q('insp-target').addEventListener('change', updateReqLine);
+
+  function leaked(r) { return r.ok && r.data && r.data.profile && !!r.data.profile.email; }
+
+  q('insp-send').addEventListener('click', function () {
+    var target = q('insp-target').value;
+    if (!target) return;
+    var btn = q('insp-send'); btn.disabled = true;
+    api('/api/accounts/' + encodeURIComponent(target) + '/profile').then(function (r) {
+      var exposed = leaked(r);
+      var st = q('insp-status');
+      st.textContent = r.status + (r.ok ? ' OK' : (r.status === 403 ? ' Forbidden' : r.status === 401 ? ' Unauthorized' : ''));
+      st.className = 'hstatus ' + (r.ok ? 's2' : 's4');
+      var lines = JSON.stringify(r.data, null, 2).split('\n');
+      q('insp-body').innerHTML = lines.map(function (l) {
+        return '<span' + (exposed && SENSITIVE.test(l) ? ' class="leak"' : '') + '>' + esc(l) + '</span>';
+      }).join('');
+      q('insp-note').textContent = exposed ? 'Private fields of ' + target + ' returned to ' + MY_ID : 'No private data returned';
+      q('insp-resp').hidden = false;
+      if (exposed) {
+        setVerdict('bad', 'Another player\'s private data is exposed',
+          'HTTP ' + r.status + ' — email, linked platforms and last-login IP of ' + target + ' returned to ' + MY_ID + '.');
+      } else if (r.status === 403 || r.status === 401) {
+        setVerdict('good', 'Cross-account read is blocked',
+          'HTTP ' + r.status + ' — the API refused ' + target + ' for session owner ' + MY_ID + '.');
+      } else {
+        setVerdict('', 'Unexpected response', 'HTTP ' + r.status + (r.data && r.data.code ? ' · ' + r.data.code : ''));
+      }
+      refreshMonitor();
+    }).catch(function () { showToast('Network error', 'Could not reach the account service.'); })
+      .then(function () { btn.disabled = false; });
+  });
+
+  function refreshMonitor() {
+    return fetch('/api/4491bcfa/monitor').then(function (r) { return r.json(); }).then(function (m) {
+      q('g-count').textContent = m.distinctAccounts;
+      q('g-th').textContent = m.threshold;
+      q('g-win').textContent = m.windowMinutes;
+      var max = Math.max(m.threshold + 50, m.distinctAccounts + 10);
+      q('g-fill').style.width = Math.min(100, (m.distinctAccounts / max) * 100) + '%';
+      var thPct = (m.threshold / max) * 100;
+      q('g-th-mark').style.left = thPct + '%';
+      q('g-th-label').style.left = thPct + '%';
+      q('g-th-label').textContent = 'alert threshold · ' + m.threshold;
+      q('alert-state').classList.toggle('show', !!m.alerted);
+    }).catch(function () {});
+  }
+
+  var SWEEP_START = 100214, SWEEP_END = 100259;
+  q('sweep-run').addEventListener('click', function () {
+    var btn = q('sweep-run'); btn.disabled = true; btn.textContent = 'Running…';
+    var leak = 0, block = 0, n = SWEEP_START;
+    q('c-leak').textContent = '0'; q('c-block').textContent = '0';
+    var tail = q('tail'); tail.innerHTML = '';
+    function log(line, cls) {
+      var d = document.createElement('div'); d.className = cls; d.textContent = line;
+      tail.appendChild(d);
+      while (tail.childNodes.length > 8) tail.removeChild(tail.firstChild);
+    }
+    function step() {
+      if (n > SWEEP_END) {
+        btn.disabled = false; btn.textContent = 'Run attacker script';
+        refreshMonitor();
+        if (leak) setVerdict('bad', leak + ' more profiles leaked to one session', 'Sequential sweep EA-' + SWEEP_START + ' → EA-' + SWEEP_END + ' returned private data with HTTP 200.');
+        else if (block) setVerdict('good', 'Enumeration blocked', 'All ' + block + ' cross-account requests were refused.');
+        return;
+      }
+      var id = 'EA-' + n; n += 1;
+      api('/api/accounts/' + id + '/profile').then(function (r) {
+        if (leaked(r)) {
+          leak += 1; q('c-leak').textContent = leak;
+          log(r.status + '  GET /api/accounts/' + id + '/profile  → ' + r.data.profile.email + '  ip=' + r.data.profile.lastLogin.ip, 'ok');
+        } else {
+          block += 1; q('c-block').textContent = block;
+          log(r.status + '  GET /api/accounts/' + id + '/profile  → ' + ((r.data && r.data.code) || 'refused'), 'no');
+        }
+        if ((n - SWEEP_START) % 3 === 0 || n === SWEEP_START + 1) refreshMonitor();
+      }).catch(function () { block += 1; q('c-block').textContent = block; })
+        .then(function () { setTimeout(step, 90); });
+    }
+    step();
+  });
 
   fetch('/api/4491bcfa/session').then(function (r) { return r.json(); }).then(function (s) {
     SESSION = s.session.sessionId;
@@ -373,7 +643,12 @@
     q('hero-avatar').textContent = ini; q('hero-avatar').style.background = s.me.avatarColor || '#2b3660';
     q('hero-name').textContent = s.me.displayName;
     q('hero-ead').textContent = 'EA ID · @' + s.me.eaId;
-    loadProfile(paramAccount() || MY_ID);
+    q('ops-me').textContent = MY_ID;
+    loadMyProfile();
+    api('/api/4491bcfa/friends').then(function (r) {
+      if (r.ok && r.data.success) { FRIENDS = r.data.friends; renderFriends(); }
+    });
+    if (new URLSearchParams(location.search).get('ops') === '1') openOps();
   }).catch(function () { showToast('Unable to start session', 'The account service is unavailable.'); });
 })();
 </script>

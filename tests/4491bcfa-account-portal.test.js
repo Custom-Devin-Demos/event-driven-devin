@@ -162,6 +162,39 @@ describe('EA Account portal routes (4491bcfa)', () => {
     expect(res.body.code).toBe('NOT_AUTHENTICATED');
   });
 
+  test('GET /api/4491bcfa/friends returns public cards only', async () => {
+    const res = await request(server, '/api/4491bcfa/friends', { 'x-ea-session': SESSION });
+    expect(res.status).toBe(200);
+    expect(res.body.friends.length).toBe(service.FRIEND_IDS.length);
+    res.body.friends.forEach((f) => {
+      expect(f).not.toHaveProperty('email');
+      expect(f).not.toHaveProperty('lastLogin');
+      expect(logs.SEEDED_IDS).toContain(f.accountId);
+    });
+  });
+
+  test('GET /api/4491bcfa/friends returns 401 without a session', async () => {
+    const res = await request(server, '/api/4491bcfa/friends');
+    expect(res.status).toBe(401);
+  });
+
+  test('GET /api/accounts/:id/card is a public, cross-account card without private fields', async () => {
+    const res = await request(server, `/api/accounts/${service.FRIEND_IDS[0]}/card`, { 'x-ea-session': SESSION });
+    expect(res.status).toBe(200);
+    expect(res.body.card.accountId).toBe(service.FRIEND_IDS[0]);
+    expect(Object.keys(res.body.card).sort()).toEqual(
+      ['accountId', 'avatarColor', 'country', 'displayName', 'eaId', 'platforms'],
+    );
+  });
+
+  test('GET /api/4491bcfa/monitor reports the seeded detection window', async () => {
+    const res = await request(server, '/api/4491bcfa/monitor');
+    expect(res.status).toBe(200);
+    expect(res.body.threshold).toBe(214);
+    expect(res.body.distinctAccounts).toBe(logs.SEEDED_IDS.length);
+    expect(res.body.alerted).toBe(false);
+  });
+
   test('GET /api/4491bcfa/session returns the portal bootstrap', async () => {
     const res = await request(server, '/api/4491bcfa/session');
     expect(res.status).toBe(200);

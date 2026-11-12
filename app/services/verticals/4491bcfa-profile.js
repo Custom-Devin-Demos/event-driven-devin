@@ -50,6 +50,19 @@ function serializeProfile(account) {
   };
 }
 
+// Public player card shown in friends lists and search. Contains only fields
+// any signed-in player may see; it is cross-account by design.
+function serializePublicCard(account) {
+  return {
+    accountId: account.accountId,
+    eaId: account.eaId,
+    displayName: account.displayName,
+    avatarColor: account.avatarColor,
+    country: account.country,
+    platforms: account.linkedPlatforms.map((lp) => lp.platform),
+  };
+}
+
 function serializeLinkedPlatforms(account) {
   return { accountId: account.accountId, linkedPlatforms: account.linkedPlatforms };
 }
@@ -69,6 +82,12 @@ function getAccountProfile(accountId, session) {
   return serializeProfile(account);
 }
 
+function getPublicCard(accountId, session) {
+  requireSession(session);
+  const account = loadAccount(accountId);
+  return serializePublicCard(account);
+}
+
 function getLinkedPlatforms(accountId, session) {
   requireSession(session);
   const account = loadAccount(accountId);
@@ -86,7 +105,9 @@ module.exports = {
   serializeProfile,
   serializeLinkedPlatforms,
   serializeSecurity,
+  serializePublicCard,
   getAccountProfile,
+  getPublicCard,
   getLinkedPlatforms,
   getSecuritySettings,
 };
