@@ -119,6 +119,32 @@ describe('EA Account enumeration detection (4491bcfa)', () => {
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   });
 
+  test('re-arming starts a fresh window so the next replay alerts again', async () => {
+    service.trackEnumeration(session(), unseeded(50), {}, 'EA-TEST-1');
+    await flush();
+    const rearm = service.rearmDetection(Date.now() + service.REARM_COOLDOWN_MS);
+    expect(rearm.rearmed).toBe(true);
+    expect(rearm.distinctAccounts).toBe(logs.SEEDED_IDS.length);
+    expect(rearm.alerted).toBe(false);
+
+    service.trackEnumeration(session(), unseeded(50), {}, 'EA-TEST-2');
+    await flush();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('re-arming right after an alert is held by the cooldown', async () => {
+    service.trackEnumeration(session(), unseeded(50), {}, 'EA-TEST-1');
+    await flush();
+    const rearm = service.rearmDetection();
+    expect(rearm.rearmed).toBe(false);
+    expect(rearm.retryAfterSeconds).toBeGreaterThan(0);
+    expect(rearm.alerted).toBe(true);
+
+    service.trackEnumeration(session(), unseeded(51), {}, 'EA-TEST-2');
+    await flush();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
   test('an account already in the window does not cross the threshold', async () => {
     service.trackEnumeration(session(), logs.SEEDED_IDS[0], {}, 'EA-TEST-3');
     await flush();
@@ -193,6 +219,21 @@ describe('EA Account portal routes (4491bcfa)', () => {
     expect(res.body.threshold).toBe(214);
     expect(res.body.distinctAccounts).toBe(logs.SEEDED_IDS.length);
     expect(res.body.alerted).toBe(false);
+  });
+
+  test('POST /api/4491bcfa/monitor/rearm resets the window to the seeded count', async () => {
+    service.trackEnumeration(service.resolveSession(SESSION), 'EA-100250', {}, 'EA-TEST-R');
+    const { port } = server.address();
+    const res = await new Promise((resolve, reject) => {
+      http.request({ port, path: '/api/4491bcfa/monitor/rearm', method: 'POST' }, (r) => {
+        let body = '';
+        r.on('data', (c) => { body += c; });
+        r.on('end', () => resolve({ status: r.statusCode, body: JSON.parse(body) }));
+      }).on('error', reject).end();
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.rearmed).toBe(false);
+    expect(res.body.retryAfterSeconds).toBeGreaterThan(0);
   });
 
   test('GET /api/4491bcfa/session returns the portal bootstrap', async () => {
