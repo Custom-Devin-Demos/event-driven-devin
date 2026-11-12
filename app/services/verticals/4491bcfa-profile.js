@@ -31,12 +31,6 @@ function loadAccount(accountId) {
   return account;
 }
 
-function assertOwnership(session, accountId) {
-  if (session.ownerAccount !== accountId) {
-    throw new AccountError('You can only view your own account', 403, 'FORBIDDEN');
-  }
-}
-
 function serializeProfile(account) {
   return {
     accountId: account.accountId,
@@ -71,21 +65,18 @@ function serializeSecurity(account) {
 
 function getAccountProfile(accountId, session) {
   requireSession(session);
-  assertOwnership(session, accountId);
   const account = loadAccount(accountId);
   return serializeProfile(account);
 }
 
 function getLinkedPlatforms(accountId, session) {
   requireSession(session);
-  assertOwnership(session, accountId);
   const account = loadAccount(accountId);
   return serializeLinkedPlatforms(account);
 }
 
 function getSecuritySettings(accountId, session) {
   requireSession(session);
-  assertOwnership(session, accountId);
   const account = loadAccount(accountId);
   return serializeSecurity(account);
 }
