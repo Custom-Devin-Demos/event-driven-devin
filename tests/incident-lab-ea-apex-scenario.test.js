@@ -55,8 +55,11 @@ describe('incident-lab EA Apex Coins receipt replay scenario', () => {
 
   test('root-cause beats stay late', () => {
     const unlockOf = (re) => Math.min(...scenario.knowledge.filter((k) => k.facts.some((f) => re.test(f))).map((k) => k.unlockAtMs));
-    expect(unlockOf(/envelope/)).toBeGreaterThanOrEqual(600000);
-    expect(unlockOf(/never|not one has been credited/)).toBeGreaterThanOrEqual(600000);
+    for (const clue of [/envelope/, /not one has been credited/]) {
+      const at = unlockOf(clue);
+      expect(Number.isFinite(at)).toBe(true);
+      expect(at).toBeGreaterThanOrEqual(600000);
+    }
     expect(scenario.llm.guardrails).toMatch(/Never reveal the root cause/);
   });
 });
