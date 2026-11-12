@@ -9577,6 +9577,16 @@ const ONCALL_SKINS = {
     page: { file: '63bb1294.html', title: 'Peloton App: Your on-demand fitness companion' },
     disclaimer: 'NOT ACTUALLY A PELOTON SITE — internal demo only, not affiliated with, endorsed by, or a real Peloton product.',
   },
+  'ce10b821': {
+    slug: 'ce10b821',
+    company: 'Gap',
+    vertical: 'storepickup',
+    oncallOnly: true,
+    // Add to Bag sits bottom-right in the first viewport at 1440x900.
+    ribbonSide: 'left',
+    page: { file: 'ce10b821.html', title: 'The Hailey Low Rise Loose Jean | Gap' },
+    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
+  },
 };
 
 function getOncallSkin(slug) {
