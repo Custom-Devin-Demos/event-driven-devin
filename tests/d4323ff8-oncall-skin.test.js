@@ -13,7 +13,7 @@ const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 const { ALERT_SCENARIOS } = require('../app/services/oncall');
 const { getOncallSkin } = require('../config/oncall-skins');
-const { FIELD_TICKETS, ticketTotal } = require('../app/services/oncall-verticals/fieldticket');
+const { FIELD_TICKETS } = require('../app/services/oncall-verticals/fieldticket');
 
 let server;
 let baseUrl;
@@ -127,15 +127,15 @@ describe('d4323ff8 myHalliburton field ticket approval on-call skin', () => {
   });
 
   test.each([
-    ['FT-4470881', 'Cementing', 'inv-cementing'],
-    ['FT-4470612', 'Wireline & Perforating', 'inv-wireline'],
-    ['FT-4469954', 'Baroid', 'inv-baroid'],
-  ])('approving %s posts to %s invoicing', async (ticketNumber, psl, invoiceQueue) => {
+    ['FT-4470881', 'Cementing', 'inv-cementing', 67375],
+    ['FT-4470612', 'Wireline & Perforating', 'inv-wireline', 97970],
+    ['FT-4469954', 'Baroid', 'inv-baroid', 86700],
+  ])('approving %s posts to %s invoicing', async (ticketNumber, psl, invoiceQueue, total) => {
     const res = await approve({ ticketNumber });
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toMatchObject({
-      success: true, ticketNumber, poNumber: 'PO-778214', currency: 'USD', total: ticketTotal(FIELD_TICKETS[ticketNumber]),
+      success: true, ticketNumber, poNumber: 'PO-778214', currency: 'USD', total,
       routing: { psl, invoiceQueue, invoiceHours: 24 },
     });
     expect(data.approvalNumber).toMatch(/^APR-\d{6}-\d{5}$/);
