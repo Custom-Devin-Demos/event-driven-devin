@@ -48,10 +48,10 @@ const approve = (overrides) => fetch(`${baseUrl}/api/oncall/fieldticket/approve`
 });
 
 describe('d4323ff8 myHalliburton field ticket approval on-call skin', () => {
-  test('is a native, unlisted fieldticket skin alerting to Slack only on a failed approval', () => {
+  test('is a native, unlisted fieldticket skin alerting to Teams only on a failed approval', () => {
     const skin = getOncallSkin('d4323ff8');
     expect(skin).toMatchObject({
-      company: 'Halliburton', vertical: 'fieldticket', oncallOnly: true, alertDestination: 'slack',
+      company: 'Halliburton', vertical: 'fieldticket', oncallOnly: true, teamsAlerts: true, alertDestination: 'teams',
       paths: ['/myhalliburton', '/halliburton-field-tickets'], page: { file: 'd4323ff8.html', title: TITLE },
     });
     expect(skin.bugPortal).toBeUndefined();
