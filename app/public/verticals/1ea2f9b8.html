@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myFlexPay: Get paid before payday</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #274768;
+      --teal: #08d3a0;
+      --line: #d8dee5;
+      --mist: #eff1f4;
+      --white: #ffffff;
+      --font: Urbanist, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 18px; line-height: 25.2px; color: var(--navy); background: var(--white); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; height: auto; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    h1, h2, h3, h5, p { margin: 0 0 20px; }
+    .wrap { max-width: 1280px; margin: 0 auto; }
+
+    /* Header */
+    .osv-header { background: var(--navy); padding: 16px 0; }
+    .osv-header__inner { max-width: 1280px; margin: 0 auto; height: 88px; display: flex; align-items: center; gap: 36px; }
+    .osv-logo { display: flex; align-items: center; width: 297px; height: 76px; flex: 0 0 297px; }
+    .osv-logo__word { display: flex; flex-direction: column; align-items: flex-end; color: var(--white); }
+    .osv-logo__word b { font-weight: 500; font-size: 40px; line-height: 34px; letter-spacing: -0.4px; }
+    .osv-logo__word i { font-style: normal; font-weight: 600; font-size: 9.5px; line-height: 10px; letter-spacing: 1.2px; margin-top: 1px; }
+    .osv-logo__badge { margin-left: 30px; width: 58px; height: 58px; border-radius: 12px; background: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .osv-logo__badge span { font-size: 12px; line-height: 12px; font-weight: 700; color: #1b1b1b; }
+    .osv-logo__badge svg { display: block; }
+    .osv-nav { display: flex; align-items: center; height: 48px; }
+    .osv-nav a { display: block; padding: 9px; font-size: 16px; font-weight: 700; line-height: 30px; color: var(--white); }
+    .osv-header__right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+    .icon-btn { position: relative; width: 32px; height: 32px; border: 0; padding: 0; background: transparent; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .icon-btn::before { content: ''; position: absolute; inset: -6px; }
+    .btn-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 57px; padding: 15px 53px; border-radius: 64px; border: 1px solid var(--navy); background: var(--teal); color: var(--white); font-family: var(--font); font-size: 18px; font-weight: 600; line-height: 25.2px; cursor: pointer; }
+    .osv-burger { display: none; }
+
+    /* Hero */
+    .hero { background: var(--navy); padding: 70px 60px; }
+    .hero__row { max-width: 1240px; margin: 0 auto; display: flex; gap: 32px; align-items: center; }
+    .hero__copy, .hero__media { flex: 1 1 0; min-width: 0; }
+    .hero h1 { font-size: 56px; font-weight: 700; line-height: 67.2px; color: var(--white); }
+    .hero__lede { font-size: 18px; line-height: 27px; color: var(--white); }
+    .hero__media img { display: block; width: 100%; border-radius: 16px; }
+
+    /* Transfer card (in place of the hero app-store CTAs) */
+    .ewa-card { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 24px; color: var(--navy); }
+    .ewa-card__top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+    .ewa-card__label { font-size: 15px; font-weight: 600; line-height: 22.5px; }
+    .ewa-card__avail { font-size: 32px; font-weight: 700; line-height: 38.4px; }
+    .ewa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 15px; font-weight: 600; line-height: 22.5px; }
+    .field input, .field select { height: 48px; width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--white); padding: 0 12px; font-family: var(--font); font-size: 16px; color: var(--navy); }
+    .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23274768' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .field--full { grid-column: 1 / -1; }
+    .ewa-card .btn-pill { margin-top: 18px; width: 100%; }
+    .ewa-card .btn-pill:disabled { opacity: 0.7; cursor: progress; }
+    .ewa-note { margin: 12px 0 0; font-size: 13px; line-height: 19px; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 12px; font-size: 15px; line-height: 22px; }
+    .result-box.success { display: block; background: #e6faf4; border: 1px solid var(--teal); }
+    .result-box.error { display: block; background: #fdeeee; border: 1px solid #d43c3c; }
+    .result-box .error-title { font-weight: 700; margin-bottom: 2px; }
+
+    /* Make the most */
+    .most { padding: 70px 18px; }
+    .most h2 { font-size: 40px; font-weight: 700; line-height: 48px; text-align: center; }
+    .most__lede { font-size: 18px; line-height: 27px; text-align: center; }
+    .acc { margin-top: 50px; display: flex; }
+    .acc__left { flex: 0 0 640px; }
+    .acc__right { flex: 0 1 629px; }
+    .acc__right img { display: block; width: 629px; max-width: 100%; }
+    .accordion { margin-left: 48px; }
+    .accordion li { border-left: 1px solid var(--line); padding: 10px 0 10px 16px; }
+    .accordion li.active { border-left: 3px solid var(--navy); padding-left: 14px; }
+    .accordion h5 { font-size: 22px; font-weight: 600; line-height: 28px; padding: 10px 0; margin: 0; cursor: pointer; }
+    .accordion p { font-size: 18px; line-height: 27px; padding: 0 0 10px; margin: 0; max-width: 556px; }
+    .accordion .only-mobile { display: none; }
+
+    /* Features */
+    .features-outer { padding: 70px 0; }
+    .features { background: var(--navy); padding: 100px 0 120px; }
+    .features h3 { font-size: 40px; font-weight: 800; line-height: 56px; color: var(--white); text-align: center; margin: 0 0 50px; }
+    .cards { max-width: 1240px; margin: 0 auto; padding: 0 50px; display: flex; gap: 20px; justify-content: center; }
+    .card { flex: 1 1 0; height: 204px; background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 20px; margin: 0 0 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .card img { display: block; height: 60px; width: auto; margin: 0 0 30px; }
+    .card p { font-size: 22px; font-weight: 700; line-height: 26px; margin: 0; }
+
+    /* Testimonials */
+    .reviews { padding: 70px 18px 0; overflow: clip; }
+    .reviews__head { max-width: 716px; margin: 0 auto 60px; text-align: center; }
+    .reviews h3 { font-size: 36px; font-weight: 700; line-height: 44px; }
+    .reviews__sub { font-size: 18px; line-height: 32px; margin: 0; }
+    .slider { position: relative; margin: 0 auto; padding: 0 0 30px; }
+    .slide { margin: 0 auto; height: 240px; background: var(--mist); border-radius: 32px; padding: 60px; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .slide p { font-size: 20.5px; line-height: 30px; margin: 0; }
+    .slider__arrow { position: absolute; top: 110px; width: 20px; height: 20px; border: 0; background: none; padding: 0; color: var(--navy); cursor: pointer; }
+    .slider__arrow::before { content: ''; position: absolute; inset: -12px; }
+    .slider__arrow--prev { left: -10px; }
+    .slider__arrow--next { right: -10px; }
+    .dots { display: flex; justify-content: center; gap: 10px; margin: 18px 0 25px; }
+    .dots span { width: 6px; height: 6px; border-radius: 50%; background: #c3ccd6; }
+    .dots span.on { background: var(--navy); }
+
+    /* Download */
+    .download { padding: 0 18px 70px; }
+    .download__row { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 33px; }
+    .download__copy, .download__media { flex: 1 1 0; min-width: 0; }
+    .download h2 { font-size: 32px; font-weight: 700; line-height: 38.4px; }
+    .badges { display: flex; gap: 26px; flex-wrap: wrap; }
+    .badges img { display: block; height: 49px; width: auto; }
+    .download__media img { display: block; width: 100%; }
+
+    /* Footer */
+    .osv-footer { background: var(--navy); padding: 70px 0; }
+    .osv-footer__inner { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+    .osv-footer__top { display: flex; justify-content: space-between; }
+    .osv-footer__brand { margin: 24px 0; }
+    .osv-footer__brand .osv-logo__word b { font-size: 41px; line-height: 34px; }
+    .osv-footer__brand .osv-logo__word i { font-size: 9.5px; line-height: 10px; letter-spacing: 1.2px; }
+    .osv-footer__menus { display: flex; gap: 72px; justify-content: flex-end; }
+    .menu-title { font-size: 15px; font-weight: 600; line-height: 22.5px; color: var(--white); margin: 0 0 20px; }
+    .osv-footer__menus li { height: 25px; margin: 0 0 8px; display: flex; align-items: center; }
+    .osv-footer__menus a { font-size: 12px; font-weight: 500; line-height: 12px; color: var(--white); }
+    .osv-footer__bottom { margin-top: 36px; padding-top: 36px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: flex-start; }
+    .osv-footer__legal { display: flex; gap: 16px; font-size: 16px; line-height: 22.4px; color: var(--white); flex-wrap: wrap; }
+    .osv-footer__legal a { font-weight: 500; }
+    .osv-footer__legal ul { display: flex; gap: 16px; }
+    .osv-footer__legal li { display: flex; gap: 16px; }
+    .osv-footer__legal .sep { opacity: 0.6; }
+    .osv-footer__social { display: flex; gap: 16px; margin-top: 8px; }
+    .osv-footer__social svg { display: block; width: 16px; height: 16px; fill: var(--white); }
+
+    @media (max-width: 1024px) {
+      .osv-nav { display: none; }
+      .acc__left { flex: 1 1 0; }
+      .cards { flex-wrap: wrap; }
+    }
+    @media (max-width: 767px) {
+      .osv-header { padding: 0; }
+      .osv-header__inner { height: 77px; padding: 9px 9px 9px 33px; gap: 12px; justify-content: space-between; }
+      .osv-logo { width: auto; flex: 0 0 auto; height: 46px; }
+      .osv-header .osv-logo__word b { font-size: 25px; line-height: 22px; }
+      .osv-header .osv-logo__word i { font-size: 6.5px; line-height: 8px; letter-spacing: 0.9px; }
+      .osv-logo__badge { margin-left: 30px; width: 40px; height: 40px; border-radius: 8px; gap: 2px; }
+      .osv-logo__badge span { font-size: 8px; line-height: 8px; }
+      .osv-logo__badge svg { width: 26px; height: 9px; }
+      .osv-header__right { gap: 6px; }
+      .osv-header__right .btn-pill { display: none; }
+      .osv-burger { display: flex; }
+      .icon-btn { width: 44px; height: 44px; }
+      .icon-btn svg { width: 28px; height: 28px; }
+      .osv-burger svg { stroke-width: 3; }
+      .icon-btn::before { display: none; }
+      .hero { padding: 70px 20px; }
+      .hero__row { flex-direction: column; align-items: stretch; gap: 0; }
+      .ewa-grid { grid-template-columns: 1fr; }
+      .ewa-card { padding: 20px; }
+      .ewa-card .btn-pill { padding: 15px 20px; }
+      .hero__media { margin-top: 20px; }
+      .most { padding: 70px 0; }
+      .most__head { padding: 0 20px; }
+      .most h2 { font-size: 24px; line-height: 28.8px; }
+      .acc { flex-direction: column; }
+      .acc__right { display: none; }
+      .accordion { margin-left: 48px; margin-right: 20px; }
+      .accordion .only-mobile { display: block; margin: 10px 0; }
+      .cards { flex-direction: column; align-items: center; gap: 40px; padding: 0 70px; }
+      .card { flex: 0 0 auto; width: 180px; height: auto; min-height: 171px; margin: 0 0 15px; }
+      .features h3 { padding: 0 20px; }
+      .reviews { padding: 70px 0 0; }
+      .reviews__head { padding: 0 20px; }
+      .slider { padding: 0 22px 30px; }
+      .slide { height: 510px; padding: 60px; }
+      .slider__arrow--prev { left: 0; }
+      .slider__arrow--next { right: 0; }
+      .download { padding: 0 20px 70px; }
+      .download__row { flex-direction: column; align-items: stretch; gap: 0; }
+      .osv-footer__top, .osv-footer__bottom { flex-direction: column; }
+      .osv-footer__brand .osv-logo__word b { font-size: 33px; line-height: 28px; }
+      .osv-footer__brand .osv-logo__word i { font-size: 7.5px; line-height: 9px; }
+      .osv-footer__menus { flex-direction: column; gap: 24px; text-align: center; }
+      .osv-footer__menus li { justify-content: center; }
+      .osv-footer__legal { flex-wrap: nowrap; }
+      .osv-footer__legal ul { flex-direction: column; gap: 10px; }
+      .osv-footer__social { flex-direction: column; align-items: center; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="osv-header">
+    <div class="osv-header__inner">
+      <a class="osv-logo" href="#" aria-label="OneSource Virtual home">
+        <span class="osv-logo__word"><b>onesource</b><i>VIRTUAL</i></span>
+        <span class="osv-logo__badge" aria-hidden="true">
+          <span>Partner</span>
+          <svg width="40" height="13" viewBox="0 0 40 13"><path d="M2 3c5 9 31 9 36 0" fill="none" stroke="#274768" stroke-width="2" stroke-linecap="round"/><path d="M8 11h24" stroke="#f3a428" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+      </a>
+      <nav class="osv-nav" aria-label="Main">
+        <a href="#">Services</a><a href="#">Customers</a><a href="#">Resources</a><a href="#">Log in</a><a href="#">Contact</a>
+      </nav>
+      <div class="osv-header__right">
+        <button class="icon-btn" type="button" aria-label="Search">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="7.5"/><path d="M16 16l6 6" stroke-linecap="round"/></svg>
+        </button>
+        <a class="btn-pill" href="#">Help center</a>
+        <button class="icon-btn osv-burger" type="button" aria-label="Menu">
+          <svg width="24" height="18" viewBox="0 0 24 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2h20M2 9h20M2 16h20"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero__row">
+      <div class="hero__copy">
+        <h1>Get paid before payday</h1>
+        <p class="hero__lede">myFlexPay lets you access your hard-earned money on your schedule, without the high-interest loans.</p>
+        <div class="ewa-card">
+          <div class="ewa-card__top">
+            <span class="ewa-card__label">Available to transfer</span>
+            <span class="ewa-card__avail">$412.50</span>
+          </div>
+          <form id="transferForm">
+            <div class="ewa-grid">
+              <div class="field"><label for="fromAccount">Transfer from</label><select id="fromAccount"><option value="ACCT-1001">Earned wages &mdash; this pay period</option><option value="ACCT-1002">myFlexPay savings</option></select></div>
+              <div class="field"><label for="toAccount">Send to</label><select id="toAccount"><option value="ACCT-EXT-001">Checking &bull;&bull;&bull;&bull;4921</option><option value="ACCT-EXT-002">Payroll card &bull;&bull;&bull;&bull;7730</option></select></div>
+              <div class="field"><label for="amount">Amount</label><input type="number" id="amount" value="150" min="1" step="0.01" placeholder="$0.00"></div>
+              <div class="field"><label for="accountTier">Delivery</label><select id="accountTier"><option value="standard">Instant &mdash; flat fee</option><option value="premium">Standard &mdash; 1-3 business days, free</option><option value="basic">With my next paycheck</option></select></div>
+            </div>
+            <button type="submit" class="btn-pill" id="submitBtn">Transfer my pay</button>
+          </form>
+          <div id="result" class="result-box"></div>
+          <p class="ewa-note">It&rsquo;s not a loan. No interest, no credit check &mdash; the flat fee for instant transfers is shown before you confirm.</p>
+        </div>
+      </div>
+      <div class="hero__media">
+        <img src="https://www.onesourcevirtual.com/hubfs/Webpages/mFP/GettyImages-1311977351-web.jpg" alt="Person checking pay on a phone" width="604" height="403" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </section>
+
+  <section class="most">
+    <div class="wrap">
+      <div class="most__head">
+        <h2>Make the most of every paycheck</h2>
+        <p class="most__lede">myFlexPay is your sidekick for financial well-being. In addition to gaining flexible access to your pay, you can track your hours,<br>set up a savings account, and keep tabs on your bills &mdash; all in one app.</p>
+      </div>
+      <div class="acc">
+        <div class="acc__left">
+          <ul class="accordion">
+            <li class="active">
+              <h5>Access pay early</h5>
+              <p>You don&rsquo;t have to wait for your next paycheck to receive the wages you&rsquo;ve already worked for. Use myFlexPay to stream a percentage of your pay before your next payday. It&rsquo;s not a loan; it&rsquo;s just your money when you need it.</p>
+              <div class="only-mobile"><img src="https://www.onesourcevirtual.com/hs-fs/hubfs/LP/myFlexPay-02.25.25/Transfer_mock-ups_022525.jpg?width=800&amp;name=Transfer_mock-ups_022525.jpg" alt="" onerror="this.style.display='none'"></div>
+            </li>
+            <li><h5>Track and budget</h5></li>
+            <li><h5>Save up</h5></li>
+          </ul>
+        </div>
+        <div class="acc__right">
+          <img src="https://www.onesourcevirtual.com/hs-fs/hubfs/LP/myFlexPay-02.25.25/Transfer_mock-ups_022525.jpg?width=1200&amp;name=Transfer_mock-ups_022525.jpg" alt="myFlexPay transfer screens" width="629" height="419" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="features-outer">
+    <section class="features">
+      <h3>myFlexPay features</h3>
+      <div class="cards">
+        <div class="card"><img src="https://www.onesourcevirtual.com/hubfs/phone.svg" alt="" onerror="this.style.visibility='hidden'"><p>Earned wage&nbsp;<br>access</p></div>
+        <div class="card"><img src="https://www.onesourcevirtual.com/hubfs/osv-calendar.svg" alt="" onerror="this.style.visibility='hidden'"><p>Shift&nbsp;<br>tracking</p></div>
+        <div class="card"><img src="https://www.onesourcevirtual.com/hubfs/pig.svg" alt="" onerror="this.style.visibility='hidden'"><p>Savings&nbsp;<br>account</p></div>
+        <div class="card"><img src="https://www.onesourcevirtual.com/hubfs/Webpages/mFP/alerts.svg" alt="" style="height:50px;margin-top:7px" onerror="this.style.visibility='hidden'"><p>Payment<br>alerts</p></div>
+        <div class="card"><img src="https://www.onesourcevirtual.com/hubfs/osv-magglass.svg" alt="" style="height:59px;margin-top:4px" onerror="this.style.visibility='hidden'"><p>Financial&nbsp;<br>Insights</p></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="reviews">
+    <div class="reviews__head">
+      <h3>What real users are saying about myFlexPay</h3>
+      <p class="reviews__sub">Thousands of employees just like you are improving their financial well-being with myFlexPay. Hear what they have to say.</p>
+    </div>
+    <div class="slider">
+      <button class="slider__arrow slider__arrow--prev" type="button" aria-label="Previous"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="#274768" stroke-width="2"/></svg></button>
+      <div class="slide"><p id="quote">&ldquo;Reliable and dependable. Very convenient and user-friendly. I am so grateful to have this tool.&rdquo;</p></div>
+      <button class="slider__arrow slider__arrow--next" type="button" aria-label="Next"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M2 2l8 8-8 8" fill="none" stroke="#274768" stroke-width="2"/></svg></button>
+      <div class="dots" id="dots"><span class="on"></span><span></span><span></span><span></span></div>
+    </div>
+  </section>
+
+  <section class="download">
+    <div class="download__row">
+      <div class="download__copy">
+        <h2>Download the myFlexPay app now for iPhone or Android</h2>
+        <div class="badges">
+          <a href="#"><img src="https://21689811.fs1.hubspotusercontent-na1.net/hub/21689811/hubfs/DownloadIOS.png?height=49&amp;width=147" alt="Download on the App Store" width="147" height="49" onerror="this.style.display='none'"></a>
+          <a href="#"><img src="https://21689811.fs1.hubspotusercontent-na1.net/hub/21689811/hubfs/DownloadAndroid.png?height=49&amp;width=166" alt="Get it on Google Play" width="166" height="49" onerror="this.style.display='none'"></a>
+        </div>
+      </div>
+      <div class="download__media">
+        <img src="https://www.onesourcevirtual.com/hs-fs/hubfs/LP/myFlexPay-02.25.25/Dashboard_and_transfer_022525.jpg?width=1000&amp;height=667&amp;name=Dashboard_and_transfer_022525.jpg" alt="myFlexPay dashboard and transfer screens" width="623" height="415" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </section>
+
+  <footer class="osv-footer">
+    <div class="osv-footer__inner">
+      <div class="osv-footer__top">
+        <div class="osv-footer__brand"><a class="osv-logo__word" href="#" style="align-items:flex-end;display:inline-flex"><b>onesource</b><i>VIRTUAL</i></a></div>
+        <div class="osv-footer__menus">
+          <div><p class="menu-title">Services</p><ul><li><a href="#">Payroll</a></li><li><a href="#">Benefits</a></li><li><a href="#">Finance and Accounting</a></li><li><a href="#">Employee Solutions</a></li></ul></div>
+          <div><p class="menu-title">About</p><ul><li><a href="#">Company</a></li><li><a href="#">Leadership</a></li><li><a href="#">Careers</a></li><li><a href="#">Diversity &amp; Inclusion</a></li><li><a href="#">Sustainability &amp; CSR</a></li></ul></div>
+          <div><p class="menu-title">Resources</p><ul><li><a href="#">OSV Blog</a></li><li><a href="#">Resources</a></li><li><a href="#">Newsroom</a></li><li><a href="#">Partners</a></li><li><a href="#">Events</a></li></ul></div>
+          <div><p class="menu-title">Customers</p><ul><li><a href="#">Customer Stories</a></li></ul></div>
+        </div>
+      </div>
+      <div class="osv-footer__bottom">
+        <div class="osv-footer__legal">
+          <span>&copy; 2026 OneSource Virtual</span><ul><li><span class="sep">|</span><a href="#">Home</a></li><li><span class="sep">|</span><a href="#">Sitemap</a></li><li><span class="sep">|</span><a href="#">Legal</a></li><li><span class="sep">|</span><a href="#">Privacy</a></li></ul>
+        </div>
+        <div class="osv-footer__social" aria-label="Social">
+          <a href="#" aria-label="X"><svg viewBox="0 0 16 16"><path d="M12.2 1h2.3L9.5 6.8 15.4 15h-4.6L7.2 10.2 3 15H.7l5.4-6.2L.4 1h4.7l3.3 4.4L12.2 1zm-.8 12.6h1.3L4.5 2.3H3.1l8.3 11.3z"/></svg></a>
+          <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 16 16"><path d="M0 1.2C0 .5.6 0 1.3 0h13.4c.7 0 1.3.5 1.3 1.2v13.6c0 .7-.6 1.2-1.3 1.2H1.3C.6 16 0 15.5 0 14.8V1.2zm4.9 12.2V6.2H2.5v7.2h2.4zM3.7 5.2c.8 0 1.4-.6 1.4-1.3S4.5 2.7 3.7 2.7 2.3 3.2 2.3 3.9s.6 1.3 1.4 1.3zm4.9 8.2v-4c0-.2 0-.4.1-.6.2-.4.6-.9 1.3-.9.9 0 1.2.7 1.2 1.7v3.8h2.4V9.3c0-2.2-1.2-3.3-2.7-3.3-1.3 0-1.8.7-2.2 1.2V6.2H6.2v7.2h2.4z"/></svg></a>
+          <a href="#" aria-label="Facebook"><svg viewBox="0 0 16 16"><path d="M16 8a8 8 0 1 0-9.3 7.9v-5.6H4.7V8h2V6.2c0-2 1.2-3.1 3-3.1.9 0 1.8.2 1.8.2v2h-1c-1 0-1.3.6-1.3 1.3V8h2.2l-.4 2.3H9.2v5.6A8 8 0 0 0 16 8z"/></svg></a>
+          <a href="#" aria-label="YouTube"><svg viewBox="0 0 16 16"><path d="M15.7 4.2a2 2 0 0 0-1.4-1.4C13 2.5 8 2.5 8 2.5s-5 0-6.3.3A2 2 0 0 0 .3 4.2 21 21 0 0 0 0 8a21 21 0 0 0 .3 3.8 2 2 0 0 0 1.4 1.4c1.3.3 6.3.3 6.3.3s5 0 6.3-.3a2 2 0 0 0 1.4-1.4A21 21 0 0 0 16 8a21 21 0 0 0-.3-3.8zM6.4 10.4V5.6L10.6 8l-4.2 2.4z"/></svg></a>
+          <a href="#" aria-label="Instagram"><svg viewBox="0 0 16 16"><path d="M8 1.4c2.1 0 2.4 0 3.2.1 2.2.1 3.2 1.1 3.3 3.3v6.4c-.1 2.2-1.1 3.2-3.3 3.3H4.8c-2.2-.1-3.2-1.1-3.3-3.3V4.8c.1-2.2 1.1-3.2 3.3-3.3H8zM8 0C5.8 0 5.6 0 4.7.1 1.8.2.2 1.8.1 4.7 0 5.6 0 5.8 0 8s0 2.4.1 3.3c.1 2.9 1.7 4.5 4.6 4.6.9.1 1.1.1 3.3.1s2.4 0 3.3-.1c2.9-.1 4.5-1.7 4.6-4.6.1-.9.1-1.1.1-3.3s0-2.4-.1-3.3C15.8 1.8 14.2.2 11.3.1 10.4 0 10.2 0 8 0zm0 3.9a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2zm0 6.8a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4zm4.3-7.9a1 1 0 1 0 0 1.9 1 1 0 0 0 0-1.9z"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var quotes = [
+        '\u201cReliable and dependable. Very convenient and user-friendly. I am so grateful to have this tool.\u201d',
+        '\u201cI love being able to get a portion of my pay before payday. It helps me cover unexpected expenses without stress.\u201d',
+        '\u201cThis app is a full package! Everything you ever need is here! Even things I never knew I needed!\u201d',
+        '\u201cYou have instant access to additional cash when you need it, mostly for unexpected expenses. It\u2019s amazing to see total transparency in your earnings on a daily basis.\u201d'
+      ];
+      var i = 0, q = document.getElementById('quote'), dots = document.getElementById('dots').children;
+      function show(n) { i = (n + quotes.length) % quotes.length; q.textContent = quotes[i]; for (var d = 0; d < dots.length; d++) dots[d].className = d === i ? 'on' : ''; }
+      document.querySelector('.slider__arrow--prev').addEventListener('click', function () { show(i - 1); });
+      document.querySelector('.slider__arrow--next').addEventListener('click', function () { show(i + 1); });
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const amount = parseFloat(document.getElementById('amount').value);
+      const toLabel = document.getElementById('toAccount').selectedOptions[0].textContent;
+      btn.disabled = true; btn.textContent = 'Transferring...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Transfer failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transfer sent</div><div class="error-detail">$${amount.toFixed(2)} is on its way to ${toLabel}. $${data.debitAmount} will be deducted from your next paycheck (includes $${data.fee} instant transfer fee).</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Transfer my pay'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
