@@ -79,6 +79,59 @@ describe('EA Account portal service (4491bcfa)', () => {
   });
 });
 
+describe('EA Account enumeration detection (4491bcfa)', () => {
+  // Detection is tested through trackEnumeration rather than a cross-account
+  // read, so these keep passing once ownership checks reject those reads.
+  const session = () => service.resolveSession(SESSION);
+  const unseeded = (n) => {
+    const id = `EA-1002${n}`;
+    expect(logs.SEEDED_IDS).not.toContain(id);
+    return id;
+  };
+
+  test('the 214th distinct account raises one SEC-HIGH alert', async () => {
+    service.trackEnumeration(session(), unseeded(50), {}, 'EA-TEST-1');
+    await flush();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.issueTitle).toBe(
+      'SEC-HIGH: Possible account enumeration on /api/accounts/*/profile. '
+      + `214 distinct account IDs requested by 1 session in ${logs.WINDOW_MINUTES} min.`,
+    );
+    expect(alert.customer).toBe('4491bcfa');
+    expect(alert.errorType).toBe('BrokenObjectLevelAuthorization');
+    expect(alert.skipVulnerablePr).toBe(true);
+    expect(alert.promptAppendix).toContain('CWE-639');
+    expect(alert.extra.exposedFields).toEqual(['email', 'linkedPlatforms', 'lastLogin.ip']);
+    expect(alert.tags).toEqual(expect.arrayContaining([
+      { key: 'source_ip', value: logs.SOURCE_IP },
+      { key: 'session_id', value: logs.ATTACKER_SESSION },
+      { key: 'distinct_accounts', value: '214' },
+      { key: 'alert_path', value: 'instant' },
+    ]));
+  });
+
+  test('later distinct accounts do not open a second investigation', async () => {
+    service.trackEnumeration(session(), unseeded(50), {}, 'EA-TEST-1');
+    service.trackEnumeration(session(), unseeded(51), {}, 'EA-TEST-2');
+    await flush();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('an account already in the window does not cross the threshold', async () => {
+    service.trackEnumeration(session(), logs.SEEDED_IDS[0], {}, 'EA-TEST-3');
+    await flush();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('a session reading its own account is not enumeration', async () => {
+    service.trackEnumeration(session(), OWNER, {}, 'EA-TEST-4');
+    await flush();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+});
+
 describe('EA Account portal routes (4491bcfa)', () => {
   let server;
   beforeEach((done) => {
