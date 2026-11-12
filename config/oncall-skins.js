@@ -9622,6 +9622,16 @@ const ONCALL_SKINS = {
     page: { file: 'ce10b821.html', title: 'The Hailey Low Rise Loose Jean | Gap' },
     disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
+  '9c7ec245': {
+    slug: '9c7ec245',
+    company: 'eBay',
+    vertical: 'banking',
+    page: {
+      file: '9c7ec245.html',
+      title: 'Payouts on demand | Seller Center',
+    },
+    disclaimer: 'NOT ACTUALLY AN EBAY SITE — internal demo only, not affiliated with, endorsed by, or a real eBay product.',
+  },
 };
 
 function getOncallSkin(slug) {
