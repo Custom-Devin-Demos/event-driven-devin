@@ -626,6 +626,16 @@ const ONCALL_SKINS = {
     page: { file: '3cbaad4b.html', title: 'FactSet Pricing | Explore FactSet Cost' },
     disclaimer: 'NOT ACTUALLY A FACTSET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real FactSet product.',
   },
+  'e9d00c4f': {
+    slug: 'e9d00c4f',
+    company: 'MYOB',
+    vertical: 'telco',
+    page: {
+      file: 'e9d00c4f.html',
+      title: 'MYOB Plans & Pricing – Start Your Free Trial Today',
+    },
+    disclaimer: 'NOT ACTUALLY A MYOB SITE — internal demo only, not affiliated with, endorsed by, or a real MYOB product.',
+  },
   '8bdcfab6': {
     slug: '8bdcfab6',
     company: 'Robinhood',
