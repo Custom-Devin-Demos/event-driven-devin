@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payouts on demand | Seller Center</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #191919;
+      --muted: #707070;
+      --line: #e5e5e5;
+      --wash: #f7f7f7;
+      --blue: #0968f6;
+      --legal-link: #003aa5;
+      --hero: #de458e;
+      --hero-ink: #360606;
+      --sans: 'Market Sans', 'Inter', 'Helvetica Neue', Helvetica, Arial, Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--sans); font-size: 16px; line-height: 24px; color: var(--ink); background: #fff; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+    h1, h2, h3, p, ul { margin: 0; }
+    svg.ico { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; display: block; }
+
+    /* Global header */
+    .gh { padding: 0 24px; font-size: 14px; line-height: 21px; }
+    .gh-nav { height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 12px; line-height: 18px; }
+    .gh-nav__left, .gh-nav__right { display: flex; align-items: center; height: 32px; }
+    .gh-nav__left .hi { margin-right: 18px; }
+    .gh-nav__left .hi a { color: var(--blue); text-decoration: underline; }
+    .gh-nav__left > a { padding: 4px 8px; color: #000; margin-right: 0; }
+    .gh-nav__right > a, .gh-nav__right > button { height: 32px; display: flex; align-items: center; padding: 0 12px; color: var(--ink); background: none; border: 0; font-size: 12px; }
+    .gh-nav__right > a svg.chev { width: 12px; height: 12px; margin-left: 4px; }
+    .gh-nav__right .icon-btn { padding: 0 16px; margin: 0 -16px 0 16px; }
+    .gh-nav__right .icon-btn svg { width: 20px; height: 20px; stroke-width: 1.5; }
+    .gh-nav__right .icon-btn + .icon-btn { margin-left: 0; }
+    .gh-main { display: flex; align-items: center; padding: 12px 0 4px; height: 70px; }
+    .gh-logo { display: block; width: 117px; height: 54px; margin-right: 16px; flex: 0 0 auto; }
+    .gh-logo svg { width: 117px; height: 48px; display: block; margin-top: 0; }
+    .gh-cat { display: flex; align-items: center; width: 68px; height: 40px; font-size: 13.33px; line-height: 14px; color: #555; background: none; border: 0; padding: 0; text-align: left; margin-right: 16px; }
+    .gh-cat svg { width: 11px; height: 12px; margin-left: 4px; stroke: #000; }
+    .gh-search { display: flex; gap: 8px; flex: 1 1 auto; height: 44px; align-items: center; min-width: 0; }
+    .gh-search__box { flex: 1 1 auto; height: 44px; display: flex; align-items: center; border: 2px solid var(--ink); border-radius: 44px; background: #fff; position: relative; min-width: 0; }
+    .gh-search__box .mag { position: absolute; left: 16px; top: 12px; color: var(--ink); }
+    .gh-search__box input { flex: 1 1 auto; min-width: 0; height: 39px; border: 0; outline: 0; padding: 0 44px; border-radius: 44px 0 0 44px; font-family: 'Helvetica Neue', helvetica, arial, sans-serif; font-size: 16px; color: #000; background: transparent; }
+    .gh-search__box input::placeholder { color: #707070; }
+    .gh-search__cam { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 8px; color: #000; }
+    .gh-search__cat { width: 160px; height: 39px; border-left: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 16px; font-size: 12px; line-height: 16px; color: #6d6d6d; }
+    .gh-search__cat svg { width: 12px; height: 12px; stroke: var(--ink); }
+    .gh-search__btn { width: 168px; height: 44px; border-radius: 44px; background: var(--blue); color: #fff; border: 1px solid transparent; font-size: 14px; font-weight: 700; flex: 0 0 auto; }
+    .gh-adv { font-size: 12px; color: var(--ink); padding: 0 0 0 0; flex: 0 0 auto; }
+
+    /* Seller Center header */
+    .sc-header { border-top: 1px solid var(--line); margin: 16px 0 48px; padding: 24px 48px 0; }
+    .sc-header__top { height: 40px; margin-bottom: 24px; }
+    .site-name { font-size: 24px; line-height: 32px; font-weight: 600; color: #000; }
+    .sc-menu { padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .sc-menu ul { list-style: none; padding: 0 0 8px; margin: 0; display: flex; }
+    .sc-menu li { margin-right: 24px; flex: 0 0 auto; }
+    .sc-menu button { display: flex; align-items: center; height: 27px; padding: 0 0 4px; border: 0; background: none; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--muted); cursor: pointer; }
+    .sc-menu button svg { margin-left: 8px; }
+    .sc-search { display: flex; align-items: center; margin-top: 24px; }
+    .sc-search__field { position: relative; flex: 1 1 auto; }
+    .sc-search__field input { width: 100%; height: 50px; padding: 12px 12px 12px 40px; background: var(--wash); border: 1px solid var(--muted); border-radius: 24px; font-family: Arial, sans-serif; font-size: 14px; color: var(--ink); }
+    .sc-search__field input::placeholder { color: var(--muted); }
+    .sc-search__field .mag { position: absolute; left: 16px; top: 17px; color: var(--muted); }
+    .sc-search__field .clear { position: absolute; right: 16px; top: 17px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); }
+    .sc-search__field .clear::before, .sc-search__field .clear::after { content: ''; position: absolute; left: 4px; top: 7.25px; width: 8px; height: 1.5px; background: #fff; transform: rotate(45deg); }
+    .sc-search__field .clear::after { transform: rotate(-45deg); }
+    .sc-search__btn { margin-left: 16px; width: 92px; height: 50px; padding: 1px 24px; background: #fff; border: 1px solid var(--muted); border-radius: 24px; font-family: Arial, sans-serif; font-size: 13.33px; color: var(--ink); }
+
+    /* Page content */
+    .page-content { max-width: 1584px; }
+    .hero-card { margin: 0 48px 72px; background: var(--hero); color: var(--hero-ink); display: flex; }
+    .hero-card .text { width: 50%; padding: 64px 72px 64px 120px; display: flex; flex-direction: column; justify-content: center; min-height: 204px; }
+    .hero-card h1 { font-size: 46px; line-height: 52px; font-weight: 600; }
+    .wrap { padding: 0 48px; }
+    .breadcrumbs { margin: 16px 0; padding: 8px; font-size: 12px; line-height: 18px; color: var(--muted); }
+    .breadcrumbs ul { list-style: none; display: flex; padding: 0; }
+    .breadcrumbs li { display: flex; align-items: center; }
+    .breadcrumbs li svg { width: 12px; height: 12px; margin: 0 6px; }
+    .breadcrumbs li:last-child a { color: var(--ink); }
+    .title-primary { font-size: 36px; line-height: 46px; font-weight: 700; margin-bottom: 24px; }
+    .intro p { color: var(--muted); }
+    .intro { margin-bottom: 72px; }
+
+    .tic { margin: 0 48px 72px; border-radius: 16px; overflow: hidden; display: flex; }
+    .tic .text { width: 50%; background: var(--wash); display: flex; flex-direction: column; justify-content: center; }
+    .tic .image { width: 50%; background: #e9e3dc; }
+    .tic .image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .tic--right .text { padding: 0 84px 0 96px; }
+    .tic--left .text { padding: 32px 96px 32px 84px; }
+    .tic--right .image { aspect-ratio: 1200 / 1440; }
+    .tic--left .image { aspect-ratio: 1; }
+    .text__title { font-size: 30px; line-height: 40px; font-weight: 600; margin-bottom: 16px; }
+    .tic h3 { font-size: 16px; line-height: 24px; font-weight: 400; margin: 48px 0 16px; }
+    .tic p, .tic ul { color: var(--muted); }
+    .tic b { color: var(--ink); font-weight: 700; }
+    .tic ul { padding-left: 24px; margin-bottom: 16px; }
+    .tic a.u { color: var(--ink); text-decoration: underline; }
+    .footnote { padding: 0 48px; color: var(--muted); }
+
+    /* Payout request card */
+    .payout { margin: 0 48px 72px; border-radius: 16px; background: var(--wash); display: flex; }
+    .payout__intro { width: 50%; padding: 64px 84px 64px 96px; display: flex; flex-direction: column; justify-content: center; }
+    .payout__intro p { color: var(--muted); }
+    .funds { margin-top: 32px; }
+    .funds__label { font-size: 14px; line-height: 20px; color: var(--muted); }
+    .funds__amount { font-size: 36px; line-height: 46px; font-weight: 700; color: var(--ink); }
+    .funds__meta { font-size: 14px; line-height: 20px; color: var(--muted); margin-top: 4px; }
+    .payout__form { width: 50%; padding: 64px 96px 64px 84px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .field input, .field select { width: 100%; height: 48px; padding: 0 16px; background: #fff; border: 1px solid var(--muted); border-radius: 8px; font-size: 16px; color: var(--ink); appearance: none; -webkit-appearance: none; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23191919' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 16px; padding-right: 44px; }
+    .field input:focus, .field select:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+    .field-row { display: flex; gap: 16px; }
+    .field-row .field { flex: 1 1 0; min-width: 0; }
+    .btn-primary { display: block; width: 100%; height: 48px; margin-top: 24px; border: 0; border-radius: 24px; background: var(--blue); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .btn-primary:disabled { opacity: .6; cursor: default; }
+    .result-box { display: none; margin-top: 16px; padding: 16px; border-radius: 16px; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: #e8f5ec; border: 1px solid #05823f; color: var(--ink); }
+    .result-box.error { display: block; background: #fff0f0; border: 1px solid #d50b0b; color: var(--ink); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+
+    /* Feedback tab */
+    .feedback { position: fixed; top: 520px; right: 1px; width: 40px; height: 109px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid var(--blue); color: var(--blue); font-size: 14px; z-index: 5; }
+    .feedback span { transform: rotate(-90deg); white-space: nowrap; }
+
+    /* Footer */
+    .gh-footer { margin-top: 12px; padding: 20px 0 40px; font-size: 14px; line-height: 21px; }
+    .gf-small-links { list-style: none; padding: 0; margin: 0; font-size: 12px; line-height: 18px; }
+    .gf-small-links li { display: inline-block; padding: 0 16px 12px 0; }
+    .gf-small-links a { color: var(--muted); }
+    .gf-legal { font-size: 11px; line-height: 16.5px; color: #41413f; }
+    .gf-legal a { color: var(--legal-link); text-decoration: underline; }
+
+    @media (max-width: 767px) {
+      .gh-nav__left > a, .gh-nav__right .hide-sm, .hide-sm-inline { display: none; }
+      .gh-cat, .gh-search__cat, .gh-search__btn, .gh-adv, .gh-search__box .mag { display: none; }
+      .gh-search__box input { padding: 0 8px 0 16px; }
+      .sc-header { border-top: 0; margin: 0 0 48px; padding: 24px 24px 0; }
+      .sc-menu ul { overflow-x: auto; scrollbar-width: none; }
+      .sc-menu li { margin-right: 32px; }
+      .sc-search__btn { display: none; }
+      .hero-card { margin: 0 16px 48px; }
+      .hero-card .text { width: 100%; padding: 32px 16px; min-height: 128px; }
+      .hero-card h1 { font-size: 30px; line-height: 40px; }
+      .wrap { padding: 0 16px; }
+      .intro { margin-bottom: 72px; }
+      .tic, .payout { margin: 0 16px 48px; flex-direction: column; }
+      .tic .text, .tic .image, .payout__intro, .payout__form { width: 100%; }
+      .tic .image { order: -1; }
+      .tic--right .text, .tic--left .text { padding: 32px 24px 48px; }
+      .text__title { font-size: 20px; line-height: 28px; }
+      .payout__intro { padding: 32px 24px 0; }
+      .payout__form { padding: 24px 24px 48px; }
+      .funds__amount { font-size: 30px; line-height: 40px; }
+      .field-row { flex-direction: column; gap: 0; }
+      .footnote { padding: 0 16px; margin-bottom: 16px; }
+      .feedback { right: 1px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="gh">
+    <nav class="gh-nav" aria-label="Account">
+      <div class="gh-nav__left">
+        <span class="hi">Hi! <a href="#">Sign in</a><span class="hide-sm-inline"> or <a href="#">register</a></span></span>
+        <a href="#">Deals</a>
+        <a href="#">Brand Outlet</a>
+        <a href="#">Help &amp; Contact</a>
+      </div>
+      <div class="gh-nav__right">
+        <a href="#">Sell<svg class="ico chev" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></a>
+        <a href="#" class="hide-sm">Watchlist<svg class="ico chev" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></a>
+        <a href="#">My eBay<svg class="ico chev" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></a>
+        <button class="icon-btn hide-sm" aria-label="Notifications"><svg class="ico" viewBox="0 0 20 20"><path d="M10 2.5a5 5 0 00-5 5v3.2L3.5 14h13L15 10.7V7.5a5 5 0 00-5-5zM8 16.5a2 2 0 004 0"/></svg></button>
+        <a href="#" class="icon-btn" aria-label="Cart"><svg class="ico" viewBox="0 0 20 20"><path d="M1.5 2.5h2.6l2.1 10h9.3l2-7H5.2M8 17.2a.9.9 0 100-1.8.9.9 0 000 1.8zM14.5 17.2a.9.9 0 100-1.8.9.9 0 000 1.8z"/></svg></a>
+      </div>
+    </nav>
+    <section class="gh-main">
+      <a class="gh-logo" href="#" aria-label="eBay Home">
+        <svg viewBox="0 0 117 48" aria-hidden="true">
+          <text x="-2" y="40" font-family="Inter, Helvetica, Arial, sans-serif" font-size="54" font-weight="500" letter-spacing="-5.5"><tspan fill="#e53238">e</tspan><tspan fill="#0064d2">b</tspan><tspan fill="#f5af02">a</tspan><tspan fill="#86b817">y</tspan></text>
+        </svg>
+      </a>
+      <button class="gh-cat" type="button">Shop by category<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button>
+      <form class="gh-search" onsubmit="return false">
+        <div class="gh-search__box">
+          <svg class="ico mag" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg>
+          <input type="text" placeholder="Search for anything" aria-label="Search for anything">
+          <span class="gh-search__cam"><svg class="ico" viewBox="0 0 16 16"><path d="M2 5h2.5l1.2-1.8h4.6L11.5 5H14v8H2z"/><circle cx="8" cy="9" r="2.2"/></svg></span>
+          <span class="gh-search__cat">All Categories<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></span>
+        </div>
+        <button class="gh-search__btn" type="button">Search</button>
+        <a class="gh-adv" href="#">Advanced</a>
+      </form>
+    </section>
+  </header>
+
+  <header class="sc-header">
+    <div class="sc-header__top"><h2 class="site-name"><a href="#">Seller Center</a></h2></div>
+    <nav class="sc-menu" aria-label="Seller Center">
+      <ul>
+        <li><button type="button">Selling<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">eBay for Business<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">Listings<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">Growth<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">Shipping<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">Protections<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">Payments and fees<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">News<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+        <li><button type="button">Resources<svg class="ico" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5"/></svg></button></li>
+      </ul>
+    </nav>
+    <form class="sc-search" onsubmit="return false">
+      <div class="sc-search__field">
+        <svg class="ico mag" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg>
+        <input type="text" placeholder="Search" aria-label="Search Seller Center">
+        <span class="clear" aria-hidden="true"></span>
+      </div>
+      <button class="sc-search__btn" type="button">Search</button>
+    </form>
+  </header>
+
+  <div class="page-content">
+    <div class="hero-card"><div class="text"><h1>Payouts on demand</h1></div></div>
+
+    <div class="wrap">
+      <nav class="breadcrumbs" aria-label="Page navigation">
+        <ul>
+          <li><a href="#">Home</a><svg class="ico" viewBox="0 0 12 12"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></li>
+          <li><a href="#">Payments and fees</a><svg class="ico" viewBox="0 0 12 12"><path d="M4.5 2.5L8 6l-3.5 3.5"/></svg></li>
+          <li><a href="#" aria-current="page">Payouts on demand</a></li>
+        </ul>
+      </nav>
+      <div class="intro">
+        <h2 class="title-primary">It&rsquo;s your money, get paid when you want.</h2>
+        <p>Have payouts sent to your bank account whenever is best for you.</p>
+      </div>
+    </div>
+
+    <section class="payout" id="request-payout">
+      <div class="payout__intro">
+        <h2 class="text__title">Request a payout</h2>
+        <p>Select an amount to send from your available funds and choose how fast you want it.</p>
+        <div class="funds">
+          <div class="funds__label">Available funds</div>
+          <div class="funds__amount">$2,486.40</div>
+          <div class="funds__meta">Next scheduled payout: Monday &middot; Weekly schedule</div>
+        </div>
+      </div>
+      <div class="payout__form">
+        <form id="transferForm">
+          <div class="field-row">
+            <div class="field"><label for="fromAccount">Pay out from</label><select id="fromAccount"><option value="ACCT-1001">Available funds &mdash; $2,486.40</option><option value="ACCT-1004">Business account funds &mdash; $14,920.15</option></select></div>
+            <div class="field"><label for="toAccount">Send to</label><select id="toAccount"><option value="ACCT-EXT-001">Checking &bull;&bull;&bull;&bull;4921</option><option value="ACCT-EXT-002">Visa debit &bull;&bull;&bull;&bull;7730</option></select></div>
+          </div>
+          <div class="field"><label for="amount">Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$0.00"></div>
+          <div class="field"><label for="accountTier">Payout speed</label><select id="accountTier"><option value="standard">Standard &mdash; 1-3 business days</option><option value="premium">Express &mdash; to debit card within 30 minutes&sup1;</option><option value="basic">Next scheduled payout</option></select></div>
+          <button type="submit" class="btn-primary" id="submitBtn">Send my money now</button>
+        </form>
+        <div id="result" class="result-box"></div>
+      </div>
+    </section>
+
+    <section class="tic tic--right">
+      <div class="text">
+        <h2 class="text__title">More flexibility with payouts on demand</h2>
+        <h3>Choose when to get paid</h3>
+        <p>Sellers paid on a weekly, every-two-weeks or monthly schedule don&rsquo;t have to wait for the next scheduled date. Move your available funds <b>on demand</b> whenever you need them, and they reach your bank account on its usual processing timeline, generally 1-3 business days.</p>
+        <h3>Get funds in a flash</h3>
+        <p>When timing matters, send available funds to a linked Visa or Mastercard debit card with an <b>express payout</b>. Most express payouts land in about <b>30 minutes.</b><sup style="font-size:9px">1</sup></p>
+        <h3>Enjoy simple, easy payouts</h3>
+        <p>A payout request takes only a few clicks, so your money moves on your timeline.</p>
+      </div>
+      <div class="image"><img src="https://ucp.ebaystatic.com/50/static-assets/images/2022/08/woman-wall-art-1200x1440.jpg?crafterSite=sellercenter-us" alt="" onerror="this.style.display='none'"></div>
+    </section>
+
+    <section class="tic tic--left">
+      <div class="image"><img src="https://ucp.ebaystatic.com/50/static-assets/images/2022/08/guy-bike-1200x1200.jpg?crafterSite=sellercenter-us" alt="" onerror="this.style.display='none'"></div>
+      <div class="text">
+        <h2 class="text__title">Here&rsquo;s how it works:</h2>
+        <ul>
+          <li>In Seller Hub, open the Payments tab and select <b>Request Payout</b> beside Available funds.</li>
+          <li>Enter the amount you want to send.</li>
+          <li>Pick your bank account (generally 1-3 business days at no extra cost) or your debit card (about 30 minutes<sup style="font-size:9px">1</sup>, fee applies).</li>
+          <li>Confirm with <b>Send my money now</b>.</li>
+        </ul>
+        <p><a class="u" href="#">Learn more</a> about payouts on demand.<br>Please note: Sellers on a daily payout schedule already receive the fastest scheduled option, so on-demand requests aren&rsquo;t offered on that schedule.</p>
+      </div>
+    </section>
+
+    <p class="footnote"><sup style="font-size:9px">1</sup>&nbsp;A fee is charged on each express payout to a debit card. Eligibility varies by seller.</p>
+  </div>
+
+  <a class="feedback" href="#"><span>Feedback</span></a>
+
+  <footer class="gh-footer">
+    <ul class="gf-small-links">
+      <li><a href="#">About eBay</a></li><li><a href="#">Announcements</a></li><li><a href="#">Community</a></li><li><a href="#">Security Center</a></li><li><a href="#">Seller Center</a></li><li><a href="#">Policies</a></li><li><a href="#">Affiliates</a></li><li><a href="#">Product Safety Tips</a></li><li><a href="#">Help &amp; Contact</a></li><li><a href="#">Site Map</a></li>
+    </ul>
+    <div class="gf-legal">Copyright &copy; 1995-2026 eBay Inc. All Rights Reserved. <a href="#">Accessibility</a>, <a href="#">User Agreement</a>, <a href="#">Privacy</a>, <a href="#">Consumer Health Data</a>, <a href="#">Payments Terms of Use</a>, <a href="#">Cookies</a>, <a href="#">CA Privacy Notice</a>, <a href="#">Your Privacy Choices</a> and <a href="#">AdChoice</a></div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const amount = parseFloat(document.getElementById('amount').value);
+      btn.disabled = true; btn.textContent = 'Sending...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Payout request failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Payout requested</div><div class="error-detail">$${amount.toFixed(2)} is on its way to your bank account. $${data.debitAmount} deducted from available funds (includes $${data.fee} payout fee).</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Send my money now'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
