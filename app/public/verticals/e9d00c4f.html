@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create transfer money transaction | MYOB Business</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #7b00f4;
+      --purple-tint: #f1e7fe;
+      --purple-chip: #f4e9fe;
+      --green: #278630;
+      --green-hover: #1f6e27;
+      --bg: #f9f9f9;
+      --surface: #ffffff;
+      --text: #1b1b1b;
+      --muted: #5f5f5f;
+      --border: #e2e2e2;
+      --input-border: #b8b8b8;
+      --red: #d40000;
+      --sidebar-w: 244px;
+      --topbar-h: 52px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); }
+    body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.4; color: var(--text); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+
+    .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
+
+    .sidebar { background: var(--surface); border-right: 1px solid var(--border); position: relative; padding: 0 16px 24px; }
+    .sidebar .brand { display: flex; align-items: center; height: var(--topbar-h); padding-left: 14px; color: var(--purple); }
+    .logo { height: 26px; width: auto; display: block; }
+    .collapse { position: absolute; right: -11px; top: 66px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: var(--purple); color: #fff; display: grid; place-items: center; cursor: pointer; }
+    .collapse svg { width: 12px; height: 12px; }
+    .snav { list-style: none; margin-top: 16px; display: flex; flex-direction: column; gap: 2px; }
+    .snav a { position: relative; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 12px; border-radius: 10px; font-size: 15px; font-weight: 500; color: var(--text); }
+    .snav a:hover { background: var(--bg); }
+    .snav .ic { width: 18px; height: 18px; flex: none; }
+    .snav .chev { width: 16px; height: 16px; margin-left: auto; }
+    .snav .create { background: var(--purple-tint); margin-bottom: 12px; }
+    .snav .create:hover { background: var(--purple-tint); }
+    .snav .active { color: var(--purple); font-weight: 600; }
+    .snav .active::before { content: ''; position: absolute; left: -16px; top: 9px; bottom: 9px; width: 4px; border-radius: 0 3px 3px 0; background: var(--purple); }
+    .subnav { list-style: none; margin: 2px 0 8px 30px; border-left: 1px solid var(--border); }
+    .subnav a { display: block; height: auto; padding: 8px 12px; font-size: 14px; font-weight: 400; border-radius: 6px; }
+    .subnav .on { color: var(--purple); font-weight: 600; background: var(--purple-tint); }
+
+    .main { min-width: 0; display: flex; flex-direction: column; }
+    .topbar { height: var(--topbar-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 24px; }
+    .topbar .mbrand, .topbar .menu { display: none; }
+    .iconbtn { width: 32px; height: 32px; border: 0; background: none; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+    .iconbtn:hover { background: var(--bg); }
+    .iconbtn svg { width: 20px; height: 20px; }
+    .biz { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; background: none; border: 0; cursor: pointer; }
+    .avatar { width: 28px; height: 28px; border-radius: 6px; background: var(--purple-tint); color: var(--purple); display: grid; place-items: center; font-weight: 600; font-size: 14px; }
+
+    .content { padding: 20px 24px 40px; max-width: 1296px; width: 100%; }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+    .crumbs a { color: var(--purple); }
+    .pagehead { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    h1 { font-size: 26px; line-height: 34px; font-weight: 700; letter-spacing: -0.2px; }
+    .more { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); display: grid; place-items: center; cursor: pointer; }
+
+    .card { background: var(--surface); border-radius: 10px; box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06); padding: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; }
+    .col { display: flex; flex-direction: column; gap: 20px; }
+    .field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+    .req { color: var(--red); margin-left: 2px; }
+    .field input, .field select, .field textarea { width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--surface); font-size: 15px; }
+    .field textarea { height: 76px; padding: 8px 12px; resize: vertical; }
+    .field select { appearance: none; -webkit-appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%231b1b1b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 18px; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 1px var(--purple); }
+    .field input.amount { text-align: right; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .bal { display: grid; grid-template-columns: 1fr 1fr; margin-top: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); }
+    .bal div { padding: 10px 12px; }
+    .bal div + div { border-left: 1px solid var(--border); }
+    .bal span { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+    .bal strong { display: block; font-size: 16px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .bal strong.neg { color: var(--red); }
+    .tier { display: none; }
+
+    .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+    .btn { height: 40px; padding: 0 18px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-secondary { background: var(--surface); border: 1px solid var(--input-border); color: var(--text); }
+    .btn-secondary:hover { background: var(--bg); }
+    .btn-secondary svg { width: 16px; height: 16px; }
+    .btn-primary { background: var(--green); border: 1px solid var(--green); color: #fff; min-width: 96px; justify-content: center; }
+    .btn-primary:hover { background: var(--green-hover); }
+    .btn-primary:disabled { opacity: 0.7; cursor: progress; }
+
+    .result-box { display: none; margin-bottom: 16px; padding: 14px 16px; border-radius: 8px; font-size: 14px; border: 1px solid; }
+    .result-box strong { display: block; font-size: 15px; margin-bottom: 2px; }
+    .result-box.show { display: block; }
+    .result-box.success { background: #eaf6eb; border-color: #9bcf9f; color: #14501a; }
+    .result-box.error { background: #fdecec; border-color: #f0a5a5; color: #8a0d0d; }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .topbar { justify-content: flex-start; padding: 0 12px; gap: 8px; }
+      .topbar .menu { display: grid; width: 44px; height: 44px; }
+      .topbar .mbrand { display: flex; color: var(--purple); margin-right: auto; }
+      .topbar .mbrand .logo { height: 22px; }
+      .topbar .iconbtn { width: 44px; height: 44px; }
+      .biz { min-height: 44px; }
+      .biz .bizname { display: none; }
+      .content { padding: 16px 16px 32px; }
+      h1 { font-size: 22px; line-height: 30px; }
+      .more { width: 44px; height: 44px; }
+      .card { padding: 16px; }
+      .grid { grid-template-columns: 1fr; gap: 20px; }
+      .field input, .field select { height: 44px; }
+      .actions { flex-direction: column-reverse; }
+      .btn { height: 44px; justify-content: center; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main menu">
+      <a href="#" class="brand" aria-label="MYOB Business home"><svg class="logo" viewBox="0 0 280 96" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round"><path d="M10 82V46a18 18 0 0 1 36 0v36M46 46a18 18 0 0 1 36 0v36"/><path d="M104 30l23 44M150 30l-31 58"/><circle cx="187" cy="56" r="23"/><path d="M226 8v48"/><circle cx="249" cy="56" r="23"/></g></svg></a>
+      <button type="button" class="collapse" aria-label="Collapse menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <ul class="snav">
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Dashboard</a></li>
+        <li><a href="#" class="create"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Create<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 15l3-3 2 2 4-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>Sales<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h11L21 7H6.2M10 20a1 1 0 1 0 0-.01M17 20a1 1 0 1 0 0-.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>Purchases<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="#" class="active" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>Banking<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <ul class="subnav">
+            <li><a href="#">Bank transactions</a></li>
+            <li><a href="#">Spend money</a></li>
+            <li><a href="#">Receive money</a></li>
+            <li><a href="#" class="on">Transfer money</a></li>
+            <li><a href="#">Reconcile accounts</a></li>
+            <li><a href="#">Find transactions</a></li>
+          </ul>
+        </li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0zM8 21h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>Accounting<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 21a7 7 0 0 1 14 0M17 13h5M19.5 10.5v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Payroll<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z M14 2a8 8 0 0 1 8 8h-8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Reporting<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M18 15a6 6 0 0 1 4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Contacts</a></li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Products &amp; services</a></li>
+        <li><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-1 9M12 11v9M9 14l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>Uploads</a></li>
+      </ul>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <button type="button" class="iconbtn menu" aria-label="Open menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <a href="#" class="mbrand" aria-label="MYOB Business home"><svg class="logo" viewBox="0 0 280 96" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round"><path d="M10 82V46a18 18 0 0 1 36 0v36M46 46a18 18 0 0 1 36 0v36"/><path d="M104 30l23 44M150 30l-31 58"/><circle cx="187" cy="56" r="23"/><path d="M226 8v48"/><circle cx="249" cy="56" r="23"/></g></svg></a>
+        <button type="button" class="iconbtn" aria-label="Help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+        <button type="button" class="iconbtn" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <button type="button" class="biz" aria-label="Clearwater Pty Ltd"><span class="avatar">C</span><span class="bizname">Clearwater Pty Ltd</span></button>
+      </header>
+
+      <main class="content">
+        <div class="crumbs"><a href="#">Banking</a> / Transfer money</div>
+        <div class="pagehead">
+          <h1>Create transfer money transaction</h1>
+          <button type="button" class="more" aria-label="More options"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button>
+        </div>
+
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+
+        <form id="transferForm">
+          <div class="card">
+            <div class="grid">
+              <div class="col">
+                <div class="field">
+                  <label for="amount">Amount ($)<span class="req">*</span></label>
+                  <input type="text" id="amount" class="amount" inputmode="decimal" value="850.00" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="description">Description</label>
+                  <textarea id="description">Transfer to savings</textarea>
+                </div>
+                <div class="row2">
+                  <div class="field">
+                    <label for="reference">Reference number<span class="req">*</span></label>
+                    <input type="text" id="reference" value="TR000016">
+                  </div>
+                  <div class="field">
+                    <label for="txDate">Date<span class="req">*</span></label>
+                    <input type="text" id="txDate" value="">
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="field">
+                  <label for="fromAccount">Bank account from<span class="req">*</span></label>
+                  <select id="fromAccount">
+                    <option value="ACCT-1004" data-balance="156200.00" selected>1-1110 Business Cheque Account</option>
+                    <option value="ACCT-1002" data-balance="84210.50">1-1120 Business Savings Account</option>
+                    <option value="ACCT-1001" data-balance="25430.00">1-1130 Business Everyday Account</option>
+                    <option value="ACCT-1003" data-balance="12750.00">1-1150 Tax Holding Account</option>
+                  </select>
+                  <div class="bal"><div><span>Current balance</span><strong id="fromNow"></strong></div><div><span>Balance after transfer</span><strong id="fromAfter"></strong></div></div>
+                </div>
+                <div class="field">
+                  <label for="toAccount">Bank account to<span class="req">*</span></label>
+                  <select id="toAccount">
+                    <option value="ACCT-1002" data-balance="84210.50" selected>1-1120 Business Savings Account</option>
+                    <option value="ACCT-1004" data-balance="156200.00">1-1110 Business Cheque Account</option>
+                    <option value="ACCT-1001" data-balance="25430.00">1-1130 Business Everyday Account</option>
+                    <option value="ACCT-1003" data-balance="12750.00">1-1150 Tax Holding Account</option>
+                  </select>
+                  <div class="bal"><div><span>Current balance</span><strong id="toNow"></strong></div><div><span>Balance after transfer</span><strong id="toAfter"></strong></div></div>
+                </div>
+                <div class="field tier" aria-hidden="true">
+                  <label for="accountTier">Account tier</label>
+                  <select id="accountTier" tabindex="-1"><option value="standard">Standard</option><option value="premium">Premium</option><option value="basic">Basic</option></select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn btn-secondary">Cancel</button>
+            <button type="button" class="btn btn-secondary">Record and new <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button type="submit" id="submitBtn" class="btn btn-primary">Record</button>
+          </div>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var d = new Date();
+      document.getElementById('txDate').value = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+      var fmt = function (n) { return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+      var bal = function (id) { var s = document.getElementById(id); return parseFloat(s.options[s.selectedIndex].getAttribute('data-balance')) || 0; };
+      var set = function (id, n) { var el = document.getElementById(id); el.textContent = fmt(n); el.className = n < 0 ? 'neg' : ''; };
+      function refresh() {
+        var amt = Number(String(document.getElementById('amount').value).replace(/[$,\s]/g, '')); if (!(amt > 0)) amt = 0;
+        set('fromNow', bal('fromAccount')); set('fromAfter', bal('fromAccount') - amt);
+        set('toNow', bal('toAccount')); set('toAfter', bal('toAccount') + amt);
+      }
+      ['amount', 'fromAccount', 'toAccount'].forEach(function (id) { document.getElementById(id).addEventListener('input', refresh); });
+      refresh();
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const ref = document.getElementById('reference').value;
+      const amount = Number(String(document.getElementById('amount').value).replace(/[$,\s]/g, ''));
+      if (!(amount > 0)) {
+        result.className = 'result-box show error';
+        result.innerHTML = '<strong>Amount is required</strong>Enter an amount greater than $0.00.';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Recording...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        if (res.ok && data.success !== false) {
+          result.className = 'result-box show success';
+          result.innerHTML = '<strong>Transfer money transaction recorded</strong>Reference ' + esc(ref) + ' has been saved to your general ledger.';
+        } else {
+          result.className = 'result-box show error';
+          result.innerHTML = '<strong>We couldn\u2019t record this transaction</strong>Please try again in a few minutes.' + (data.requestId ? ' Reference: ' + esc(data.requestId) : '');
+        }
+      } catch (err) {
+        result.className = 'result-box show error';
+        result.innerHTML = '<strong>We couldn\u2019t record this transaction</strong>Check your connection and try again.';
+      } finally { btn.disabled = false; btn.textContent = 'Record'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
