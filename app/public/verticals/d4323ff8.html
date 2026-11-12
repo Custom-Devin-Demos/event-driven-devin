@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Field tickets | myHalliburton</title><meta name="description" content="Review, approve and e-sign Halliburton field tickets in myHalliburton Commerce Central."><link rel="stylesheet" href="/verticals/d4323ff8/myhal.css">
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-inner">
+    <a class="hdr-logo" href="#main" aria-label="myHalliburton home"><img src="/verticals/d4323ff8/halliburton-logo.svg" alt="Halliburton" width="190" height="34"><span class="portal">my<b>Halliburton</b></span></a>
+    <nav class="hdr-nav" aria-label="myHalliburton">
+      <div class="hdr-util"><a href="#main">Commerce Central</a><a href="#main">Help &amp; support</a><span class="acct">Karen Alvarez &middot; Permian Ridge Operating, LLC</span><a href="#main">Sign out</a></div>
+      <ul class="primary">
+        <li><a href="#main">Dashboard</a></li>
+        <li><a href="#main">Job schedule</a></li>
+        <li><a href="#main" aria-current="page">Field tickets</a></li>
+        <li><a href="#main">Invoices</a></li>
+        <li><a href="#main">Proposals</a></li>
+        <li><a href="#main">Real-time job data</a></li>
+        <li><a href="#main">Product catalog</a></li>
+      </ul>
+    </nav>
+    <button class="hdr-search" type="button" aria-label="Search myHalliburton"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <p class="crumbs"><a href="#main">myHalliburton</a> / <a href="#main">Commerce Central</a> / Field tickets</p>
+    <h1>Field tickets</h1>
+    <p>Review, approve and e-sign field tickets for completed jobs. Approved tickets post to invoicing within 24 hours.</p>
+    <div class="hero-stats">
+      <div><b data-stat="count">4</b><span>Awaiting your approval</span></div>
+      <div><b data-stat="total">$1,308,285</b><span>Pending value (USD)</span></div>
+      <div><b>Delaware Basin</b><span>Ridgeback State pad &middot; Reeves County, TX</span></div>
+    </div>
+  </div>
+</section>
+
+<main class="main" id="main">
+  <div class="wrap">
+    <aside class="panel" aria-labelledby="queue-title">
+      <div class="panel-hd"><h2 id="queue-title">Awaiting approval</h2><span id="queue-count">4 tickets</span></div>
+      <ul class="tickets" id="ticket-list"></ul>
+      <p class="side-note">Tickets are synced from the field every 15 minutes. Questions about a ticket? Contact your Halliburton account representative.</p>
+    </aside>
+
+    <section class="panel" aria-labelledby="ticket-title">
+      <div class="detail-hd">
+        <span class="psl" data-t="pslName"></span>
+        <h2 id="ticket-title"><span data-t="ticketNumber"></span></h2>
+        <p class="sub" data-t="service"></p>
+        <dl class="facts">
+          <div><dt>Well</dt><dd data-t="well"></dd></div>
+          <div><dt>API number</dt><dd data-t="api"></dd></div>
+          <div><dt>Field / county</dt><dd data-t="location"></dd></div>
+          <div><dt>Job date</dt><dd data-t="jobDate"></dd></div>
+        </dl>
+      </div>
+      <div class="lines">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Item</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Amount</th></tr></thead>
+            <tbody id="line-items"></tbody>
+            <tfoot><tr><td colspan="3">Ticket total (USD)</td><td class="n" data-t="total"></td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <form class="approve" id="approve-form" novalidate>
+        <h3>Approve field ticket</h3>
+        <p>Your electronic signature confirms the services and materials above were delivered as listed.</p>
+        <div class="grid2">
+          <div class="fld"><label for="approverName">Approver name <span class="req">*</span></label><input id="approverName" name="approverName" autocomplete="name" value="Karen Alvarez" required></div>
+          <div class="fld"><label for="approverTitle">Title</label><input id="approverTitle" name="approverTitle" value="Completions Superintendent"></div>
+          <div class="fld"><label for="poNumber">PO number <span class="req">*</span></label><input id="poNumber" name="poNumber" value="PO-778214" required></div>
+          <div class="fld"><label for="afeNumber">AFE number</label><input id="afeNumber" name="afeNumber" value="AFE-26-0419"></div>
+          <div class="fld full"><label for="comments">Comments</label><textarea id="comments" name="comments" placeholder="Optional note for your Halliburton account representative"></textarea></div>
+        </div>
+        <label class="check"><input type="checkbox" name="acceptTerms" id="acceptTerms" checked> I confirm the services were performed as listed and approve this field ticket for invoicing.</label>
+        <div class="alert" id="approve-error" role="alert" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg><span class="alert-text"></span></div>
+        <div class="actions">
+          <button class="btn" type="submit" id="approve-submit"><span class="btn-label">Approve &amp; e-sign</span></button>
+          <button class="link-btn" type="button">Dispute ticket</button>
+          <button class="link-btn" type="button">Download PDF</button>
+        </div>
+      </form>
+
+      <div class="confirm" id="approve-confirmation" tabindex="-1" hidden>
+        <h3>Field ticket approved</h3>
+        <p>Thank you. Your approval has been recorded and the ticket is queued for invoicing.</p>
+        <dl>
+          <dt>Approval number</dt><dd data-c="approvalNumber"></dd>
+          <dt>Field ticket</dt><dd data-c="ticket"></dd>
+          <dt>Amount</dt><dd data-c="total"></dd>
+          <dt>PO number</dt><dd data-c="poNumber"></dd>
+          <dt>Invoice</dt><dd data-c="invoice"></dd>
+        </dl>
+        <div class="actions"><button class="btn" type="button" id="approve-next">Next ticket</button></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="ftr">
+  <div class="ftr-top">
+    <div><h4>myHalliburton</h4><ul><li><a href="#main">Field tickets</a></li><li><a href="#main">Invoices</a></li><li><a href="#main">Job schedule</a></li><li><a href="#main">Help &amp; support</a></li></ul></div>
+    <div><h4>Solutions</h4><ul><li><a href="#main">Drilling</a></li><li><a href="#main">Completions</a></li><li><a href="#main">Production</a></li><li><a href="#main">Digital solutions</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="#main">About us</a></li><li><a href="#main">Investors</a></li><li><a href="#main">Careers</a></li><li><a href="#main">Contact us</a></li></ul></div>
+  </div>
+  <div class="ftr-bottom">
+    <div class="legal"><span>&copy; 2026 Halliburton. All rights reserved.</span><a href="#main">Terms of use</a><a href="#main">Privacy</a><a href="#main">Cookie settings</a></div>
+    <div class="social">
+      <a href="#main" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.4c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9z"/></svg></a>
+      <a href="#main" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.4-1.6.5-3.2.5-4.8s-.1-3.2-.5-4.8zM9.8 15.1V8.9L15.6 12z"/></svg></a>
+      <a href="#main" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 2.5h3.3l-7.2 8.2 8.4 10.8h-6.6l-5.2-6.7-5.9 6.7H1.3L9 12.7.9 2.5h6.8l4.7 6.1zm-1.2 17.1h1.8L7.1 4.3H5.2z"/></svg></a>
+    </div>
+  </div>
+</footer>
+<button class="hal-bot" type="button" aria-label="Ask HAL, the Halliburton assistant">HAL</button>
+
+<script type="application/json" id="ticket-data">{"FT-4471093":{"ticketNumber":"FT-4471093","service":"ZEUS® electric fracturing — stages 1–18","well":"Ridgeback State 14-2H","api":"42-389-40217","field":"Delaware Basin","county":"Reeves County, TX","jobDate":"2026-11-09","district":"Pecos, TX","lines":[{"item":"ZEUS electric frac fleet — pumping service","qty":18,"unit":"stage","rate":38500},{"item":"Proppant — 100 mesh in-basin sand","qty":7200000,"unit":"lb","rate":0.032},{"item":"SmartFleet® intelligent fracturing system","qty":18,"unit":"stage","rate":2400},{"item":"Friction reducer — FR-66","qty":21600,"unit":"gal","rate":4.15}],"pslName":"Production Enhancement"},"FT-4470881":{"ticketNumber":"FT-4470881","service":"Production casing cement job","well":"Ridgeback State 14-3H","api":"42-389-40218","field":"Delaware Basin","county":"Reeves County, TX","jobDate":"2026-11-07","district":"Pecos, TX","lines":[{"item":"Cementing unit and crew","qty":1,"unit":"job","rate":18750},{"item":"NeoCem™ cement system","qty":1450,"unit":"sk","rate":31.5},{"item":"Cement head and plug set","qty":1,"unit":"ea","rate":2950}],"pslName":"Cementing"},"FT-4470612":{"ticketNumber":"FT-4470612","service":"Plug-and-perf wireline — stages 1–18","well":"Ridgeback State 14-2H","api":"42-389-40217","field":"Delaware Basin","county":"Reeves County, TX","jobDate":"2026-11-08","district":"Pecos, TX","lines":[{"item":"Wireline unit and crew","qty":3,"unit":"day","rate":9800},{"item":"Perforating guns — 3-1/8 in.","qty":72,"unit":"gun","rate":610},{"item":"Composite frac plugs","qty":17,"unit":"ea","rate":1450}],"pslName":"Wireline & Perforating"},"FT-4469954":{"ticketNumber":"FT-4469954","service":"Drilling fluids — intermediate section","well":"Ridgeback State 14-3H","api":"42-389-40218","field":"Delaware Basin","county":"Reeves County, TX","jobDate":"2026-11-04","district":"Midland, TX","lines":[{"item":"BaraECD® high-performance fluid","qty":1200,"unit":"bbl","rate":64},{"item":"Mud engineer","qty":6,"unit":"day","rate":1650}],"pslName":"Baroid"}}</script>
+<script>
+(function () {
+  var API = '/api/d4323ff8/field-tickets/approve';
+  var TICKETS = JSON.parse(document.getElementById('ticket-data').textContent);
+  var ORDER = Object.keys(TICKETS);
+  var pending = ORDER.slice();
+  var current = ORDER[0];
+  var list = document.getElementById('ticket-list');
+  var form = document.getElementById('approve-form');
+  var submit = document.getElementById('approve-submit');
+  var submitLabel = submit.querySelector('.btn-label');
+  var errorEl = document.getElementById('approve-error');
+  var errorText = errorEl.querySelector('.alert-text');
+  var confirmation = document.getElementById('approve-confirmation');
+  var busy = false;
+  var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  var usd0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  var num = new Intl.NumberFormat('en-US');
+
+  function total(t) { return t.lines.reduce(function (s, l) { return s + l.qty * l.rate; }, 0); }
+  function date(iso) { return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function renderList() {
+    list.textContent = '';
+    pending.forEach(function (id) {
+      var t = TICKETS[id];
+      var li = el('li');
+      var b = el('button', 'ticket-btn');
+      b.type = 'button';
+      b.setAttribute('data-ticket', id);
+      b.setAttribute('aria-pressed', String(id === current));
+      var n = el('span', 'num', t.ticketNumber);
+      n.appendChild(el('em', null, t.pslName));
+      b.appendChild(n);
+      b.appendChild(el('span', 'svc', t.service));
+      b.appendChild(el('span', 'meta', t.well + ' \u00b7 ' + date(t.jobDate) + ' \u00b7 ' + usd0.format(total(t))));
+      b.addEventListener('click', function () { select(id); });
+      li.appendChild(b);
+      list.appendChild(li);
+    });
+    var sum = pending.reduce(function (s, id) { return s + total(TICKETS[id]); }, 0);
+    document.getElementById('queue-count').textContent = pending.length + (pending.length === 1 ? ' ticket' : ' tickets');
+    document.querySelector('[data-stat="count"]').textContent = pending.length;
+    document.querySelector('[data-stat="total"]').textContent = usd0.format(sum);
+  }
+
+  function set(name, value) { document.querySelector('[data-t="' + name + '"]').textContent = value; }
+  function select(id) {
+    current = id;
+    var t = TICKETS[id];
+    set('pslName', t.pslName);
+    set('ticketNumber', t.ticketNumber);
+    set('service', t.service);
+    set('well', t.well);
+    set('api', t.api);
+    set('location', t.field + ' \u00b7 ' + t.county);
+    set('jobDate', date(t.jobDate));
+    set('total', usd.format(total(t)));
+    var body = document.getElementById('line-items');
+    body.textContent = '';
+    t.lines.forEach(function (l) {
+      var tr = el('tr');
+      tr.appendChild(el('td', 'item', l.item));
+      tr.appendChild(el('td', 'n', num.format(l.qty) + ' ' + l.unit));
+      tr.appendChild(el('td', 'n', usd.format(l.rate)));
+      tr.appendChild(el('td', 'n', usd.format(l.qty * l.rate)));
+      body.appendChild(tr);
+    });
+    clearErrors();
+    confirmation.hidden = true;
+    form.hidden = false;
+    list.querySelectorAll('.ticket-btn').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-ticket') === id)); });
+  }
+
+  function showError(message, invalidField) {
+    errorText.textContent = message;
+    errorEl.hidden = false;
+    if (invalidField && form.elements[invalidField]) {
+      form.elements[invalidField].classList.add('is-invalid');
+      form.elements[invalidField].focus();
+    }
+  }
+  function clearErrors() {
+    errorEl.hidden = true;
+    form.querySelectorAll('.is-invalid').forEach(function (e) { e.classList.remove('is-invalid'); });
+  }
+  function setBusy(next) {
+    busy = next;
+    submit.disabled = next;
+    submit.setAttribute('aria-busy', String(next));
+    submitLabel.textContent = next ? 'Approving\u2026' : 'Approve & e-sign';
+  }
+  function fill(name, value) { confirmation.querySelector('[data-c="' + name + '"]').textContent = value; }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+    clearErrors();
+    var body = {
+      ticketNumber: current,
+      approverName: form.elements.approverName.value.trim(),
+      approverTitle: form.elements.approverTitle.value.trim(),
+      poNumber: form.elements.poNumber.value.trim(),
+      afeNumber: form.elements.afeNumber.value.trim(),
+      comments: form.elements.comments.value.trim(),
+      acceptTerms: form.elements.acceptTerms.checked,
+    };
+    var missing = Array.prototype.filter.call(form.querySelectorAll('[required]'), function (f) { return !f.value.trim(); });
+    if (missing.length) {
+      missing.forEach(function (f) { f.classList.add('is-invalid'); });
+      missing[0].focus();
+      showError('Please complete the required fields.');
+      return;
+    }
+    if (!body.acceptTerms) { showError('Confirm the services were performed as listed.', 'acceptTerms'); return; }
+    setBusy(true);
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (r) {
+        if (!r.ok || !r.data.success) {
+          var msg = r.data.error || "We couldn't approve this field ticket. Please try again later.";
+          if (r.data.requestId && r.data.code !== 'INVALID_REQUEST') msg += ' Reference: ' + r.data.requestId;
+          showError(msg, r.data.field);
+          return;
+        }
+        var d = r.data;
+        fill('approvalNumber', d.approvalNumber);
+        fill('ticket', d.ticketNumber + ' \u00b7 ' + d.well);
+        fill('total', usd.format(d.total));
+        fill('poNumber', d.poNumber);
+        fill('invoice', d.routing.psl + ' invoice posts within ' + d.routing.invoiceHours + ' hours');
+        pending = pending.filter(function (id) { return id !== d.ticketNumber; });
+        renderList();
+        form.hidden = true;
+        confirmation.hidden = false;
+        confirmation.focus();
+      })
+      .catch(function () { showError("We couldn't approve this field ticket. Please try again later."); })
+      .then(function () { setBusy(false); });
+  });
+  form.addEventListener('input', function (e) { e.target.classList.remove('is-invalid'); });
+  document.getElementById('approve-next').addEventListener('click', function () {
+    if (pending.length) select(pending[0]);
+    form.scrollIntoView({ block: 'start' });
+  });
+  document.querySelectorAll('.hdr-search, .hal-bot, .link-btn').forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); }); });
+
+  renderList();
+  select(current);
+})();
+</script>
+</body>
+</html>
