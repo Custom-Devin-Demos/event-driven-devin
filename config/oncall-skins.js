@@ -3668,7 +3668,7 @@ const ONCALL_SKINS = {
     slug: 'b9e67e5f',
     company: 'Surescripts',
     vertical: 'insurance',
-    page: { file: 'b9e67e5f.html', title: 'Electronic Prior Authorization | Surescripts' },
+    page: { file: 'b9e67e5f.html', title: 'E-Prescribing | Surescripts' },
     disclaimer: 'NOT ACTUALLY A SURESCRIPTS SITE — internal demo only, not affiliated with, endorsed by, or a real Surescripts product.',
   },
   'e8abbeff': {
