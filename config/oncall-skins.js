@@ -9633,6 +9633,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN EBAY SITE — internal demo only, not affiliated with, endorsed by, or a real eBay product.',
   },
+  '1ea2f9b8': {
+    slug: '1ea2f9b8',
+    company: 'OneSource Virtual',
+    vertical: 'banking',
+    page: {
+      file: '1ea2f9b8.html',
+      title: 'myFlexPay: Get paid before payday',
+    },
+    disclaimer: 'NOT ACTUALLY A ONESOURCE VIRTUAL SITE — internal demo only, not affiliated with, endorsed by, or a real OneSource Virtual product.',
+  },
 };
 
 function getOncallSkin(slug) {
