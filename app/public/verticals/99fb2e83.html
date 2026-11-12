@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Electronic Arts</title>
+<link rel="icon" href="/verticals/assets/99fb2e83/favicon.ico" type="image/x-icon">
+<style>
+@font-face { font-family: displayFace; src: url("/verticals/assets/99fb2e83/fonts/ElectronicArtsDisplay-Light.woff2") format("woff2"); font-weight: 300; font-display: swap; }
+@font-face { font-family: displayFace; src: url("/verticals/assets/99fb2e83/fonts/ElectronicArtsDisplay-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: displayFace; src: url("/verticals/assets/99fb2e83/fonts/ElectronicArtsDisplay-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: textFace; src: url("/verticals/assets/99fb2e83/fonts/ElectronicArtsText-Light.woff2") format("woff2"); font-weight: 300; font-display: swap; }
+@font-face { font-family: textFace; src: url("/verticals/assets/99fb2e83/fonts/ElectronicArtsText-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: textFace; src: url("/verticals/assets/99fb2e83/fonts/ElectronicArtsText-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+:root {
+  --net-bg: #171a29;
+  --nav-bg: #00071f;
+  --page-bg: #00071f;
+  --text: #eaeaec;
+  --muted: #afafaf;
+  --blue: #255af6;
+  --blue-hover: #1d4ad6;
+  --card: #2b3044;
+  --card-border: #404557;
+  --footer: #151c32;
+  --purple: #892fed;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--page-bg); color: var(--text); font-family: textFace, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+img { display: block; }
+
+/* network bar */
+#network-nav { position: relative; z-index: 30; height: 48px; background: var(--net-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 24px; }
+#network-nav .wordmark { color: var(--muted); display: flex; align-items: center; height: 48px; }
+#account-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #7d7d7d; background: #212222; color: #fafafa; display: flex; align-items: center; justify-content: center; padding: 0; }
+#account-btn:hover, #account-btn[aria-expanded="true"] { background: #323232; }
+#account-menu { position: absolute; top: 56px; right: 16px; width: 327px; background: #323232; border-radius: 6px; box-shadow: 0 2px 4px rgba(25,37,55,.25); padding: 24px 16px; display: none; }
+#account-menu.open { display: block; }
+#account-menu a.item { display: flex; align-items: center; height: 38px; padding: 0 16px; margin-bottom: 16px; border-radius: 6px; font-size: 14px; color: #fafafa; }
+#account-menu a.item:hover { background: rgba(255,255,255,.08); }
+#account-menu hr { border: 0; border-top: 1px solid #6b6b6b; margin: 0 0 16px; }
+#account-menu .acct-btn { display: block; width: 100%; height: 28px; border-radius: 4px; font-size: 13px; line-height: 26px; color: #fafafa; text-align: center; }
+#sign-in { background: var(--purple); border: 1px solid var(--purple); margin-bottom: 16px; }
+#sign-in:hover { background: #7a22db; }
+#sign-in[aria-busy="true"] { opacity: .7; cursor: progress; }
+#create-account { background: transparent; border: 1px solid #a6a6a6; }
+#create-account:hover { background: rgba(255,255,255,.08); }
+
+/* local nav */
+#local-nav { height: 62px; background: var(--nav-bg); display: flex; align-items: center; padding: 0 24px; position: relative; z-index: 20; }
+#local-nav .logo img { width: 201px; height: 36px; object-fit: contain; }
+#local-nav ul { list-style: none; display: flex; gap: 20px; margin: 0 0 0 26px; padding: 0; }
+#local-nav ul button { background: none; border: 0; padding: 8px 4px; font-family: textFace, sans-serif; font-weight: 700; font-size: 14px; line-height: 14px; color: var(--text); display: flex; align-items: center; gap: 4px; border-radius: 6px; }
+#local-nav ul button:hover { color: #fff; }
+#local-nav ul button svg { width: 12px; height: 12px; transition: transform .15s; }
+#nav-toggle { display: none; background: none; border: 0; padding: 6px; margin-right: 12px; color: var(--text); }
+#nav-drawer { display: none; position: absolute; top: 62px; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid #1f2540; padding: 8px 24px 16px; }
+#nav-drawer a { display: block; padding: 12px 0; font-weight: 700; font-size: 14px; border-bottom: 1px solid #1f2540; }
+#nav-drawer.open { display: block; }
+
+/* hero */
+.hero { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 900px; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; }
+.hero > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,7,31,.05) 0%, rgba(0,7,31,.25) 60%, rgba(0,7,31,.45) 100%); }
+.hero .inner { position: relative; z-index: 1; text-align: center; padding-bottom: 14.5%; display: flex; flex-direction: column; align-items: center; }
+.hero .inner .game-logo { width: 400px; height: 129px; object-fit: contain; margin-bottom: 24px; }
+.hero h3 { font-family: displayFace, sans-serif; font-weight: 700; font-size: 50px; line-height: 60px; margin: 0 0 48px; color: var(--text); text-transform: uppercase; }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 26px; border-radius: 8px; background: var(--blue); color: var(--text); font-family: textFace, sans-serif; font-weight: 700; font-size: 16px; line-height: 16px; border: 0; transition: background .15s; }
+.btn:hover { background: var(--blue-hover); }
+
+/* carousel */
+.carousel { position: relative; height: 640px; overflow: hidden; }
+.carousel > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.carousel::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.35) 40%, rgba(0,0,0,0) 65%), linear-gradient(0deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 35%); z-index: 1; }
+.carousel .copy { position: absolute; left: 110px; top: 165px; z-index: 2; max-width: 480px; }
+.carousel .copy .game-logo { width: 400px; height: 58px; object-fit: contain; object-position: left center; margin-bottom: 12px; }
+.carousel h2 { font-family: displayFace, sans-serif; font-weight: 700; font-size: 44px; line-height: 52.8px; margin: 0 0 12px; }
+.carousel p { font-size: 16px; line-height: 22.4px; margin: 0 0 13px; }
+.thumbs { position: absolute; left: 110px; right: 110px; bottom: 32px; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.thumb { display: flex; align-items: center; height: 72px; padding: 2px; border-radius: 8px; border: 2px solid transparent; background: rgba(0,0,0,.6); }
+.thumb.active { border-color: var(--blue); }
+.thumb img { width: 64px; height: 64px; border-radius: 6px; object-fit: cover; flex: none; }
+.thumb span { padding: 4px 12px; font-size: 14px; line-height: 19.6px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* featured games */
+.featured { position: relative; background: var(--page-bg); padding: 56px 24px 72px; text-align: center; }
+.featured h2 { font-family: textFace, sans-serif; font-weight: 700; font-size: 36px; line-height: 43.2px; margin: 0 0 40px; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; text-align: left; margin-bottom: 40px; }
+.card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; min-height: 562px; transition: transform .2s; }
+.card:hover { transform: translateY(-4px); }
+.card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+.card .body { padding: 16px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.tag { font-size: 12px; line-height: 12px; font-weight: 700; padding: 6px 8px; border-radius: 6px; background: #404557; }
+.tag.base { background: var(--blue); }
+.card h3 { font-weight: 700; font-size: 20px; line-height: 24px; margin: 0; }
+
+/* footer */
+footer { background: var(--footer); padding: 40px 24px 0; }
+.f-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 32px; border-bottom: 1px solid #2b3044; }
+.socials { display: flex; gap: 8px; }
+.socials a { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #5d6276; display: flex; align-items: center; justify-content: center; color: var(--text); }
+.socials a:hover { background: rgba(255,255,255,.06); }
+.socials svg { width: 20px; height: 20px; }
+.f-right { display: flex; gap: 16px; align-items: center; }
+.lang { display: flex; flex-direction: column; align-items: flex-start; height: 48px; justify-content: center; padding: 0 14px; min-width: 128px; border-radius: 8px; border: 1px solid #5d6276; background: none; text-align: left; }
+.lang small { font-size: 10px; color: var(--muted); line-height: 12px; }
+.lang span { font-size: 14px; line-height: 18px; display: flex; gap: 18px; align-items: center; }
+.to-top { height: 48px; padding: 0 18px; border-radius: 8px; border: 1px solid #5d6276; background: none; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.f-links { list-style: none; display: flex; flex-wrap: wrap; gap: 28px; padding: 28px 0 0; margin: 0; font-size: 14px; }
+.f-links a:hover { text-decoration: underline; }
+.f-note { font-size: 10px; letter-spacing: .02em; color: var(--text); padding: 28px 0 24px; margin: 0; }
+.f-note a { text-decoration: underline; }
+.legal { background: var(--card); padding: 16px 24px 20px; font-size: 12px; color: #d6d6d8; }
+.legal ul { list-style: none; display: flex; flex-wrap: wrap; gap: 24px; padding: 0; margin: 0 0 12px; font-weight: 700; color: var(--text); }
+.legal .privacy { display: inline-flex; align-items: center; gap: 6px; }
+.legal .privacy i { display: inline-block; width: 26px; height: 12px; border-radius: 6px; background: #0b66ff; position: relative; }
+.legal .privacy i::after { content: "\2713"; position: absolute; left: 3px; top: -1px; font-style: normal; font-size: 9px; color: #fff; }
+.legal p { margin: 0 0 14px; font-size: 11px; color: #a9abb5; }
+.legal .copy { border-top: 1px solid #404557; padding-top: 12px; margin: 0; font-size: 11px; color: #a9abb5; }
+
+#demos-link { position: fixed; left: 12px; bottom: 12px; z-index: 40; font-size: 11px; color: rgba(234,234,236,.55); background: rgba(0,7,31,.6); padding: 4px 8px; border-radius: 4px; }
+#demos-link:hover { color: var(--text); }
+
+#signin-toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 2147483000; width: min(640px, calc(100vw - 24px)); background: #fff; border: 1px solid #d6312b; border-left: 6px solid #d6312b; border-radius: 8px; box-shadow: 0 12px 32px rgba(0,0,0,.4); padding: 16px 44px 16px 18px; color: #1a1d2b; display: none; font-family: textFace, sans-serif; }
+#signin-toast.show { display: block; }
+#signin-toast button { position: absolute; top: 8px; right: 10px; width: 28px; height: 28px; border: 0; background: none; font-size: 22px; line-height: 28px; color: #5a5a5a; }
+#signin-toast h4 { margin: 0 0 6px; font-size: 16px; color: #b3261e; }
+#signin-toast p { margin: 0 0 8px; font-size: 14px; line-height: 20px; word-break: break-word; }
+#signin-toast small { display: block; font-size: 12px; color: #5a5a5a; word-break: break-all; }
+
+@media (max-width: 1100px) {
+  .carousel .copy { left: 48px; }
+  .thumbs { left: 48px; right: 48px; }
+}
+@media (max-width: 900px) {
+  #local-nav ul { display: none; }
+  #nav-toggle { display: block; }
+  #local-nav .logo img { width: 160px; height: 30px; }
+  .hero { aspect-ratio: auto; min-height: 560px; }
+  .hero .inner .game-logo { width: 280px; height: 90px; }
+  .hero h3 { font-size: 32px; line-height: 38px; margin-bottom: 28px; padding: 0 16px; }
+  .carousel { height: 600px; }
+  .carousel .copy { left: 24px; right: 24px; top: 96px; }
+  .carousel h2 { font-size: 32px; line-height: 38px; }
+  .thumbs { left: 24px; right: 24px; grid-template-columns: repeat(2, 1fr); }
+  .thumbs .thumb:nth-child(n+3) { display: none; }
+  .grid { grid-template-columns: 1fr; }
+  .card { min-height: 0; }
+  .f-top { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
+@media (max-width: 420px) {
+  #account-menu { right: 8px; width: calc(100vw - 16px); }
+}
+</style>
+</head>
+<body>
+<nav id="network-nav" aria-label="Network">
+  <a class="wordmark" href="#" aria-label="Electronic Arts home">
+    <svg viewBox="0 0 93 12" fill="none" xmlns="http://www.w3.org/2000/svg" height="12" width="93" aria-hidden="true"><path d="M0 11.3537H7.4503V9.5783H2.0537V7.0703H6.424V5.296H2.0537V2.8903H7.4503V1.0863H0V11.3537Z" fill="currentColor"/><path d="M8.29736 11.3537H10.1608V0.5L8.29736 1.0863V11.3537Z" fill="currentColor"/><path d="M14.7841 3.8737C12.6864 3.8737 10.9858 5.472 10.9858 7.6874C10.9858 9.9028 12.7744 11.5 14.9744 11.5C16.6024 11.5 17.9224 10.576 18.4801 9.168H16.4121C16.1041 9.6234 15.5761 9.8434 15.0041 9.8434C14.0064 9.8434 13.1858 9.2274 12.9361 8.3034H18.5824C18.5824 8.2 18.5978 8.112 18.5978 8.024C18.5978 5.208 16.6024 3.8737 14.7841 3.8737ZM12.9504 6.968C13.2001 6.0737 13.9184 5.5017 14.7841 5.5017C15.2067 5.49866 15.6171 5.64362 15.944 5.91144C16.2709 6.17927 16.4937 6.55307 16.5738 6.968H12.9504Z" fill="currentColor"/><path d="M23.0526 5.6194C23.4504 5.61891 23.8384 5.74312 24.162 5.97457C24.4856 6.20601 24.7285 6.53305 24.8566 6.9097H26.7486C26.5826 6.05358 26.1221 5.28261 25.4469 4.73064C24.7718 4.17867 23.9246 3.88054 23.0526 3.888C20.9406 3.888 19.2246 5.4874 19.2246 7.7017C19.2246 9.916 20.9406 11.5 23.0526 11.5C24.8709 11.5 26.3966 10.312 26.7486 8.5377H24.8566C24.7285 8.91435 24.4856 9.24139 24.162 9.47283C23.8384 9.70428 23.4504 9.82849 23.0526 9.828C21.9526 9.828 21.0726 8.9634 21.0726 7.7314C21.0726 6.4697 21.9526 5.6194 23.0526 5.6194Z" fill="currentColor"/><path d="M29.1788 1.8937L27.3462 2.48V9.4617C27.3462 10.5914 28.1382 11.3537 29.4868 11.3537H31.3062V9.696H30.0148C29.4428 9.696 29.1788 9.432 29.1788 8.948V5.6194H31.3062V4.0354H29.1788V1.8937Z" fill="currentColor"/><path d="M83.655 1.8937L81.8213 2.48V9.4617C81.8213 10.5914 82.6133 11.3537 83.963 11.3537H85.7813V9.696H84.491C83.919 9.696 83.655 9.432 83.655 8.948V5.6194H85.7813V4.0354H83.655V1.8937Z" fill="currentColor"/><path d="M33.879 5.3554V4.0354H32.0156V11.3537H33.879V7.4817C33.879 6.484 34.759 5.4434 36.255 5.6777V3.9034C35.1253 3.7714 34.319 4.4017 33.879 5.3554Z" fill="currentColor"/><path d="M40.1909 3.888C38.0491 3.888 36.3188 5.4874 36.3188 7.7017C36.3188 9.916 38.0491 11.5 40.1909 11.5C42.3326 11.5 44.0629 9.9017 44.0629 7.7017C44.0629 5.5017 42.3326 3.888 40.1909 3.888ZM40.1909 9.8137C39.0623 9.8137 38.1668 8.948 38.1668 7.716C38.1668 6.4554 39.0623 5.604 40.1909 5.604C41.3195 5.604 42.2149 6.4554 42.2149 7.716C42.2149 8.948 41.3239 9.8137 40.1909 9.8137Z" fill="currentColor"/><path d="M48.9445 3.8737C48.0051 3.8737 47.1988 4.284 46.7588 4.944V4.0354H44.8965V11.3537H46.7588V6.924C46.7563 6.723 46.794 6.52353 46.8698 6.33735C46.9456 6.15116 47.0579 5.98204 47.2001 5.83995C47.3423 5.69786 47.5115 5.58568 47.6977 5.51002C47.884 5.43435 48.0835 5.39674 48.2845 5.3994C49.1788 5.3994 49.8091 6.044 49.8091 6.9977V11.3537H51.6725V6.8514C51.6725 5.1354 50.6891 3.8737 48.9445 3.8737Z" fill="currentColor"/><path d="M54.5708 4.0343H52.7085V11.3526H54.5708V4.0343Z" fill="currentColor"/><path d="M59.2239 5.6194C59.6218 5.61858 60.0099 5.74266 60.3336 5.97415C60.6572 6.20564 60.9001 6.53287 61.0279 6.9097H62.9199C62.7543 6.05339 62.2938 5.28218 61.6186 4.73013C60.9434 4.17808 60.096 3.88011 59.2239 3.888C57.113 3.888 55.397 5.4874 55.397 7.7017C55.397 9.916 57.113 11.5 59.2239 11.5C61.0433 11.5 62.569 10.312 62.9199 8.5377H61.0279C60.9001 8.91453 60.6572 9.24176 60.3336 9.47325C60.0099 9.70474 59.6218 9.82882 59.2239 9.828C58.1239 9.828 57.2439 8.9634 57.2439 7.7314C57.245 6.4697 58.125 5.6194 59.2239 5.6194Z" fill="currentColor"/><path d="M65.9404 11.3537H68.0238L69.0358 9.168H73.3181L74.3598 11.3537H76.5004L71.2204 0.6474L65.9404 11.3537ZM69.7684 7.5994L71.1478 4.6074L72.5701 7.5994H69.7684Z" fill="currentColor"/><path d="M78.8086 5.3554V4.0354H76.9463V11.3537H78.8086V7.4817C78.8086 6.484 79.6886 5.4434 81.1846 5.6777V3.9034C80.0549 3.7714 79.2486 4.4017 78.8086 5.3554Z" fill="currentColor"/><path d="M89.7622 6.9394C88.8525 6.704 88.0749 6.4994 88.0749 5.956C88.0749 5.516 88.5446 5.2817 89.0583 5.2817C89.9229 5.2817 90.5686 5.78 90.6863 6.5434H92.3869C92.2263 4.9737 90.8909 3.8737 89.0869 3.8737C87.4886 3.8737 86.2565 4.7097 86.2565 6.1177C86.2565 7.6874 87.7525 8.0977 88.9988 8.42C89.8942 8.6554 90.6566 8.8457 90.6566 9.3737C90.6566 9.7994 90.1726 10.092 89.4983 10.092C88.5886 10.092 87.8999 9.5794 87.7965 8.816H86.0938C86.2544 10.3857 87.6338 11.5 89.4961 11.5C91.1824 11.5 92.5024 10.6057 92.5024 9.1977C92.5046 7.672 91.0086 7.2617 89.7622 6.9394Z" fill="currentColor"/></svg>
+  </a>
+  <button type="button" id="account-btn" aria-label="Account" aria-haspopup="true" aria-expanded="false" aria-controls="account-menu">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" height="16" width="16" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.7008 9.31468C11.5166 8.62181 12.0335 7.59291 12.0335 6.44428C12.0335 4.35787 10.3279 2.6665 8.22396 2.6665C6.12002 2.6665 4.41443 4.35787 4.41443 6.44428C4.41443 7.59291 4.93136 8.62181 5.74711 9.31468C4.04888 10.1994 2.89062 11.9655 2.89062 13.9998H4.41443C4.41443 11.9134 6.12002 10.2221 8.22396 10.2221C10.3279 10.2221 12.0335 11.9134 12.0335 13.9998H13.5573C13.5573 11.9655 12.399 10.1994 10.7008 9.31468ZM5.93824 6.44428C5.93824 5.19244 6.96159 4.17761 8.22396 4.17761C9.48632 4.17761 10.5097 5.19244 10.5097 6.44428C10.5097 7.69613 9.48632 8.71095 8.22396 8.71095C6.96159 8.71095 5.93824 7.69613 5.93824 6.44428Z" fill="currentColor"/></svg>
+  </button>
+  <div id="account-menu" role="menu" aria-label="Account">
+    <a class="item" role="menuitem" href="https://help.ea.com" target="_blank" rel="noreferrer">EA Help</a>
+    <a class="item" role="menuitem" href="https://www.ea.com/forums" target="_blank" rel="noreferrer">EA Forums</a>
+    <hr>
+    <button type="button" class="acct-btn" id="sign-in" role="menuitem">Sign in</button>
+    <button type="button" class="acct-btn" id="create-account" role="menuitem">Create an account</button>
+  </div>
+</nav>
+
+<nav id="local-nav" aria-label="Main">
+  <button type="button" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer">
+    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" height="20" width="20"><rect x="1" y="4" width="14" height="2" fill="currentColor"/><rect x="1" y="10" width="14" height="2" fill="currentColor"/></svg>
+  </button>
+  <a class="logo" href="#" aria-label="Electronic Arts home">
+    <img src="https://drop-assets.ea.com/images/1hcjtkozsJjkJy76dH1bij/21d69cae6ed2625991f7256b8c161319/EA_Logo_WH.svg" alt="Electronic Arts Logo with EA in a circle">
+  </a>
+  <ul>
+    <li><button type="button" aria-expanded="false">Games<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" fill="none"/></svg></button></li><li><button type="button" aria-expanded="false">Experiences<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" fill="none"/></svg></button></li><li><button type="button" aria-expanded="false">About<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" fill="none"/></svg></button></li><li><button type="button" aria-expanded="false">Commitments<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" fill="none"/></svg></button></li><li><button type="button" aria-expanded="false">Resources<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" fill="none"/></svg></button></li>
+  </ul>
+  <div id="nav-drawer">
+    <a href="#">Games</a><a href="#">Experiences</a><a href="#">About</a><a href="#">Commitments</a><a href="#">Resources</a>
+  </div>
+</nav>
+
+<main>
+  <section class="hero" aria-label="EA SPORTS FC 27">
+    <img class="bg" src="https://drop-assets.ea.com/images/19pEISzDIp6IF142w1mOeY/754ffc1e73f08114adfe1b2edf3d4994/New_Project__10_.png?im=Resize=(1920)&amp;q=85" alt="Kylian Mbappé stands with arms open above a stadium-filled city skyline" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'">
+    <div class="inner">
+      <img class="game-logo" src="https://drop-assets.ea.com/images/3r1oQR79MwAZuzpQUpeqWr/08c606b8046d11071ca14a3a51e92edc/fc-27-logo-horizontal.png?im=Resize=(1280)&amp;q=85" alt="Logo for EA SPORTS FC™ 27">
+      <h3>Welcome to the World's Game</h3>
+      <a class="btn" href="#">Play Now</a>
+    </div>
+  </section>
+
+  <section class="carousel" aria-label="Spotlight">
+    <img class="bg" src="https://drop-assets.ea.com/images/3Ir0e8qN3u2UjWCH9RoO85/32fd28da0143cbe975a55139c2ab4de3/BF6_S5B2_Action_01_EuropeanCasino_1920x1080_NoLogo.png?im=Resize=(1920)&amp;q=85" alt="Masked operators take cover during a shootout in a simulated European casino street" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'">
+    <div class="copy">
+      <img class="game-logo" src="https://drop-assets.ea.com/images/2KFOSSHDxTqQp6P67kJJlc/147d2f9012154f35ad0ef8ae21f731bf/Logo_Wordmark_Secondary_White_1.svg" alt="Battlefield 6 text logo in white">
+      <h2>Battlefield 6 Free Trial</h2>
+      <p>Prepare to go on a tear across Las Vegas starting Nov 13.</p>
+      <a class="btn" href="#">Get Intel</a>
+    </div>
+    <div class="thumbs">
+      <a class="thumb active" href="#"><img src="https://drop-assets.ea.com/images/3Ir0e8qN3u2UjWCH9RoO85/32fd28da0143cbe975a55139c2ab4de3/BF6_S5B2_Action_01_EuropeanCasino_1920x1080_NoLogo.png?im=Resize=(1280)&amp;q=85" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><span>Battlefield 6 Free Trial</span></a>
+      <a class="thumb" href="#"><img src="https://drop-assets.ea.com/images/4JZSZYhNcauO6bysVQNEG7/e918ac130d826e30b96dbfc8295730e2/Apex_S31-Season_Crypto-Rewired-16x9.jpg?im=Resize=(1280)&amp;q=85" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><span>HACK THE FIGHT IN APEX LEGENDS™: CIPHER</span></a>
+      <a class="thumb" href="#"><img src="https://drop-assets.ea.com/images/5FKrgcBxIK7QmZaVwQeecN/20e33a9772a045aaaf89224e94386dbe/EACOM_EAP-Spotlight-August-Refresh-XL-3x1__1_.jpg?im=Resize=(1280)&amp;q=85" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><span>Unlock a world of thrill</span></a>
+      <a class="thumb" href="#"><img src="https://drop-assets.ea.com/images/6re2setpJvG8YbNk950Kqz/89dbb6278f822dc689bb78cb6f9128b0/eacom_spotlight-ea_classics-game_collage-2x1.jpg" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><span>Add 25 restored and classic games to your library</span></a>
+    </div>
+  </section>
+
+  <section class="featured" aria-labelledby="featured-title">
+    <h2 id="featured-title">Featured Games</h2>
+    <div class="grid">
+      <a class="card" href="#"><img src="https://drop-assets.ea.com/images/1kchVt1vGdxB5WTKFIxy1N/a7e02739501b485d3a9dbb0243813a5f/EA_FC27_ULT_KeyArt_RGB_1-1_1080x1080.jpg" alt="EA SPORTS FC 27 Ultimate Edition key art" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><div class="body"><div class="tags"><span class="tag base">Base game</span><span class="tag">Sports</span></div><h3>EA SPORTS FC™ 27</h3></div></a>
+      <a class="card" href="#"><img src="https://drop-assets.ea.com/images/55kIFohTOqLHb8MuVhrNSL/183fb2907edb1ed3f1aa301249032e4d/battlefield-6-standard-edition-1x1.jpg?im=Resize=(1280)&amp;q=85" alt="4 soldiers look out across a war-torn city" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><div class="body"><div class="tags"><span class="tag base">Base game</span><span class="tag">Shooter</span></div><h3>Battlefield 6</h3></div></a>
+      <a class="card" href="#"><img src="https://drop-assets.ea.com/images/3y7UvygiXzw9jlo05Mn3I5/3d6885fa12103d27c410646df999b979/Apex_S31-Season-Page-16x9.jpg?im=Resize=(1280)&amp;q=85" alt="Apex Legends key art for season 31: Cipher" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><div class="body"><div class="tags"><span class="tag base">Base game</span><span class="tag">Shooter</span></div><h3>Apex Legends</h3></div></a>
+      <a class="card" href="#"><img src="https://drop-assets.ea.com/images/1ZA5tmmFPU7jQyC7UX3rxi/9c7af63c7799bf6ab7f2364beef4b103/ts4-basegame-packart-1x1-en.png?im=Resize=(1280)&amp;q=85" alt="Game art for The Sims 4" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><div class="body"><div class="tags"><span class="tag base">Base game</span><span class="tag">Simulation</span></div><h3>The Sims™ 4</h3></div></a>
+      <a class="card" href="#"><img src="https://drop-assets.ea.com/images/5s6gWZx8E4dKBQFlwdKtTe/550604d54a0127112d969be80e808d8f/EAS_Madden27_DLX_KeyArt_RGB_1-1_4320x4320.png?im=Resize=(1280)&amp;q=85" alt="EA Sports Madden NFL 27 Deluxe Edition cover art" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><div class="body"><div class="tags"><span class="tag base">Base game</span><span class="tag">Sports</span></div><h3>EA SPORTS™ Madden NFL 27</h3></div></a>
+      <a class="card" href="#"><img src="https://drop-assets.ea.com/images/29O7YTZVSk6RS52mjbcvVw/f80c3923b8914d4697f7c8530ea59f4f/1x1__2_.png?im=Resize=(1280)&amp;q=85" alt="Star Wars montage with a central bearded commander" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&amp;q=80'"><div class="body"><div class="tags"><span class="tag base">Base game</span><span class="tag">Strategy</span><span class="tag">Role-playing (RPG)</span><span class="tag">Adventure</span><span class="tag">Action</span></div><h3>Star Wars: Zero Company</h3></div></a>
+    </div>
+    <a class="btn" href="#">See Latest Games</a>
+  </section>
+</main>
+
+<footer>
+  <div class="f-top">
+    <div class="socials"><a href="#" aria-label="EA - X"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.0429 10.6218L20.325 3H18.8364L13.3816 9.61788L9.02492 3H4L10.5882 13.0074L4 21H5.48874L11.2491 14.0113L15.8501 21H20.875L14.0429 10.6218ZM6.02515 4.16971H8.31177L18.8371 19.8835H16.5504L6.02515 4.16971Z" fill="currentColor"/></svg></a><a href="#" aria-label="EA - TikTok"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.5101 6.60799C16.5291 5.97566 15.8209 4.96434 15.6001 3.78531C15.5524 3.53045 15.5263 3.26838 15.5263 3H12.395L12.3899 15.4021C12.3373 16.7909 11.1808 17.9056 9.76282 17.9056C9.3222 17.9056 8.90711 17.7968 8.5419 17.6066C7.70413 17.1708 7.13092 16.3028 7.13092 15.3041C7.13092 13.8697 8.3117 12.7027 9.76282 12.7027C10.0338 12.7027 10.2935 12.7468 10.5395 12.8229V9.66359C10.2849 9.62933 10.0265 9.60799 9.76282 9.60799C6.58538 9.60829 4 12.1635 4 15.3041C4 17.2312 4.97431 18.9365 6.4604 19.9676C7.39639 20.6171 8.53521 21 9.76313 21C12.9409 21 15.5263 18.4448 15.5263 15.3041V9.01533C16.7542 9.8866 18.2588 10.3999 19.8824 10.3999V7.30525C19.0078 7.30525 18.1931 7.04829 17.5101 6.60799Z" fill="currentColor"/></svg></a><a href="#" aria-label="EA - YouTube"><svg aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M19.814 5.418c.86.23 1.538.908 1.768 1.768C22 8.746 22 12 22 12s0 3.254-.418 4.814a2.505 2.505 0 0 1-1.768 1.768C18.254 19 12 19 12 19s-6.254 0-7.814-.418a2.505 2.505 0 0 1-1.768-1.768C2 15.254 2 12 2 12s0-3.254.418-4.814c.23-.86.908-1.538 1.768-1.768C5.746 5 12 5 12 5s6.254 0 7.814.418zm-9.86 3.627v5.91L15.183 12 9.955 9.045z" fill="currentColor"/></svg></a><a href="#" aria-label="EA - Twitch"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M14.1423 12.5922H15.2632V7.28366H14.1423V12.5922ZM10.2314 12.5719H11.3532V7.30393H10.2314V12.5719ZM18.3748 13.1579L16.1577 15.3751H12C11.9005 15.3751 11.8053 15.4148 11.7348 15.4844L10.1248 17.0953V15.7496C10.1248 15.5434 9.95734 15.3751 9.74937 15.3751H5.99974V4.87526H18.3748V13.1579ZM4.15353 3L3 4.97748V18.3757H7.12504C7.33213 18.3757 7.49956 18.5431 7.49956 18.7493V21H9.6057L12.4159 18.4718C12.4847 18.4101 12.5737 18.3757 12.6671 18.3757H16.1656L20.6246 14.2727V3H4.15353Z" fill="currentColor"/></svg></a><a href="#" aria-label="EA - Instagram"><svg aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M17.661 6.35c.218.218.343.52.343.83 0 .307-.125.61-.343.828-.218.217-.52.343-.829.343a1.18 1.18 0 0 1-.827-.343 1.181 1.181 0 0 1-.344-.828 1.177 1.177 0 0 1 1.17-1.172c.31 0 .613.125.83.343zM12 15.042A3.044 3.044 0 0 1 8.959 12 3.045 3.045 0 0 1 12 8.959 3.045 3.045 0 0 1 15.041 12 3.044 3.044 0 0 1 12 15.041zm0-7.679A4.643 4.643 0 0 0 7.362 12 4.643 4.643 0 0 0 12 16.639 4.643 4.643 0 0 0 16.638 12 4.643 4.643 0 0 0 12 7.362zm7.403 8.67a3.375 3.375 0 0 1-3.371 3.371H7.967a3.374 3.374 0 0 1-3.37-3.37V7.968c0-1.86 1.512-3.37 3.37-3.37h8.065a3.374 3.374 0 0 1 3.371 3.37v8.065zM16.032 3H7.967A4.973 4.973 0 0 0 3 7.968v8.065A4.972 4.972 0 0 0 7.967 21h8.065A4.973 4.973 0 0 0 21 16.033V7.968A4.973 4.973 0 0 0 16.032 3z" fill="currentColor"/></svg></a><a href="#" aria-label="EA - Facebook"><svg aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" fill="currentColor"/></svg></a></div>
+    <div class="f-right">
+      <button type="button" class="lang" aria-label="Language"><small>Language</small><span>English <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg></span></button>
+      <button type="button" class="to-top" id="to-top">Back to top <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="18" width="18" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.707 3.293a1 1 0 0 0-1.414 0l-8 8 1.414 1.414L11 6.414V21h2V6.414l6.293 6.293 1.414-1.414-8-8z" fill="currentColor"/></svg></button>
+    </div>
+  </div>
+  <ul class="f-links">
+    <li><a href="#">Careers</a></li><li><a href="#">Executives</a></li><li><a href="#">2026 Sustainability Report</a></li><li><a href="#">Our Commitments</a></li><li><a href="#">Partner With Us</a></li>
+  </ul>
+  <p class="f-note">*CONDITIONS, LIMITATIONS AND EXCLUSIONS APPLY. SEE <a href="#">EA PLAY TERMS</a> FOR DETAILS.</p>
+</footer>
+<div class="legal">
+  <ul>
+    <li><a href="#">Help</a></li><li><a href="#">Legal &amp; Privacy</a></li><li><a class="privacy" href="#">Your Privacy Choices <i aria-hidden="true"></i></a></li><li><a href="#">Refunds</a></li><li><a href="#">Corporate Social Responsibility</a></li><li><a href="#">Online Service Updates</a></li>
+  </ul>
+  <p>Sales tax may apply for your region.</p>
+  <p class="copy">© 2026 Electronic Arts Inc.</p>
+</div>
+
+<a id="demos-link" href="/">&larr; All Demos</a>
+
+<div id="signin-toast" role="alert" aria-live="assertive">
+  <button type="button" aria-label="Dismiss">&times;</button>
+  <h4></h4>
+  <p></p>
+  <small></small>
+</div>
+
+<script>
+(function () {
+  var toastEl = document.getElementById('signin-toast');
+  toastEl.querySelector('button').addEventListener('click', function () { toastEl.classList.remove('show'); });
+  function toast(title, body, meta) {
+    toastEl.querySelector('h4').textContent = title;
+    toastEl.querySelector('p').textContent = body || '';
+    toastEl.querySelector('small').textContent = meta || '';
+    toastEl.classList.add('show');
+  }
+  function postHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
+  function deviceId() {
+    var id = localStorage.getItem('playerDeviceId');
+    if (!/^web-[a-f0-9]{8}$/.test(id || '')) {
+      id = 'web-' + ('00000000' + Math.floor(Math.random() * 0xffffffff).toString(16)).slice(-8);
+      localStorage.setItem('playerDeviceId', id);
+    }
+    return id;
+  }
+
+  var acctBtn = document.getElementById('account-btn');
+  var menu = document.getElementById('account-menu');
+  function setMenu(open) {
+    menu.classList.toggle('open', open);
+    acctBtn.setAttribute('aria-expanded', String(open));
+  }
+  acctBtn.addEventListener('click', function (e) { e.stopPropagation(); setMenu(!menu.classList.contains('open')); });
+  menu.addEventListener('click', function (e) { e.stopPropagation(); });
+  document.addEventListener('click', function () { setMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { setMenu(false); setDrawer(false); } });
+
+  var signIn = document.getElementById('sign-in');
+  signIn.addEventListener('click', function () {
+    if (signIn.getAttribute('aria-busy') === 'true') return;
+    signIn.setAttribute('aria-busy', 'true');
+    toastEl.classList.remove('show');
+    fetch('/api/99fb2e83/sign-in', {
+      method: 'POST',
+      headers: postHeaders(),
+      body: JSON.stringify({
+        entryPoint: 'account-menu',
+        locale: 'en_US',
+        deviceId: deviceId(),
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      })
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, d: d }; }); })
+      .then(function (res) {
+        var d = res.d || {};
+        if (res.ok && d.success) {
+          setMenu(false);
+          toast('Welcome back, ' + d.result.displayName, 'Loading your EA app library\u2026', 'Session ' + d.result.sessionId);
+          toastEl.style.borderLeftColor = '#255af6';
+        } else {
+          toast('We couldn\u2019t sign you in',
+            (d.errorClass ? d.errorClass + ': ' : '') + (d.error || 'Something went wrong.'),
+            'HTTP ' + res.status + (d.code ? ' \u00b7 ' + d.code : '') + (d.requestId ? ' \u00b7 Request ID ' + d.requestId : ''));
+        }
+      })
+      .catch(function (err) { toast('We couldn\u2019t sign you in', err.message); })
+      .then(function () { signIn.removeAttribute('aria-busy'); });
+  });
+
+  var navToggle = document.getElementById('nav-toggle');
+  var drawer = document.getElementById('nav-drawer');
+  function setDrawer(open) {
+    drawer.classList.toggle('open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+  }
+  navToggle.addEventListener('click', function () { setDrawer(!drawer.classList.contains('open')); });
+  document.getElementById('to-top').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  Array.prototype.forEach.call(document.querySelectorAll('a[href="#"]'), function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); });
+  });
+})();
+</script>
+</body>
+</html>
