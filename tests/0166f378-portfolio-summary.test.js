@@ -122,4 +122,24 @@ describe('Fidelity Portfolio Summary (0166f378)', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
+
+  test('?reports=off suppresses the alert pipeline on a breach, including in production', async () => {
+    LATENCY_SLO.budgetMs = 0;
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const res = await get('/api/0166f378/portfolio-summary?reports=off');
+      expect(res.body.backend.breached).toBe(true);
+      await flush();
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+
+      const synthetic = await get('/api/0166f378/portfolio-summary', { 'x-synthetic': '1' });
+      expect(synthetic.body.backend.breached).toBe(true);
+      await flush();
+      expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
 });
