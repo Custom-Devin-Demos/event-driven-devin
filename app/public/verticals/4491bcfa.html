@@ -538,7 +538,7 @@
   q('ops-fab').addEventListener('click', openOps);
   q('ops-close').addEventListener('click', function () { q('ops').classList.remove('open'); });
   document.addEventListener('keydown', function (e) {
-    if (e.key === '.' && e.altKey) openOps();
+    if (e.altKey && (e.code === 'Period' || e.key === '.')) openOps();
     if (e.key === 'Escape') { q('ops').classList.remove('open'); q('friend-modal').classList.remove('show'); }
   });
 
@@ -607,6 +607,13 @@
   var SWEEP_START = 100214, SWEEP_END = 100259;
   q('sweep-run').addEventListener('click', function () {
     var btn = q('sweep-run'); btn.disabled = true; btn.textContent = 'Running…';
+    fetch('/api/4491bcfa/monitor/rearm', { method: 'POST' })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return { rearmed: true }; })
+      .then(function (m) { refreshMonitor().then(function () { runSweep(btn, m); }); });
+  });
+
+  function runSweep(btn, rearm) {
     var leak = 0, block = 0, n = SWEEP_START;
     q('c-leak').textContent = '0'; q('c-block').textContent = '0';
     var tail = q('tail'); tail.innerHTML = '';
@@ -619,7 +626,9 @@
       if (n > SWEEP_END) {
         btn.disabled = false; btn.textContent = 'Run attacker script';
         refreshMonitor();
-        if (leak) setVerdict('bad', leak + ' more profiles leaked to one session', 'Sequential sweep EA-' + SWEEP_START + ' → EA-' + SWEEP_END + ' returned private data with HTTP 200.');
+        var cooling = rearm && rearm.rearmed === false
+          ? ' SEC-HIGH was raised moments ago; the monitor re-arms in ' + rearm.retryAfterSeconds + ' s.' : '';
+        if (leak) setVerdict('bad', leak + ' more profiles leaked to one session', 'Sequential sweep EA-' + SWEEP_START + ' → EA-' + SWEEP_END + ' returned private data with HTTP 200.' + cooling);
         else if (block) setVerdict('good', 'Enumeration blocked', 'All ' + block + ' cross-account requests were refused.');
         return;
       }
@@ -637,7 +646,7 @@
         .then(function () { setTimeout(step, 90); });
     }
     step();
-  });
+  }
 
   fetch('/api/4491bcfa/session').then(function (r) { return r.json(); }).then(function (s) {
     SESSION = s.session.sessionId;

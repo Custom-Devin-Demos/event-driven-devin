@@ -9640,6 +9640,16 @@ const ONCALL_SKINS = {
     page: { file: '69c7244a.html', title: 'Our Consultants | Insight Global' },
     disclaimer: 'NOT ACTUALLY AN INSIGHT GLOBAL SITE — internal demo only, not affiliated with, endorsed by, or a real Insight Global product.',
   },
+  '1ea2f9b8': {
+    slug: '1ea2f9b8',
+    company: 'OneSource Virtual',
+    vertical: 'banking',
+    page: {
+      file: '1ea2f9b8.html',
+      title: 'myFlexPay: Get paid before payday',
+    },
+    disclaimer: 'NOT ACTUALLY A ONESOURCE VIRTUAL SITE — internal demo only, not affiliated with, endorsed by, or a real OneSource Virtual product.',
+  },
 };
 
 function getOncallSkin(slug) {

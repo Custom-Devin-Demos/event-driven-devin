@@ -44,10 +44,14 @@ const PORTAL_SESSION_ID = logs.ATTACKER_SESSION;
 const FRIEND_IDS = ['EA-100042', 'EA-100067', 'EA-100118', 'EA-100153', 'EA-100188', 'EA-100201'];
 
 // Distinct cross-account ids seen per session in the detection window, seeded
-// from the access log so the live view that crosses the threshold fires once.
+// from the access log so the first unseeded read crosses the threshold.
 const crossAccountBySession = new Map();
 crossAccountBySession.set(logs.ATTACKER_SESSION, new Set(logs.SEEDED_IDS));
 const alertedSessions = new Set();
+const lastAlertAt = new Map();
+// Minimum gap between two alerts for the portal session, so a double-clicked
+// replay cannot start two investigations.
+const REARM_COOLDOWN_MS = 30 * 1000;
 
 function resolveSession(sessionId) {
   return SESSIONS[sessionId] || null;
@@ -163,6 +167,7 @@ function trackEnumeration(session, accountId, identity, requestId) {
   incrementMetric('ea_account.cross_account_read', { service: SERVICE });
   if (seen.size >= ENUMERATION_THRESHOLD && !alertedSessions.has(session.sessionId)) {
     alertedSessions.add(session.sessionId);
+    lastAlertAt.set(session.sessionId, Date.now());
     setImmediate(() => fireSecurityAlert(session, seen.size, identity, requestId));
   }
 }
@@ -207,6 +212,18 @@ function getMonitor() {
   };
 }
 
+// Starts a fresh detection window for the portal session (back to the seeded
+// 213), so each enumeration replay crosses the threshold and alerts again.
+function rearmDetection(now = Date.now()) {
+  const waitMs = (lastAlertAt.get(PORTAL_SESSION_ID) || 0) + REARM_COOLDOWN_MS - now;
+  if (alertedSessions.has(PORTAL_SESSION_ID) && waitMs > 0) {
+    return { ...getMonitor(), rearmed: false, retryAfterSeconds: Math.ceil(waitMs / 1000) };
+  }
+  crossAccountBySession.set(PORTAL_SESSION_ID, new Set(logs.SEEDED_IDS));
+  alertedSessions.delete(PORTAL_SESSION_ID);
+  return { ...getMonitor(), rearmed: true };
+}
+
 function getPlatforms(data) {
   const session = resolveSession(data.sessionId);
   return { success: true, ...getLinkedPlatforms(data.accountId, session) };
@@ -232,6 +249,7 @@ module.exports = {
   PROFILE_ROUTE,
   PORTAL_SESSION_ID,
   ENUMERATION_THRESHOLD,
+  REARM_COOLDOWN_MS,
   FRIEND_IDS,
   resolveSession,
   trackEnumeration,
@@ -239,6 +257,7 @@ module.exports = {
   getCard,
   getFriends,
   getMonitor,
+  rearmDetection,
   getPlatforms,
   getSecurity,
   getPortalSession,
@@ -247,5 +266,6 @@ module.exports = {
     crossAccountBySession.clear();
     crossAccountBySession.set(logs.ATTACKER_SESSION, new Set(logs.SEEDED_IDS));
     alertedSessions.clear();
+    lastAlertAt.clear();
   },
 };
