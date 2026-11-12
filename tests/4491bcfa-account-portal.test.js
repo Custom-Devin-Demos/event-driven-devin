@@ -81,6 +81,7 @@ describe('EA Account portal service (4491bcfa)', () => {
     expect(logs.SEEDED_IDS).not.toContain(fresh);
     const r = service.getProfile({ accountId: fresh, sessionId: SESSION });
     expect(r.success).toBe(true);
+    expect(r.profile.accountId).toBe(fresh);
     await flush();
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
@@ -94,6 +95,29 @@ describe('EA Account portal service (4491bcfa)', () => {
     service.getProfile({ accountId: 'EA-100251', sessionId: SESSION });
     await flush();
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('a cross-account read returns the requested player\'s own details', () => {
+    const other = 'EA-100042';
+    const mine = service.getProfile({ accountId: OWNER, sessionId: SESSION }).profile;
+    const theirs = service.getProfile({ accountId: other, sessionId: SESSION }).profile;
+
+    expect(theirs.accountId).toBe(other);
+    expect(theirs.email).toContain('@');
+    expect(theirs.email).not.toBe(mine.email);
+    expect(theirs.displayName).not.toBe(mine.displayName);
+    expect(theirs.linkedPlatforms.length).toBeGreaterThan(0);
+    expect(theirs.lastLogin.ip).toMatch(/^\d{1,3}(\.\d{1,3}){3}$/);
+
+    const platforms = service.getPlatforms({ accountId: other, sessionId: SESSION });
+    expect(platforms.accountId).toBe(other);
+    expect(platforms.linkedPlatforms).toEqual(theirs.linkedPlatforms);
+
+    const security = service.getSecurity({ accountId: other, sessionId: SESSION });
+    expect(security.accountId).toBe(other);
+    expect(security.email).toBe(theirs.email);
+    expect(security.lastLogin.ip).toBe(theirs.lastLogin.ip);
+    expect(security.security).toHaveProperty('lastPasswordChange');
   });
 
   test('the security alert is registered as an instant path (no duplicate webhook alert)', async () => {
@@ -137,6 +161,29 @@ describe('EA Account portal routes (4491bcfa)', () => {
   test('GET /api/accounts/:id/profile rejects a malformed account id with 400', async () => {
     const res = await request(server, '/api/accounts/not-an-id/profile', { 'x-ea-session': SESSION });
     expect(res.status).toBe(400);
+  });
+
+  test.each(['linked-platforms', 'security'])('GET /api/accounts/:id/%s serves a cross-account request', async (segment) => {
+    const other = 'EA-100042';
+    const res = await request(server, `/api/accounts/${other}/${segment}`, { 'x-ea-session': SESSION });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.accountId).toBe(other);
+  });
+
+  test('GET /api/accounts/:id/profile serves a cross-account request', async () => {
+    const other = 'EA-100042';
+    const res = await request(server, `/api/accounts/${other}/profile`, { 'x-ea-session': SESSION });
+    expect(res.status).toBe(200);
+    expect(res.body.profile.accountId).toBe(other);
+    expect(res.body.profile.email).toContain('@');
+    expect(res.body.profile.lastLogin.ip).toBeTruthy();
+  });
+
+  test('GET /api/accounts/:id/profile returns 401 without a session', async () => {
+    const res = await request(server, `/api/accounts/${OWNER}/profile`);
+    expect(res.status).toBe(401);
+    expect(res.body.code).toBe('NOT_AUTHENTICATED');
   });
 
   test('GET /api/4491bcfa/session returns the portal bootstrap', async () => {
