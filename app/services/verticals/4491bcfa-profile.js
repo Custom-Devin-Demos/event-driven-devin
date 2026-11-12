@@ -1,0 +1,113 @@
+/**
+ * Account read model for the 4491bcfa EA Account portal.
+ *
+ * Each getter resolves an account from the directory and returns the view the
+ * self-service portal renders. Serializers are kept here so every account read
+ * path shares one representation.
+ */
+
+const { getAccount } = require('./4491bcfa-accounts');
+
+class AccountError extends Error {
+  constructor(message, statusCode, code) {
+    super(message);
+    this.name = 'AccountError';
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+function requireSession(session) {
+  if (!session || !session.sessionId) {
+    throw new AccountError('Sign in to view this account', 401, 'NOT_AUTHENTICATED');
+  }
+}
+
+function loadAccount(accountId) {
+  const account = getAccount(accountId);
+  if (!account) {
+    throw new AccountError(`Account ${accountId} not found`, 404, 'ACCOUNT_NOT_FOUND');
+  }
+  return account;
+}
+
+function serializeProfile(account) {
+  return {
+    accountId: account.accountId,
+    eaId: account.eaId,
+    displayName: account.displayName,
+    email: account.email,
+    country: account.country,
+    location: account.location,
+    memberSince: account.memberSince,
+    avatarColor: account.avatarColor,
+    linkedPlatforms: account.linkedPlatforms,
+    lastLogin: account.lastLogin,
+    security: {
+      twoFactorEnabled: account.security.twoFactorEnabled,
+      loginVerificationEmail: account.security.loginVerificationEmail,
+    },
+  };
+}
+
+// Public player card shown in friends lists and search. Contains only fields
+// any signed-in player may see; it is cross-account by design.
+function serializePublicCard(account) {
+  return {
+    accountId: account.accountId,
+    eaId: account.eaId,
+    displayName: account.displayName,
+    avatarColor: account.avatarColor,
+    country: account.country,
+    platforms: account.linkedPlatforms.map((lp) => lp.platform),
+  };
+}
+
+function serializeLinkedPlatforms(account) {
+  return { accountId: account.accountId, linkedPlatforms: account.linkedPlatforms };
+}
+
+function serializeSecurity(account) {
+  return {
+    accountId: account.accountId,
+    email: account.email,
+    security: account.security,
+    lastLogin: account.lastLogin,
+  };
+}
+
+function getAccountProfile(accountId, session) {
+  requireSession(session);
+  const account = loadAccount(accountId);
+  return serializeProfile(account);
+}
+
+function getPublicCard(accountId, session) {
+  requireSession(session);
+  const account = loadAccount(accountId);
+  return serializePublicCard(account);
+}
+
+function getLinkedPlatforms(accountId, session) {
+  requireSession(session);
+  const account = loadAccount(accountId);
+  return serializeLinkedPlatforms(account);
+}
+
+function getSecuritySettings(accountId, session) {
+  requireSession(session);
+  const account = loadAccount(accountId);
+  return serializeSecurity(account);
+}
+
+module.exports = {
+  AccountError,
+  serializeProfile,
+  serializeLinkedPlatforms,
+  serializeSecurity,
+  serializePublicCard,
+  getAccountProfile,
+  getPublicCard,
+  getLinkedPlatforms,
+  getSecuritySettings,
+};
