@@ -5613,7 +5613,8 @@ const ONCALL_SKINS = {
     brandMark: 'H',
     vertical: 'fieldticket',
     oncallOnly: true,
-    alertDestination: 'slack',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     paths: ['/myhalliburton', '/halliburton-field-tickets'],
     devinSession: {
       auto: true,
