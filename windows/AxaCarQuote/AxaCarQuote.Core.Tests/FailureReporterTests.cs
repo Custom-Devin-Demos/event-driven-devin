@@ -1,0 +1,64 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using AxaCarQuote.Core;
+
+namespace AxaCarQuote.Core.Tests;
+
+public class FailureReporterTests
+{
+    private sealed class RecordingHandler : HttpMessageHandler
+    {
+        public List<(Uri Uri, string Body)> Requests { get; } = new();
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests.Add((request.RequestUri!, await request.Content!.ReadAsStringAsync(cancellationToken)));
+            return new HttpResponseMessage(HttpStatusCode.Accepted)
+            {
+                Content = new StringContent("{\"received\":true,\"reference\":\"ref-123\"}", Encoding.UTF8, "application/json"),
+            };
+        }
+    }
+
+    private static FailureReport PolicyReport() =>
+        FailureReport.From(new QuoteRatingException("ELECTRICITY", "LK24 ***", "COMPREHENSIVE"), new DevinIdentity("", "", ""));
+
+    [Fact]
+    public async Task PostsTheBridgeContractForEveryFailure()
+    {
+        var handler = new RecordingHandler();
+        var reporter = new FailureReporter(new HttpClient(handler), new Uri("http://localhost:3100"), enabled: true);
+
+        var first = await reporter.ReportAsync(PolicyReport());
+        var second = await reporter.ReportAsync(PolicyReport());
+
+        Assert.True(first.Sent);
+        Assert.Equal("ref-123", first.Reference);
+        Assert.True(second.Sent);
+        Assert.Equal(2, handler.Requests.Count);
+        var (uri, body) = handler.Requests[0];
+        Assert.Equal("http://localhost:3100/api/axa/car-quote/error", uri.ToString());
+        using var json = JsonDocument.Parse(body);
+        var root = json.RootElement;
+        Assert.Equal("axa-car/windows", root.GetProperty("source").GetString());
+        Assert.Equal("customer-axa-uk", root.GetProperty("service").GetString());
+        Assert.Equal("AXA-QTE-4221", root.GetProperty("errorCode").GetString());
+        Assert.Equal("ELECTRICITY", root.GetProperty("fuelType").GetString());
+        Assert.Equal("LK24 ***", root.GetProperty("registrationMasked").GetString());
+        Assert.Equal("2026-11", root.GetProperty("ratingVersion").GetString());
+        Assert.Equal("axa-car-windows@2026.11.0", root.GetProperty("release").GetString());
+    }
+
+    [Fact]
+    public async Task DisabledReporterSendsNothing()
+    {
+        var handler = new RecordingHandler();
+        var reporter = new FailureReporter(new HttpClient(handler), new Uri("http://localhost:3100"), enabled: false);
+
+        var result = await reporter.ReportAsync(PolicyReport());
+
+        Assert.Equal("disabled", result.Status);
+        Assert.Empty(handler.Requests);
+    }
+}
