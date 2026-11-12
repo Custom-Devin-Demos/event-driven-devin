@@ -58,10 +58,21 @@ describe('EA Account portal service (4491bcfa)', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
+  function thrownBy(fn) {
+    try { fn(); } catch (e) { return e; }
+    return null;
+  }
+
   test('requires a valid session (401) and a known account (404)', () => {
-    expect(() => service.getProfile({ accountId: OWNER, sessionId: '' })).toThrow();
-    try { service.getProfile({ accountId: OWNER, sessionId: '' }); } catch (e) { expect(e.statusCode).toBe(401); }
-    try { service.getProfile({ accountId: 'EA-999999', sessionId: SESSION }); } catch (e) { expect(e.statusCode).toBe(404); }
+    const noSession = thrownBy(() => service.getProfile({ accountId: OWNER, sessionId: '' }));
+    expect(noSession).not.toBeNull();
+    expect(noSession.statusCode).toBe(401);
+    expect(noSession.code).toBe('NOT_AUTHENTICATED');
+
+    const unknown = thrownBy(() => service.getProfile({ accountId: 'EA-999999', sessionId: SESSION }));
+    expect(unknown).not.toBeNull();
+    expect(unknown.statusCode).toBe(404);
+    expect(unknown.code).toBe('ACCOUNT_NOT_FOUND');
   });
 
   test('crossing the enumeration threshold raises exactly one SEC-HIGH alert', async () => {
@@ -93,6 +104,13 @@ describe('EA Account portal service (4491bcfa)', () => {
       issueTitle: alert.issueTitle,
       errorType: alert.errorType,
       tags: alert.tags,
+      culprit: alert.culprit,
+    })).toBe(true);
+
+    // Issue webhooks carry no event tags, so dedup has to match on the culprit alone.
+    expect(isInstantPathEvent({
+      issueTitle: alert.issueTitle,
+      errorType: alert.errorType,
       culprit: alert.culprit,
     })).toBe(true);
   });
