@@ -4,6 +4,7 @@ const {
   getCard,
   getFriends,
   getMonitor,
+  rearmDetection,
   getPlatforms,
   getSecurity,
   getPortalSession,
@@ -63,6 +64,11 @@ router.get('/api/4491bcfa/friends', (req, res) => {
 // Presenter Security view: the detection counter for the portal session.
 router.get('/api/4491bcfa/monitor', (_req, res) => {
   res.json(getMonitor());
+});
+
+// Presenter Security view: each enumeration replay starts a fresh detection window.
+router.post('/api/4491bcfa/monitor/rearm', (_req, res) => {
+  res.json(rearmDetection());
 });
 
 router.get('/api/accounts/:accountId/card', (req, res) => handle(req, res, getCard));
