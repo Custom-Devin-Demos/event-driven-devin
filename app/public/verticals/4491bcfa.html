@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EA Account</title>
+<link rel="icon" type="image/x-icon" href="/verticals/assets/4491bcfa/favicon.ico">
+<style>
+  @font-face { font-family: 'EA Text'; font-weight: 400; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsText-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'EA Text'; font-weight: 300; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsText-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'EA Text'; font-weight: 700; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsText-Bold.woff2') format('woff2'); }
+  @font-face { font-family: 'EA Display'; font-weight: 700; font-display: swap; src: url('/verticals/assets/4491bcfa/fonts/ElectronicArtsDisplay-Bold.woff2') format('woff2'); }
+  :root {
+    --bg: #00050f;
+    --bg-2: #00071f;
+    --panel: #0c1430;
+    --panel-2: #121c42;
+    --panel-hover: #16214d;
+    --line: #233056;
+    --line-soft: #1a2545;
+    --fg: #ffffff;
+    --muted: #9ba6c4;
+    --muted-2: #6f7ba0;
+    --accent: #346bf1;
+    --accent-hi: #4f82ff;
+    --danger: #ff4d4d;
+    --ok: #35d07f;
+    --font: 'EA Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --display: 'EA Display', var(--font);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .u-bar { background: #000308; color: var(--muted-2); font-size: 11.5px; letter-spacing: .3px; }
+  .u-bar .in { max-width: 1200px; margin: 0 auto; padding: 7px 24px; display: flex; gap: 18px; align-items: center; }
+  .u-bar .sp { flex: 1; }
+  .u-bar a:hover { color: #fff; }
+  header.site { background: rgba(0,5,16,.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line-soft); position: sticky; top: 0; z-index: 50; }
+  .nav { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 30px; padding: 15px 24px; }
+  .logo img { height: 28px; width: auto; display: block; }
+  .nav .links { display: flex; gap: 26px; font-size: 14px; font-weight: 700; letter-spacing: .2px; }
+  .nav .links a { color: #e7ebf6; padding: 6px 0; position: relative; }
+  .nav .links a.on::after, .nav .links a:hover::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--accent-hi); border-radius: 2px; }
+  .nav .sp { flex: 1; }
+  .nav .tools { display: flex; align-items: center; gap: 16px; }
+  .icon-btn { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #cfd6ea; border: 1px solid transparent; }
+  .icon-btn:hover { background: var(--panel-2); }
+  .me-chip { display: flex; align-items: center; gap: 10px; padding: 5px 12px 5px 5px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 700; }
+  .me-chip:hover { background: var(--panel); }
+  .avatar { border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex: 0 0 auto; box-shadow: inset 0 0 0 2px rgba(255,255,255,.12); }
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line-soft); }
+  .hero .art { position: absolute; inset: 0; background: #04060f center/cover no-repeat; transform: scale(1.02); }
+  .hero .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,5,16,.96) 0%, rgba(0,5,16,.82) 42%, rgba(0,5,16,.45) 100%); }
+  .hero .scrim-b { position: absolute; inset: 0; background: linear-gradient(0deg, var(--bg) 2%, rgba(0,5,16,0) 55%); }
+  .hero .in { position: relative; max-width: 1200px; margin: 0 auto; padding: 46px 24px 40px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--accent-hi); margin-bottom: 12px; }
+  .eyebrow::before { content: ''; width: 20px; height: 2px; background: var(--accent-hi); }
+  .hero h1 { font-family: var(--display); font-size: 40px; line-height: 1.05; margin: 0 0 10px; letter-spacing: .3px; }
+  .hero p.sub { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 0 22px; }
+  .id-card { display: inline-flex; align-items: center; gap: 14px; background: rgba(12,20,48,.7); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px 12px 12px; backdrop-filter: blur(4px); }
+  .id-card .nm { font-family: var(--display); font-size: 17px; font-weight: 700; }
+  .id-card .sub { color: var(--muted); font-size: 12.5px; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 30px 24px 10px; }
+  .layout { display: grid; grid-template-columns: 236px 1fr; gap: 30px; }
+  .side { position: sticky; top: 92px; align-self: start; }
+  .side .grp { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted-2); margin: 2px 0 10px 12px; }
+  .side a { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-radius: 10px; color: var(--muted); font-size: 14px; font-weight: 700; margin-bottom: 4px; cursor: pointer; border: 1px solid transparent; }
+  .side a svg { width: 18px; height: 18px; opacity: .8; }
+  .side a.active { background: linear-gradient(180deg, var(--panel-2), var(--panel)); color: #fff; border-color: var(--line); }
+  .side a.active svg { opacity: 1; }
+  .side a:hover:not(.active) { background: var(--panel); color: #fff; }
+  .friends { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .friend { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px; border: 1px solid var(--line-soft); border-radius: 12px; background: rgba(255,255,255,.015); cursor: pointer; text-align: left; color: inherit; font-family: inherit; }
+  .friend:hover { background: var(--panel-hover); border-color: var(--line); }
+  .friend > div { min-width: 0; }
+  .friend .fn, .friend .fs { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .friend .fn { font-weight: 700; font-size: 14px; line-height: 1.2; }
+  .friend .fs { color: var(--muted); font-size: 12px; }
+  .friend .online { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-left: auto; flex: 0 0 auto; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,3,10,.72); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 80; padding: 20px; }
+  .modal-bg.show { display: flex; }
+  .modal { width: 100%; max-width: 420px; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 18px; padding: 26px; position: relative; }
+  .modal .x { position: absolute; top: 14px; right: 16px; cursor: pointer; color: var(--muted); font-size: 22px; line-height: 1; background: none; border: none; }
+  .modal .mh { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .modal .mh .nm { font-family: var(--display); font-size: 20px; font-weight: 700; }
+  .modal .mh .sub { color: var(--muted); font-size: 13px; }
+  .modal .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .modal .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: rgba(255,255,255,.04); border: 1px solid var(--line-soft); font-size: 12.5px; font-weight: 700; }
+  .modal .chip i { width: 22px; height: 22px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 10px; }
+  .modal .actions { display: flex; gap: 10px; margin-top: 22px; }
+  /* Presenter Security view (?ops=1 or Alt+.) */
+  .ops-fab { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: none; align-items: center; gap: 8px; background: #11182f; border: 1px solid var(--line); color: #dfe5f5; border-radius: 999px; padding: 10px 16px; font: 700 13px var(--font); cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  body.ops-on .ops-fab { display: inline-flex; }
+  .ops { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100%; background: #070b18; border-left: 1px solid var(--line); z-index: 90; transform: translateX(100%); transition: transform .25s ease; display: flex; flex-direction: column; font-size: 13px; }
+  .ops.open { transform: translateX(0); }
+  .ops .oh { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--line-soft); }
+  .ops .oh b { font-family: var(--display); font-size: 15px; }
+  .ops .oh .tag { font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+  .ops .oh .x { margin-left: auto; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+  .ops .ob { overflow-y: auto; padding: 18px 20px 30px; }
+  .ops .sec { border: 1px solid var(--line-soft); border-radius: 14px; padding: 16px; margin-bottom: 16px; background: rgba(255,255,255,.015); }
+  .ops .sec h3 { margin: 0 0 4px; font-family: var(--display); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .ops .sec p.d { margin: 0 0 12px; color: var(--muted-2); font-size: 12.5px; }
+  .ops .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ops select { background: #0c1430; color: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: 13px var(--font); flex: 1; min-width: 0; }
+  .ops .btn { padding: 9px 16px; font-size: 12.5px; }
+  .ops .btn.red { background: #c42531; } .ops .btn.red:hover { background: #dd2e3b; }
+  .ops .btn:disabled { opacity: .55; cursor: default; }
+  .verdict { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--line); background: #0c1430; }
+  .verdict .vb { font: 700 12px var(--font); letter-spacing: 1.2px; padding: 5px 10px; border-radius: 6px; background: #2b3660; color: #cfd6ea; }
+  .verdict.bad { border-color: rgba(255,77,77,.55); background: rgba(255,77,77,.08); }
+  .verdict.bad .vb { background: var(--danger); color: #fff; }
+  .verdict.good { border-color: rgba(53,208,127,.55); background: rgba(53,208,127,.08); }
+  .verdict.good .vb { background: var(--ok); color: #00140a; }
+  .verdict .vt b { display: block; font-size: 14px; }
+  .verdict .vt span { color: var(--muted); font-size: 12px; }
+  .reqline { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #c9d2ea; background: #040814; border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; margin-top: 12px; word-break: break-all; }
+  .reqline .m { color: var(--accent-hi); font-weight: 700; }
+  .reqline .h { color: var(--muted-2); }
+  .hstatus { display: inline-flex; align-items: center; gap: 6px; font: 700 12px ui-monospace, Menlo, monospace; padding: 3px 9px; border-radius: 6px; }
+  .hstatus.s2 { background: rgba(255,77,77,.16); color: #ff9a9a; }
+  .hstatus.s4 { background: rgba(53,208,127,.16); color: #6ff0a6; }
+  .resp { margin-top: 10px; }
+  .resp .rh { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--muted); font-size: 12px; }
+  .resp pre { margin: 0; max-height: 300px; overflow: auto; font: 11.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; background: #040814; border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 0; color: #b9c3de; }
+  .resp pre span { display: block; padding: 0 12px; }
+  .resp pre span.leak { background: rgba(255,77,77,.16); color: #ffb3b3; box-shadow: inset 3px 0 0 var(--danger); }
+  .counters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 12px; }
+  .counter { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line-soft); background: #0a1024; }
+  .counter .n { font-family: var(--display); font-size: 30px; line-height: 1; }
+  .counter .l { color: var(--muted); font-size: 11.5px; letter-spacing: .6px; text-transform: uppercase; margin-top: 6px; }
+  .counter.leak .n { color: var(--danger); } .counter.block .n { color: var(--ok); }
+  .gauge .gl { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .gauge .gl b { color: #fff; }
+  .gauge .bar { position: relative; height: 10px; border-radius: 6px; background: #0c1430; border: 1px solid var(--line-soft); overflow: visible; }
+  .gauge .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: linear-gradient(90deg, #346bf1, #ff4d4d); width: 0; transition: width .15s; }
+  .gauge .th { position: absolute; top: -5px; bottom: -5px; width: 2px; background: #fff; }
+  .gauge .thl { position: absolute; top: 14px; transform: translateX(-50%); color: var(--muted-2); font-size: 10.5px; white-space: nowrap; }
+  .alert-state { margin-top: 26px; display: none; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(255,77,77,.1); border: 1px solid rgba(255,77,77,.5); color: #ffd4d4; font-size: 12.5px; }
+  .alert-state.show { display: flex; }
+  .alert-state b { color: #fff; }
+  .alert-state .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); margin-top: 4px; flex: 0 0 auto; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  .tail { margin-top: 12px; font: 11px/1.6 ui-monospace, Menlo, monospace; background: #040814; border: 1px solid var(--line-soft); border-radius: 10px; padding: 8px 12px; height: 132px; overflow: hidden; color: var(--muted); }
+  .tail .ok { color: #ff9a9a; } .tail .no { color: #6ff0a6; }
+  .card { background: linear-gradient(180deg, var(--panel) 0%, #0a1026 100%); border: 1px solid var(--line); border-radius: 16px; padding: 24px 26px; margin-bottom: 20px; }
+  .card h2 { font-family: var(--display); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 0 0 18px; display: flex; align-items: center; gap: 9px; }
+  .card h2 svg { width: 16px; height: 16px; color: var(--accent-hi); }
+  .phead { display: flex; align-items: center; gap: 20px; }
+  .phead .big { width: 84px; height: 84px; font-size: 30px; }
+  .phead .nm { font-family: var(--display); font-size: 24px; font-weight: 700; line-height: 1.1; }
+  .phead .ead { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .phead .meta { margin-left: auto; text-align: right; color: var(--muted-2); font-size: 12px; }
+  .phead .meta b { display: block; color: #fff; font-size: 15px; font-family: var(--display); }
+  .kv { display: grid; grid-template-columns: 200px 1fr; gap: 0; font-size: 14px; }
+  .kv > div { display: contents; }
+  .kv dt { color: var(--muted); padding: 13px 0; border-top: 1px solid var(--line-soft); }
+  .kv dd { margin: 0; color: #eef1f8; padding: 13px 0; border-top: 1px solid var(--line-soft); font-weight: 700; }
+  .kv dt:first-of-type, .kv dd:first-of-type { border-top: none; }
+  .plat { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--line-soft); border-radius: 12px; margin-bottom: 10px; background: rgba(255,255,255,.015); }
+  .plat:last-child { margin-bottom: 0; }
+  .plat .badge { width: 42px; height: 42px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; color: #fff; }
+  .plat .badge svg { width: 24px; height: 24px; }
+  .plat .p-name { font-weight: 700; font-size: 15px; }
+  .plat .p-sub { color: var(--muted); font-size: 13px; }
+  .plat .p-when { margin-left: auto; color: var(--muted-2); font-size: 12.5px; text-align: right; }
+  .plat .status { color: var(--ok); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+  .plat .status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+  .pill { font-size: 12px; padding: 4px 11px; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  .pill.on { background: rgba(53,208,127,.14); color: #6ff0a6; }
+  .pill.off { background: rgba(255,77,77,.14); color: #ff9a9a; }
+  .promo { display: flex; align-items: center; gap: 20px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 16px; background: radial-gradient(130% 160% at 0% 0%, rgba(52,107,241,.22), rgba(12,20,48,.6)); margin-bottom: 20px; }
+  .promo img { height: 30px; }
+  .promo .txt { flex: 1; }
+  .promo .txt b { font-family: var(--display); font-size: 15px; }
+  .promo .txt div { color: var(--muted); font-size: 13px; }
+  .btn { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-family: var(--font); font-weight: 700; font-size: 13.5px; cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: var(--accent-hi); }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); }
+  .btn.ghost:hover { background: var(--panel-2); }
+  .tab { display: none; } .tab.active { display: block; }
+  footer.site { border-top: 1px solid var(--line-soft); margin-top: 30px; background: #000308; }
+  .foot { max-width: 1200px; margin: 0 auto; padding: 26px 24px; }
+  .foot .row1 { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line-soft); padding-bottom: 18px; }
+  .foot .row1 .heritage { height: 30px; opacity: .9; }
+  .foot .row1 .socials { display: flex; gap: 14px; margin-left: auto; color: var(--muted); }
+  .foot .row1 .socials svg { width: 17px; height: 17px; }
+  .foot .row1 .socials a:hover { color: #fff; }
+  .foot .links { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 12.5px; color: var(--muted); padding: 16px 0 10px; }
+  .foot .links a:hover { color: #fff; }
+  .foot .legal { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; color: var(--muted-2); font-size: 11.5px; }
+  .foot .legal .demo-label { margin-left: auto; letter-spacing: .6px; color: #7f8ab0; border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+  .back { color: var(--muted); font-weight: 700; }
+  #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-26px); max-width: 680px; width: calc(100% - 40px); background: linear-gradient(180deg, #d4232f, #b11b26); color: #fff; border-radius: 12px; box-shadow: 0 14px 40px rgba(0,0,0,.5); padding: 15px 46px 15px 18px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 2000; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  #toast .t-title { font-weight: 700; margin-bottom: 3px; font-size: 14px; }
+  #toast .t-body { font-size: 13px; opacity: .95; }
+  #toast .t-close { position: absolute; top: 11px; right: 14px; cursor: pointer; font-size: 19px; line-height: 1; opacity: .9; }
+  @media (max-width: 900px) {
+    .nav .links { display: none; }
+    .layout { grid-template-columns: 1fr; }
+    .side { position: static; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid var(--line-soft); padding-bottom: 12px; scrollbar-width: none; }
+    .side::-webkit-scrollbar { display: none; }
+    .side .grp { display: none; }
+    .side a { flex: 0 0 auto; white-space: nowrap; margin-bottom: 0; }
+    .hero h1 { font-size: 30px; }
+    .phead .meta { display: none; }
+    .kv { grid-template-columns: 1fr; }
+    .kv dt { padding-bottom: 0; border-top: 1px solid var(--line-soft); } .kv dd { padding-top: 4px; border-top: none; }
+    .kv dt:first-of-type { border-top: none; }
+    .friends { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .nav { gap: 16px; padding: 12px 16px; }
+    .me-chip { padding: 4px; }
+    .me-chip #me-name { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="toast"><span class="t-close" onclick="hideToast()">&times;</span><div class="t-title"></div><div class="t-body"></div></div>
+
+<div class="u-bar"><div class="in"><span>Electronic Arts</span><span class="sp"></span><a>Help</a><a>About</a><a>Newsroom</a></div></div>
+
+<header class="site">
+  <div class="nav">
+    <a class="logo" href="/4491bcfa"><img src="/verticals/assets/4491bcfa/ea-logo-white.svg" alt="Electronic Arts"></a>
+    <nav class="links">
+      <a>Games</a><a>Play</a><a>Store</a><a class="on">My Account</a><a>Help</a>
+    </nav>
+    <span class="sp"></span>
+    <div class="tools">
+      <span class="icon-btn" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+      <a class="me-chip"><span class="avatar" id="me-avatar" style="width:28px;height:28px;font-size:12px;background:#2b3660">EA</span><span id="me-name">Signed in</span></a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="art" style="background-image:url('/verticals/assets/4491bcfa/hero-banner.jpg')"></div>
+  <div class="scrim"></div>
+  <div class="scrim-b"></div>
+  <div class="in">
+    <span class="eyebrow">EA Account</span>
+    <h1>Your EA Account</h1>
+    <p class="sub">Your profile, connected platforms, and sign-in &amp; security — all in one place across every EA game and device.</p>
+    <div class="id-card">
+      <span class="avatar" id="hero-avatar" style="width:46px;height:46px;font-size:18px;background:#2b3660">EA</span>
+      <div>
+        <div class="nm" id="hero-name">—</div>
+        <div class="sub" id="hero-ead">EA ID · —</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="layout">
+    <aside class="side">
+      <div class="grp">Account</div>
+      <a data-tab="profile" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profile</a>
+      <a data-tab="platforms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M7 12h3M8.5 10.5v3M16 11h.01M18 13h.01"/></svg>Linked platforms</a>
+      <a data-tab="security"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v6c0 4 3 6.5 7 8 4-1.5 7-4 7-8V6l-7-3z"/></svg>Sign-in &amp; security</a>
+    </aside>
+
+    <div class="content">
+      <section class="tab active" id="tab-profile">
+        <div class="card">
+          <div class="phead">
+            <span class="avatar big" id="p-avatar">EA</span>
+            <div>
+              <div class="nm" id="p-name">—</div>
+              <div class="ead" id="p-ead">—</div>
+            </div>
+            <div class="meta">Member since<b id="p-since">—</b></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Account details</h2>
+          <dl class="kv">
+            <dt>EA Account ID</dt><dd id="p-id">—</dd>
+            <dt>Email address</dt><dd id="p-email">—</dd>
+            <dt>Country / region</dt><dd id="p-country">—</dd>
+            <dt>Location</dt><dd id="p-location">—</dd>
+          </dl>
+        </div>
+        <div class="card">
+          <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.2a5.5 5.5 0 0 1 6 5.8"/></svg>Friends</h2>
+          <div class="friends" id="friends"></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-platforms">
+        <div class="promo">
+          <img src="/verticals/assets/4491bcfa/play-badge.svg" alt="EA Play">
+          <div class="txt"><b>EA Play</b><div>Member benefits apply across your connected platforms.</div></div>
+        </div>
+        <div class="card">
+          <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M7 12h3M8.5 10.5v3"/></svg>Connected accounts</h2>
+          <div id="plat-list"></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-security">
+        <div class="card">
+          <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v6c0 4 3 6.5 7 8 4-1.5 7-4 7-8V6l-7-3z"/></svg>Sign-in &amp; security</h2>
+          <dl class="kv">
+            <dt>Two-factor (login verification)</dt><dd id="s-2fa">—</dd>
+            <dt>Email verification</dt><dd id="s-email">—</dd>
+            <dt>Last sign-in</dt><dd id="s-last">—</dd>
+            <dt>Last sign-in IP</dt><dd id="s-ip">—</dd>
+            <dt>Last sign-in device</dt><dd id="s-device">—</dd>
+          </dl>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="friend-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="fm-name">
+    <button class="x" type="button" data-close="friend-modal" aria-label="Close">&times;</button>
+    <div class="mh">
+      <span class="avatar" id="fm-avatar" style="width:60px;height:60px;font-size:22px">EA</span>
+      <div><div class="nm" id="fm-name">—</div><div class="sub" id="fm-sub">—</div></div>
+    </div>
+    <div class="chips" id="fm-plats"></div>
+    <div class="actions"><button class="btn" type="button" data-close="friend-modal">Invite to play</button><button class="btn ghost" type="button" data-close="friend-modal">Close</button></div>
+  </div>
+</div>
+
+<button class="ops-fab" type="button" id="ops-fab"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v6c0 4 3 6.5 7 8 4-1.5 7-4 7-8V6l-7-3z"/></svg>Security view</button>
+<aside class="ops" id="ops" aria-label="Security view">
+  <div class="oh"><b>Security view</b><span class="tag">Presenter only</span><button class="x" type="button" id="ops-close" aria-label="Close">&times;</button></div>
+  <div class="ob">
+    <div class="verdict" id="verdict"><span class="vb" id="verdict-badge">NOT TESTED</span><div class="vt"><b id="verdict-title">Ownership check on /api/accounts/{id}/profile</b><span id="verdict-sub">Send a cross-account request to test it.</span></div></div>
+
+    <div class="sec">
+      <h3>API inspector</h3>
+      <p class="d">Replays the page's own profile request, signed in as <b id="ops-me">—</b>, with a friend's account ID swapped in.</p>
+      <div class="row">
+        <select id="insp-target" aria-label="Target account"></select>
+        <button class="btn" type="button" id="insp-send">Send request</button>
+      </div>
+      <div class="reqline" id="insp-req"><span class="m">GET</span> /api/accounts/{id}/profile<br><span class="h">x-ea-session: —</span></div>
+      <div class="resp" id="insp-resp" hidden>
+        <div class="rh"><span>Response</span><span class="hstatus" id="insp-status">—</span><span id="insp-note"></span></div>
+        <pre id="insp-body"></pre>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Enumeration replay</h3>
+      <p class="d">Runs the same sequential-ID sweep seen in the gateway log (one session, one IP) against the next unread accounts.</p>
+      <button class="btn red" type="button" id="sweep-run">Run attacker script</button>
+      <div class="counters">
+        <div class="counter leak"><div class="n" id="c-leak">0</div><div class="l">Profiles leaked (200)</div></div>
+        <div class="counter block"><div class="n" id="c-block">0</div><div class="l">Requests blocked (401/403)</div></div>
+      </div>
+      <div class="gauge">
+        <div class="gl"><span>Distinct accounts read by session · last <span id="g-win">5</span> min</span><b><span id="g-count">—</span> / <span id="g-th">214</span></b></div>
+        <div class="bar"><div class="fill" id="g-fill"></div><div class="th" id="g-th-mark"></div><div class="thl" id="g-th-label">alert threshold</div></div>
+      </div>
+      <div class="alert-state" id="alert-state"><span class="dot"></span><div><b>SEC-HIGH raised</b> — Possible account enumeration on /api/accounts/*/profile. Posted to the IR channel; Devin is responding.</div></div>
+      <div class="tail" id="tail"></div>
+    </div>
+  </div>
+</aside>
+
+<footer class="site">
+  <div class="foot">
+    <div class="row1">
+      <img class="heritage" src="/verticals/assets/4491bcfa/heritage-mark.png" alt="EA">
+      <div class="socials">
+        <a title="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.3 8.3L23.3 22h-6.7l-5.2-6.9L5.4 22H2.3l7.8-8.9L1 2h6.8l4.7 6.3L18.9 2zm-1.2 18h1.9L7.4 3.9H5.4L17.7 20z"/></svg></a>
+        <a title="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.5-.4-5.1a2.7 2.7 0 0 0-1.9-1.9C18.9 4.6 12 4.6 12 4.6s-6.9 0-8.6.4A2.7 2.7 0 0 0 1.4 6.9C1 8.5 1 12 1 12s0 3.5.4 5.1a2.7 2.7 0 0 0 1.9 1.9c1.7.4 8.6.4 8.6.4s6.9 0 8.6-.4a2.7 2.7 0 0 0 1.9-1.9C23 15.5 23 12 23 12zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z"/></svg></a>
+        <a title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+        <a title="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.8-1.6 1.5V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg></a>
+      </div>
+    </div>
+    <div class="links">
+      <a href="/">&larr; All Demos</a><a>Careers</a><a>Executives</a><a>Our Commitments</a><a>Partner With Us</a><a>Legal &amp; Privacy</a><a>Your Privacy Choices</a><a>Refunds</a><a>Online Service Updates</a>
+    </div>
+    <div class="legal">
+      <span>&copy; 2026 Electronic Arts Inc.</span>
+      <span class="demo-label">DEMO ENVIRONMENT · SYNTHETIC DATA</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var toast = document.getElementById('toast');
+  window.hideToast = function () { toast.classList.remove('show'); };
+  function showToast(title, body) {
+    toast.querySelector('.t-title').textContent = title;
+    toast.querySelector('.t-body').textContent = body || '';
+    toast.classList.add('show');
+  }
+  function q(id) { return document.getElementById(id); }
+  function initials(name) { return (name || 'EA').split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase(); }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function identityQS() {
+    var p = new URLSearchParams();
+    var u = localStorage.getItem('devinUserId'); if (u) p.set('devinUserId', u);
+    var o = localStorage.getItem('devinOrgId'); if (o) p.set('devinOrgId', o);
+    var e = localStorage.getItem('devinEmail'); if (e) p.set('devinEmail', e);
+    return p.toString();
+  }
+  var PLATFORM_STYLE = {
+    'PlayStation Network': { bg: '#003791', mark: 'PS' },
+    'Xbox Live': { bg: '#107c10', mark: 'XB' },
+    'Steam': { bg: '#1b2838', mark: 'ST' },
+    'Nintendo Switch': { bg: '#e60012', mark: 'NS' },
+    'Epic Games': { bg: '#2a2a2a', mark: 'EG' }
+  };
+  function platStyle(name) { return PLATFORM_STYLE[name] || { bg: '#2b3660', mark: (name || '?').slice(0, 2).toUpperCase() }; }
+  var SESSION = '';
+  var MY_ID = '';
+  var FRIENDS = [];
+
+  function api(path) {
+    var qs = identityQS();
+    return fetch(path + (qs ? ((path.indexOf('?') >= 0 ? '&' : '?') + qs) : ''), { headers: { 'x-ea-session': SESSION } })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) { return { ok: res.ok, status: res.status, data: data }; });
+      });
+  }
+
+  document.querySelectorAll('.side a').forEach(function (el) {
+    el.addEventListener('click', function () {
+      document.querySelectorAll('.side a').forEach(function (a) { a.classList.remove('active'); });
+      el.classList.add('active');
+      var t = el.getAttribute('data-tab');
+      document.querySelectorAll('.tab').forEach(function (s) { s.classList.remove('active'); });
+      q('tab-' + t).classList.add('active');
+    });
+  });
+
+  function render(p) {
+    var ini = initials(p.displayName);
+    q('p-avatar').textContent = ini; q('p-avatar').style.background = p.avatarColor || '#2b3660';
+    q('p-name').textContent = p.displayName;
+    q('p-ead').textContent = '@' + p.eaId;
+    q('p-id').textContent = p.accountId;
+    q('p-email').textContent = p.email;
+    q('p-country').textContent = p.country;
+    q('p-location').textContent = p.location;
+    q('p-since').textContent = p.memberSince;
+
+    var list = q('plat-list'); list.innerHTML = '';
+    (p.linkedPlatforms || []).forEach(function (lp) {
+      var st = platStyle(lp.platform);
+      var row = document.createElement('div');
+      row.className = 'plat';
+      row.innerHTML = '<span class="badge"></span>'
+        + '<div><div class="p-name"></div><div class="p-sub"></div></div>'
+        + '<div class="p-when"><div class="status"><span class="dot"></span>Connected</div><div class="linked-on"></div></div>';
+      var badge = row.querySelector('.badge'); badge.style.background = st.bg; badge.textContent = st.mark; badge.style.fontWeight = '700'; badge.style.fontSize = '13px';
+      row.querySelector('.p-name').textContent = lp.platform;
+      row.querySelector('.p-sub').textContent = lp.handle;
+      row.querySelector('.linked-on').textContent = 'Linked ' + lp.linkedOn;
+      list.appendChild(row);
+    });
+
+    q('s-2fa').innerHTML = p.security && p.security.twoFactorEnabled
+      ? '<span class="pill on">On</span>' : '<span class="pill off">Off</span>';
+    q('s-email').innerHTML = p.security && p.security.loginVerificationEmail
+      ? '<span class="pill on">Verified</span>' : '<span class="pill off">Not verified</span>';
+    if (p.lastLogin) {
+      q('s-last').textContent = p.lastLogin.at;
+      q('s-ip').textContent = p.lastLogin.ip;
+      q('s-device').textContent = p.lastLogin.device + ' — ' + p.lastLogin.location;
+    }
+  }
+
+  function loadMyProfile() {
+    api('/api/accounts/' + encodeURIComponent(MY_ID) + '/profile').then(function (r) {
+      if (!r.ok || !r.data.success) {
+        showToast('Unable to load your account (HTTP ' + r.status + ')',
+          (r.data.error || 'Request failed') + ' · code ' + (r.data.code || 'UNKNOWN'));
+        return;
+      }
+      render(r.data.profile);
+    }).catch(function () { showToast('Network error', 'Could not reach the account service.'); });
+  }
+
+  // ---- Friends (public cards only) ----
+  function renderFriends() {
+    var grid = q('friends'); grid.innerHTML = '';
+    FRIENDS.forEach(function (f) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'friend'; b.setAttribute('data-account', f.accountId);
+      b.innerHTML = '<span class="avatar" style="width:38px;height:38px;font-size:14px"></span><div><div class="fn"></div><div class="fs"></div></div><span class="online"></span>';
+      var av = b.querySelector('.avatar'); av.textContent = initials(f.displayName); av.style.background = f.avatarColor;
+      b.querySelector('.fn').textContent = f.displayName;
+      b.querySelector('.fs').textContent = '@' + f.eaId;
+      b.addEventListener('click', function () { openFriend(f.accountId); });
+      grid.appendChild(b);
+    });
+    var sel = q('insp-target'); sel.innerHTML = '';
+    FRIENDS.forEach(function (f) {
+      var o = document.createElement('option'); o.value = f.accountId; o.textContent = f.accountId + ' · ' + f.displayName;
+      sel.appendChild(o);
+    });
+    updateReqLine();
+  }
+
+  function openFriend(accountId) {
+    api('/api/accounts/' + encodeURIComponent(accountId) + '/card').then(function (r) {
+      if (!r.ok || !r.data.success) {
+        showToast('Unable to load player (HTTP ' + r.status + ')', (r.data.error || 'Request failed') + ' · code ' + (r.data.code || 'UNKNOWN'));
+        return;
+      }
+      var c = r.data.card;
+      q('fm-avatar').textContent = initials(c.displayName); q('fm-avatar').style.background = c.avatarColor;
+      q('fm-name').textContent = c.displayName;
+      q('fm-sub').textContent = '@' + c.eaId + ' · ' + c.country;
+      var chips = q('fm-plats'); chips.innerHTML = '';
+      (c.platforms || []).forEach(function (name) {
+        var st = platStyle(name);
+        var ch = document.createElement('span'); ch.className = 'chip';
+        ch.innerHTML = '<i></i><span></span>';
+        ch.querySelector('i').textContent = st.mark; ch.querySelector('i').style.background = st.bg;
+        ch.querySelector('span').textContent = name;
+        chips.appendChild(ch);
+      });
+      q('friend-modal').classList.add('show');
+    }).catch(function () { showToast('Network error', 'Could not reach the account service.'); });
+  }
+  document.querySelectorAll('[data-close]').forEach(function (el) {
+    el.addEventListener('click', function () { q(el.getAttribute('data-close')).classList.remove('show'); });
+  });
+  q('friend-modal').addEventListener('click', function (e) { if (e.target === q('friend-modal')) q('friend-modal').classList.remove('show'); });
+
+  // ---- Presenter Security view ----
+  var SENSITIVE = /^\s*"(email|ip|linkedPlatforms|lastLogin|handle|security|twoFactorEnabled|loginVerificationEmail|location)"/;
+  function openOps() { document.body.classList.add('ops-on'); q('ops').classList.add('open'); refreshMonitor(); }
+  q('ops-fab').addEventListener('click', openOps);
+  q('ops-close').addEventListener('click', function () { q('ops').classList.remove('open'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '.' && e.altKey) openOps();
+    if (e.key === 'Escape') { q('ops').classList.remove('open'); q('friend-modal').classList.remove('show'); }
+  });
+
+  function setVerdict(state, title, sub) {
+    var v = q('verdict');
+    v.classList.remove('bad', 'good');
+    if (state === 'bad') { v.classList.add('bad'); q('verdict-badge').textContent = 'EXPOSED'; }
+    else if (state === 'good') { v.classList.add('good'); q('verdict-badge').textContent = 'BLOCKED'; }
+    else q('verdict-badge').textContent = 'NOT TESTED';
+    q('verdict-title').textContent = title;
+    q('verdict-sub').textContent = sub;
+  }
+
+  function updateReqLine() {
+    var target = q('insp-target').value || '{id}';
+    q('insp-req').innerHTML = '<span class="m">GET</span> /api/accounts/' + esc(target) + '/profile<br><span class="h">x-ea-session: ' + esc(SESSION || '—') + '  (owner ' + esc(MY_ID || '—') + ')</span>';
+  }
+  q('insp-target').addEventListener('change', updateReqLine);
+
+  function leaked(r) { return r.ok && r.data && r.data.profile && !!r.data.profile.email; }
+
+  q('insp-send').addEventListener('click', function () {
+    var target = q('insp-target').value;
+    if (!target) return;
+    var btn = q('insp-send'); btn.disabled = true;
+    api('/api/accounts/' + encodeURIComponent(target) + '/profile').then(function (r) {
+      var exposed = leaked(r);
+      var st = q('insp-status');
+      st.textContent = r.status + (r.ok ? ' OK' : (r.status === 403 ? ' Forbidden' : r.status === 401 ? ' Unauthorized' : ''));
+      st.className = 'hstatus ' + (r.ok ? 's2' : 's4');
+      var lines = JSON.stringify(r.data, null, 2).split('\n');
+      q('insp-body').innerHTML = lines.map(function (l) {
+        return '<span' + (exposed && SENSITIVE.test(l) ? ' class="leak"' : '') + '>' + esc(l) + '</span>';
+      }).join('');
+      q('insp-note').textContent = exposed ? 'Private fields of ' + target + ' returned to ' + MY_ID : 'No private data returned';
+      q('insp-resp').hidden = false;
+      if (exposed) {
+        setVerdict('bad', 'Another player\'s private data is exposed',
+          'HTTP ' + r.status + ' — email, linked platforms and last-login IP of ' + target + ' returned to ' + MY_ID + '.');
+      } else if (r.status === 403 || r.status === 401) {
+        setVerdict('good', 'Cross-account read is blocked',
+          'HTTP ' + r.status + ' — the API refused ' + target + ' for session owner ' + MY_ID + '.');
+      } else {
+        setVerdict('', 'Unexpected response', 'HTTP ' + r.status + (r.data && r.data.code ? ' · ' + r.data.code : ''));
+      }
+      refreshMonitor();
+    }).catch(function () { showToast('Network error', 'Could not reach the account service.'); })
+      .then(function () { btn.disabled = false; });
+  });
+
+  function refreshMonitor() {
+    return fetch('/api/4491bcfa/monitor').then(function (r) { return r.json(); }).then(function (m) {
+      q('g-count').textContent = m.distinctAccounts;
+      q('g-th').textContent = m.threshold;
+      q('g-win').textContent = m.windowMinutes;
+      var max = Math.max(m.threshold + 50, m.distinctAccounts + 10);
+      q('g-fill').style.width = Math.min(100, (m.distinctAccounts / max) * 100) + '%';
+      var thPct = (m.threshold / max) * 100;
+      q('g-th-mark').style.left = thPct + '%';
+      q('g-th-label').style.left = thPct + '%';
+      q('g-th-label').textContent = 'alert threshold · ' + m.threshold;
+      q('alert-state').classList.toggle('show', !!m.alerted);
+    }).catch(function () {});
+  }
+
+  var SWEEP_START = 100214, SWEEP_END = 100259;
+  q('sweep-run').addEventListener('click', function () {
+    var btn = q('sweep-run'); btn.disabled = true; btn.textContent = 'Running…';
+    var leak = 0, block = 0, n = SWEEP_START;
+    q('c-leak').textContent = '0'; q('c-block').textContent = '0';
+    var tail = q('tail'); tail.innerHTML = '';
+    function log(line, cls) {
+      var d = document.createElement('div'); d.className = cls; d.textContent = line;
+      tail.appendChild(d);
+      while (tail.childNodes.length > 8) tail.removeChild(tail.firstChild);
+    }
+    function step() {
+      if (n > SWEEP_END) {
+        btn.disabled = false; btn.textContent = 'Run attacker script';
+        refreshMonitor();
+        if (leak) setVerdict('bad', leak + ' more profiles leaked to one session', 'Sequential sweep EA-' + SWEEP_START + ' → EA-' + SWEEP_END + ' returned private data with HTTP 200.');
+        else if (block) setVerdict('good', 'Enumeration blocked', 'All ' + block + ' cross-account requests were refused.');
+        return;
+      }
+      var id = 'EA-' + n; n += 1;
+      api('/api/accounts/' + id + '/profile').then(function (r) {
+        if (leaked(r)) {
+          leak += 1; q('c-leak').textContent = leak;
+          log(r.status + '  GET /api/accounts/' + id + '/profile  → ' + r.data.profile.email + '  ip=' + r.data.profile.lastLogin.ip, 'ok');
+        } else {
+          block += 1; q('c-block').textContent = block;
+          log(r.status + '  GET /api/accounts/' + id + '/profile  → ' + ((r.data && r.data.code) || 'refused'), 'no');
+        }
+        if ((n - SWEEP_START) % 3 === 0 || n === SWEEP_START + 1) refreshMonitor();
+      }).catch(function () { block += 1; q('c-block').textContent = block; })
+        .then(function () { setTimeout(step, 90); });
+    }
+    step();
+  });
+
+  fetch('/api/4491bcfa/session').then(function (r) { return r.json(); }).then(function (s) {
+    SESSION = s.session.sessionId;
+    MY_ID = s.me.accountId;
+    var ini = initials(s.me.displayName);
+    q('me-name').textContent = s.me.displayName;
+    q('me-avatar').textContent = ini; q('me-avatar').style.background = s.me.avatarColor || '#2b3660';
+    q('hero-avatar').textContent = ini; q('hero-avatar').style.background = s.me.avatarColor || '#2b3660';
+    q('hero-name').textContent = s.me.displayName;
+    q('hero-ead').textContent = 'EA ID · @' + s.me.eaId;
+    q('ops-me').textContent = MY_ID;
+    loadMyProfile();
+    api('/api/4491bcfa/friends').then(function (r) {
+      if (r.ok && r.data.success) { FRIENDS = r.data.friends; renderFriends(); }
+    });
+    if (new URLSearchParams(location.search).get('ops') === '1') openOps();
+  }).catch(function () { showToast('Unable to start session', 'The account service is unavailable.'); });
+})();
+</script>
+</body>
+</html>
