@@ -9633,6 +9633,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN EBAY SITE — internal demo only, not affiliated with, endorsed by, or a real eBay product.',
   },
+  '69c7244a': {
+    slug: '69c7244a',
+    company: 'Insight Global',
+    vertical: 'insurance',
+    page: { file: '69c7244a.html', title: 'Our Consultants | Insight Global' },
+    disclaimer: 'NOT ACTUALLY AN INSIGHT GLOBAL SITE — internal demo only, not affiliated with, endorsed by, or a real Insight Global product.',
+  },
   '1ea2f9b8': {
     slug: '1ea2f9b8',
     company: 'OneSource Virtual',
