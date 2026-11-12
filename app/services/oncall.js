@@ -90,6 +90,18 @@ const ALERT_SCENARIOS = {
     symptom: 'Place order from the cart fails immediately with HTTP 500 for carts containing Rollback items. Latency is normal. Onset coincides with the merchandising feed v3 promotion codes. Store pickup is a separate service.',
     impact: 'Customers cannot place orders for Rollback items from the cart during the holiday event.', alertOnStatus: [500], unlisted: true,
   },
+  logicbrokerrouting: {
+    vertical: 'logicbrokerrouting', page: '9b95c6e1.html',
+    apiPath: '/api/9b95c6e1/release', oncallApiPath: '/api/oncall/logicbroker/release',
+    owner: 'Logicbroker Order Routing On-Call', brand: 'Logicbroker',
+    service: 'lb-order-routing-api', endpoint: 'POST /api/oncall/logicbroker/release',
+    monitor: '5xx rate — supplier PO routing release',
+    metricQuery: 'sum:trace.express.request.errors{resource:POST /api/oncall/logicbroker/release,http.status_code:500}',
+    metricValue: '100% of supplier PO releases returning 500', threshold: '> 1%', baseline: '<0.1% (7-day)',
+    release: 'order-routing@2026.11.3',
+    symptom: 'Supplier PO release fails following the routing profile rollout.',
+    impact: 'Retailer POs remain pending and fulfillment SLA is at risk.', alertOnStatus: [500], unlisted: true,
+  },
   cibctransfers: {
     vertical: 'cibctransfers', page: '5abd65f5.html',
     apiPath: '/api/5abd65f5/transfers', oncallApiPath: '/api/oncall/cibc/transfers',
