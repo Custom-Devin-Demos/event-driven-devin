@@ -21,9 +21,22 @@ const logs = require('../app/services/verticals/4491bcfa-logs');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const verticalRoute = require('../app/routes/verticals/4491bcfa');
 
+// These tests cover the demo wiring that stays true after the planted IDOR is
+// fixed: the signed-in owner can read their own account, auth and input
+// validation hold, and the security alert is registered as an instant path so
+// the Sentry webhook never double-alerts. The cross-account exposure itself and
+// the enumeration alert are the planted vulnerability — the remediation session
+// owns proving another player's id returns 403, so this suite deliberately does
+// not assert the leak as a contract.
+
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 const OWNER = logs.OWNER_ACCOUNT;
 const SESSION = logs.ATTACKER_SESSION;
+
+function thrownBy(fn) {
+  try { fn(); } catch (e) { return e; }
+  return null;
+}
 
 function request(server, path, headers) {
   const { port } = server.address();
@@ -49,7 +62,7 @@ describe('EA Account portal service (4491bcfa)', () => {
     expect(boot.me.accountId).toBe(OWNER);
   });
 
-  test('returns the owner profile without raising an alert', async () => {
+  test('the owner reads their own account without raising an alert', async () => {
     const r = service.getProfile({ accountId: OWNER, sessionId: SESSION });
     expect(r.success).toBe(true);
     expect(r.profile.accountId).toBe(OWNER);
@@ -58,85 +71,11 @@ describe('EA Account portal service (4491bcfa)', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
-  function thrownBy(fn) {
-    try { fn(); } catch (e) { return e; }
-    return null;
-  }
-
-  test('requires a valid session (401) and a known account (404)', () => {
-    const noSession = thrownBy(() => service.getProfile({ accountId: OWNER, sessionId: '' }));
-    expect(noSession).not.toBeNull();
-    expect(noSession.statusCode).toBe(401);
-    expect(noSession.code).toBe('NOT_AUTHENTICATED');
-
-    const unknown = thrownBy(() => service.getProfile({ accountId: 'EA-999999', sessionId: SESSION }));
-    expect(unknown).not.toBeNull();
-    expect(unknown.statusCode).toBe(404);
-    expect(unknown.code).toBe('ACCOUNT_NOT_FOUND');
-  });
-
-  test('crossing the enumeration threshold raises exactly one SEC-HIGH alert', async () => {
-    // 213 distinct cross-account ids are already seeded for this session; a new one crosses 214.
-    const fresh = 'EA-100250';
-    expect(logs.SEEDED_IDS).not.toContain(fresh);
-    const r = service.getProfile({ accountId: fresh, sessionId: SESSION });
-    expect(r.success).toBe(true);
-    expect(r.profile.accountId).toBe(fresh);
-    await flush();
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.customer).toBe('4491bcfa');
-    expect(alert.issueTitle).toMatch(/^SEC-HIGH: Possible account enumeration/);
-    expect(alert.issueTitle).toContain('214 distinct account IDs');
-    expect(alert.errorType).toBe('BrokenObjectLevelAuthorization');
-    expect(alert.promptAppendix).toContain('CWE-639');
-
-    // A second cross-account read does not fire a duplicate session.
-    service.getProfile({ accountId: 'EA-100251', sessionId: SESSION });
-    await flush();
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-  });
-
-  test('a cross-account read returns the requested player\'s own details', () => {
-    const other = 'EA-100042';
-    const mine = service.getProfile({ accountId: OWNER, sessionId: SESSION }).profile;
-    const theirs = service.getProfile({ accountId: other, sessionId: SESSION }).profile;
-
-    expect(theirs.accountId).toBe(other);
-    expect(theirs.email).toContain('@');
-    expect(theirs.email).not.toBe(mine.email);
-    expect(theirs.displayName).not.toBe(mine.displayName);
-    expect(theirs.linkedPlatforms.length).toBeGreaterThan(0);
-    expect(theirs.lastLogin.ip).toMatch(/^\d{1,3}(\.\d{1,3}){3}$/);
-
-    const platforms = service.getPlatforms({ accountId: other, sessionId: SESSION });
-    expect(platforms.accountId).toBe(other);
-    expect(platforms.linkedPlatforms).toEqual(theirs.linkedPlatforms);
-
-    const security = service.getSecurity({ accountId: other, sessionId: SESSION });
-    expect(security.accountId).toBe(other);
-    expect(security.email).toBe(theirs.email);
-    expect(security.lastLogin.ip).toBe(theirs.lastLogin.ip);
-    expect(security.security).toHaveProperty('lastPasswordChange');
-  });
-
-  test('the security alert is registered as an instant path (no duplicate webhook alert)', async () => {
-    service.getProfile({ accountId: 'EA-100250', sessionId: SESSION });
-    await flush();
-    const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(isInstantPathEvent({
-      issueTitle: alert.issueTitle,
-      errorType: alert.errorType,
-      tags: alert.tags,
-      culprit: alert.culprit,
-    })).toBe(true);
-
-    // Issue webhooks carry no event tags, so dedup has to match on the culprit alone.
-    expect(isInstantPathEvent({
-      issueTitle: alert.issueTitle,
-      errorType: alert.errorType,
-      culprit: alert.culprit,
-    })).toBe(true);
+  test('a request with no session is rejected with 401', () => {
+    const err = thrownBy(() => service.getProfile({ accountId: OWNER, sessionId: '' }));
+    expect(err).not.toBeNull();
+    expect(err.statusCode).toBe(401);
+    expect(err.code).toBe('NOT_AUTHENTICATED');
   });
 });
 
@@ -151,7 +90,7 @@ describe('EA Account portal routes (4491bcfa)', () => {
   });
   afterEach((done) => { server.close(() => done()); });
 
-  test('GET /api/accounts/:id/profile returns a profile for a valid session', async () => {
+  test('GET /api/accounts/:id/profile returns the owner profile for a valid session', async () => {
     const res = await request(server, `/api/accounts/${OWNER}/profile`, { 'x-ea-session': SESSION });
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
@@ -161,23 +100,7 @@ describe('EA Account portal routes (4491bcfa)', () => {
   test('GET /api/accounts/:id/profile rejects a malformed account id with 400', async () => {
     const res = await request(server, '/api/accounts/not-an-id/profile', { 'x-ea-session': SESSION });
     expect(res.status).toBe(400);
-  });
-
-  test.each(['linked-platforms', 'security'])('GET /api/accounts/:id/%s serves a cross-account request', async (segment) => {
-    const other = 'EA-100042';
-    const res = await request(server, `/api/accounts/${other}/${segment}`, { 'x-ea-session': SESSION });
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.accountId).toBe(other);
-  });
-
-  test('GET /api/accounts/:id/profile serves a cross-account request', async () => {
-    const other = 'EA-100042';
-    const res = await request(server, `/api/accounts/${other}/profile`, { 'x-ea-session': SESSION });
-    expect(res.status).toBe(200);
-    expect(res.body.profile.accountId).toBe(other);
-    expect(res.body.profile.email).toContain('@');
-    expect(res.body.profile.lastLogin.ip).toBeTruthy();
+    expect(res.body.code).toBe('INVALID_ACCOUNT_ID');
   });
 
   test('GET /api/accounts/:id/profile returns 401 without a session', async () => {
@@ -190,5 +113,30 @@ describe('EA Account portal routes (4491bcfa)', () => {
     const res = await request(server, '/api/4491bcfa/session');
     expect(res.status).toBe(200);
     expect(res.body.me.accountId).toBe(OWNER);
+  });
+});
+
+describe('EA Account security alert is an instant path (4491bcfa)', () => {
+  // The service alerts directly, tagging alert_path=instant; the Sentry webhook
+  // must treat both the tagged event and the tagless issue webhook (which can
+  // only match on the culprit) as already-alerted so it never double-alerts.
+  const culprit = 'app/services/verticals/4491bcfa.js — getProfile';
+  const errorType = 'BrokenObjectLevelAuthorization';
+
+  test('a tagged instant event is recognised', () => {
+    expect(isInstantPathEvent({
+      issueTitle: 'SEC-HIGH: Possible account enumeration on /api/accounts/*/profile.',
+      errorType,
+      culprit,
+      tags: [{ key: 'alert_path', value: 'instant' }],
+    })).toBe(true);
+  });
+
+  test('a tagless issue webhook is recognised by its culprit', () => {
+    expect(isInstantPathEvent({
+      issueTitle: 'SEC-HIGH: Possible account enumeration on /api/accounts/*/profile.',
+      errorType,
+      culprit,
+    })).toBe(true);
   });
 });
