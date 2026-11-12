@@ -18,6 +18,7 @@ const { BATCH: STATESTREET_BATCH, releaseSettlementBatch } = require('../service
 const { BATCH: REGIONS_BILLS, submitBillPayments } = require('../services/oncall-verticals/regions');
 const { BATCH: WEALTH_REBALANCE, submitRebalance } = require('../services/oncall-verticals/wealthrebalance');
 const { BATCH: CIBC_PAYMENT, sendMoney } = require('../services/oncall-verticals/cibc-etransfer');
+const { BATCH: LB_REROUTE, rerouteOrders } = require('../services/oncall-verticals/logicbroker-reroute');
 const { STORE: WALMART_PICKUP_STORE, reservePickupSlot } = require('../services/oncall-verticals/walmartfulfillment');
 const { isTeamsWebhookUrl } = require('../services/teams');
 const {
@@ -87,6 +88,7 @@ const ONCALL_HOURLY_CAPS = {
   regionsBillPay: 50,
   wealthRebalance: 50,
   cibcEtransfer: 50,
+  logicbrokerReroute: 50,
   walmartPickup: 50,
   alert: 50,
   infra: 50,
@@ -655,6 +657,14 @@ router.post('/api/oncall/walmartfulfillment/pickup-slots/reserve', (req, res, ne
   next();
 }, oncallCap('walmartPickup'), async (req, res) => {
   const result = await reservePickupSlot(req.body);
+  res.status(result.statusCode).json(result.body);
+});
+
+router.post('/api/oncall/logicbroker/reroute', (req, res, next) => {
+  if (!req.body || req.body.batchId !== LB_REROUTE.id) return res.status(400).json({ success: false, code: 'INVALID_REROUTE', error: 'Choose the at-risk order batch.' });
+  next();
+}, oncallCap('logicbrokerReroute'), async (req, res) => {
+  const result = await rerouteOrders(req.body);
   res.status(result.statusCode).json(result.body);
 });
 
