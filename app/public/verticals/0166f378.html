@@ -58,6 +58,8 @@
   .btn.secondary { background: #fff; color: var(--fid-ink); border-color: var(--fid-ink); }
   .btn:disabled { opacity: .55; cursor: progress; }
 
+  body:not(.ops) .svc, body:not(.ops) #latency-check, body:not(.ops) .elapsed { display: none; }
+  .slow-note { color: var(--fid-ink-3); font-size: 13px; margin-left: 6px; }
   .svc { background: #fff; border: 1px solid var(--fid-line); border-left: 4px solid var(--fid-ink-3); border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
   .svc.ok { border-left-color: var(--fid-gain); } .svc.breach { border-left-color: var(--fid-loss); }
   .svc .ttl { font-weight: 600; display: flex; align-items: center; gap: 10px; }
@@ -156,7 +158,7 @@
 
     <div class="grid">
       <div class="grid-head"><h2>Positions</h2><span class="hint" id="grid-hint">Latest close from the market-data warehouse</span></div>
-      <div class="loading-bar" id="loading-bar"><span class="spin"></span> Loading positions&hellip; <span class="elapsed" id="elapsed">0.0 s</span></div>
+      <div class="loading-bar" id="loading-bar"><span class="spin"></span> Loading positions&hellip; <span class="elapsed" id="elapsed">0.0 s</span><span class="slow-note" id="slow-note" hidden>This is taking longer than usual. Your positions will appear shortly.</span></div>
       <table class="positions" data-testid="positions-table" id="positions" data-loaded="false">
         <thead><tr><th>Symbol</th><th>Last price</th><th>Today's change</th><th>Quantity</th><th>Current value</th><th>Cost basis</th><th>Total gain/loss</th></tr></thead>
         <tbody id="rows"></tbody>
@@ -174,6 +176,9 @@
 (function () {
   var params = new URLSearchParams(location.search);
   var reportsOff = params.get('reports') === 'off';
+  var opsMode = params.get('ops') === '1';
+  if (opsMode) document.body.classList.add('ops');
+  document.addEventListener('keydown', function (e) { if (e.altKey && e.key === '.') document.body.classList.toggle('ops'); });
   var $ = function (id) { return document.getElementById(id); };
   var budgetMs = 1500;
   var money = function (v, signed) {
@@ -289,11 +294,12 @@
     var t0 = performance.now();
     $('loading-bar').style.display = 'flex';
     $('elapsed').classList.remove('slow');
+    $('slow-note').hidden = true;
     $('positions').setAttribute('data-loaded', 'false');
     timer = setInterval(function () {
       var s = (performance.now() - t0) / 1000;
       $('elapsed').textContent = s.toFixed(1) + ' s';
-      if (s * 1000 > budgetMs) $('elapsed').classList.add('slow');
+      if (s * 1000 > budgetMs) { $('elapsed').classList.add('slow'); $('slow-note').hidden = false; }
     }, 100);
     return t0;
   }
