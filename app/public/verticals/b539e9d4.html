@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S&amp;P Dow Jones Indices &middot; Index Changes &middot; Pre-open Rebalance</title>
+  <style>
+    @font-face { font-family: "Akk Pro"; src: url("/fonts/spg-ratings/AkkPro-400.woff") format("woff"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: "Akk Pro"; src: url("/fonts/spg-ratings/AkkPro-700.woff2") format("woff2"), url("/fonts/spg-ratings/AkkPro-700.woff") format("woff"); font-weight: 700; font-display: swap; }
+    :root {
+      --red: #d6002a; --red-dark: #a80021; --red-bg: #fff5f7;
+      --ink: #000000; --text: #1a1a1a; --grey: #4a4a4a; --muted: #6b6b6b;
+      --rule: #d9d9d9; --rule-soft: #ececec; --surface: #f4f4f4; --white: #ffffff;
+      --green: #146c43; --green-bg: #e9f5ef; --amber: #a86400; --amber-bg: #fff4e0;
+      --sans: "Akk Pro", Arial, Helvetica, sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); color: var(--text); background: var(--surface); font-size: 15px; line-height: 1.45; }
+    a { color: inherit; }
+    .utility { background: var(--ink); color: #fff; font-size: 12px; padding: 7px 32px; display: flex; justify-content: space-between; letter-spacing: .02em; }
+    .utility a { text-decoration: none; opacity: .85; }
+    .utility a:hover { opacity: 1; }
+    header.brand { background: var(--white); border-bottom: 1px solid var(--rule); padding: 0 32px; display: flex; align-items: center; gap: 28px; height: 72px; }
+    header.brand img { height: 26px; display: block; }
+    header.brand .divider { width: 1px; height: 30px; background: var(--rule); }
+    header.brand .product { font-weight: 700; font-size: 17px; color: var(--ink); }
+    header.brand .product span { display: block; font-weight: 400; font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+    header.brand nav { margin-left: auto; display: flex; gap: 26px; font-size: 14px; }
+    header.brand nav a { text-decoration: none; padding: 25px 0 23px; border-bottom: 3px solid transparent; }
+    header.brand nav a.active { border-bottom-color: var(--red); font-weight: 700; }
+    .hero { background: var(--white); padding: 28px 32px 24px; border-bottom: 1px solid var(--rule); display: flex; gap: 32px; align-items: flex-end; flex-wrap: wrap; }
+    .hero .eyebrow { color: var(--red); font-weight: 700; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    .hero h1 { font-size: 34px; line-height: 1.15; color: var(--ink); font-weight: 700; margin-top: 6px; }
+    .hero p { color: var(--grey); margin-top: 6px; max-width: 640px; }
+    .hero .clock { margin-left: auto; text-align: right; }
+    .hero .clock .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .hero .clock .value { font-size: 40px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .hero .clock .sub { font-size: 13px; color: var(--grey); }
+    .actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+    .btn { font-family: var(--sans); font-size: 15px; font-weight: 700; border: 2px solid var(--red); background: var(--red); color: #fff; padding: 11px 22px; border-radius: 0; cursor: pointer; }
+    .btn:hover { background: var(--red-dark); border-color: var(--red-dark); }
+    .btn:disabled { opacity: .55; cursor: wait; }
+    .btn.secondary { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn.secondary:hover { background: var(--ink); color: #fff; }
+    .status-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; padding: 6px 12px; border: 1px solid var(--rule); background: var(--white); text-transform: uppercase; letter-spacing: .04em; }
+    .status-pill .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+    .status-pill.standby .dot { background: var(--amber); }
+    .status-pill.released { color: var(--green); border-color: var(--green); }
+    .status-pill.released .dot { background: var(--green); }
+    .status-pill.held { color: var(--red); border-color: var(--red); background: var(--red-bg); }
+    .status-pill.held .dot { background: var(--red); animation: pulse 1.2s infinite; }
+    .status-pill.running .dot { background: var(--ink); animation: pulse .8s infinite; }
+    @keyframes pulse { 50% { opacity: .25; } }
+    main { padding: 24px 32px 48px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; max-width: 1440px; }
+    .card { background: var(--white); border: 1px solid var(--rule); }
+    .card + .card { margin-top: 24px; }
+    .card-head { padding: 16px 20px; border-bottom: 1px solid var(--rule-soft); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .card-head h2 { font-size: 18px; color: var(--ink); }
+    .card-head h2::before { content: ""; display: inline-block; width: 4px; height: 16px; background: var(--red); margin-right: 10px; vertical-align: -2px; }
+    .card-head .sub { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--rule-soft); }
+    .kpi { padding: 16px 20px; border-right: 1px solid var(--rule-soft); }
+    .kpi:last-child { border-right: 0; }
+    .kpi .k { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .kpi .v { font-size: 24px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+    .kpi .n { font-size: 12px; color: var(--grey); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--rule); background: #fafafa; }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td.mono, .mono { font-family: var(--mono); font-size: 13px; }
+    .notice-head { font-weight: 700; color: var(--ink); }
+    .legs { margin-top: 4px; font-size: 13px; color: var(--grey); }
+    .legs b { font-family: var(--mono); font-weight: 600; color: var(--ink); }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; text-transform: uppercase; letter-spacing: .04em; border: 1px solid var(--rule); color: var(--grey); white-space: nowrap; }
+    .tag.ok { color: var(--green); border-color: var(--green); background: var(--green-bg); }
+    .tag.mismatch { color: var(--red); border-color: var(--red); background: var(--red-bg); }
+    .tag.add { color: var(--ink); border-color: var(--ink); }
+    tr.flag td { background: var(--red-bg); }
+    tr.flag td.bad { color: var(--red); font-weight: 700; }
+    .expect { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+    .pipeline { display: grid; grid-template-columns: repeat(6, 1fr); }
+    .stage { padding: 14px 14px 16px; border-right: 1px solid var(--rule-soft); border-top: 4px solid var(--rule); }
+    .stage:last-child { border-right: 0; }
+    .stage .num { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+    .stage .name { font-weight: 700; font-size: 14px; color: var(--ink); margin-top: 2px; }
+    .stage .detail { font-size: 12px; color: var(--grey); margin-top: 4px; }
+    .stage.done { border-top-color: var(--green); }
+    .stage.active { border-top-color: var(--ink); }
+    .stage.failed { border-top-color: var(--red); background: var(--red-bg); }
+    .stage.failed .name { color: var(--red); }
+    .stage.blocked { opacity: .45; }
+    .empty { padding: 28px 20px; color: var(--muted); font-size: 14px; text-align: center; }
+    .incident { border: 2px solid var(--red); background: var(--white); display: none; margin-bottom: 24px; }
+    .incident.show { display: block; }
+    .incident .bar { background: var(--red); color: #fff; padding: 10px 16px; font-weight: 700; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; display: flex; justify-content: space-between; }
+    .incident .body { padding: 16px; font-size: 14px; }
+    .incident .err { font-family: var(--mono); font-size: 12px; background: var(--surface); border-left: 3px solid var(--red); padding: 10px 12px; margin: 10px 0; word-break: break-word; }
+    .incident ol { padding-left: 18px; color: var(--grey); font-size: 13px; }
+    .incident ol li { margin: 4px 0; }
+    .side-list { list-style: none; }
+    .side-list li { padding: 12px 20px; border-bottom: 1px solid var(--rule-soft); display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+    .side-list li:last-child { border-bottom: 0; }
+    .side-list .t { font-family: var(--mono); font-size: 13px; color: var(--ink); white-space: nowrap; }
+    .side-list .d { color: var(--grey); text-align: right; }
+    .side-list .d small { display: block; font-size: 12px; color: var(--muted); }
+    .side-list li.now { background: var(--amber-bg); }
+    .side-list li.hit { background: var(--red-bg); }
+    .side-list li.hit .t { color: var(--red); }
+    .ch-status { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .ch-status.held { color: var(--red); }
+    .ch-status.released { color: var(--green); }
+    .ch-status.standby { color: var(--amber); }
+    footer { background: var(--ink); color: #bdbdbd; font-size: 12px; padding: 20px 32px; display: flex; justify-content: space-between; }
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 460px; background: var(--white); border: 1px solid var(--rule); border-left: 5px solid var(--red); box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 16px 18px; display: none; z-index: 10; }
+    .toast.show { display: block; }
+    .toast.ok { border-left-color: var(--green); }
+    .toast h3 { font-size: 15px; color: var(--ink); margin-bottom: 4px; }
+    .toast p { font-size: 13px; color: var(--grey); }
+    @media (max-width: 1100px) { main { grid-template-columns: 1fr; } .pipeline { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div>S&amp;P Global &nbsp;|&nbsp; S&amp;P Dow Jones Indices &nbsp;|&nbsp; Index Operations, internal</div>
+    <a href="/">&larr; All Demos</a>
+  </div>
+  <header class="brand">
+    <img src="/images/spg-ratings/sandp-1.png" alt="S&amp;P Global"
+         onerror="this.onerror=null;this.src='https://upload.wikimedia.org/wikipedia/commons/e/ee/S%26P_Global_logo.svg';">
+    <div class="divider"></div>
+    <div class="product">Index Changes Console<span>S&amp;P Dow Jones Indices</span></div>
+    <nav>
+      <a href="#" class="active">Pre-open Rebalance</a>
+      <a href="#notices">Index Notices</a>
+      <a href="#feed">Client Feed</a>
+      <a href="#history">History</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow" id="eyebrow">Index changes effective prior to the open</div>
+      <h1 id="hero-title">Pre-open rebalance</h1>
+      <p id="hero-sub">Announced constituent changes must be in the pro-forma client feed before ETF issuers, exchanges and vendors prepare for the opening cross.</p>
+      <div class="actions">
+        <button class="btn" id="run-btn">Run pre-open rebalance</button>
+        <button class="btn secondary" id="reset-btn">Reset</button>
+        <span class="status-pill standby" id="status-pill"><span class="dot"></span><span id="status-text">Standby</span></span>
+      </div>
+    </div>
+    <div class="clock">
+      <div class="label">Time to market open</div>
+      <div class="value" id="countdown">--:--:--</div>
+      <div class="sub" id="open-sub">NYSE &amp; Nasdaq open 09:30 ET</div>
+    </div>
+  </section>
+
+  <main>
+    <div>
+      <div class="incident" id="incident">
+        <div class="bar"><span>Client feed held &middot; Sev 1</span><span id="incident-run" class="mono"></span></div>
+        <div class="body">
+          <strong id="incident-title">Reconciliation mismatch</strong>
+          <div class="err" id="incident-error"></div>
+          <ol>
+            <li>Reconciliation monitor held the pro-forma client feed. Nothing was sent to clients.</li>
+            <li>Alert raised in Sentry and posted to the incident Slack channel.</li>
+            <li>Devin session started: trace the defect, reproduce it in a failing test, open a fix PR.</li>
+            <li>Index operations on-call reviews and approves the PR, then reruns the rebalance.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Rebalance pipeline</h2><span class="sub" id="run-id"></span></div>
+        <div class="kpis">
+          <div class="kpi"><div class="k">Effective</div><div class="v" id="kpi-effective">-</div><div class="n">Prior to the open</div></div>
+          <div class="kpi"><div class="k">Index notices</div><div class="v" id="kpi-notices">-</div><div class="n" id="kpi-notices-n">S&amp;P 500, MidCap 400, SmallCap 600</div></div>
+          <div class="kpi"><div class="k">Client feed deadline</div><div class="v" id="kpi-deadline">-</div><div class="n">Pro-forma files to clients</div></div>
+          <div class="kpi"><div class="k">Recipients</div><div class="v" id="kpi-recipients">-</div><div class="n">ETF issuers, venues, vendors</div></div>
+        </div>
+        <div class="pipeline" id="pipeline"></div>
+      </div>
+
+      <div class="card" id="notices">
+        <div class="card-head"><h2>Announced index changes</h2><span class="sub" id="announced-sub"></span></div>
+        <table>
+          <thead><tr><th>Notice</th><th>Change</th><th>Index</th><th>Status</th></tr></thead>
+          <tbody id="notice-body"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="feed">
+        <div class="card-head"><h2>Pro-forma client feed</h2><span class="sub" id="feed-sub">Not built</span></div>
+        <div id="feed-wrap"><div class="empty">Run the pre-open rebalance to build the pro-forma constituent files.</div></div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <div class="card-head"><h2>Tonight's timeline</h2></div>
+        <ul class="side-list" id="timeline"></ul>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Distribution</h2></div>
+        <ul class="side-list" id="channels"></ul>
+      </div>
+      <div class="card" id="history">
+        <div class="card-head"><h2>Rebalance history</h2></div>
+        <ul class="side-list" id="runs"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>&copy; S&amp;P Dow Jones Indices LLC, a division of S&amp;P Global. Demo environment. All securities are fictional.</span>
+    <span>Index Changes Console v4.12</span>
+  </footer>
+
+  <div class="toast" id="toast"><h3 id="toast-title"></h3><p id="toast-body"></p></div>
+
+  <script>
+    (function () {
+      var API = '/api/b539e9d4';
+      var $ = function (id) { return document.getElementById(id); };
+      var overview = null;
+      var running = false;
+      var toastTimer = null;
+      var sessionSecret = new URLSearchParams(location.search).get('sessionSecret') || localStorage.getItem('sessionSecret');
+      if (sessionSecret) localStorage.setItem('sessionSecret', sessionSecret);
+      var reportsOff = new URLSearchParams(location.search).get('reports') === 'off';
+
+      var identityReady = fetch('/api/config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          if (cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+        })
+        .catch(function () {});
+
+      function identity() {
+        return {
+          devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+          devinUserId: localStorage.getItem('devinUserId') || undefined,
+          devinEmail: localStorage.getItem('devinEmail') || undefined
+        };
+      }
+
+      function postHeaders() {
+        var headers = { 'Content-Type': 'application/json' };
+        if (sessionSecret) headers['x-session-secret'] = sessionSecret;
+        return headers;
+      }
+
+      function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function fmtInt(n) { return Number(n).toLocaleString('en-US'); }
+
+      function toast(title, body, ok) {
+        $('toast-title').textContent = title;
+        $('toast-body').textContent = body;
+        $('toast').className = 'toast show' + (ok ? ' ok' : '');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { $('toast').className = 'toast'; }, 9000);
+      }
+
+      function tick() {
+        if (!overview) return;
+        var ms = new Date(overview.marketOpenAt).getTime() - Date.now();
+        if (ms < 0) ms = 0;
+        var h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, s = Math.floor(ms / 1000) % 60;
+        $('countdown').textContent = [h, m, s].map(function (v) { return String(v).padStart(2, '0'); }).join(':');
+      }
+
+      function stageState(index) {
+        var status = running ? 'running' : overview.status;
+        var stages = overview.stages;
+        if (status === 'standby') return '';
+        if (status === 'running') return index === 0 ? 'active' : '';
+        if (status === 'released') return 'done';
+        var latest = overview.runs[0];
+        var failedIdx = stages.findIndex(function (s) { return latest && s.name === latest.failedStage; });
+        if (failedIdx < 0) failedIdx = stages.length - 2;
+        if (index < failedIdx) return 'done';
+        if (index === failedIdx) return 'failed';
+        return 'blocked';
+      }
+
+      function renderPipeline() {
+        $('pipeline').innerHTML = overview.stages.map(function (stage, i) {
+          return '<div class="stage ' + stageState(i) + '"><div class="num">0' + (i + 1) + '</div>'
+            + '<div class="name">' + esc(stage.name) + '</div><div class="detail">' + esc(stage.detail) + '</div></div>';
+        }).join('');
+      }
+
+      function renderNotices() {
+        $('notice-body').innerHTML = overview.notices.map(function (n) {
+          var label = n.status === 'ok' ? 'Processed' : n.status === 'mismatch' ? 'Mismatch' : 'Pending';
+          return '<tr><td class="mono">' + esc(n.noticeId) + '</td>'
+            + '<td><div class="notice-head">' + esc(n.headline) + '</div>'
+            + '<div class="legs">Add <b>' + esc(n.add.ticker) + '</b> ' + esc(n.add.name) + ' &middot; CUSIP <b>' + esc(n.add.cusip) + '</b><br>'
+            + 'Delete <b>' + esc(n.delete.ticker) + '</b> ' + esc(n.delete.name) + '</div></td>'
+            + '<td>' + esc(n.indexName) + '</td>'
+            + '<td><span class="tag ' + esc(n.status) + '">' + label + '</span></td></tr>';
+        }).join('');
+      }
+
+      function renderFeed() {
+        var feed = overview.feed;
+        if (!feed) {
+          $('feed-sub').textContent = 'Not built';
+          $('feed-wrap').innerHTML = '<div class="empty">Run the pre-open rebalance to build the pro-forma constituent files.</div>';
+          return;
+        }
+        $('feed-sub').textContent = feed.fileId + ' · ' + feed.status.toUpperCase();
+        $('feed-wrap').innerHTML = '<table><thead><tr><th>Index</th><th>Ticker</th><th>Class</th><th>CUSIP</th><th>Index shares</th><th>IWF</th><th>Weight</th><th>Check</th></tr></thead><tbody>'
+          + feed.lines.map(function (l) {
+            var bad = l.check === 'mismatch';
+            var cusipBad = bad && l.cusip !== l.announcedCusip;
+            return '<tr class="' + (bad ? 'flag' : '') + '">'
+              + '<td>' + esc(l.indexName) + '</td>'
+              + '<td class="mono">' + esc(l.ticker) + '</td>'
+              + '<td class="mono' + (cusipBad ? ' bad' : '') + '">' + esc(l.shareClass || '-') + '</td>'
+              + '<td class="mono' + (cusipBad ? ' bad' : '') + '">' + esc(l.cusip) + (cusipBad ? '<span class="expect">announced ' + esc(l.announcedCusip) + '</span>' : '') + '</td>'
+              + '<td class="mono' + (bad ? ' bad' : '') + '">' + fmtInt(l.indexShares) + '</td>'
+              + '<td class="mono' + (bad ? ' bad' : '') + '">' + Number(l.iwf).toFixed(2) + '</td>'
+              + '<td class="mono' + (bad ? ' bad' : '') + '">' + Number(l.weightPct).toFixed(4) + '%' + (bad ? '<span class="expect">announced ' + Number(l.announcedWeightPct).toFixed(4) + '%</span>' : '') + '</td>'
+              + '<td><span class="tag ' + esc(l.check) + '">' + (l.check === 'ok' ? 'Match' : l.check === 'mismatch' ? 'Mismatch' : 'Not checked') + '</span></td></tr>';
+          }).join('') + '</tbody></table>';
+      }
+
+      function renderSide() {
+        var status = overview.status;
+        var held = status === 'held', released = status === 'released';
+        var items = [
+          { t: '17:15 ET', d: 'Index notices announced', s: overview.announcedDateLabel, c: '' },
+          { t: 'Now', d: held ? 'Feed held by reconciliation' : released ? 'Pro-forma feed released' : 'Pre-open rebalance', s: held ? 'Devin investigating' : '', c: held ? 'hit' : 'now' },
+          { t: overview.feedDeadline, d: 'Client feed deadline', s: 'ETF issuers rebalance from this file', c: '' },
+          { t: overview.marketOpen, d: 'Market open', s: overview.effectiveDateLabel + ', changes effective', c: '' }
+        ];
+        $('timeline').innerHTML = items.map(function (i) {
+          return '<li class="' + i.c + '"><span class="t">' + esc(i.t) + '</span><span class="d">' + esc(i.d) + (i.s ? '<small>' + esc(i.s) + '</small>' : '') + '</span></li>';
+        }).join('');
+        var chStatus = held ? 'held' : released ? 'released' : 'standby';
+        $('channels').innerHTML = overview.channels.map(function (c) {
+          return '<li><span>' + esc(c.label) + '<small style="display:block;font-size:12px;color:var(--muted)">' + esc(c.audience) + ' &middot; ' + fmtInt(c.recipients) + '</small></span>'
+            + '<span class="ch-status ' + chStatus + '">' + (held ? 'Held' : released ? 'Delivered' : 'Waiting') + '</span></li>';
+        }).join('');
+        $('runs').innerHTML = overview.runs.slice(0, 6).map(function (r) {
+          return '<li><span class="t">' + esc(r.runId) + '</span><span class="d">'
+            + '<span class="ch-status ' + esc(r.status) + '">' + esc(r.status) + '</span>'
+            + '<small>' + esc(r.notices) + ' notices' + (r.releasedAt ? ' &middot; ' + esc(r.releasedAt) : '') + (r.failedStage ? ' &middot; ' + esc(r.failedStage) : '') + '</small></span></li>';
+        }).join('');
+      }
+
+      function render() {
+        var status = running ? 'running' : overview.status;
+        var labels = { standby: 'Standby', running: 'Running', released: 'Feed released', held: 'Feed held' };
+        $('status-pill').className = 'status-pill ' + status;
+        $('status-text').textContent = labels[status];
+        $('run-btn').disabled = running;
+        $('run-btn').textContent = running ? 'Running rebalance…' : status === 'held' ? 'Rerun pre-open rebalance' : 'Run pre-open rebalance';
+        $('eyebrow').textContent = 'Index changes effective prior to the open on ' + overview.effectiveDateLabel;
+        $('run-id').textContent = overview.runs[0] && overview.status !== 'standby' ? overview.runs[0].runId : overview.nextRunId;
+        $('announced-sub').textContent = 'Announced ' + overview.announcedDateLabel + ' after the close';
+        $('kpi-effective').textContent = overview.effectiveDateLabel.replace(/, \d{4}$/, '');
+        $('kpi-notices').textContent = overview.notices.length;
+        $('kpi-deadline').textContent = overview.feedDeadline;
+        $('kpi-recipients').textContent = fmtInt(overview.recipients);
+        var err = overview.lastError;
+        $('incident').className = 'incident' + (overview.status === 'held' && err ? ' show' : '');
+        if (err) {
+          $('incident-title').textContent = err.type + ' in ' + err.stage + (err.noticeId ? ' · ' + err.noticeId : '');
+          $('incident-error').textContent = err.message;
+          $('incident-run').textContent = err.runId;
+        }
+        renderPipeline();
+        renderNotices();
+        renderFeed();
+        renderSide();
+        tick();
+      }
+
+      function load() {
+        return fetch(API + '/overview').then(function (r) { return r.json(); }).then(function (data) { overview = data; render(); });
+      }
+
+      $('run-btn').addEventListener('click', function () {
+        running = true;
+        render();
+        identityReady.then(function () {
+          return fetch(API + '/rebalance' + (reportsOff ? '?reports=off' : ''), {
+            method: 'POST', headers: postHeaders(), body: JSON.stringify(identity())
+          });
+        }).then(function (r) { return r.json(); }).then(function (data) {
+          running = false;
+          if (data.overview) overview = data.overview;
+          render();
+          if (data.success) {
+            toast('Pro-forma client feed released', data.lines.length + ' changes reconciled and delivered to ' + fmtInt(data.recipients) + ' recipients.', true);
+          } else if (data.errorType) {
+            toast('Client feed held: ' + data.errorType, 'Incident raised in Slack and a Devin session is investigating. ' + data.error, false);
+          }
+        }).catch(function (e) {
+          running = false;
+          render();
+          toast('Request failed', e.message, false);
+        });
+      });
+
+      $('reset-btn').addEventListener('click', function () {
+        fetch(API + '/rebalance/reset', { method: 'POST', headers: postHeaders(), body: '{}' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) { overview = data.overview; $('toast').className = 'toast'; render(); });
+      });
+
+      load();
+      setInterval(tick, 1000);
+    })();
+  </script>
+</body>
+</html>
