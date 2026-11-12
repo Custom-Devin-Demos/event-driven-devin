@@ -110,6 +110,7 @@ function fireSecurityAlert(session, distinctCount, identity, requestId) {
     verticalLabel: 'EA Account — Security',
     promptAppendix: REMEDIATION_DIRECTIVE,
     customer: '4491bcfa',
+    skipVulnerablePr: true,
     slackMemberId: identity.devinEmail ? '' : SLACK_MEMBER_ID_FALLBACK,
     slackMemberIdFallback: SLACK_MEMBER_ID_FALLBACK,
     tags: [
