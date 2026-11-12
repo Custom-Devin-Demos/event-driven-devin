@@ -1,0 +1,1476 @@
+{
+  "id": "ea-apex-coins-receipt-replay",
+  "title": "EA Apex Legends — Apex Coins credited far above purchases",
+  "summary": "Apex Coins credited to player wallets have been running far above coins purchased for about 45 minutes while store revenue stays flat. Detected by the economy & fraud team — no alert fired. A bot farm (account-creation/login spike, matchmaking abuse) started around the same time, shortly after the apex-entitlements 2026.11.4 deploy.",
+  "severity": "SEV-1",
+  "service": "apex-entitlements",
+  "env": "production",
+  "repoUrl": "https://github.com/COG-GTM/ea-oncall-demo",
+  "repoBranch": "main",
+  "leadInMs": 180000,
+  "durationMs": 3600000,
+  "datadog": {
+    "metricPrefix": "apex.entitlements",
+    "baseline": {
+      "metrics": [
+        {
+          "metric": "receipts.validated",
+          "tags": [
+            "platform:psn"
+          ],
+          "perMinute": 40,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "receipts.validated",
+          "tags": [
+            "platform:xbox"
+          ],
+          "perMinute": 22,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "receipts.validated",
+          "tags": [
+            "platform:steam"
+          ],
+          "perMinute": 14,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "receipts.validated",
+          "tags": [
+            "platform:ea_app"
+          ],
+          "perMinute": 6,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "redemptions.completed",
+          "tags": [
+            "platform:psn"
+          ],
+          "perMinute": 39.5,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "redemptions.completed",
+          "tags": [
+            "platform:xbox"
+          ],
+          "perMinute": 21.7,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "redemptions.completed",
+          "tags": [
+            "platform:steam"
+          ],
+          "perMinute": 13.8,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "redemptions.completed",
+          "tags": [
+            "platform:ea_app"
+          ],
+          "perMinute": 5.9,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "wallet.coins.credited",
+          "tags": [
+            "platform:psn",
+            "source:store_purchase"
+          ],
+          "perMinute": 86000,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "wallet.coins.credited",
+          "tags": [
+            "platform:xbox",
+            "source:store_purchase"
+          ],
+          "perMinute": 47300,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "wallet.coins.credited",
+          "tags": [
+            "platform:steam",
+            "source:store_purchase"
+          ],
+          "perMinute": 30100,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "wallet.coins.credited",
+          "tags": [
+            "platform:ea_app",
+            "source:store_purchase"
+          ],
+          "perMinute": 12900,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "redemptions.duplicate",
+          "tags": [
+            "platform:psn"
+          ],
+          "perMinute": 0.5,
+          "jitter": 0.8
+        },
+        {
+          "metric": "redemptions.duplicate",
+          "tags": [
+            "platform:xbox"
+          ],
+          "perMinute": 0.3,
+          "jitter": 0.8
+        },
+        {
+          "metric": "redemptions.duplicate",
+          "tags": [
+            "platform:steam"
+          ],
+          "perMinute": 0.2,
+          "jitter": 0.8
+        },
+        {
+          "metric": "redemptions.duplicate",
+          "tags": [
+            "platform:ea_app"
+          ],
+          "perMinute": 0.1,
+          "jitter": 0.8
+        },
+        {
+          "metric": "receipts.rejected",
+          "tags": [
+            "platform:steam",
+            "reason:order_not_found"
+          ],
+          "perMinute": 0.3,
+          "jitter": 0.8
+        },
+        {
+          "metric": "receipts.rejected",
+          "tags": [
+            "platform:psn",
+            "reason:beneficiary_mismatch"
+          ],
+          "perMinute": 0.2,
+          "jitter": 0.8
+        },
+        {
+          "metric": "wallet.provisioned",
+          "tags": [
+            "platform:psn"
+          ],
+          "perMinute": 9,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "wallet.provisioned",
+          "tags": [
+            "platform:xbox"
+          ],
+          "perMinute": 6,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "wallet.provisioned",
+          "tags": [
+            "platform:steam"
+          ],
+          "perMinute": 6,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "wallet.provisioned",
+          "tags": [
+            "platform:ea_app"
+          ],
+          "perMinute": 3,
+          "jitter": 0.3,
+          "diurnal": true
+        },
+        {
+          "metric": "edge.flagged",
+          "tags": [
+            "action:allowed"
+          ],
+          "perMinute": 0.6,
+          "jitter": 0.8
+        },
+        {
+          "metric": "edge.flagged",
+          "tags": [
+            "action:blocked"
+          ],
+          "perMinute": 0.1,
+          "jitter": 0.8
+        }
+      ],
+      "logs": [
+        {
+          "perHour": 40,
+          "status": "info",
+          "logger": "apex.entitlements.redemption",
+          "template": "redemption completed: +2150 Apex Coins to account 100{executionId} via psn (sku apex.coins.2150)"
+        },
+        {
+          "perHour": 20,
+          "status": "info",
+          "logger": "apex.entitlements.redemption",
+          "template": "redemption completed: +1000 Apex Coins to account 100{executionId} via psn (sku apex.coins.1000)"
+        },
+        {
+          "perHour": 25,
+          "status": "info",
+          "logger": "apex.entitlements.redemption",
+          "template": "redemption completed: +1000 Apex Coins to account 100{executionId} via xbox (sku apex.coins.1000)"
+        },
+        {
+          "perHour": 12,
+          "status": "info",
+          "logger": "apex.entitlements.redemption",
+          "template": "redemption completed: +2150 Apex Coins to account 100{executionId} via xbox (sku apex.coins.2150)"
+        },
+        {
+          "perHour": 15,
+          "status": "info",
+          "logger": "apex.entitlements.redemption",
+          "template": "redemption completed: +4350 Apex Coins to account 100{executionId} via steam (sku apex.coins.4350)"
+        },
+        {
+          "perHour": 8,
+          "status": "info",
+          "logger": "apex.entitlements.redemption",
+          "template": "redemption completed: +1000 Apex Coins to account 100{executionId} via ea_app (sku apex.coins.1000)"
+        },
+        {
+          "perHour": 3,
+          "status": "warn",
+          "logger": "apex.entitlements.redemption",
+          "template": "duplicate redemption rejected: psn order 2088{executionId}{jobId} already redeemed by account 100{executionId}"
+        },
+        {
+          "perHour": 2,
+          "status": "warn",
+          "logger": "apex.entitlements.redemption",
+          "template": "duplicate redemption rejected: steam order 51{executionId}{n} already redeemed by account 100{executionId}"
+        },
+        {
+          "perHour": 3,
+          "status": "warn",
+          "logger": "apex.entitlements.receipts",
+          "template": "receipt rejected: steam order_not_found for account 100{executionId}"
+        },
+        {
+          "perHour": 2,
+          "status": "warn",
+          "logger": "apex.entitlements.receipts",
+          "template": "receipt rejected: psn beneficiary_mismatch for account 100{executionId}"
+        },
+        {
+          "perHour": 30,
+          "status": "info",
+          "logger": "apex.entitlements.wallet",
+          "template": "provisioned wallet for account 1012{jobId} (account.created, platform psn)"
+        },
+        {
+          "perHour": 20,
+          "status": "info",
+          "logger": "apex.entitlements.wallet",
+          "template": "provisioned wallet for account 1012{jobId} (account.created, platform xbox)"
+        },
+        {
+          "perHour": 15,
+          "status": "info",
+          "logger": "apex.entitlements.wallet",
+          "template": "provisioned wallet for account 1012{jobId} (account.created, platform steam)"
+        },
+        {
+          "perHour": 8,
+          "status": "info",
+          "logger": "apex.entitlements.wallet",
+          "template": "provisioned wallet for account 1012{jobId} (account.created, platform ea_app)"
+        },
+        {
+          "perHour": 5,
+          "status": "warn",
+          "logger": "apex.entitlements.edge",
+          "template": "flagged client allowed on GET /v1/wallet: account 100{executionId}, bot score 0.8{attempt}, asn 65010"
+        }
+      ]
+    },
+    "prelude": [
+      {
+        "id": "replay-probe",
+        "afterArmMs": 60000,
+        "backdateMs": 7200000,
+        "note": "Loud precursor on the OLD build (2026.11.3), 2h back so it always predates the deploy: account 100482193 resubmits its Xbox order with the GUID re-cased and every variant is refused as a duplicate. After 11.4 the same account becomes the top recipient. The only telemetry that shows what the exploit actually sends.",
+        "logs": [
+          {
+            "count": 1,
+            "offsetMs": 0,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 7F3C9A1E-5B2D-4E8F-9A61-0C4D2B7E8F13 already redeemed by account 100482193"
+          },
+          {
+            "count": 1,
+            "offsetMs": 47000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 7F3C9A1E-5b2d-4E8F-9a61-0C4D2B7E8F13 already redeemed by account 100482193"
+          },
+          {
+            "count": 1,
+            "offsetMs": 94000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 7f3C9a1e-5b2D-4E8f-9a61-0c4D2b7e8F13 already redeemed by account 100482193"
+          },
+          {
+            "count": 1,
+            "offsetMs": 141000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 7F3C9A1E-5b2d-4e8f-9a61-0c4d2b7e8f13 already redeemed by account 100482193"
+          }
+        ],
+        "metrics": [
+          {
+            "metric": "redemptions.duplicate",
+            "tags": [
+              "platform:xbox"
+            ],
+            "count": 4
+          }
+        ]
+      }
+    ],
+    "phases": [
+      {
+        "id": "previous-reconcile",
+        "startMs": -4680000,
+        "note": "The previous hourly reconciliation run, all platforms within tolerance (before the deploy).",
+        "logs": [
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation psn: ledger credited 4809950 coins vs 4801400 coins settled over 60m — within tolerance"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation xbox: ledger credited 2641150 coins vs 2639800 coins settled over 60m — within tolerance"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation steam: ledger credited 1679300 coins vs 1677750 coins settled over 60m — within tolerance"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation ea_app: ledger credited 718650 coins vs 718650 coins settled over 60m — within tolerance"
+          }
+        ]
+      },
+      {
+        "id": "deploy",
+        "startMs": -3300000,
+        "note": "apex-entitlements 2026.11.4 rolls out 55 min before declaration. This IS the cause (the envelope refactor dropped Xbox order-id normalisation from the redemption key), but nothing errors: the deploy log and the pod startup lines are the only trace.",
+        "logs": [
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.deploy",
+            "template": "deploy finished: apex-entitlements 2026.11.4 rolled out to 6/6 pods (previous 2026.11.3)"
+          },
+          {
+            "perHour": 360,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements",
+            "template": "apex-entitlements 2026.11.4 listening on :8080 (production)"
+          }
+        ]
+      },
+      {
+        "id": "onset",
+        "startMs": -2700000,
+        "note": "Exploit starts 45 min before declaration: a handful of established accounts resubmit the same Xbox receipt with the order GUID re-cased; each variant gets a fresh ledger key and is credited. QUIET: success logs at INFO, no duplicate warnings, no errors. Copycats follow.",
+        "metrics": [
+          {
+            "metric": "receipts.validated",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 140,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "redemptions.completed",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 139,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "wallet.coins.credited",
+            "tags": [
+              "platform:xbox",
+              "source:store_purchase"
+            ],
+            "perMinute": 380000,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 180,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100482193 via xbox (sku apex.coins.11500)"
+          },
+          {
+            "perHour": 180,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100517730 via xbox (sku apex.coins.11500)"
+          },
+          {
+            "perHour": 180,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100390461 via xbox (sku apex.coins.11500)"
+          },
+          {
+            "perHour": 180,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100611288 via xbox (sku apex.coins.11500)"
+          },
+          {
+            "perHour": 900,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +4350 Apex Coins to account 100{executionId} via xbox (sku apex.coins.4350)"
+          }
+        ]
+      },
+      {
+        "id": "bot-farm",
+        "startMs": -2520000,
+        "note": "LOUD red herring, 3 min after onset: a bot farm on ASN 64503 mass-creates Steam/EA app accounts (wallet provisioning x25), trips edge bot scoring and probes redemptions with junk receipts that are all blocked or rejected. None of these accounts is ever credited.",
+        "metrics": [
+          {
+            "metric": "wallet.provisioned",
+            "tags": [
+              "platform:steam"
+            ],
+            "perMinute": 260,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "wallet.provisioned",
+            "tags": [
+              "platform:ea_app"
+            ],
+            "perMinute": 420,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "edge.flagged",
+            "tags": [
+              "action:allowed"
+            ],
+            "perMinute": 240,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "edge.flagged",
+            "tags": [
+              "action:blocked"
+            ],
+            "perMinute": 90,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "receipts.rejected",
+            "tags": [
+              "platform:steam",
+              "reason:order_not_found"
+            ],
+            "perMinute": 35,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "receipts.rejected",
+            "tags": [
+              "platform:ea_app",
+              "reason:malformed_receipt"
+            ],
+            "perMinute": 20,
+            "jitter": 0.3
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 500,
+            "status": "info",
+            "logger": "apex.entitlements.wallet",
+            "template": "provisioned wallet for account 1012{jobId} (account.created, platform ea_app)"
+          },
+          {
+            "perHour": 300,
+            "status": "info",
+            "logger": "apex.entitlements.wallet",
+            "template": "provisioned wallet for account 1012{jobId} (account.created, platform steam)"
+          },
+          {
+            "perHour": 240,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "flagged client allowed on GET /v1/wallet: account 1012{jobId}, bot score 0.8{attempt}, asn 64503"
+          },
+          {
+            "perHour": 120,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "flagged client allowed on POST /v1/redemptions: account 1012{jobId}, bot score 0.8{attempt}, asn 64503"
+          },
+          {
+            "perHour": 150,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "blocked redemption from flagged client: account 1012{jobId}, bot score 0.97, asn 64503"
+          },
+          {
+            "perHour": 90,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "blocked redemption from flagged client: account 1012{jobId}, bot score 0.99, asn 64503"
+          },
+          {
+            "perHour": 90,
+            "status": "warn",
+            "logger": "apex.entitlements.receipts",
+            "template": "receipt rejected: steam order_not_found for account 1012{jobId}"
+          },
+          {
+            "perHour": 60,
+            "status": "warn",
+            "logger": "apex.entitlements.receipts",
+            "template": "receipt rejected: ea_app malformed_receipt for account 1012{jobId}"
+          }
+        ]
+      },
+      {
+        "id": "escalation",
+        "startMs": -1500000,
+        "note": "The trick spreads (Discord) 25 min before declaration: Xbox credits roughly triple again.",
+        "metrics": [
+          {
+            "metric": "receipts.validated",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 380,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "redemptions.completed",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 378,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "wallet.coins.credited",
+            "tags": [
+              "platform:xbox",
+              "source:store_purchase"
+            ],
+            "perMinute": 1050000,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 1800,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +4350 Apex Coins to account 100{executionId} via xbox (sku apex.coins.4350)"
+          },
+          {
+            "perHour": 600,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +6700 Apex Coins to account 100{executionId} via xbox (sku apex.coins.6700)"
+          }
+        ]
+      },
+      {
+        "id": "reconcile-drift",
+        "startMs": -1080000,
+        "note": "The hourly reconciliation run 18 min before declaration WARNs for Xbox only. Logs-only, no monitor on it: this is what nobody saw.",
+        "logs": [
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation psn: ledger credited 4812350 coins vs 4806200 coins settled over 60m — within tolerance"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "warn",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation xbox: ledger credited 17241650 coins vs 2638900 coins in platform-settled orders over 60m (ratio 6.53) — exceeds tolerance 1.05"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation steam: ledger credited 1683400 coins vs 1679050 coins settled over 60m — within tolerance"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "apex.entitlements.reconcile",
+            "template": "reconciliation ea_app: ledger credited 721300 coins vs 719950 coins settled over 60m — within tolerance"
+          }
+        ]
+      },
+      {
+        "id": "asn-blocked",
+        "manual": true,
+        "note": "Edge blocks ASN 64503: account creation, edge flags and junk receipts drop back to baseline. The Xbox coin surplus does not move.",
+        "metrics": [
+          {
+            "metric": "wallet.provisioned",
+            "tags": [
+              "platform:steam"
+            ],
+            "perMinute": 6,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "wallet.provisioned",
+            "tags": [
+              "platform:ea_app"
+            ],
+            "perMinute": 3,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "edge.flagged",
+            "tags": [
+              "action:allowed"
+            ],
+            "perMinute": 0.6,
+            "jitter": 0.8,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "edge.flagged",
+            "tags": [
+              "action:blocked"
+            ],
+            "perMinute": 0.1,
+            "jitter": 0.8,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "receipts.rejected",
+            "tags": [
+              "platform:steam",
+              "reason:order_not_found"
+            ],
+            "perMinute": 0.3,
+            "jitter": 0.8,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "receipts.rejected",
+            "tags": [
+              "platform:ea_app",
+              "reason:malformed_receipt"
+            ],
+            "perMinute": 0,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 8,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "apex.entitlements.wallet",
+            "template": "provisioned wallet for account 1012{jobId} (account.created, platform ea_app)"
+          },
+          {
+            "perHour": 15,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "apex.entitlements.wallet",
+            "template": "provisioned wallet for account 1012{jobId} (account.created, platform steam)"
+          },
+          {
+            "perHour": 0,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "flagged client allowed on GET /v1/wallet: account 1012{jobId}, bot score 0.8{attempt}, asn 64503",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "flagged client allowed on POST /v1/redemptions: account 1012{jobId}, bot score 0.8{attempt}, asn 64503",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "blocked redemption from flagged client: account 1012{jobId}, bot score 0.97, asn 64503",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "warn",
+            "logger": "apex.entitlements.edge",
+            "template": "blocked redemption from flagged client: account 1012{jobId}, bot score 0.99, asn 64503",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "warn",
+            "logger": "apex.entitlements.receipts",
+            "template": "receipt rejected: steam order_not_found for account 1012{jobId}",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "warn",
+            "logger": "apex.entitlements.receipts",
+            "template": "receipt rejected: ea_app malformed_receipt for account 1012{jobId}",
+            "replacesBaseline": true
+          }
+        ]
+      },
+      {
+        "id": "xbox-paused",
+        "manual": true,
+        "note": "REDEMPTION_PAUSED_PLATFORMS=xbox: Xbox redemptions are deferred before validation, so Xbox credits stop entirely (legit buyers included). Exploiters keep retrying.",
+        "metrics": [
+          {
+            "metric": "receipts.validated",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 0,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "redemptions.completed",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 0,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "wallet.coins.credited",
+            "tags": [
+              "platform:xbox",
+              "source:store_purchase"
+            ],
+            "perMinute": 0,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "redemptions.duplicate",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 0,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "redemptions.deferred",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 260,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100482193 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100517730 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100390461 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100611288 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +4350 Apex Coins to account 100{executionId} via xbox (sku apex.coins.4350)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +6700 Apex Coins to account 100{executionId} via xbox (sku apex.coins.6700)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +1000 Apex Coins to account 100{executionId} via xbox (sku apex.coins.1000)"
+          },
+          {
+            "perHour": 0,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +2150 Apex Coins to account 100{executionId} via xbox (sku apex.coins.2150)"
+          },
+          {
+            "perHour": 120,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100482193)"
+          },
+          {
+            "perHour": 120,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100517730)"
+          },
+          {
+            "perHour": 120,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100390461)"
+          },
+          {
+            "perHour": 120,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100611288)"
+          },
+          {
+            "perHour": 900,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100{executionId})"
+          }
+        ]
+      },
+      {
+        "id": "mitigated",
+        "manual": true,
+        "note": "Rolled back to 2026.11.3 (old key normalisation): Xbox credits return to baseline; replays keep arriving for ~25 min but are now rejected as duplicates. Coins already credited stay credited until the clawback.",
+        "metrics": [
+          {
+            "metric": "receipts.validated",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 22,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true,
+            "catchUpBurst": {
+              "count": 3375,
+              "windowMs": 1500000
+            }
+          },
+          {
+            "metric": "redemptions.completed",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 21.7,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "wallet.coins.credited",
+            "tags": [
+              "platform:xbox",
+              "source:store_purchase"
+            ],
+            "perMinute": 47300,
+            "jitter": 0.3,
+            "diurnal": true,
+            "replacesBaseline": true
+          },
+          {
+            "metric": "redemptions.duplicate",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 0.3,
+            "jitter": 0.8,
+            "replacesBaseline": true,
+            "catchUpBurst": {
+              "count": 3375,
+              "windowMs": 1500000
+            }
+          },
+          {
+            "metric": "redemptions.deferred",
+            "tags": [
+              "platform:xbox"
+            ],
+            "perMinute": 0,
+            "jitter": 0.3,
+            "replacesBaseline": true
+          }
+        ],
+        "logs": [
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100482193 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100517730 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100390461 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +11500 Apex Coins to account 100611288 via xbox (sku apex.coins.11500)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +4350 Apex Coins to account 100{executionId} via xbox (sku apex.coins.4350)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +6700 Apex Coins to account 100{executionId} via xbox (sku apex.coins.6700)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100482193)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100517730)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100390461)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100611288)",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 0,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption deferred: xbox paused by REDEMPTION_PAUSED_PLATFORMS, receipt queued for retry (account 100{executionId})",
+            "replacesBaseline": true
+          },
+          {
+            "perHour": 25,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +1000 Apex Coins to account 100{executionId} via xbox (sku apex.coins.1000)"
+          },
+          {
+            "perHour": 12,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "apex.entitlements.redemption",
+            "template": "redemption completed: +2150 Apex Coins to account 100{executionId} via xbox (sku apex.coins.2150)"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 7F3C9A1E-5B2D-4E8F-9A61-0C4D2B7E8F13 already redeemed by account 100482193"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 7F3C9A1E-5b2d-4E8F-9a61-0C4D2B7E8F13 already redeemed by account 100482193"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order E21B7D04-9C3A-4F6E-8B15-D7A20C3E9F58 already redeemed by account 100517730"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order e21B7D04-9c3a-4F6E-8b15-d7a20C3E9F58 already redeemed by account 100517730"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 4A9E0F73-2C81-4B5D-A6E9-31F7C8D02B6A already redeemed by account 100390461"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order 4A9E0F73-2c81-4B5D-A6E9-31f7c8d02B6A already redeemed by account 100390461"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order B8D35C19-7E4F-4A02-9D6B-5C0E1A7F3D84 already redeemed by account 100611288"
+          },
+          {
+            "perHour": 60,
+            "durationMs": 1500000,
+            "status": "warn",
+            "logger": "apex.entitlements.redemption",
+            "template": "duplicate redemption rejected: xbox order b8d35C19-7e4f-4A02-9d6b-5C0E1A7F3D84 already redeemed by account 100611288"
+          }
+        ]
+      }
+    ]
+  },
+  "personas": [
+    {
+      "id": "ic",
+      "username": "Rhea Castellanos",
+      "avatar": "/incident-lab/avatars/ea-rhea.png",
+      "icon": ":rotating_light:",
+      "role": "Incident commander and primary responder; engineering manager for the store & economy platform. Calm, decisive, briefs leadership. Suspects the bot farm and the deploy equally and wants evidence before a no-op or a launch-weekend rollback.",
+      "canReveal": [
+        "Leadership wants an update every 30 minutes.",
+        "Rolling back during the season launch weekend needs economy sign-off.",
+        "She approves every mitigation in this channel."
+      ]
+    },
+    {
+      "id": "eng_a",
+      "username": "Kenji Moreau",
+      "avatar": "/incident-lab/avatars/ea-kenji.png",
+      "icon": ":hammer_and_wrench:",
+      "role": "Commerce backend engineer who owns apex-entitlements (receipt adapters, redemption ledger, wallets). Knows the service config but has not re-read the 11.4 diff.",
+      "canReveal": [
+        "Pods are healthy: latency and error rate normal.",
+        "REDEMPTION_PAUSED_PLATFORMS pauses one platform: receipts queue (HTTP 202) and replay later, nobody loses a purchase.",
+        "The redemption ledger is supposed to make every store order creditable exactly once."
+      ]
+    },
+    {
+      "id": "eng_b",
+      "username": "Sam Okafor",
+      "avatar": "/incident-lab/avatars/ea-sam.png",
+      "icon": ":satellite_antenna:",
+      "role": "Trust & safety / edge on-call. Watching the bot farm all day and convinced it is the story. Eager to block things.",
+      "canReveal": [
+        "New account creation is ~25x normal, almost all from ASN 64503, on Steam and the EA app.",
+        "Matchmaking reports lobbies full of fresh level-1 accounts.",
+        "The edge can block an ASN in about a minute."
+      ]
+    },
+    {
+      "id": "eng_lead",
+      "username": "Lena Brandt",
+      "avatar": "/incident-lab/avatars/ea-lena.png",
+      "icon": ":clipboard:",
+      "role": "Release engineer. Knows what shipped and when, but not how the code works.",
+      "canReveal": [
+        "apex-entitlements 2026.11.4 finished rolling out to 6/6 pods about 55 minutes before the incident was declared; previous release 2026.11.3.",
+        "A rollback takes about 5 minutes."
+      ]
+    },
+    {
+      "id": "biz",
+      "username": "Ines Duarte",
+      "avatar": "/incident-lab/avatars/ea-ines.png",
+      "icon": ":chart_with_upwards_trend:",
+      "role": "Economy & fraud analytics lead; her team spotted the anomaly on the economy dashboard. Speaks in coins, revenue and accounts; pushes for numbers and the clawback.",
+      "canReveal": [
+        "Over the last hour the ledger credited roughly 6x the coins the platforms settled.",
+        "Store revenue per minute is flat versus last week.",
+        "Free coins spent on packs are hard to take back."
+      ]
+    }
+  ],
+  "mitigations": {
+    "note": "Remediations the investigator can ask for in the channel. Only listed options are recognised; options without an action change nothing in telemetry.",
+    "options": [
+      {
+        "id": "pause-xbox-redemptions",
+        "persona": "eng_a",
+        "action": "xbox-paused",
+        "observePersona": "biz",
+        "proposal": "Pause Xbox redemptions with REDEMPTION_PAUSED_PLATFORMS=xbox (receipts are queued and replayed later, not lost).",
+        "ack": "on it, setting REDEMPTION_PAUSED_PLATFORMS=xbox and rolling the pods. back in 2",
+        "observation": "xbox credits dropped to zero, receipts are queuing as deferred. the bleed stopped, but legit xbox buyers now see pending coins until we unpause"
+      },
+      {
+        "id": "rollback-release",
+        "persona": "eng_lead",
+        "action": "mitigate",
+        "observePersona": "eng_b",
+        "proposal": "Roll apex-entitlements back from 2026.11.4 to 2026.11.3.",
+        "ack": "getting economy sign-off and starting the rollback to 2026.11.3, ~5 min",
+        "observation": "rollback done on 6/6. xbox credits back to baseline and xbox duplicate rejections jumped, so the replays are now being refused"
+      },
+      {
+        "id": "block-bot-asn",
+        "persona": "eng_b",
+        "action": "asn-blocked",
+        "observePersona": "biz",
+        "proposal": "Block the bot farm's ASN 64503 at the edge.",
+        "ack": "blocking asn 64503 at the edge now",
+        "observation": "account creation is back to normal after the asn block, but the coin surplus hasn't moved at all. still crediting way more than settles"
+      },
+      {
+        "id": "claw-back-credits",
+        "persona": "biz",
+        "proposal": "Claw back the excess Apex Coins credited from replayed receipts.",
+        "ack": "economy can run a balance correction, but only once the leak is closed and we have the account list and excess per account. send it over",
+        "observation": "clawback job is scoped and queued behind the fix; nothing changes in live telemetry until it runs"
+      },
+      {
+        "id": "restart-pods",
+        "persona": "eng_a",
+        "proposal": "Restart or scale the apex-entitlements pods.",
+        "ack": "restarting all 6 apex-entitlements pods",
+        "observation": "pods restarted, no change. still over-crediting"
+      }
+    ]
+  },
+  "script": [
+    {
+      "atMs": 0,
+      "persona": "ic",
+      "text": "opening a sev1. economy flagged that apex coins credited are running way above coins purchased for the last ~45 min, and store revenue is flat. no alert fired, ines's team spotted it on the economy dashboard"
+    },
+    {
+      "atMs": 20000,
+      "persona": "ic",
+      "text": "at the same time t&s is fighting a bot farm: account creation and login spike from one asn, matchmaking flooded. and apex-entitlements 2026.11.4 went out a bit before all this. no idea yet which, if any, is related"
+    },
+    {
+      "atMs": 30000,
+      "persona": "ic",
+      "text": "{devin} can you investigate why we're crediting more apex coins than players are buying? start from this incident's service telemetry in datadog; the apex-entitlements repo is in the summary. confirm or rule out the bot farm and the 11.4 deploy first and post evidence here as you go",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 60000,
+      "persona": "eng_b",
+      "text": "t&s here. new accounts are ~25x normal, nearly all from asn 64503, steam and ea app. matchmaking says lobbies are full of fresh level-1 accounts. i can have the edge block the asn right now"
+    },
+    {
+      "atMs": 90000,
+      "persona": "ic",
+      "text": "hold that a minute sam, i want to know if it's actually what's moving the coin numbers"
+    },
+    {
+      "atMs": 120000,
+      "persona": "biz",
+      "text": "economy here. last hour the ledger credited roughly 6x what the platforms settled. revenue per minute is dead flat vs last week, so this is free currency going out, not more sales. every coin spent on packs is a cosmetic we can't easily take back"
+    },
+    {
+      "atMs": 180000,
+      "persona": "eng_a",
+      "text": "apex-entitlements pods look healthy, latency and errors normal. redemption volume is up though"
+    },
+    {
+      "atMs": 300000,
+      "persona": "ic",
+      "text": "{devin} verdict on the bot farm yet? i'm being asked to block the asn and i don't want to do a no-op on launch weekend",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 420000,
+      "persona": "eng_b",
+      "text": "edge has the asn block staged, just needs a go"
+    },
+    {
+      "atMs": 540000,
+      "persona": "biz",
+      "text": "{devin} i need a number for leadership: roughly how many coins went out that weren't paid for, and to how many accounts?",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 720000,
+      "persona": "eng_b",
+      "text": "edge blocked asn 64503. account creation already dropping back",
+      "action": "asn-blocked"
+    },
+    {
+      "atMs": 840000,
+      "persona": "eng_lead",
+      "text": "release eng here. 2026.11.4 finished on 6/6 pods ~55 min before we declared. changelog: platform adapters now share one receipt envelope ('no behaviour change'), plus readme. tests were green"
+    },
+    {
+      "atMs": 960000,
+      "persona": "ic",
+      "text": "{devin} what mitigation do you recommend: pause a platform's redemptions, roll back 11.4, or something else? give me the risk of each, and tell me whether we need a clawback",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 1080000,
+      "persona": "eng_a",
+      "text": "i can set REDEMPTION_PAUSED_PLATFORMS and roll the pods in ~2 min if rhea approves. paused receipts queue and replay later"
+    },
+    {
+      "atMs": 1140000,
+      "persona": "ic",
+      "text": "approved for whatever devin confirms as the cause. go as soon as we know"
+    },
+    {
+      "atMs": 1320000,
+      "persona": "biz",
+      "text": "community team found a discord thread from around when this started: 'free apex coins on xbox, just resubmit your receipt'. screenshots only, no details"
+    },
+    {
+      "atMs": 1560000,
+      "persona": "ic",
+      "text": "{devin} open a PR with the permanent fix in the apex-entitlements repo, with a regression test so a replayed receipt can never be credited twice",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 1860000,
+      "persona": "eng_lead",
+      "text": "{devin} why didn't anything alert on this? what should we monitor so we catch it before the economy team does?",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 2280000,
+      "persona": "eng_lead",
+      "text": "economy signed off, rolled apex-entitlements back to 2026.11.3 on 6/6 pods. xbox redemptions running on the old build",
+      "action": "mitigate"
+    },
+    {
+      "atMs": 2460000,
+      "persona": "biz",
+      "text": "draft for players: 'we fixed an issue that let some xbox purchases be credited more than once. legitimate purchases are unaffected.' clawback plan still pending"
+    },
+    {
+      "atMs": 2640000,
+      "persona": "eng_b",
+      "text": "xbox credited coins are back to baseline. duplicate rejections on xbox jumped, looks like the replays are still coming in but now get refused"
+    },
+    {
+      "atMs": 3000000,
+      "persona": "ic",
+      "text": "{devin} paste the rca summary for the incident doc: root cause, contributing factors, why detection was late, and follow-ups including the clawback",
+      "mentionsDevin": true
+    },
+    {
+      "atMs": 3300000,
+      "persona": "ic",
+      "text": "thanks all, and thanks {devin}. staying sev1 until the fix pr lands and the clawback is scheduled"
+    }
+  ],
+  "knowledge": [
+    {
+      "unlockAtMs": 0,
+      "facts": [
+        "Coins credited are far above coins purchased for about 45 minutes; store revenue is flat.",
+        "Detected by the economy & fraud analytics team on their dashboard; no monitor fired.",
+        "A bot farm started at about the same time: account creation/login spike from ASN 64503, matchmaking abuse.",
+        "apex-entitlements 2026.11.4 finished rolling out about 55 minutes before declaration; nobody has said what is in it yet.",
+        "One platform's redemptions can be paused with REDEMPTION_PAUSED_PLATFORMS; queued receipts replay later."
+      ]
+    },
+    {
+      "unlockAtMs": 360000,
+      "facts": [
+        "Finance's per-platform split: the surplus is all Xbox. PSN, Steam and EA app credits match their settlements."
+      ]
+    },
+    {
+      "unlockAtMs": 600000,
+      "facts": [
+        "Fraud checked the bot accounts: all brand new, Steam and EA app only, and not one has been credited coins."
+      ]
+    },
+    {
+      "unlockAtMs": 840000,
+      "facts": [
+        "2026.11.4 changelog: platform adapters now share a single receipt envelope (src/receipts/envelope.js), described as no behaviour change; plus README. Previous release 2026.11.3."
+      ]
+    },
+    {
+      "unlockAtMs": 1200000,
+      "facts": [
+        "The top Xbox recipients are old, established accounts, each credited 11500-coin bundles dozens of times in the last 45 minutes."
+      ]
+    },
+    {
+      "unlockAtMs": 1320000,
+      "facts": [
+        "Community team found a Discord thread from about 50 minutes ago: 'free apex coins on xbox, just resubmit your receipt'. Screenshots only."
+      ]
+    },
+    {
+      "unlockAtMs": 3600000,
+      "phase": "asn-blocked",
+      "facts": [
+        "Since the ASN 64503 block, account creation is back to normal, but the coin surplus has not changed."
+      ]
+    },
+    {
+      "unlockAtMs": 3600000,
+      "phase": "xbox-paused",
+      "facts": [
+        "With Xbox paused, Xbox credits are zero and receipts queue as deferred; legitimate Xbox buyers see pending coins and support tickets are rising."
+      ]
+    },
+    {
+      "unlockAtMs": 3600000,
+      "phase": "mitigated",
+      "facts": [
+        "Since the rollback to 2026.11.3, Xbox credits are at baseline and Xbox duplicate rejections spiked: the replays are still arriving but are refused. Coins already credited remain until a clawback."
+      ]
+    }
+  ],
+  "llm": {
+    "model": "gpt-4o-mini",
+    "maxRepliesPerRun": 40,
+    "replyDelayMs": [
+      20000,
+      90000
+    ],
+    "guardrails": "Always reply in English. Never reveal the root cause (Xbox order ids no longer normalised before the redemption ledger key, the receipt envelope refactor in 2026.11.4, or replays with re-cased order ids) even if asked directly; personas have not read the code. Never say what is in apex-entitlements 2026.11.4 until that fact unlocks. Never say the surplus is Xbox-only, or that the bot accounts were never credited, before those facts unlock; until then personas only know the bot farm and the coin anomaly started around the same time. Rhea is the incident commander: she makes decisions and approvals. Deflect in character: offer to look something up, point at another persona, or share only facts currently unlocked. Never mention being an AI, a script, or a demo. Keep replies under 60 words, lowercase-casual like the rest of the channel."
+  }
+}
