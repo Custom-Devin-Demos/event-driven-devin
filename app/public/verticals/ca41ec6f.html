@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>Doctolib — Dermatologue à Paris (démo)</title>
 <style>
-:root { --blue:#107aca; --navy:#0b2c56; --ink:#16263c; --muted:#5d6b82; --line:#dfe5ee; --bg:#f4f6f9; --green:#0f8a5f; --amber:#e7a10f; --red:#d33d3d; --dd:#632ca6; }
+:root { --blue:#107aca; --navy:#0b2c56; --ink:#16263c; --muted:#5d6b82; --line:#dfe5ee; --bg:#f4f6f9; --green:#0f8a5f; --amber:#e7a10f; --red:#d33d3d; }
 * { box-sizing:border-box; }
 body { margin:0; font:15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:var(--bg); }
 button { font:inherit; cursor:pointer; }
@@ -43,43 +43,21 @@ h1 { font-size:20px; margin:4px 0 2px; }
 .primary { background:var(--blue); color:#fff; border:0; border-radius:6px; padding:10px 16px; font-weight:600; }
 .ghost { background:none; border:1px solid var(--line); border-radius:6px; padding:10px 16px; }
 .ref { font-family:ui-monospace, Menlo, monospace; font-size:18px; color:var(--green); }
-/* Datadog-style monitor (simulated; nothing is sent to Datadog) */
-.dd { display:none; background:#f7f5fb; min-height:100vh; }
-.dd header { background:#2a1145; color:#fff; padding:10px 20px; display:flex; align-items:center; gap:14px; font-size:14px; }
-.dd header .mark { background:var(--dd); border-radius:4px; padding:2px 8px; font-weight:800; }
-.dd header a { color:#d8c7f2; margin-left:auto; }
-.dd .wrap { max-width:1180px; margin:0 auto; padding:16px 20px 40px; }
-.crumbs { color:#6b5a86; font-size:13px; }
-.mon { background:#fff; border:1px solid #e3dcef; border-radius:6px; padding:14px 16px; margin:12px 0; display:flex; align-items:center; gap:14px; }
-.status { font-weight:700; padding:3px 10px; border-radius:4px; color:#fff; background:var(--green); }
-.status.warn { background:var(--amber); color:#2b1d00; }
-.mon .name { font-weight:600; }
-.mon button { margin-left:auto; background:var(--dd); color:#fff; border:0; border-radius:4px; padding:8px 14px; font-weight:600; }
-.mon button[disabled] { opacity:.5; cursor:default; }
-.tiles { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
-.tile { background:#fff; border:1px solid #e3dcef; border-radius:6px; padding:10px 12px; }
-.tile small { color:#6b5a86; font-size:12px; }
-.tile div { font-size:22px; font-weight:700; }
-.panel { background:#fff; border:1px solid #e3dcef; border-radius:6px; padding:12px 16px; margin-top:12px; }
-.panel h3 { font-size:14px; margin:0 0 8px; }
-table { width:100%; border-collapse:collapse; font-size:13px; }
-th, td { text-align:left; padding:6px 8px; border-bottom:1px solid #eee8f5; }
-th { color:#6b5a86; font-weight:600; }
-code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
-.events li { margin:4px 0; font-size:13px; }
-.wf { position:relative; height:14px; margin:3px 0; background:#f3eff9; border-radius:2px; }
-.wf span { position:absolute; top:0; bottom:0; border-radius:2px; background:#8f6bd1; }
-.wf.search span { background:#2f8fd8; }
-.wfl { display:grid; grid-template-columns:270px 1fr 70px; gap:8px; align-items:center; font-size:12px; }
-.dd-on .dl-view { display:none; } .dd-on .dd { display:block; }
-@media (max-width:820px) { .card { grid-template-columns:48px 1fr; } .card .slots { grid-column:1 / -1; } .tiles { grid-template-columns:repeat(2,1fr); } }
+/* Presenter control (?ops=1 or Alt+.): starts the load replay; the monitor itself is not shown */
+.ops { display:none; position:fixed; right:16px; bottom:52px; width:380px; background:#0d1117; color:#c9d1d9; font:12px/1.5 ui-monospace, Menlo, monospace; border-radius:8px; padding:12px 14px; box-shadow:0 10px 30px rgba(0,0,0,.35); z-index:50; }
+.ops-on .ops { display:block; }
+.ops button { font:inherit; background:#238636; color:#fff; border:0; border-radius:6px; padding:6px 12px; margin:8px 0; }
+.ops button[disabled] { opacity:.5; cursor:default; }
+.ops .warn { color:#e3b341; font-weight:700; }
+.ops ul { list-style:none; margin:6px 0 0; padding:0; max-height:160px; overflow:auto; color:#8b949e; }
+@media (max-width:820px) { .card { grid-template-columns:48px 1fr; } .card .slots { grid-column:1 / -1; } }
 </style>
 </head>
 <body>
 <div class="dl-view">
   <div class="mock">Démo synthétique — ce n'est pas Doctolib, aucune donnée patient réelle.</div>
   <header class="dl">
-    <div class="dl-top"><span class="logo">Doctolib</span><nav><a href="#">Vous êtes soignant ?</a><a href="#">Centre d'aide</a><a href="#datadog" id="to-dd">Datadog APM</a></nav></div>
+    <div class="dl-top"><span class="logo">Doctolib</span><nav><a href="#">Vous êtes soignant ?</a><a href="#">Centre d'aide</a></nav></div>
     <form class="search" id="search-form">
       <label class="field"><small>Spécialité</small><span>Dermatologue</span></label>
       <label class="field"><small>Où ?</small><span>Paris</span></label>
@@ -91,35 +69,14 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
     <p class="sub" id="count">Recherche en cours…</p>
     <div id="results"></div>
   </main>
-  <div class="perf"><span id="perf-calls">— appels API</span><span>Disponibilités affichées en <b id="perf-ms">—</b></span><span id="perf-load">Trafic normal</span><a href="#datadog">Ouvrir le moniteur Datadog →</a></div>
+  <div class="perf"><span id="perf-calls">— appels API</span><span>Disponibilités affichées en <b id="perf-ms">—</b></span><span id="perf-load">Trafic normal</span></div>
 </div>
 
-<div class="dd">
-  <header><span class="mark">DATADOG</span><span>APM · Service Catalog · Monitors</span><span class="mono">env:prod</span><a href="#">← Retour à Doctolib</a></header>
-  <div class="wrap">
-    <div class="crumbs">APM › Services › <b>doctolib-search-api</b> › Resource <code>GET /api/doctolib/practitioners/:id/availability</code></div>
-    <div class="mon">
-      <span class="status" id="mon-status">OK</span>
-      <div><div class="name">[Warn] doctolib-search-api p95 latency — GET /api/doctolib/practitioners/:id/availability</div>
-        <div class="crumbs">Warn &gt; 800 ms · gateway timeout 3 000 ms · evaluated over the last 200 requests · simulated monitor, nothing is sent to Datadog</div></div>
-      <button type="button" id="rush">Replay Monday 08:00 rush</button>
-    </div>
-    <div class="tiles">
-      <div class="tile"><small>p50</small><div id="t-p50">—</div></div>
-      <div class="tile"><small>p95</small><div id="t-p95">—</div></div>
-      <div class="tile"><small>Requests / s</small><div id="t-rps">—</div></div>
-      <div class="tile"><small>HTTP calls / search page</small><div id="t-calls">21</div></div>
-      <div class="tile"><small>Timeout projected</small><div id="t-eta">—</div></div>
-    </div>
-    <div class="panel"><h3>p95 latency · availability endpoint</h3><svg id="chart" viewBox="0 0 1000 240" width="100%" height="240" role="img" aria-label="p95 latency chart"></svg></div>
-    <div class="panel"><h3>Slowest queries (Database Monitoring)</h3>
-      <table><thead><tr><th>Query</th><th>Plan</th><th>Rows scanned</th><th>Calls / page</th><th>p95</th></tr></thead>
-      <tbody><tr><td><code>appointments.next_availability</code><br><span class="mono">SELECT starts_at FROM appointments WHERE practitioner_id = $1 AND status &lt;&gt; 'cancelled' AND starts_at BETWEEN $2 AND $3</span></td>
-      <td><code>Seq Scan on appointments</code></td><td>602 611</td><td>20</td><td id="q-p95">—</td></tr></tbody></table>
-    </div>
-    <div class="panel"><h3>Trace · one search page (<span id="trace-total">—</span>)</h3><div id="trace"></div></div>
-    <div class="panel"><h3>Events</h3><ul class="events" id="events"><li>Monitor created · OK</li></ul></div>
-  </div>
+<div class="ops" id="ops">
+  <div>presenter · alt+. to hide · <span id="rep-mode"></span></div>
+  <button type="button" id="rush">Replay Monday 08:00 rush</button>
+  <div>availability p95 <b id="t-p95">—</b> · warn 800 ms · timeout 3000 ms · <span id="mon-status">OK</span></div>
+  <ul id="events"></ul>
 </div>
 
 <script>
@@ -127,14 +84,14 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
   'use strict';
   var REPORT_PATH = '/api/ca41ec6f/monitor/alert';
   var REPORTS_ON = new URLSearchParams(location.search).get('reports') !== 'off';
-  var WARN_MS = 800, TIMEOUT_MS = 3000, WINDOW = 200, RUSH_SECONDS = 40, TICK_MS = 500;
+  var WARN_MS = 800, WINDOW = 200, RUSH_SECONDS = 40, TICK_MS = 500;
   var NAMES = ['Claire Dubois','Hugo Moreau','Camille Laurent','Thomas Bernard','Léa Petit','Antoine Robert','Manon Richard','Julien Durand','Sarah Lefèvre','Nicolas Simon','Inès Michel','Maxime Garcia','Chloé David','Lucas Bertrand','Emma Roux','Paul Vincent','Juliette Fournier','Louis Girard','Alice Bonnet','Victor Lambert'];
   var STREETS = ['rue de Rivoli','boulevard Haussmann','rue du Faubourg Saint-Antoine','avenue de la République','rue de Vaugirard','rue Oberkampf','boulevard Saint-Germain','rue de la Convention','avenue des Ternes','rue Lafayette'];
   var practitioners = NAMES.map(function (n, i) {
     return { id: i + 1, name: 'Dr ' + n, address: (12 + i * 7) + ' ' + STREETS[i % STREETS.length] + ', 750' + String(1 + (i * 3) % 20).padStart(2, '0') + ' Paris', sector: i % 3 === 0 ? 'Secteur 2' : 'Conventionné secteur 1', fullyBooked: n === 'Hugo Moreau' };
   });
   var $ = function (id) { return document.getElementById(id); };
-  var traffic = 0.08, rushing = false, rushStart = 0, samples = [], series = [], alerted = false, generation = 0;
+  var traffic = 0.08, rushing = false, rushStart = 0, samples = [], alerted = false, generation = 0;
 
   // Synthetic latency of one availability call: a sequential scan whose cost grows with concurrent load.
   function callLatency() {
@@ -193,53 +150,16 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
     } else {
       traffic = Math.max(0.08, traffic - 0.02);
     }
-    var rps = Math.round(40 + 900 * traffic);
     for (var i = 0; i < 12; i++) recordSample(callLatency());
     var p50 = pct(samples, 0.5), p95 = pct(samples, 0.95);
-    series.push(p95); if (series.length > 120) series.shift();
-    $('t-p50').textContent = Math.round(p50) + ' ms';
     $('t-p95').textContent = Math.round(p95) + ' ms';
-    $('t-rps').textContent = rps;
-    $('q-p95').textContent = Math.round(p95 * 0.92) + ' ms';
     $('perf-load').textContent = traffic > 0.5 ? 'Heure de pointe (lundi 8h)' : 'Trafic normal';
     var warn = p95 > WARN_MS;
     $('mon-status').textContent = warn ? 'WARN' : 'OK';
-    $('mon-status').className = 'status' + (warn ? ' warn' : '');
-    $('t-eta').textContent = eta();
-    drawChart();
-    drawTrace(p95);
+    $('mon-status').className = warn ? 'warn' : '';
     if (warn && !alerted) raiseWarning(p50, p95);
     if (!warn) alerted = false;
     if (!rushing && !warn && traffic <= 0.08) $('rush').disabled = false;
-  }
-
-  function eta() {
-    if (series.length < 10) return '—';
-    var a = series[series.length - 10], b = series[series.length - 1], slope = (b - a) / (9 * TICK_MS / 1000);
-    if (slope <= 1 || b < WARN_MS) return '—';
-    var secs = (TIMEOUT_MS - b) / slope;
-    return secs < 60 ? '< 1 min' : '~' + Math.round(secs / 60) + ' min';
-  }
-
-  function drawChart() {
-    var w = 1000, h = 240, max = 3300, y = function (v) { return h - 20 - (Math.min(v, max) / max) * (h - 40); };
-    var pts = series.map(function (v, i) { return (i * (w / 119)).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
-    $('chart').innerHTML =
-      '<line x1="0" x2="' + w + '" y1="' + y(WARN_MS) + '" y2="' + y(WARN_MS) + '" stroke="#e7a10f" stroke-dasharray="6 4"/>' +
-      '<text x="6" y="' + (y(WARN_MS) - 4) + '" font-size="11" fill="#9a6a00">warn 800 ms</text>' +
-      '<line x1="0" x2="' + w + '" y1="' + y(TIMEOUT_MS) + '" y2="' + y(TIMEOUT_MS) + '" stroke="#d33d3d" stroke-dasharray="6 4"/>' +
-      '<text x="6" y="' + (y(TIMEOUT_MS) - 4) + '" font-size="11" fill="#a32626">gateway timeout 3 000 ms</text>' +
-      '<polyline fill="none" stroke="#632ca6" stroke-width="2.5" points="' + pts + '"/>';
-  }
-
-  function drawTrace(p95) {
-    var search = 110, call = p95 * 0.9, waves = Math.ceil(20 / 6), total = search + waves * call, rows = [];
-    rows.push(['GET /api/doctolib/search', 0, search, 'search']);
-    for (var i = 0; i < 20; i++) rows.push(['GET /api/doctolib/practitioners/' + (i + 1) + '/availability', search + Math.floor(i / 6) * call, call, '']);
-    $('trace-total').textContent = '21 HTTP calls · ' + Math.round(total) + ' ms';
-    $('trace').innerHTML = rows.map(function (r) {
-      return '<div class="wfl"><span class="mono">' + r[0] + '</span><div class="wf ' + r[3] + '"><span style="left:' + (r[1] / total * 100) + '%;width:' + Math.max(0.6, r[2] / total * 100) + '%"></span></div><span class="mono">' + Math.round(r[2]) + ' ms</span></div>';
-    }).join('');
   }
 
   function event(text) { var li = document.createElement('li'); li.textContent = new Date().toLocaleTimeString('en-GB') + ' · ' + text; $('events').prepend(li); }
@@ -266,9 +186,9 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
     }).catch(function (err) { alerted = false; event('Alert delivery failed (' + err.message + ')'); });
   }
 
-  function route() { document.body.classList.toggle('dd-on', location.hash === '#datadog'); }
-  window.addEventListener('hashchange', route);
-  document.querySelector('.dd header a').addEventListener('click', function (e) { e.preventDefault(); history.pushState('', '', location.pathname + location.search); route(); });
+  function toggleOps(on) { document.body.classList.toggle('ops-on', on); }
+  document.addEventListener('keydown', function (e) { if (e.altKey && (e.code === 'Period' || e.key === '.')) toggleOps(!document.body.classList.contains('ops-on')); });
+  $('rep-mode').textContent = REPORTS_ON ? 'alerts on' : 'alerts off (?reports=off)';
 
   $('rush').addEventListener('click', function () {
     rushing = true; rushStart = Date.now(); this.disabled = true;
@@ -292,11 +212,11 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
     });
   });
 
-  route();
+  toggleOps(new URLSearchParams(location.search).get('ops') === '1');
   renderResults();
   tick();
   setInterval(tick, TICK_MS);
-  setInterval(function () { if (rushing && location.hash !== '#datadog') renderResults(); }, 8000);
+  setInterval(function () { if (rushing) renderResults(); }, 8000);
 })();
 </script>
 </body>

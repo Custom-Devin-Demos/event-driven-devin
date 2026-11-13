@@ -100,5 +100,6 @@ describe('ca41ec6f Doctolib search latency monitor', () => {
     const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', 'ca41ec6f.html'), 'utf8');
     expect(html).toContain(MONITOR_PATH);
     expect(html).toContain("get('reports') !== 'off'");
+    expect(html).not.toMatch(/#datadog|DATADOG/);
   });
 });

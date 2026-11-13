@@ -3,9 +3,9 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { createSessionAndAlert } = require('../devin-session');
 
-// Proactive latency demo: a Datadog-style APM monitor on a Doctolib-look patient search warns
-// before the availability endpoint reaches its gateway timeout. Nothing is sent to Datadog; the
-// alert card links back to this page's monitor view. The fix lands on the `doctolib` branch of
+// Proactive latency demo: an (imagined, never rendered) Datadog APM monitor on a Doctolib-look
+// patient search warns before the availability endpoint reaches its gateway timeout. Nothing is
+// sent to Datadog; the only visible signal is the Slack alert card, which links back to the page. The fix lands on the `doctolib` branch of
 // the three joao-cognition demo repos, following the skill kept in the backend repo.
 const CUSTOMER = 'ca41ec6f';
 const APP_SERVICE = 'doctolib-search-api';
@@ -93,7 +93,7 @@ function parseMonitorAlert(body) {
 
 function monitorUrl() {
   const base = (process.env.PUBLIC_BASE_URL || 'https://devindemos.com').replace(/\/$/, '');
-  return `${base}/doctolib-search#datadog`;
+  return `${base}/doctolib-search`;
 }
 
 function raiseLatencyWarning(alert) {
@@ -120,7 +120,7 @@ function raiseLatencyWarning(alert) {
     slowestQuery: SLOW_QUERY,
     slowestQueryP95Ms: alert.queryP95Ms,
     rowsScanned: alert.rowsScanned,
-    simulated: 'Datadog-style monitor rendered by devindemos.com; nothing posted to Datadog',
+    simulated: 'imagined Datadog APM monitor; nothing posted to Datadog and no monitor UI',
   };
 
   incrementMetric('doctolib_search.latency_warning', { route: ROUTE, p95Ms: alert.p95Ms });
