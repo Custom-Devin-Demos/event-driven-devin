@@ -25,11 +25,11 @@ describe('S&P index rebalance registration', () => {
     expect(listAliases()['index-rebalance']).toBe('b539e9d4');
   });
 
-  test('page sends the Devin identity and is listed on the hub', () => {
+  test('page sends the Devin identity and is not listed on the hub', () => {
     const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/b539e9d4.html'), 'utf8');
     for (const key of ['devinUserId', 'devinOrgId', 'devinEmail']) expect(html).toContain(key);
     expect(html).toContain("API + '/rebalance'");
-    expect(fs.readFileSync(path.join(__dirname, '../app/public/hub.html'), 'utf8')).toContain("path: '/sp-index-rebalance'");
+    expect(fs.readFileSync(path.join(__dirname, '../app/public/hub.html'), 'utf8')).not.toMatch(/index-rebalance|b539e9d4/);
   });
 });
 
