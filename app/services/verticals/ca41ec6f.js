@@ -10,6 +10,11 @@ const { createSessionAndAlert } = require('../devin-session');
 const CUSTOMER = 'ca41ec6f';
 const APP_SERVICE = 'doctolib-search-api';
 const MONITOR_PATH = '/api/ca41ec6f/monitor/alert';
+// The Doctolib iOS app (joao-cognition/demo_ios, branch doctolib) times its availability calls and
+// reports here when p95 crosses the warn threshold; this is the demo's primary entry point.
+const IOS_LATENCY_PATH = '/api/doctolib/ios/latency';
+const SOURCE_PREFIX = 'doctolib/';
+const PLATFORM_LABELS = { web: 'web', ios: 'iOS', android: 'Android' };
 const MONITOR_NAME = '[Warn] doctolib-search-api p95 latency — GET /api/doctolib/practitioners/:id/availability';
 const ROUTE = 'GET /api/doctolib/practitioners/:id/availability';
 const SLOW_QUERY = 'appointments.next_availability';
@@ -20,6 +25,7 @@ const BACKEND_REPO = 'joao-cognition/demo_webapp';
 const ANDROID_REPO = 'joao-cognition/demo_android';
 const IOS_REPO = 'joao-cognition/demo_ios';
 const REPOS = [BACKEND_REPO, ANDROID_REPO, IOS_REPO];
+const SKILL_NAME = 'doctolib-latency-incident-fix';
 const SKILL_PATH = '.agents/skills/cross-platform-incident-fix/SKILL.md';
 const SESSION_PLATFORM = process.env.DOCTOLIB_SEARCH_SESSION_PLATFORM === undefined
   ? 'linux'
@@ -33,8 +39,8 @@ nothing was posted to Datadog. It is WARNING, not failing: p95 latency of \`${RO
 closing in on the ${GATEWAY_TIMEOUT_MS} ms gateway timeout. Patients searching "Dermatologue · Paris" wait for the
 "prochaine disponibilité" on every result card. Fix it before it becomes a timeout.
 
-You are the LEAD Devin. Run the skill *cross-platform-incident-fix* (\`${SKILL_PATH}\` in \`${BACKEND_REPO}\`, Doctolib scenario)
-end to end; it overrides this session's playbook. Clone every repository at the \`${BRANCH}\` branch and open every PR against
+You are the LEAD Devin. Run the skill *${SKILL_NAME}* end to end (if it is not loaded, follow \`${SKILL_PATH}\` in
+\`${BACKEND_REPO}\` on the \`${BRANCH}\` branch, Doctolib scenario); it overrides this session's playbook. Clone every repository at the \`${BRANCH}\` branch and open every PR against
 \`${BRANCH}\`. Read \`AGENTS.md\`, \`docs/SHARED-BACKEND-DEMO.md\` and \`docs/QA-HANDOFF.md\` in the backend repo first. Do not clone,
 change or open PRs in \`COG-GTM/event-driven-devin\` or \`COG-GTM/doctolib-grand-public\`, even though this hosted page lives there.
 1. ROOT CAUSE IN THE BACKEND (isolated run, DOCTOLIB_ENABLE_INCIDENTS=0): reproduce with \`npm run bench\`, read
@@ -69,16 +75,31 @@ function toInt(value, min, max) {
 
 // The page sends the monitor window it observed; only numbers are accepted, the directive and
 // repositories above are fixed server-side.
+function platformOf(report) {
+  if (report.source === undefined) return 'web';
+  if (typeof report.source !== 'string' || !report.source.startsWith(SOURCE_PREFIX)) return '';
+  const platform = report.source.slice(SOURCE_PREFIX.length);
+  return Object.hasOwn(PLATFORM_LABELS, platform) ? platform : '';
+}
+
 function parseMonitorAlert(body) {
   const report = body && typeof body === 'object' ? body : {};
   if (report.service !== APP_SERVICE) return null;
+  const platform = platformOf(report);
+  if (!platform) return null;
   const p95Ms = toInt(report.p95Ms, WARN_THRESHOLD_MS, 60000);
   const p50Ms = toInt(report.p50Ms, 0, 60000);
   const samples = toInt(report.samples, 1, 100000);
   const callsPerPage = toInt(report.callsPerPage, 1, 1000);
   const queryP95Ms = toInt(report.queryP95Ms, 0, 60000);
   if (p95Ms === null || samples === null) return null;
+  const allSlotsMs = toInt(report.allSlotsMs, 0, 600000);
   return {
+    platform,
+    appVersion: clip(report.appVersion, 32),
+    device: clip(report.device, 64),
+    osVersion: clip(report.osVersion, 64),
+    allSlotsMs: allSlotsMs === null ? undefined : allSlotsMs,
     p95Ms,
     p50Ms: p50Ms === null ? undefined : p50Ms,
     samples,
@@ -98,6 +119,8 @@ function monitorUrl() {
 
 function raiseLatencyWarning(alert) {
   const reference = uuidv4();
+  const platform = alert.platform || 'web';
+  const reporter = `the Doctolib ${PLATFORM_LABELS[platform]} app${alert.appVersion ? ` ${alert.appVersion}` : ''}${alert.device ? ` on ${alert.device}` : ''}`;
   const issueTitle = `[Warn] ${APP_SERVICE}: p95 ${alert.p95Ms} ms on ${ROUTE} (warn ${WARN_THRESHOLD_MS} ms, gateway timeout ${GATEWAY_TIMEOUT_MS} ms)`;
   const tags = {
     service: APP_SERVICE,
@@ -106,10 +129,17 @@ function raiseLatencyWarning(alert) {
     monitor_type: 'apm.latency.p95',
     query: SLOW_QUERY,
     branch: BRANCH,
+    platform,
     alert_path: 'instant',
   };
   const extra = {
     reference,
+    reportedBy: reporter,
+    platform,
+    appVersion: alert.appVersion || undefined,
+    device: alert.device || undefined,
+    osVersion: alert.osVersion || undefined,
+    timeToAllSlotsMs: alert.allSlotsMs,
     monitor: MONITOR_NAME,
     p95Ms: alert.p95Ms,
     p50Ms: alert.p50Ms,
@@ -132,7 +162,7 @@ function raiseLatencyWarning(alert) {
     datadogUrl: monitorUrl(),
     culprit: `backend/practitioners.js — nextAvailability (${SLOW_QUERY}, Seq Scan on appointments)`,
     errorType: 'APM latency monitor (warn)',
-    errorValue: `p95 ${alert.p95Ms} ms over the last ${alert.samples} requests; ${alert.callsPerPage} HTTP calls per search page; `
+    errorValue: `Reported by ${reporter}: p95 ${alert.p95Ms} ms over the last ${alert.samples} requests; ${alert.callsPerPage} HTTP calls per search page; `
       + `slowest query ${SLOW_QUERY}${alert.queryP95Ms ? ` p95 ${alert.queryP95Ms} ms` : ''} (Seq Scan, ${alert.rowsScanned} rows)`,
     devinUserId: alert.devinUserId,
     devinEmail: alert.devinEmail,
@@ -169,12 +199,15 @@ module.exports = {
   CUSTOMER,
   APP_SERVICE,
   MONITOR_PATH,
+  IOS_LATENCY_PATH,
+  SOURCE_PREFIX,
   MONITOR_NAME,
   ROUTE,
   WARN_THRESHOLD_MS,
   GATEWAY_TIMEOUT_MS,
   BRANCH,
   REPOS,
+  SKILL_NAME,
   SKILL_PATH,
   REMEDIATION_DIRECTIVE,
   parseMonitorAlert,

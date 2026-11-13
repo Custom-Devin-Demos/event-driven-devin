@@ -13,10 +13,10 @@ const path = require('path');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const routes = require('../app/routes/verticals/ca41ec6f');
 const {
-  APP_SERVICE, MONITOR_PATH, REPOS, BRANCH, ROUTE, parseMonitorAlert,
+  APP_SERVICE, MONITOR_PATH, IOS_LATENCY_PATH, REPOS, BRANCH, ROUTE, SKILL_NAME, parseMonitorAlert,
 } = require('../app/services/verticals/ca41ec6f');
 
-function request(body, headers = {}) {
+function request(body, headers = {}, urlPath = MONITOR_PATH) {
   const app = express();
   app.use(express.json());
   app.use(routes);
@@ -26,7 +26,7 @@ function request(body, headers = {}) {
       const req = http.request({
         host: '127.0.0.1',
         port: server.address().port,
-        path: MONITOR_PATH,
+        path: urlPath,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload), ...headers },
       }, (res) => {
@@ -101,5 +101,40 @@ describe('ca41ec6f Doctolib search latency monitor', () => {
     expect(html).toContain(MONITOR_PATH);
     expect(html).toContain("get('reports') !== 'off'");
     expect(html).not.toMatch(/#datadog|DATADOG/);
+  });
+
+  test('/doctolib-ios renders the iOS app and reports to the iOS path as doctolib/ios', () => {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', 'ca41ec6f.html'), 'utf8');
+    expect(require('../config/customers/ca41ec6f').aliases).toContain('doctolib-ios');
+    expect(html).toContain(IOS_LATENCY_PATH);
+    expect(html).toContain("source: 'doctolib/ios'");
+    expect(parseMonitorAlert({ ...WARNING, source: 'doctolib/ios', allSlotsMs: 2400 }).platform).toBe('ios');
+  });
+
+  test('the iOS app report starts the same lead session, tagged with the reporting platform', async () => {
+    const res = await request({
+      ...WARNING, source: 'doctolib/ios', platform: 'ios', appVersion: '26.11.0', device: 'iPhone 17', allSlotsMs: 1460,
+    }, {}, IOS_LATENCY_PATH);
+    expect(res.status).toBe(202);
+    expect(res.body.sessionRequested).toBe(true);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.repos).toEqual(REPOS);
+    expect(alert.tags).toEqual(expect.arrayContaining([{ key: 'platform', value: 'ios' }]));
+    expect(alert.errorValue).toContain('Reported by the Doctolib iOS app 26.11.0 on iPhone 17');
+    expect(alert.extra.timeToAllSlotsMs).toBe(1460);
+    expect(alert.promptAppendix).toContain(SKILL_NAME);
+    const again = await request({ ...WARNING, source: 'doctolib/ios' }, {}, IOS_LATENCY_PATH);
+    expect(again.status).toBe(429);
+  });
+
+  test('rejects reports from an unknown source', () => {
+    expect(parseMonitorAlert({ ...WARNING, source: 'amadeus-cytric/ios' })).toBeNull();
+    expect(parseMonitorAlert({ ...WARNING, source: 'doctolib/watch' })).toBeNull();
+    expect(parseMonitorAlert({ ...WARNING, source: null })).toBeNull();
+    expect(parseMonitorAlert({ ...WARNING, source: '' })).toBeNull();
+    expect(parseMonitorAlert({ ...WARNING, source: 'doctolib/toString' })).toBeNull();
+    expect(parseMonitorAlert({ ...WARNING, source: 'doctolib/__proto__' })).toBeNull();
+    expect(parseMonitorAlert({ ...WARNING, source: 'doctolib/android' }).platform).toBe('android');
+    expect(parseMonitorAlert(WARNING).platform).toBe('web');
   });
 });

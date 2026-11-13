@@ -2,6 +2,7 @@ const express = require('express');
 const {
   APP_SERVICE,
   MONITOR_PATH,
+  IOS_LATENCY_PATH,
   parseMonitorAlert,
   raiseLatencyWarning,
 } = require('../../services/verticals/ca41ec6f');
@@ -29,14 +30,26 @@ function resetAlertSlots() {
   acceptedAt.length = 0;
 }
 
-router.post(MONITOR_PATH, (req, res) => {
+function allowCrossOrigin(req, res, next) {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
+    'Access-Control-Max-Age': '600',
+  });
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  return next();
+}
+
+// The web page and the native apps share one cooldown: one warning starts one lead session.
+function handleAlert(req, res) {
   if (req.get('x-synthetic')) return res.status(204).end();
   const alert = parseMonitorAlert(req.body);
   if (!alert) {
     return res.status(400).json({
       received: false,
       status: 'rejected',
-      error: `Expected service ${APP_SERVICE} with numeric p95Ms (>= warn threshold) and samples`,
+      error: `Expected service ${APP_SERVICE}, an optional doctolib/<web|ios|android> source, numeric p95Ms (>= warn threshold) and samples`,
     });
   }
   const slot = reserveAlertSlot();
@@ -53,7 +66,11 @@ router.post(MONITOR_PATH, (req, res) => {
     sessionRequested: true,
     receivedAt: new Date().toISOString(),
   });
-});
+}
+
+router.post(MONITOR_PATH, handleAlert);
+router.options(IOS_LATENCY_PATH, allowCrossOrigin);
+router.post(IOS_LATENCY_PATH, allowCrossOrigin, handleAlert);
 
 module.exports = router;
 module.exports.reserveAlertSlot = reserveAlertSlot;

@@ -51,6 +51,26 @@ h1 { font-size:20px; margin:4px 0 2px; }
 .ops .warn { color:#e3b341; font-weight:700; }
 .ops ul { list-style:none; margin:6px 0 0; padding:0; max-height:160px; overflow:auto; color:#8b949e; }
 @media (max-width:820px) { .card { grid-template-columns:48px 1fr; } .card .slots { grid-column:1 / -1; } }
+/* /doctolib-ios: the Doctolib iOS app inside an iPhone frame; reports as source doctolib/ios */
+body.ios { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px; background:radial-gradient(circle at 50% 30%, #1d3a63, #0b1626 70%); }
+.device { width:390px; height:844px; max-height:calc(100vh - 56px); background:#0a0a0c; border-radius:54px; padding:12px; box-shadow:0 0 0 2px #2a2f3a, 0 40px 80px rgba(0,0,0,.6); flex:none; }
+.app { position:relative; height:100%; border-radius:42px; overflow:hidden; background:var(--bg); display:flex; flex-direction:column; transform:translateZ(0); }
+.statusbar { flex:none; height:50px; padding:16px 30px 0; display:flex; justify-content:space-between; font-weight:600; font-size:15px; background:var(--blue); color:#fff; }
+.island { position:absolute; top:11px; left:50%; width:120px; height:34px; margin-left:-60px; border-radius:20px; background:#000; z-index:5; }
+.screen { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.homebar { position:absolute; bottom:8px; left:50%; width:134px; height:5px; margin-left:-67px; border-radius:3px; background:#16263c; opacity:.8; z-index:5; }
+.ios .mock { font-size:10px; }
+.ios .dl-top { padding:8px 16px; }
+.ios .dl-top nav { display:none; }
+.ios .search { padding:0 16px 14px; flex-direction:column; }
+.ios .search button { padding:10px; }
+.ios main { padding:14px 12px 96px; }
+.ios .card { grid-template-columns:48px 1fr; gap:10px; padding:12px; }
+.ios .avatar { width:48px; height:48px; font-size:16px; }
+.ios .card .slots { grid-column:1 / -1; }
+.ios .perf { flex-wrap:wrap; gap:4px 12px; padding:8px 16px 22px; font-size:12px; }
+.ios .modal > div { width:320px; }
+@media (max-width:430px), (max-height:760px) { body.ios { padding:0; } .device { width:100%; height:100vh; max-height:none; border-radius:0; padding:0; box-shadow:none; } .app { border-radius:0; } .island, .homebar { display:none; } }
 </style>
 </head>
 <body>
@@ -82,8 +102,11 @@ h1 { font-size:20px; margin:4px 0 2px; }
 <script>
 (function () {
   'use strict';
-  var REPORT_PATH = '/api/ca41ec6f/monitor/alert';
-  var REPORTS_ON = new URLSearchParams(location.search).get('reports') !== 'off';
+  var params = new URLSearchParams(location.search);
+  var IOS = /^\/doctolib-ios\/?$/.test(location.pathname) || params.get('device') === 'ios';
+  var REPORT_PATH = IOS ? '/api/doctolib/ios/latency' : '/api/ca41ec6f/monitor/alert';
+  var REPORTS_ON = params.get('reports') !== 'off';
+  var IOS_APP = { appVersion: '26.11.0', device: 'iPhone 16 Pro', osVersion: 'iOS 26.1' };
   var WARN_MS = 800, WINDOW = 200, RUSH_SECONDS = 40, TICK_MS = 500;
   var NAMES = ['Claire Dubois','Hugo Moreau','Camille Laurent','Thomas Bernard','Léa Petit','Antoine Robert','Manon Richard','Julien Durand','Sarah Lefèvre','Nicolas Simon','Inès Michel','Maxime Garcia','Chloé David','Lucas Bertrand','Emma Roux','Paul Vincent','Juliette Fournier','Louis Girard','Alice Bonnet','Victor Lambert'];
   var STREETS = ['rue de Rivoli','boulevard Haussmann','rue du Faubourg Saint-Antoine','avenue de la République','rue de Vaugirard','rue Oberkampf','boulevard Saint-Germain','rue de la Convention','avenue des Ternes','rue Lafayette'];
@@ -91,7 +114,7 @@ h1 { font-size:20px; margin:4px 0 2px; }
     return { id: i + 1, name: 'Dr ' + n, address: (12 + i * 7) + ' ' + STREETS[i % STREETS.length] + ', 750' + String(1 + (i * 3) % 20).padStart(2, '0') + ' Paris', sector: i % 3 === 0 ? 'Secteur 2' : 'Conventionné secteur 1', fullyBooked: n === 'Hugo Moreau' };
   });
   var $ = function (id) { return document.getElementById(id); };
-  var traffic = 0.08, rushing = false, rushStart = 0, samples = [], alerted = false, generation = 0;
+  var traffic = 0.08, rushing = false, rushStart = 0, samples = [], alerted = false, generation = 0, lastAllSlotsMs = 0;
 
   // Synthetic latency of one availability call: a sequential scan whose cost grows with concurrent load.
   function callLatency() {
@@ -131,7 +154,7 @@ h1 { font-size:20px; margin:4px 0 2px; }
               ? slots.map(function (s) { return '<button type="button" class="slot" data-p="' + p.id + '" data-s="' + s + '">' + s + '</button>'; }).join('')
               : '<div class="none">Aucune disponibilité dans les 14 prochains jours</div>');
             $('perf-calls').textContent = calls + ' appels API';
-            if (done === practitioners.length) $('perf-ms').textContent = Math.round(performance.now() - started) + ' ms';
+            if (done === practitioners.length) { lastAllSlotsMs = Math.round(performance.now() - started); $('perf-ms').textContent = lastAllSlotsMs + ' ms'; }
             next();
           }, ms);
         })(queue.shift());
@@ -171,14 +194,14 @@ h1 { font-size:20px; margin:4px 0 2px; }
     fetch(REPORT_PATH, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: JSON.stringify(Object.assign(IOS ? Object.assign({ source: 'doctolib/ios', allSlotsMs: lastAllSlotsMs || undefined }, IOS_APP) : {}, {
         service: 'doctolib-search-api',
         p95Ms: Math.round(p95), p50Ms: Math.round(p50), samples: samples.length,
         callsPerPage: 21, queryP95Ms: Math.round(p95 * 0.92), rowsScanned: 602611,
         devinUserId: localStorage.getItem('devinUserId') || '',
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || ''
-      })
+      }))
     }).then(function (res) {
       if (res.status === 202) return res.json().then(function (ack) { event('Notified @devin · lead Devin session requested (ref ' + ack.reference + ')'); });
       if (res.status === 429) { event('Alert already sent recently · no new session'); return; }
@@ -188,7 +211,16 @@ h1 { font-size:20px; margin:4px 0 2px; }
 
   function toggleOps(on) { document.body.classList.toggle('ops-on', on); }
   document.addEventListener('keydown', function (e) { if (e.altKey && (e.code === 'Period' || e.key === '.')) toggleOps(!document.body.classList.contains('ops-on')); });
-  $('rep-mode').textContent = REPORTS_ON ? 'alerts on' : 'alerts off (?reports=off)';
+  $('rep-mode').textContent = (IOS ? 'iOS app · ' : '') + (REPORTS_ON ? 'alerts on' : 'alerts off (?reports=off)');
+  if (IOS) {
+    document.body.classList.add('ios');
+    document.title = 'Doctolib iOS — Dermatologue à Paris (démo)';
+    var view = document.querySelector('.dl-view');
+    var device = document.createElement('div'); device.className = 'device';
+    device.innerHTML = '<div class="app"><div class="island"></div><div class="statusbar"><span>9:41</span><span>5G ▮</span></div><div class="screen"></div><div class="homebar"></div></div>';
+    document.body.insertBefore(device, view);
+    device.querySelector('.screen').appendChild(view);
+  }
 
   $('rush').addEventListener('click', function () {
     rushing = true; rushStart = Date.now(); this.disabled = true;
@@ -212,7 +244,7 @@ h1 { font-size:20px; margin:4px 0 2px; }
     });
   });
 
-  toggleOps(new URLSearchParams(location.search).get('ops') === '1');
+  toggleOps(params.get('ops') === '1');
   renderResults();
   tick();
   setInterval(tick, TICK_MS);
