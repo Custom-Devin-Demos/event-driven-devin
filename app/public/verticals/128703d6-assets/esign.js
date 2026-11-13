@@ -12,6 +12,8 @@
   const ORDER = ['initial-1', 'sign-1', 'title-1'];
   const params = new URLSearchParams(location.search);
   const signerParam = params.get('signer') || params.get('name') || '';
+  const reportsOff = params.get('reports') === 'off';
+  const identity = key => { try { return localStorage.getItem(key) || undefined; } catch { return undefined; } };
   const SIGN_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 1.4-1.4 1.4L10.6 4.4zM4 21h16v-2H4zM11 7h2v6.2l2.3-2.3 1.4 1.4L12 17l-4.7-4.7 1.4-1.4 2.3 2.3z"/></svg>';
 
   let demoId = localStorage.getItem('ds-demo-id');
@@ -271,13 +273,17 @@
       const request = api('/envelope/complete', { method: 'POST', body: {
         values: { 'initial-1': true, 'sign-1': true, 'title-1': state.values['title-1'].trim() },
         signature: { fullName: sig.fullName, initials: sig.initials, mode: sig.mode, style: sig.style, image: sig.image, initialsImage: sig.mode === 'draw' ? sig.iniImage : null },
+        devinUserId: identity('devinUserId'), devinOrgId: identity('devinOrgId'), devinEmail: identity('devinEmail'),
+        ...(reportsOff ? { reports: 'off' } : {}),
       } });
+      request.catch(() => {});
       for (const li of steps) { li.className = 'active'; await pause(650); li.className = 'done'; }
       state.envelope = await request;
       await pause(250);
       location.hash = '#/done';
     } catch (err) {
-      toast('Unable to complete signing', err.message);
+      const ref = err.data && err.data.reference;
+      toast('Unable to complete signing', ref ? `${err.message} Reference: ${ref}` : err.message);
     } finally { overlay.hidden = true; btn.textContent = 'Finish'; updateProgress(); }
   };
 
