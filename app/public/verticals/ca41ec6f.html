@@ -127,7 +127,7 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
   'use strict';
   var REPORT_PATH = '/api/ca41ec6f/monitor/alert';
   var REPORTS_ON = new URLSearchParams(location.search).get('reports') !== 'off';
-  var WARN_MS = 800, TIMEOUT_MS = 3000, WINDOW = 200, RUSH_SECONDS = 40;
+  var WARN_MS = 800, TIMEOUT_MS = 3000, WINDOW = 200, RUSH_SECONDS = 40, TICK_MS = 500;
   var NAMES = ['Claire Dubois','Hugo Moreau','Camille Laurent','Thomas Bernard','Léa Petit','Antoine Robert','Manon Richard','Julien Durand','Sarah Lefèvre','Nicolas Simon','Inès Michel','Maxime Garcia','Chloé David','Lucas Bertrand','Emma Roux','Paul Vincent','Juliette Fournier','Louis Girard','Alice Bonnet','Victor Lambert'];
   var STREETS = ['rue de Rivoli','boulevard Haussmann','rue du Faubourg Saint-Antoine','avenue de la République','rue de Vaugirard','rue Oberkampf','boulevard Saint-Germain','rue de la Convention','avenue des Ternes','rue Lafayette'];
   var practitioners = NAMES.map(function (n, i) {
@@ -189,7 +189,7 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
     if (rushing) {
       var t = (Date.now() - rushStart) / 1000;
       traffic = Math.min(0.95, 0.08 + 0.87 * Math.min(1, t / RUSH_SECONDS));
-      if (t > RUSH_SECONDS + 25) { rushing = false; $('rush').disabled = false; }
+      if (t > RUSH_SECONDS + 25) rushing = false;
     } else {
       traffic = Math.max(0.08, traffic - 0.02);
     }
@@ -209,6 +209,8 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
     drawChart();
     drawTrace(p95);
     if (warn && !alerted) raiseWarning(p50, p95);
+    if (!warn) alerted = false;
+    if (!rushing && !warn && traffic <= 0.08) $('rush').disabled = false;
   }
 
   function eta() {
@@ -269,7 +271,7 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
   document.querySelector('.dd header a').addEventListener('click', function (e) { e.preventDefault(); history.pushState('', '', location.pathname + location.search); route(); });
 
   $('rush').addEventListener('click', function () {
-    rushing = true; rushStart = Date.now(); alerted = false; this.disabled = true;
+    rushing = true; rushStart = Date.now(); this.disabled = true;
     event('Traffic replay started: Monday 08:00 rush (patients searching "Dermatologue · Paris")');
   });
   $('search-form').addEventListener('submit', function (e) { e.preventDefault(); renderResults(); });
@@ -293,7 +295,7 @@ code, .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; }
   route();
   renderResults();
   tick();
-  setInterval(tick, 500);
+  setInterval(tick, TICK_MS);
   setInterval(function () { if (rushing && location.hash !== '#datadog') renderResults(); }, 8000);
 })();
 </script>
