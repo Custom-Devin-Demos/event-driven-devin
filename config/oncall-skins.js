@@ -5095,6 +5095,33 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A GAP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
+  '7c2f91a4': {
+    slug: '7c2f91a4',
+    company: 'Verizon',
+    brandMark: 'V',
+    vertical: 'wirelesscheckout',
+    paths: ['/verizon-oncall'],
+    // Not oncallOnly: /verizon stays the legacy automated (Sentry) demo.
+    // Slack-routed: the Slack on-call responder triages the card, so no
+    // devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
+    page: { file: '4e150e99.html', title: 'Verizon \u2014 Checkout' },
+    accent: '#EE001E',
+    accentDark: '#b80017',
+    supportCenter: 'Verizon Customer Service',
+    alertCard: {
+      title: 'p95 latency spike \u2014 Verizon wireless checkout Place Order (504)',
+      service: 'order-api',
+      release: 'wireless-checkout@5.4.0',
+      team: 'wireless-checkout-oncall',
+      metricValue: '8.0s (504 on ~100% of new-line orders)',
+      threshold: '> 2s',
+      baseline: '~400ms (7-day p95)',
+      symptom: 'Verizon.com device + plan orders hang ~8s after Place Order and then fail with 504 Gateway Timeout while the new line is activated. The order is not placed. Onset coincides with the wireless-checkout 5.4.0 activation release.',
+      impact: 'Customers buying a phone on a new line (iPhone 18 Pro on Simplicity Plan) cannot complete checkout; every order sits on "Processing your order" for ~8 seconds and then errors.',
+    },
+    disclaimer: 'NOT ACTUALLY A VERIZON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Verizon product.',
+  },
   '34203e96': {
     slug: '34203e96',
     company: 'Coppel',
