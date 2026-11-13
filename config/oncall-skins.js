@@ -9719,6 +9719,40 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ONESOURCE VIRTUAL SITE — internal demo only, not affiliated with, endorsed by, or a real OneSource Virtual product.',
   },
+  'a8d903f4': {
+    slug: 'a8d903f4',
+    company: 'Santander UK',
+    brandMark: 'S',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/santander-uk-oncall'],
+    page: { file: 'a8d903f4.html', title: 'Pay someone | Santander Online Banking' },
+    theme: {
+      '--accent': '#EC0000',
+      '--ink': '#222222',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#222222',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Santander UK Help & support',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+    },
+    alertCard: {
+      title: 'p95 latency — Online Banking: pay an existing payee',
+      service: 'olb-payments',
+      release: 'olb-payments@2026.11.1',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.4s',
+      threshold: '> 1.5s',
+      baseline: '~350ms (7-day p95, before olb-payments@2026.11.1)',
+      team: 'uk-digital-payments-oncall',
+      symptom: 'Faster Payments to existing payees hang ~9s after the customer clicks Confirm payment before Payment sent appears. Error rate is normal — the payments go through.',
+      impact: 'Online Banking customers paying someone they have paid before wait ~9 seconds on a spinner; some click Confirm payment again or phone the contact centre worried the payment went twice.',
+    },
+    disclaimer: 'NOT ACTUALLY A SANTANDER SITE — internal demo only, not affiliated with, endorsed by, or a real Santander UK product.',
+  },
 };
 
 function getOncallSkin(slug) {

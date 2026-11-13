@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Pay someone | Santander Online Banking</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #EC0000;
+      --ink: #222222;
+      --surface: #FFFFFF;
+      --chrome-bg: #222222;
+      --chrome-text: #FFFFFF;
+      --canvas: #F6F6F6;
+      --pressed: #CC0000;
+      --pale: #FDEDED;
+      --sky: #DEEDF2;
+      --teal: #137E84;
+      --muted: #6F7779;
+      --faint: #8F9799;
+      --line: #E3E5E6;
+      --field: #CEDEE7;
+      --pos: #3A8340;
+      --pos-bg: #EAF4EB;
+      --err: #CC0000; --err-bg: #FEF0F0;
+      --warn: #7A4D00; --warn-bg: #FFF6E0;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; font-family: "Open Sans", "Segoe UI", Arial, sans-serif; font-size: 15px; line-height: 22px; color: var(--ink); background: var(--canvas); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+    svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    .num { font-variant-numeric: tabular-nums; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+
+    .util { background: var(--chrome-bg); color: rgba(255,255,255,.82); font-size: 13px; }
+    .util .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 40px; }
+    .util nav { display: flex; gap: 4px; }
+    .util a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 10px; }
+    .util a[aria-current] { color: #fff; font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+    .util a:hover { color: #fff; }
+
+    .masthead { background: var(--surface); }
+    .masthead .wrap { display: flex; align-items: center; gap: 24px; min-height: 80px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--accent); flex: none; }
+    .brand svg { width: 30px; height: 34px; }
+    .brand .wm { font-size: 27px; font-weight: 700; letter-spacing: -.02em; }
+    .brand .sub { margin-left: 10px; padding-left: 12px; border-left: 1px solid var(--line); color: var(--muted); font-size: 14px; font-weight: 600; }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 16px; flex: none; }
+    .user .who { text-align: right; line-height: 18px; font-size: 13px; color: var(--muted); }
+    .user .who b { display: block; color: var(--ink); font-size: 15px; font-weight: 600; }
+    .logoff { min-height: 44px; padding: 0 18px; border-radius: 24px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .logoff:hover { background: var(--pale); }
+
+    .mainnav { background: var(--accent); }
+    .mainnav .wrap { display: flex; gap: 2px; }
+    .mainnav a { display: inline-flex; align-items: center; min-height: 50px; padding: 0 18px; color: #fff; font-weight: 600; font-size: 15px; }
+    .mainnav a:hover { background: rgba(0,0,0,.08); }
+    .mainnav a[aria-current] { background: var(--pressed); box-shadow: inset 0 -4px 0 #fff; }
+
+    .pagehead { padding-top: 22px; padding-bottom: 20px; }
+    .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; font-size: 13px; color: var(--muted); }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 36px; color: var(--teal); text-decoration: underline; text-underline-offset: 2px; }
+    h1 { margin: 4px 0 4px; font-size: 32px; line-height: 40px; font-weight: 700; color: var(--ink); }
+    .pagehead p { margin: 0; color: var(--muted); }
+
+    .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr) 320px; gap: 24px; align-items: start; padding-bottom: 56px; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); min-width: 0; }
+
+    .side-nav { padding: 10px 0; }
+    .side-nav h2 { margin: 6px 18px 6px; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+    .side-nav a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 18px; color: var(--ink); border-left: 4px solid transparent; }
+    .side-nav a:hover { background: var(--canvas); }
+    .side-nav a[aria-current] { border-left-color: var(--accent); background: var(--pale); font-weight: 700; color: var(--accent); }
+    .side-help { margin-top: 16px; padding: 18px; font-size: 14px; color: var(--muted); }
+    .side-help b { display: block; color: var(--ink); margin-bottom: 4px; }
+    .side-help a { color: var(--teal); text-decoration: underline; }
+
+    .panel { padding: 26px 32px 30px; }
+    .steps { display: flex; margin: 0 0 26px; padding: 0; list-style: none; font-size: 14px; color: var(--faint); }
+    .steps li { flex: 1; display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 3px solid var(--line); font-weight: 600; }
+    .steps b { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--field); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
+    .steps li.on { color: var(--ink); border-color: var(--accent); }
+    .steps li.on b { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .steps li.done { color: var(--teal); border-color: var(--sky); }
+    .steps li.done b { background: var(--sky); border-color: var(--sky); color: var(--teal); }
+    .panel h2 { margin: 0 0 4px; font-size: 21px; line-height: 28px; font-weight: 700; }
+    .panel .lead { margin: 0 0 22px; color: var(--muted); }
+    .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; }
+    .field { display: grid; gap: 6px; min-width: 0; align-content: start; }
+    .field > label, .field > .lbl { font-weight: 600; font-size: 14px; }
+    .field small { color: var(--muted); font-size: 13px; min-height: 20px; }
+    select, .txt { width: 100%; min-width: 0; min-height: 50px; border: 1.5px solid var(--field); border-radius: 6px; background-color: var(--surface); color: var(--ink); padding: 0 14px; }
+    select { appearance: none; -webkit-appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23137E84' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    select:hover, .txt:hover { border-color: var(--teal); }
+    select:focus, .txt:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(19,126,132,.18); }
+    .cop { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 6px; background: var(--pos-bg); color: #24572A; font-size: 14px; margin: -4px 0 18px; }
+    .cop b { display: block; }
+    .money { position: relative; max-width: 260px; }
+    .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: var(--muted); }
+    .money input { padding-left: 32px; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+    .money input::-webkit-outer-spin-button, .money input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .amount-line { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1.5px solid var(--field); background: var(--surface); font-weight: 600; font-size: 14px; cursor: pointer; color: var(--teal); }
+    .chip:hover { border-color: var(--teal); }
+    .chip[aria-pressed="true"] { background: var(--sky); border-color: var(--teal); }
+    .static { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 14px; border-radius: 6px; background: var(--canvas); }
+    .actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .actions .note { margin-right: auto; display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 28px; border-radius: 24px; border: 1.5px solid transparent; font-weight: 700; font-size: 15px; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: #fff; min-width: 190px; }
+    .btn-primary:hover { background: var(--pressed); }
+    .btn-primary:disabled { background: #F07F7F; cursor: progress; }
+    .btn-plain { background: var(--surface); color: var(--teal); border-color: var(--teal); }
+    .btn-plain:hover { background: var(--sky); }
+    .btn-plain:disabled { opacity: .5; cursor: default; }
+    .spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.45); border-top-color: #fff; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .sum { width: 100%; border-collapse: collapse; }
+    .sum th, .sum td { padding: 13px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .sum th { width: 34%; color: var(--muted); font-weight: 400; }
+    .sum td { font-weight: 600; overflow-wrap: anywhere; }
+    .sum td small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; }
+    .sum .amt td { font-size: 26px; line-height: 32px; font-weight: 700; }
+    .warnline { display: flex; gap: 10px; margin-top: 18px; padding: 12px 14px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); font-size: 14px; }
+    .result-box { display: none; margin-top: 18px; }
+    .result-box.notice, .result-box.error { display: flex; gap: 12px; padding: 14px 16px; border-radius: 6px; }
+    .result-box.notice { background: var(--warn-bg); color: var(--warn); }
+    .result-box.error { background: var(--err-bg); color: var(--err); }
+    .result-box .t { font-weight: 700; }
+    .result-box .d { overflow-wrap: anywhere; }
+    .result-box.success { display: block; margin-top: 0; }
+    .ok-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .ok-badge { width: 48px; height: 48px; border-radius: 50%; background: var(--pos-bg); color: var(--pos); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .ok-badge svg { width: 26px; height: 26px; stroke-width: 2.4; }
+    .ok-head h2 { margin: 0; }
+    .ok-head p { margin: 2px 0 0; color: var(--muted); }
+
+    .acts { margin-top: 22px; padding: 22px 32px 10px; }
+    .acts-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .acts-head h2 { margin: 0; font-size: 18px; font-weight: 700; }
+    .acts-head a { color: var(--teal); font-weight: 600; font-size: 14px; display: inline-flex; min-height: 44px; align-items: center; text-decoration: underline; }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .tbl th { text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); padding: 10px 8px 10px 0; border-bottom: 1px solid var(--line); }
+    .tbl td { padding: 12px 8px 12px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+    .tbl tr:last-child td { border-bottom: 0; }
+    .tbl .r { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; padding-right: 0; }
+    .tbl .in { color: var(--pos); }
+    .tbl .m { color: var(--muted); }
+    .tbl .acc-col { white-space: nowrap; }
+    .tbl tr.fresh td { animation: fresh 1.8s ease-out; }
+    @keyframes fresh { from { background: var(--sky); } to { background: transparent; } }
+
+    .aside-card { padding: 20px 22px 8px; }
+    .aside-card h2 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
+    .lst { list-style: none; margin: 0; padding: 0; }
+    .lst li { padding: 12px 0; min-width: 0; }
+    .lst li + li { border-top: 1px solid var(--line); }
+    .lst .n { font-weight: 600; }
+    .lst .s { font-size: 13px; color: var(--muted); }
+    .lst .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .lst .v small { font-size: 13px; font-weight: 400; color: var(--muted); }
+    .tip { margin-top: 16px; padding: 18px 22px; border-top: 4px solid var(--accent); font-size: 14px; }
+    .tip b { display: block; margin-bottom: 6px; font-size: 15px; }
+    .tip ul { margin: 0; padding-left: 18px; }
+    .tip li + li { margin-top: 6px; }
+
+    .foot { background: var(--chrome-bg); color: rgba(255,255,255,.78); font-size: 14px; }
+    .foot .cols { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 28px; padding: 36px 0 24px; }
+    .foot h3 { margin: 0 0 6px; color: #fff; font-size: 14px; font-weight: 700; }
+    .foot a { display: flex; align-items: center; min-height: 40px; }
+    .foot a:hover { color: #fff; }
+    .foot .brand { color: #fff; }
+    .foot .legal { border-top: 1px solid rgba(255,255,255,.14); padding: 16px 0 24px; font-size: 12px; line-height: 18px; color: rgba(255,255,255,.62); }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: minmax(0, 1fr) 290px; }
+      .side-col { display: none; }
+    }
+    @media (max-width: 860px) {
+      .wrap { padding: 0 18px; }
+      .util nav:first-child a:not([aria-current]) { display: none; }
+      .user .who, .logoff span, .brand .sub { display: none; }
+      .masthead .wrap { min-height: 64px; }
+      .mainnav .wrap { overflow-x: auto; scrollbar-width: none; }
+      .mainnav .wrap::-webkit-scrollbar { display: none; }
+      .mainnav a { white-space: nowrap; padding: 0 12px; font-size: 14px; }
+      .layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+      h1 { font-size: 26px; line-height: 32px; }
+      .panel { padding: 20px 18px 22px; }
+      .acts { padding: 18px 18px 6px; }
+      .grid2 { grid-template-columns: minmax(0, 1fr); }
+      .steps { font-size: 12px; }
+      .steps li { gap: 6px; }
+      .actions { flex-wrap: wrap; }
+      .actions .note { flex-basis: 100%; }
+      .actions .btn { flex: 1; min-width: 0; }
+      .tbl .acc-col { display: none; }
+      .foot .cols { grid-template-columns: 1fr 1fr; }
+      .foot .cols > :first-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="flame" viewBox="0 0 30 34"><path fill="currentColor" d="M16.2 0c-.6 3 .4 5 2.3 7.4 1.8 2.3 3.1 4.6 2.4 7.6 3.3-1.9 5-4.6 5.1-8.1 2.6 2.4 4 5.3 4 8.5 0 4.6-3.1 8-7.8 9.4 2.6-3 2.2-6.8-.6-10 .1 4.2-2.1 6.8-5.4 8.2 1.9-3 .9-5.9-1.3-8.6-2-2.5-3.5-4.8-2.8-8.7-3.4 1.9-5.2 4.8-5.1 8.6-2.2-1.9-3.2-4.2-3.2-7C1.4 9.5 0 12.4 0 15.6 0 21.4 6.7 26 15 26c1.4 0 2.8-.1 4.1-.4C17.8 26.5 16.4 27 15 27 6.7 27 0 22.3 0 16.4V18c0 6.6 6.7 12 15 12s15-5.4 15-12v-1.6C30 26.6 23.3 34 15 34S0 26.6 0 18.4c0-5.6 4.1-9.9 9.2-12.3.9-.4 1.4-.2 1.2.8-.3 1.6.1 3 1 4.2C11.6 6.9 13.3 3.2 16.2 0z"/></symbol>
+    <symbol id="ic-pay" viewBox="0 0 24 24"><path d="M4 12h14l-5-5M18 12l-5 5"/></symbol>
+    <symbol id="ic-transfer" viewBox="0 0 24 24"><path d="M4 8h15l-4-4M20 16H5l4 4"/></symbol>
+    <symbol id="ic-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+    <symbol id="ic-dd" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="ic-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></symbol>
+    <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="ic-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="ic-out" viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l4-4-4-4M14 12H4"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M12 8v5M12 16h.01"/></symbol>
+  </svg>
+  <div class="util">
+    <div class="wrap">
+      <nav aria-label="Customer type"><a href="#" aria-current="page">Personal</a><a href="#">Business</a><a href="#">Corporate</a></nav>
+      <nav aria-label="Support"><a href="#">Help &amp; support</a><a href="#">Branch locator</a></nav>
+    </div>
+  </div>
+  <header class="masthead">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Santander Online Banking, My accounts"><svg aria-hidden="true"><use href="#flame"/></svg><span class="wm">Santander</span><span class="sub">Online Banking</span></a>
+      <div class="user">
+        <span class="who"><b>Emma Clarke</b>Last logged on today at 07:42</span>
+        <button type="button" class="logoff" aria-label="Log off"><svg class="i"><use href="#ic-out"/></svg><span>Log off</span></button>
+      </div>
+    </div>
+  </header>
+  <nav class="mainnav" aria-label="Online Banking">
+    <div class="wrap">
+      <a href="#">My accounts</a>
+      <a href="#" aria-current="page">Payments &amp; transfers</a>
+      <a href="#">Statements &amp; documents</a>
+      <a href="#">Products &amp; services</a>
+      <a href="#">My details &amp; settings</a>
+    </div>
+  </nav>
+  <div class="wrap pagehead">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="#">My accounts</a><span aria-hidden="true">›</span><a href="#">Payments &amp; transfers</a><span aria-hidden="true">›</span><span>Pay someone</span></nav>
+    <h1>Pay someone</h1>
+    <p>Send money to someone you've paid before. Payments made today usually arrive within 2 hours.</p>
+  </div>
+  <main class="wrap layout">
+    <aside class="side-col">
+      <nav class="card side-nav" aria-label="Payments and transfers">
+        <h2>Payments &amp; transfers</h2>
+        <a href="#" aria-current="page"><svg class="i"><use href="#ic-pay"/></svg>Pay someone</a>
+        <a href="#"><svg class="i"><use href="#ic-transfer"/></svg>Transfer between my accounts</a>
+        <a href="#"><svg class="i"><use href="#ic-people"/></svg>Manage payees</a>
+        <a href="#"><svg class="i"><use href="#ic-cal"/></svg>Standing orders</a>
+        <a href="#"><svg class="i"><use href="#ic-dd"/></svg>Direct Debits</a>
+        <a href="#"><svg class="i"><use href="#ic-clock"/></svg>Scheduled payments</a>
+      </nav>
+      <div class="card side-help"><b>Need help with a payment?</b>Call us on 0800 9 123 123, 8am to 8pm every day.<br><a href="#">More ways to contact us</a></div>
+    </aside>
+    <div>
+      <section class="card panel">
+        <ol class="steps" aria-label="Progress">
+          <li id="st1" class="on"><b>1</b>Payment details</li>
+          <li id="st2"><b>2</b>Check and confirm</li>
+          <li id="st3"><b>3</b>Payment sent</li>
+        </ol>
+        <form id="transferForm" novalidate>
+          <div id="stepEdit">
+            <h2>Payment details</h2>
+            <p class="lead">Choose who to pay, the account to pay from and how much.</p>
+            <div class="grid2">
+              <div class="field">
+                <label for="fromAccount">Pay from</label>
+                <select id="fromAccount">
+                  <option value="ACCT-1001" data-name="Edge Current Account" data-sort="09-01-28" data-mask="4417" data-balance="3482.16">Edge Current Account</option>
+                  <option value="ACCT-1003" data-name="Everyday Current Account" data-sort="09-01-28" data-mask="8820" data-balance="1206.54">Everyday Current Account</option>
+                </select>
+                <small id="fromHelp"></small>
+              </div>
+              <div class="field">
+                <label for="toAccount">Pay to</label>
+                <select id="toAccount">
+                  <option value="PAYEE-3105" data-name="Sarah Thompson" data-sort="20-45-77" data-mask="3105" data-ref="Holiday cottage">Sarah Thompson</option>
+                  <option value="PAYEE-7729" data-name="Northfield Lettings Ltd" data-sort="40-11-62" data-mask="7729" data-ref="FLAT 2 RENT">Northfield Lettings Ltd</option>
+                  <option value="PAYEE-6612" data-name="Jamie Patel" data-sort="30-99-50" data-mask="6612" data-ref="Football subs">Jamie Patel</option>
+                  <option value="PAYEE-0458" data-name="Hollis &amp; Grey Builders" data-sort="60-83-71" data-mask="0458" data-ref="INV 2291">Hollis &amp; Grey Builders</option>
+                </select>
+                <small id="toHelp"></small>
+              </div>
+            </div>
+            <div class="cop" id="cop"><svg class="i"><use href="#ic-check"/></svg><div><b>Name check: the name matches</b><span id="copText"></span></div></div>
+            <div class="field" style="margin-bottom:18px">
+              <label for="amount">Amount</label>
+              <div class="amount-line">
+                <div class="money"><span aria-hidden="true">£</span><input class="txt" type="number" id="amount" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" autocomplete="off"></div>
+                <div class="chips" role="group" aria-label="Quick amounts">
+                  <button type="button" class="chip" data-amount="25">£25</button>
+                  <button type="button" class="chip" data-amount="50">£50</button>
+                  <button type="button" class="chip" data-amount="120">£120</button>
+                  <button type="button" class="chip" data-amount="250">£250</button>
+                </div>
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label for="reference">Reference</label>
+                <input class="txt" id="reference" maxlength="18" autocomplete="off">
+                <small>Up to 18 characters. This appears on their statement.</small>
+              </div>
+              <div class="field">
+                <span class="lbl">When</span>
+                <div class="static"><svg class="i" style="color:var(--teal)"><use href="#ic-clock"/></svg><span><b id="edDate"></b> · usually within 2 hours</span></div>
+              </div>
+            </div>
+            <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard">standard</option></select>
+            <div class="actions">
+              <span class="note"><svg class="i"><use href="#ic-lock"/></svg>Payments to UK accounts are free.</span>
+              <button type="button" class="btn btn-plain" id="clearBtn">Cancel</button>
+              <button type="button" class="btn btn-primary" id="nextBtn">Continue</button>
+            </div>
+          </div>
+          <div id="stepConfirm" hidden>
+            <h2>Check and confirm</h2>
+            <p class="lead">Please check the details. Once you confirm, we can't stop the payment.</p>
+            <table class="sum">
+              <tr class="amt"><th scope="row">Amount</th><td class="num" id="rvAmount"></td></tr>
+              <tr><th scope="row">To</th><td><span id="rvTo"></span><small class="num" id="rvToAcct"></small></td></tr>
+              <tr><th scope="row">From</th><td><span id="rvFrom"></span><small class="num" id="rvFromAfter"></small></td></tr>
+              <tr><th scope="row">Reference</th><td id="rvRef"></td></tr>
+              <tr><th scope="row">When</th><td id="rvDate"></td></tr>
+              <tr><th scope="row">Charges</th><td class="num">£0.00</td></tr>
+            </table>
+            <div class="warnline"><svg class="i"><use href="#ic-shield"/></svg><span>We'll never ask you to move money to a "safe account". If someone has told you to make this payment, stop and call us.</span></div>
+            <div class="actions">
+              <span class="note"><svg class="i"><use href="#ic-lock"/></svg>Faster Payment</span>
+              <button type="button" class="btn btn-plain" id="backBtn">Back</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Confirm payment</button>
+            </div>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <section class="card acts" aria-labelledby="actsTitle">
+        <div class="acts-head"><h2 id="actsTitle">Recent transactions</h2><a href="#">View all transactions</a></div>
+        <table class="tbl">
+          <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col" class="acc-col">Account</th><th scope="col" class="r">Amount</th></tr></thead>
+          <tbody id="txList">
+            <tr><td class="m">Today</td><td>CARD PAYMENT TO TESCO STORES 3184</td><td class="acc-col m">Edge •••• 4417</td><td class="r">−£46.82</td></tr>
+            <tr><td class="m">Today</td><td>CARD PAYMENT TO TFL TRAVEL CH</td><td class="acc-col m">Edge •••• 4417</td><td class="r">−£8.10</td></tr>
+            <tr><td class="m">12 Nov</td><td>FASTER PAYMENTS RECEIPT FROM D CLARKE</td><td class="acc-col m">Edge •••• 4417</td><td class="r in">+£60.00</td></tr>
+            <tr><td class="m">11 Nov</td><td>DIRECT DEBIT PAYMENT TO OCTOPUS ENERGY</td><td class="acc-col m">Edge •••• 4417</td><td class="r">−£118.00</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+    <aside>
+      <section class="card aside-card" aria-labelledby="acctTitle">
+        <h2 id="acctTitle">My accounts</h2>
+        <ul class="lst" id="acctList"></ul>
+      </section>
+      <section class="card tip">
+        <b>Stay safe from scams</b>
+        <ul>
+          <li>Only pay people you know and trust.</li>
+          <li>Check bank details by phone before paying a new invoice.</li>
+          <li>We'll never call or text asking you to move money.</li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+  <footer class="foot">
+    <div class="wrap cols">
+      <div><a class="brand" href="#"><svg aria-hidden="true" style="width:24px;height:28px"><use href="#flame"/></svg><span class="wm" style="font-size:22px">Santander</span></a></div>
+      <div><h3>Banking</h3><a href="#">Current accounts</a><a href="#">Savings</a><a href="#">Credit cards</a></div>
+      <div><h3>Help</h3><a href="#">Help &amp; support</a><a href="#">Report fraud</a><a href="#">Lost or stolen cards</a></div>
+      <div><h3>About</h3><a href="#">Security</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
+    </div>
+    <div class="wrap legal">Example Online Banking experience. Names, accounts, sort codes and balances are illustrative.</div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var form = $('transferForm');
+      var fromAccount = $('fromAccount');
+      var toAccount = $('toAccount');
+      var amountInput = $('amount');
+      var accountTier = $('accountTier');
+      var reference = $('reference');
+      var submitBtn = $('submitBtn');
+      var result = $('result');
+      var pending = false;
+      var accounts = {};
+      Array.prototype.forEach.call(fromAccount.options, function (o) {
+        accounts[o.value] = { name: o.dataset.name, sort: o.dataset.sort, mask: o.dataset.mask, cents: Math.round(Number(o.dataset.balance) * 100) };
+      });
+      var saver = { name: 'Easy Access Saver', sort: '09-01-28', mask: '1192', cents: 1275000 };
+      var gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+      var dayFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' });
+      var stampFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+      var timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+      function money(c) { return gbp.format(c / 100); }
+      function from() { return accounts[fromAccount.value]; }
+      function payee() { return toAccount.options[toAccount.selectedIndex].dataset; }
+      function acctLine(a) { return 'Sort code ' + a.sort + ' · Account •••• ' + a.mask; }
+      function amountCents() {
+        var raw = amountInput.value.trim();
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return Math.round(parseFloat(raw) * 100);
+      }
+      function renderAccounts() {
+        var list = $('acctList');
+        list.innerHTML = '';
+        Object.keys(accounts).map(function (k) { return accounts[k]; }).concat([saver]).forEach(function (a) {
+          var li = document.createElement('li');
+          li.innerHTML = '<div class="n"></div><div class="s num"></div><div class="v num"><span></span> <small>available</small></div>';
+          li.querySelector('.n').textContent = a.name;
+          li.querySelector('.s').textContent = a.sort + ' · •••• ' + a.mask;
+          li.querySelector('.v span').textContent = money(a.cents);
+          list.appendChild(li);
+        });
+      }
+      function render() {
+        accountTier.value = 'standard';
+        var f = from(), p = payee();
+        renderAccounts();
+        $('fromHelp').textContent = acctLine(f) + ' · Available ' + money(f.cents);
+        $('toHelp').textContent = acctLine(p);
+        $('copText').textContent = 'The account at ' + p.sort + ' is held in the name ' + p.name + '.';
+        var cents = amountCents();
+        Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+          b.setAttribute('aria-pressed', String(Number(b.dataset.amount) * 100 === cents));
+        });
+        var ok = Number.isFinite(cents) && cents > 0;
+        var today = 'Today, ' + dayFmt.format(new Date());
+        $('edDate').textContent = today;
+        $('rvAmount').textContent = ok ? money(cents) : '';
+        $('rvTo').textContent = p.name;
+        $('rvToAcct').textContent = acctLine(p);
+        $('rvFrom').textContent = f.name + ' •••• ' + f.mask;
+        $('rvFromAfter').textContent = ok ? 'Available after this payment: ' + money(f.cents - cents) : '';
+        $('rvRef').textContent = reference.value.trim();
+        $('rvDate').textContent = today + ' · usually arrives within 2 hours';
+      }
+      function setStep(next) {
+        $('stepEdit').hidden = next !== 'edit';
+        $('stepConfirm').hidden = next !== 'confirm';
+        var idx = { edit: 1, confirm: 2, done: 3 }[next];
+        [1, 2, 3].forEach(function (n) { $('st' + n).className = n === idx ? 'on' : (n < idx ? 'done' : ''); });
+      }
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><div><div class="t"></div><div class="d"></div></div>';
+        result.querySelector('.t').textContent = title;
+        result.querySelector('.d').textContent = detail || '';
+      }
+      function clearResult() { result.className = 'result-box'; result.innerHTML = ''; }
+      function validate() {
+        var cents = amountCents();
+        if (!Number.isFinite(cents) || cents <= 0) { show('notice', 'Enter an amount', 'Enter the amount in pounds and pence, for example 25.00.'); amountInput.focus(); return false; }
+        if (cents > from().cents) { show('notice', 'Not enough money in this account', 'Available: ' + money(from().cents)); amountInput.focus(); return false; }
+        if (!reference.value.trim()) { show('notice', 'Enter a reference', 'Add a reference so ' + payee().name + ' knows what the payment is for.'); reference.focus(); return false; }
+        return true;
+      }
+      function goReview() {
+        if (pending) return;
+        clearResult();
+        if (!validate()) return;
+        render();
+        setStep('confirm');
+        submitBtn.focus();
+      }
+      function backToEdit() { if (pending) return; clearResult(); setStep('edit'); }
+      function lock(on) {
+        [fromAccount, toAccount, amountInput, reference, $('backBtn'), $('clearBtn')].forEach(function (el) { el.disabled = on; });
+        Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (el) { el.disabled = on; });
+      }
+      function paymentId(receiptId) {
+        return 'FP' + String(receiptId || '').replace(/\D/g, '').slice(-10).padStart(10, '0');
+      }
+      function addTx(f, p, cents, ref) {
+        var tr = document.createElement('tr');
+        tr.className = 'fresh';
+        tr.innerHTML = '<td class="m">Today</td><td></td><td class="acc-col m"></td><td class="r"></td>';
+        tr.children[1].textContent = ('Faster payment to ' + p.name + ' ref ' + ref).toUpperCase();
+        tr.children[2].textContent = f.name.split(' ')[0] + ' •••• ' + f.mask;
+        tr.children[3].textContent = '\u2212' + money(cents);
+        $('txList').insertBefore(tr, $('txList').firstChild);
+      }
+      function showComplete(f, p, cents, when, ref, id) {
+        result.className = 'result-box success';
+        result.innerHTML = '<div class="ok-head"><span class="ok-badge" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><h2 class="t">Payment sent</h2><p class="d"></p></div></div>' +
+          '<table class="sum"><tr class="amt"><th scope="row">Amount</th><td class="num a"></td></tr><tr><th scope="row">To</th><td class="to"></td></tr><tr><th scope="row">From</th><td class="f"></td></tr><tr><th scope="row">Reference</th><td class="rr"></td></tr><tr><th scope="row">Date</th><td class="dt"></td></tr><tr><th scope="row">Payment ID</th><td class="rf num"></td></tr></table>' +
+          '<div class="actions"><a class="btn btn-plain" href="#">Back to My accounts</a><button type="reset" class="btn btn-primary">Make another payment</button></div>';
+        result.querySelector('.d').textContent = money(cents) + ' is on its way to ' + p.name + '. It usually arrives within 2 hours.';
+        result.querySelector('.a').textContent = money(cents);
+        result.querySelector('.to').textContent = p.name + ' · ' + p.sort + ' · •••• ' + p.mask;
+        result.querySelector('.f').textContent = f.name + ' •••• ' + f.mask;
+        result.querySelector('.rr').textContent = ref;
+        result.querySelector('.dt').textContent = stampFmt.format(when);
+        result.querySelector('.rf').textContent = id;
+      }
+      amountInput.addEventListener('input', function () { clearResult(); render(); });
+      reference.addEventListener('input', render);
+      fromAccount.addEventListener('change', function () { clearResult(); render(); });
+      toAccount.addEventListener('change', function () { reference.value = payee().ref; clearResult(); render(); });
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+        b.addEventListener('click', function () { amountInput.value = b.dataset.amount; clearResult(); render(); });
+      });
+      $('clearBtn').addEventListener('click', function () { form.reset(); });
+      $('nextBtn').addEventListener('click', goReview);
+      $('backBtn').addEventListener('click', backToEdit);
+      form.addEventListener('reset', function () {
+        setTimeout(function () { clearResult(); setStep('edit'); fromAccount.value = 'ACCT-1001'; toAccount.selectedIndex = 0; reference.value = payee().ref; render(); });
+      });
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (pending) return;
+        if ($('stepConfirm').hidden) { goReview(); return; }
+        if (!validate()) { setStep('edit'); return; }
+        var f = from(), p = payee(), ref = reference.value.trim();
+        pending = true;
+        lock(true);
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Sending payment…';
+        clearResult();
+        var response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await response.json().catch(function () { return null; });
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          var when = new Date(data.receipt.timestamp);
+          var sent = Math.round(Number(data.receipt.amount) * 100);
+          var id = paymentId(data.receipt.receiptId);
+          if (data.duplicate) {
+            show('notice', 'You\u2019ve already made this payment', 'You paid ' + money(sent) + ' to ' + p.name + ' at ' + timeFmt.format(when) + ' (payment ID ' + id + '). We haven\u2019t sent it again.');
+            return;
+          }
+          f.cents -= sent;
+          addTx(f, p, sent, ref);
+          setStep('done');
+          showComplete(f, p, sent, when, ref, id);
+          amountInput.value = '';
+        } catch (_e) {
+          if (response && !response.ok) show('error', 'Payment not sent', 'No money has left your account. Please try again in a few minutes.');
+          else show('error', 'We couldn\u2019t confirm this payment', 'Check your recent transactions before you try again.');
+        } finally {
+          pending = false;
+          lock(false);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Confirm payment';
+          render();
+        }
+      });
+      reference.value = payee().ref;
+      render();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
