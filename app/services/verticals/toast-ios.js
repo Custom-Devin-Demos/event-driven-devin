@@ -6,7 +6,7 @@ const { createSessionAndAlert } = require('../devin-session');
 const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
 const { getCustomerConfig } = require('../../../config/customers');
 
-const TOAST_SLACK_MEMBER_ID = process.env.TOAST_SLACK_MEMBER_ID || 'U0B7F46NVA4';
+const TOAST_SLACK_MEMBER_ID = process.env.TOAST_SLACK_MEMBER_ID || '';
 const CUSTOMER = 'ios-demos';
 const APP_SERVICE = 'customer-toast-ios';
 const APP_PROJECT = 'toast-now-ios';
