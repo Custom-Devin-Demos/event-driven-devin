@@ -659,6 +659,16 @@ const ONCALL_SKINS = {
     page: { file: '3cbaad4b.html', title: 'FactSet Pricing | Explore FactSet Cost' },
     disclaimer: 'NOT ACTUALLY A FACTSET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real FactSet product.',
   },
+  'c7463986': {
+    slug: 'c7463986',
+    company: 'Cover Genius',
+    vertical: 'insurance',
+    page: {
+      file: 'c7463986.html',
+      title: 'Your Account | XCover.com',
+    },
+    disclaimer: 'NOT ACTUALLY A COVER GENIUS SITE — internal demo only, not affiliated with, endorsed by, or a real Cover Genius product.',
+  },
   'e9d00c4f': {
     slug: 'e9d00c4f',
     company: 'MYOB',

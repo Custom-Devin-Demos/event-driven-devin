@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Account | XCover.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #2d2d2d;
+      --muted: #717171;
+      --page: #f6f6f6;
+      --panel: #fbfbfb;
+      --line: #e0e4e8;
+      --yellow: #ffe600;
+      --font: "brandon-grotesque", "Jost", "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 16px; line-height: 24px; color: var(--ink); background: var(--page); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    ul, ol, dl, dd, h1, h2, h3, h4, p { margin: 0; padding: 0; list-style: none; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+    /* Top utility bar */
+    .topbar { background: var(--ink); height: 42px; display: flex; align-items: center; }
+    .topbar .container { width: 100%; display: flex; justify-content: flex-end; }
+    .topbar ul { display: flex; }
+    .topbar li { margin-left: 24px; }
+    .topbar a, .topbar button { display: flex; align-items: center; font: 700 12px/18px var(--font); text-transform: uppercase; color: #fff; background: none; border: 0; padding: 0; cursor: pointer; }
+    .topbar a, .topbar button { position: relative; }
+    .topbar a::before, .topbar button::before { content: ''; position: absolute; inset: -13px -6px; }
+    .topbar svg, .topbar .flag { width: 16px; height: 16px; margin-right: 4px; flex: none; }
+
+    /* Main nav */
+    .navbar { background: #fff; height: 80px; display: flex; align-items: center; }
+    .navbar .container { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: block; width: 204px; height: 32px; }
+    .brand svg { display: block; width: 204px; height: 32px; }
+    .nav-links { display: flex; }
+    .nav-links a { margin-left: 24px; font: 700 12px/18px var(--font); text-transform: uppercase; color: var(--muted); }
+    .nav-links a.active { color: var(--ink); }
+    .toggler { display: none; }
+    header.site { margin-bottom: 48px; }
+
+    /* Page */
+    main { margin-bottom: 48px; }
+    h1.page-title { font-size: 48px; line-height: 60px; font-weight: 900; text-transform: uppercase; margin-bottom: 48px; }
+    h4.section-title { font-size: 24px; line-height: 30px; font-weight: 700; margin-bottom: 16px; }
+
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
+    .qa { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 94px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; font: 700 18px/20px var(--font); color: var(--ink); text-align: center; cursor: pointer; }
+    .qa:hover { box-shadow: rgba(45,45,45,.08) 0 16px 24px 0; }
+    .qa svg { width: 32px; height: 32px; flex: none; }
+
+    /* Booking card */
+    .booking-overview { background: #fff; border-radius: 3px; box-shadow: rgba(45,45,45,.16) 0 24px 32px 0; padding: 16px; position: relative; z-index: 1; }
+    .booking-header { display: grid; grid-template-columns: 64px 1fr; grid-template-areas: 'chevron title' 'chevron subtitle'; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .chevron { grid-area: chevron; width: 48px; height: 48px; margin-top: 6px; border-radius: 150px; background: var(--yellow); display: flex; align-items: center; justify-content: center; }
+    .booking-title { grid-area: title; font-size: 24px; line-height: 36px; font-weight: 700; }
+    .booking-sub { grid-area: subtitle; display: flex; align-items: center; color: var(--muted); }
+    .booking-sub .dot { display: inline-block; vertical-align: middle; width: 4px; height: 4px; border-radius: 50%; background: #c4c4c4; margin: 0 9px; }
+    .booking-attrs { display: flex; margin-top: 16px; }
+    .booking-attrs .attr { display: flex; flex-direction: column-reverse; padding: 0 16px; border-left: 1px solid var(--line); }
+    .booking-attrs .attr:first-child { padding-left: 0; border-left: 0; }
+    .booking-attrs dt { color: var(--muted); }
+    .booking-attrs .m-only { display: none; }
+
+    .booking-details { margin: 0 8px; background: #fff; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 3px 3px; }
+    .details-mobile-attrs { display: none; }
+    .policy { padding: 24px; }
+    .policy-head { display: flex; align-items: center; gap: 16px; margin: 9px 0 25px; }
+    .policy-head svg { width: 48px; height: 48px; flex: none; }
+    .policy-head h4 { font-size: 24px; line-height: 30px; font-weight: 700; }
+    .policy-box { border: 1px solid var(--line); border-radius: 3px; padding: 24px; }
+    .policy-box h3 { font-size: 20px; line-height: 25px; font-weight: 700; margin-bottom: 16px; }
+    .policy-body { display: flex; }
+    .policy-img { width: 204px; height: 80px; flex: none; background: var(--panel); border: 1px solid var(--line); margin-right: 16px; }
+    .policy-grid { flex: 1; display: grid; grid-template-columns: 229px 229px 178px 178px; align-content: start; }
+    .policy-grid dt { color: var(--muted); padding: 0 8px; margin-bottom: 8px; }
+    .policy-grid dd { padding: 0 8px; margin-bottom: 8px; }
+    .policy-grid dt.cell-dev, .policy-grid dd.cell-dev, .policy-grid dt.cell-per, .policy-grid dd.cell-per { min-height: 48px; display: flex; align-items: center; }
+
+    /* Claim form (sits in the policy's "Make a claim" area) */
+    .claim { margin-top: 24px; border: 1px solid var(--line); border-radius: 3px; padding: 24px; }
+    .claim h3 { font-size: 20px; line-height: 25px; font-weight: 700; margin-bottom: 4px; }
+    .claim .lead { color: var(--muted); margin-bottom: 16px; }
+    .claim-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field.wide { grid-column: 1 / -1; }
+    .field label { font: 700 14px/20px var(--font); color: var(--ink); }
+    .field select, .field input { height: 48px; width: 100%; padding: 0 16px; font: 400 16px/24px var(--font); color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 3px; appearance: none; -webkit-appearance: none; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%232d2d2d' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
+    .field select:focus, .field input:focus { outline: none; border-color: var(--ink); }
+    .claim-actions { display: flex; justify-content: flex-end; margin-top: 24px; }
+    .btn-primary { height: 48px; min-width: 200px; padding: 0 32px; background: var(--yellow); color: var(--ink); border: 0; border-radius: 3px; font: 900 14px/14px var(--font); text-transform: uppercase; letter-spacing: .5px; cursor: pointer; }
+    .btn-primary:disabled { opacity: .6; cursor: progress; }
+    .result-box { display: none; margin-top: 16px; padding: 16px; border-radius: 3px; border: 1px solid var(--line); }
+    .result-box.success { display: block; background: #f1fbf4; border-color: #6fcf97; }
+    .result-box.error { display: block; background: #fff4f4; border-color: #eb5757; }
+    .result-box .error-title { font-weight: 700; }
+    .result-box .error-detail { color: var(--muted); }
+
+    .details-footer { display: flex; justify-content: flex-end; background: var(--panel); border-top: 1px solid var(--line); border-radius: 0 0 3px 3px; }
+    .details-footer ul { display: flex; padding: 16px 0; }
+    .details-footer li { display: flex; padding: 8px 24px; }
+    .details-footer li + li { border-left: 1px solid var(--line); }
+    .details-footer a { display: flex; align-items: center; gap: 8px; font: 900 12px/15px var(--font); text-transform: uppercase; color: var(--muted); }
+    .details-footer svg { width: 16px; height: 16px; }
+
+    /* NPS */
+    .nps { margin-top: 48px; background: var(--panel); border: 1px solid var(--line); padding: 24px; display: flex; align-items: center; }
+    .nps h3 { width: 250px; flex: none; font-size: 18px; line-height: 22.5px; font-weight: 700; padding-right: 24px; border-right: 1px solid var(--line); }
+    .nps-scale { flex: 1; padding-left: 0; }
+    .nps ol { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .nps li { padding-left: 8px; }
+    .nps button { width: 48px; height: 48px; margin: 0 10px; border-radius: 50%; border: 1px solid var(--line); background: #fff; font: 900 14px/14px var(--font); color: #000; cursor: pointer; }
+    .nps .ends { display: flex; justify-content: space-between; padding-left: 8px; }
+    .nps .ends p { font-size: 18px; line-height: 27px; color: var(--muted); }
+
+    footer.slim { background: var(--ink); color: #fff; padding: 16px; }
+    footer.slim .container { display: flex; align-items: center; justify-content: space-between; }
+    footer.slim p { font-size: 14px; line-height: 16px; }
+    footer.slim ul { display: flex; }
+    footer.slim li a { display: block; font-size: 16px; line-height: 24px; padding: 0 12px 0 0; }
+    footer.slim li + li a { padding: 0 0 0 12px; border-left: 1px solid #fff; }
+
+    @media (max-width: 767px) {
+      .container { padding: 0 16px; }
+      .topbar { display: none; }
+      .navbar { height: 64px; }
+      .navbar .container { padding: 0 16px; }
+      .nav-links { display: none; }
+      .toggler { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-right: -2px; background: none; border: 0; border-radius: 3px; padding: 0; }
+      header.site { margin-bottom: 16px; }
+      main { margin-bottom: 24px; }
+      h1.page-title { font-size: 24px; line-height: 30px; margin-bottom: 16px; }
+      h4.section-title { font-size: 18px; line-height: 22.5px; }
+      .quick-actions { display: flex; overflow-x: auto; gap: 12px; margin: 0 -16px 24px; padding: 0 16px 8px; scrollbar-width: none; }
+      .quick-actions::-webkit-scrollbar { display: none; }
+      .qa { flex: 0 0 136px; height: 112px; font-size: 16px; line-height: 20px; }
+      .booking-header { grid-template-columns: 0 1fr; padding-bottom: 8px; }
+      .chevron { display: none; }
+      .booking-title { font-size: 18px; line-height: 27px; }
+      .booking-sub { display: block; }
+      .booking-sub span { display: block; }
+      .booking-sub .dot { display: inline-block; vertical-align: middle; margin: 0 0 0 8px; }
+      .booking-attrs { margin-top: 8px; }
+      .booking-attrs .attr { display: none; }
+      .booking-attrs .attr.m-show { display: flex; padding: 0; border: 0; }
+      .booking-details { margin: 0; border: 0; }
+      .details-mobile-attrs { display: grid; grid-template-columns: 1fr 1fr; padding: 16px 1px 0 9px; }
+      .details-mobile-attrs dt { font-size: 14px; line-height: 21px; color: var(--muted); padding: 0 8px; margin-bottom: 8px; }
+      .details-mobile-attrs dd { text-align: right; padding: 0 8px; margin-bottom: 8px; }
+      .policy { padding: 16px; border: 1px solid var(--line); border-width: 1px 1px 0; }
+      .policy-head h4 { font-size: 18px; line-height: 27px; }
+      .policy-box { padding: 16px; }
+      .policy-box h3 { font-size: 18px; line-height: 22.5px; }
+      .policy-body { display: block; }
+      .policy-img { width: 100%; height: 16px; margin: 0 0 16px; }
+      .policy-grid { display: block; }
+      .policy-grid dt, .policy-grid dd { min-height: 0 !important; display: block !important; margin-bottom: 0; }
+      .policy-grid dd { margin-bottom: 8px; }
+      .claim { padding: 16px; margin-top: 16px; }
+      .claim h3 { font-size: 18px; line-height: 22.5px; }
+      .claim-grid { grid-template-columns: 1fr; }
+      .btn-primary { width: 100%; }
+      .details-footer { border: 1px solid var(--line); }
+      .details-footer ul { flex-direction: column; width: 100%; padding: 0 16px; }
+      .details-footer li { padding: 0; }
+      .details-footer li + li { border-left: 0; border-top: 1px solid var(--line); }
+      .details-footer a { width: 100%; justify-content: center; min-height: 48px; }
+      .nps { margin-top: 24px; display: block; padding: 16px; }
+      .nps h3 { width: auto; border: 0; padding: 0; margin-bottom: 16px; }
+      .nps ol { flex-wrap: wrap; justify-content: center; gap: 6px 10px; padding: 0 4px; }
+      .nps li { padding: 0; order: 1; }
+      .nps li:nth-child(even) { order: 2; }
+      .nps ol::after { content: ''; order: 1; width: 100%; }
+      .nps button { position: relative; width: 40px; height: 40px; margin: 0; }
+      .nps button::before { content: ''; position: absolute; inset: -2px; }
+      .nps .ends { padding: 0; }
+      footer.slim { padding: 16px 8px; }
+      footer.slim .container { display: block; }
+      footer.slim p { margin-bottom: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <nav class="topbar" aria-label="Utility">
+      <div class="container">
+        <ul>
+          <li><a href="#"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#ffe600" stroke-width="1.5"/><path d="M8 7v4.5" stroke="#ffe600" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="4.75" r="1" fill="#ffe600"/></svg>Help Center</a></li>
+          <li><button type="button"><svg class="flag" viewBox="0 0 16 16"><clipPath id="fc"><circle cx="8" cy="8" r="8"/></clipPath><g clip-path="url(#fc)"><rect width="16" height="16" fill="#012169"/><path d="M0 0l16 16M16 0L0 16" stroke="#fff" stroke-width="3"/><path d="M0 0l16 16M16 0L0 16" stroke="#C8102E" stroke-width="1.2"/><path d="M8 0v16M0 8h16" stroke="#fff" stroke-width="4.5"/><path d="M8 0v16M0 8h16" stroke="#C8102E" stroke-width="2.5"/></g></svg>English</button></li>
+          <li><a href="#"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#ffe600" stroke-width="1.5"/><circle cx="8" cy="6.5" r="2.2" stroke="#ffe600" stroke-width="1.5"/><path d="M4.2 12.4c.9-1.5 2.2-2.2 3.8-2.2s2.9.7 3.8 2.2" stroke="#ffe600" stroke-width="1.5" stroke-linecap="round"/></svg>Alex</a></li>
+        </ul>
+      </div>
+    </nav>
+    <nav class="navbar" aria-label="Main">
+      <div class="container">
+        <a class="brand" href="#" aria-label="XCover.com">
+          <svg viewBox="0 0 204 32" aria-hidden="true">
+            <path d="M0 2h8.6l6.2 10.2L21 2h8.6l-10.5 14L29.6 30H21l-6.2-10.2L8.6 30H0l10.5-14z" fill="#ffe600"/>
+            <path d="M10.5 16L14.8 9.8 19.1 16l-4.3 6.2z" fill="#2d2d2d" opacity=".18"/>
+            <text x="38" y="25" font-family="brandon-grotesque, Jost, Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="1.1" fill="#000">XCOVER.COM</text>
+          </svg>
+        </a>
+        <div class="nav-links">
+          <a href="#" class="active">Your Account</a>
+          <a href="#">Your claims</a>
+        </div>
+        <button class="toggler" type="button" aria-label="Menu">
+          <svg width="26" height="22" viewBox="0 0 26 22"><path d="M1 2h24M1 11h24M1 20h24" stroke="#ffe600" stroke-width="3.2" stroke-linecap="square"/></svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="container">
+      <h1 class="page-title">Your Account</h1>
+
+      <h4 class="section-title">Quick actions</h4>
+      <div class="quick-actions">
+        <a class="qa" href="#make-a-claim">
+          <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#fff9b3" stroke="#2d2d2d" stroke-width="1.5"/><path d="M19.5 11.5c-.7-1-2-1.7-3.5-1.7-2 0-3.5 1.1-3.5 2.7 0 3.7 7.2 2 7.2 5.9 0 1.6-1.6 2.8-3.7 2.8-1.6 0-3-.7-3.7-1.8M16 8v2M16 21.2v2" stroke="#2d2d2d" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <p>Make a claim</p>
+        </a>
+        <a class="qa" href="#">
+          <svg viewBox="0 0 32 32" fill="none"><rect x="8" y="3" width="13" height="22" rx="2" stroke="#2d2d2d" stroke-width="1.5"/><path d="M12 6h5" stroke="#2d2d2d" stroke-width="1.5" stroke-linecap="round"/><path d="M13 16h12l-3-3M25 21H13l3 3" stroke="#2d2d2d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="16" y="13" width="9" height="11" fill="#fff9b3" opacity=".8"/></svg>
+          <p>Change my purchased item</p>
+        </a>
+        <a class="qa" href="#">
+          <svg viewBox="0 0 32 32" fill="none"><rect x="5" y="6" width="19" height="22" rx="2" stroke="#2d2d2d" stroke-width="1.5"/><path d="M9 12h8M9 16h6" stroke="#2d2d2d" stroke-width="1.5" stroke-linecap="round"/><path d="M26.5 4.5l2 2-10 10-3 1 1-3z" fill="#fff9b3" stroke="#2d2d2d" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <p>Amend protection</p>
+        </a>
+        <a class="qa" href="#">
+          <svg viewBox="0 0 32 32" fill="none"><rect x="9" y="3" width="17" height="22" rx="2" stroke="#2d2d2d" stroke-width="1.5"/><rect x="5" y="7" width="17" height="22" rx="2" fill="#fff" stroke="#2d2d2d" stroke-width="1.5"/><path d="M13.5 12l4 1.5v3c0 2.5-1.7 4-4 5-2.3-1-4-2.5-4-5v-3z" fill="#fff9b3" stroke="#2d2d2d" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <p>View coverage</p>
+        </a>
+      </div>
+
+      <h4 class="section-title">Your protection</h4>
+      <article class="booking">
+        <div class="booking-overview">
+          <header class="booking-header">
+            <div class="chevron"><svg width="12" height="8" viewBox="0 0 12 8"><path d="M1.5 1.5L6 6l4.5-4.5" fill="none" stroke="#2d2d2d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3 class="booking-title">Samsung Galaxy S25 Ultra</h3>
+            <p class="booking-sub"><span>7KQ2M-XR4TD-INS<i class="dot"></i></span><span class="pn">Product Protection</span></p>
+          </header>
+          <dl class="booking-attrs">
+            <div class="attr"><dt>Reference number</dt><dd>7KQ2M-XR4TD-INS</dd></div>
+            <div class="attr"><dt>Purchase date</dt><dd>18 Sep 2026</dd></div>
+            <div class="attr"><dt>Coverage period</dt><dd>18 Sep 2026 - 18 Sep 2028</dd></div>
+            <div class="attr m-show"><dt>Price</dt><dd>$34.99</dd></div>
+          </dl>
+        </div>
+
+        <div class="booking-details">
+          <dl class="details-mobile-attrs">
+            <dt>Reference number</dt><dd>7KQ2M-XR4TD-INS</dd>
+            <dt>Purchase date</dt><dd>18 Sep 2026</dd>
+            <dt>Coverage period</dt><dd>18 Sep 2026 - 18 Sep 2028</dd>
+          </dl>
+          <div class="policy">
+            <div class="policy-head">
+              <svg viewBox="0 0 48 48" fill="none"><rect x="13" y="4" width="22" height="38" rx="3" stroke="#2d2d2d" stroke-width="1.5"/><rect x="17" y="10" width="14" height="10" rx="1" fill="#ffe600"/><path d="M17 25h14M17 29h14M17 33h9" stroke="#ffe600" stroke-width="2"/><path d="M7 10v26M41 10v26M4 14v18M44 14v18" stroke="#2d2d2d" stroke-width="1.2" stroke-dasharray="2 2"/></svg>
+              <h4>Product Protection</h4>
+            </div>
+            <div class="policy-box">
+              <h3>Product Protection</h3>
+              <div class="policy-body">
+                <div class="policy-img"></div>
+                <dl class="policy-grid">
+                  <dt class="cell-dev">Device</dt><dd class="cell-dev">Samsung Galaxy S25 Ultra 256GB</dd>
+                  <dt class="cell-per">Coverage period</dt><dd class="cell-per">18 Sep 2026 - 18 Sep 2028</dd>
+                  <dt>Cover amount</dt><dd>$899.00</dd>
+                </dl>
+              </div>
+            </div>
+
+            <div class="claim" id="make-a-claim">
+              <h3>Make a claim</h3>
+              <p class="lead">Select the closest reason for your claim and tell us what happened.</p>
+              <form id="claimForm">
+                <div class="claim-grid">
+                  <div class="field"><label for="policyId">Protection</label>
+                    <select id="policyId"><option value="POL-5001">Samsung Galaxy S25 Ultra &mdash; 7KQ2M-XR4TD-INS</option><option value="POL-5002">Dyson V15 Detect &mdash; 3HW8P-LC2NV-INS</option></select></div>
+                  <div class="field"><label for="claimType">Claim reason</label>
+                    <select id="claimType"><option value="collision">Accidental damage</option><option value="comprehensive">Mechanical breakdown</option><option value="liability">Theft</option><option value="property_damage">Liquid damage</option></select></div>
+                  <div class="field"><label for="amount">Claim amount (USD)</label>
+                    <input type="number" id="amount" value="899" min="1" step="0.01" placeholder="$0.00"></div>
+                  <div class="field wide"><label for="description">What happened?</label>
+                    <input type="text" id="description" value="Dropped the phone on a tiled floor; the screen is cracked and the display no longer responds." placeholder="Describe what happened"></div>
+                </div>
+                <div class="claim-actions"><button type="submit" class="btn-primary" id="submitBtn">Submit claim</button></div>
+              </form>
+              <div id="result" class="result-box"></div>
+            </div>
+          </div>
+          <footer class="details-footer">
+            <ul>
+              <li><a href="#make-a-claim"><svg viewBox="0 0 16 16" fill="none"><path d="M11 4.5c-.6-.9-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.3 0 3.2 6.2 1.7 6.2 5 0 1.4-1.4 2.4-3.2 2.4-1.4 0-2.6-.6-3.2-1.6M8 1v2M8 13v2" stroke="#2d2d2d" stroke-width="1.6" stroke-linecap="round"/></svg>Make a claim</a></li>
+              <li><a href="#"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#2d2d2d" stroke-width="1.4"/><path d="M8 7v4.5" stroke="#2d2d2d" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.75" r=".9" fill="#2d2d2d"/></svg>Get help</a></li>
+            </ul>
+          </footer>
+        </div>
+      </article>
+
+      <div class="nps">
+        <h3>How likely are you to recommend XCover to a friend or colleague?</h3>
+        <div class="nps-scale">
+          <ol>
+            <li><button type="button">0</button></li><li><button type="button">1</button></li><li><button type="button">2</button></li><li><button type="button">3</button></li><li><button type="button">4</button></li><li><button type="button">5</button></li><li><button type="button">6</button></li><li><button type="button">7</button></li><li><button type="button">8</button></li><li><button type="button">9</button></li><li><button type="button">10</button></li>
+          </ol>
+          <div class="ends"><p>Not likely</p><p>Very likely</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="slim">
+    <div class="container">
+      <p>&copy; 2026 XCover.com</p>
+      <ul><li><a href="#">Terms &amp; Conditions</a></li><li><a href="#">Privacy Policy</a></li></ul>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">We couldn\u2019t submit your claim</div><div class="error-detail">Something went wrong on our side. Please try again in a few minutes. (Error ' + res.status + ')</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Claim submitted</div><div class="error-detail">Claim ' + (data.claimId || '') + ' is now in Your Claims. We\u2019ll email you with updates.</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">We couldn\u2019t submit your claim</div><div class="error-detail">Check your connection and try again.</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Submit claim'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
