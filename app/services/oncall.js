@@ -550,6 +550,26 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  wirelesscheckout: {
+    vertical: 'wirelesscheckout',
+    page: '4e150e99.html',
+    apiPath: '/api/4e150e99/checkout',
+    oncallApiPath: '/api/oncall/wirelesscheckout/checkout',
+    owner: 'Jordan Patel (wireless-checkout-oncall)',
+    brand: 'Wireless Storefront (Cart Checkout)',
+    service: 'order-api',
+    endpoint: 'POST /api/oncall/wirelesscheckout/checkout',
+    monitor: 'p95 latency — POST /api/oncall/wirelesscheckout/checkout',
+    metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/wirelesscheckout/checkout}',
+    metricValue: '8.0s (504 on ~100% of new-line orders)',
+    threshold: '> 2s',
+    baseline: '~400ms (7-day p95)',
+    release: 'wireless-checkout@5.4.0',
+    symptom: 'Device + plan orders hang ~8s on Place Order and then fail with 504 Gateway Timeout during line activation. Onset coincides with the wireless-checkout 5.4.0 activation release.',
+    impact: 'Customers cannot complete new-line orders; every order sits on "Processing your order" and then errors.',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   brandstore: {
     vertical: 'brandstore',
     page: '2a7359ff.html',

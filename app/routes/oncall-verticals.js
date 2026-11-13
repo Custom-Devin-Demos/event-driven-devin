@@ -39,6 +39,7 @@ const { answerResearchQuery } = require('../services/oncall-verticals/research')
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
+const { checkoutOrder: checkoutWirelessOrder } = require('../services/oncall-verticals/wirelesscheckout');
 const { checkoutOrder: checkoutHomeImprovementOrder } = require('../services/oncall-verticals/homeimprovement');
 const { checkoutBasket: checkoutBrandStoreBasket } = require('../services/oncall-verticals/brandstore');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
@@ -699,6 +700,28 @@ router.post('/api/oncall/clickcollect/checkout', async (req, res) => {
       success: false,
       error: isTimeout
         ? 'Se agotó el tiempo al apartar tus productos en la tienda. Intenta de nuevo en unos minutos.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/wirelesscheckout/checkout — place a wireless device + plan order
+ */
+router.post('/api/oncall/wirelesscheckout/checkout', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await checkoutWirelessOrder({ items: body.items, state: body.state }));
+  } catch (error) {
+    const isTimeout = error.code === 'ACTIVATION_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_ORDER' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'Your order timed out while activating your line. You have not been charged. Please try again in a few minutes.'
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'CHECKOUT_FAILED',
