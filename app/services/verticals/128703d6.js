@@ -1,8 +1,12 @@
 const { createHash, randomUUID } = require('crypto');
+const Sentry = require('@sentry/node');
+const { createSessionAndAlert } = require('../devin-session');
 const logger = require('../../telemetry/logger');
 
 const CUSTOMER = '128703d6';
 const SERVICE = 'customer-128703d6-esignature';
+const ROUTE = 'POST /api/128703d6/envelope/complete';
+const CULPRIT = 'app/services/verticals/128703d6.js — fitSignerStamp';
 const MAX_ENVELOPES = 500;
 const DEMO_ID = /^[A-Za-z0-9-]{8,64}$/;
 const SIGNER_NAME = /^[\p{L}\p{M}' .-]{2,60}$/u;
@@ -18,6 +22,28 @@ const TABS = [
 ];
 const SIGNATURE_STYLES = ['dancing-script', 'homemade-apple', 'mrs-saint-delafield', 'caveat'];
 const envelopes = new Map();
+const alertedEnvelopes = new Set();
+
+// Certificate of Completion signer stamp is set in PDF base-14 Helvetica (AFM advance widths, 1/1000 em).
+const STAMP_FONT = {
+  name: 'Helvetica', size: 7.5, maxSize: 7.5, minSize: 5, boxWidth: 150,
+  glyphs: Object.fromEntries([...' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'].map((ch, i) => [ch, { wx: [
+    278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556,
+    556, 556, 278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778,
+    667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333, 556, 556, 500, 556, 556, 278, 556,
+    556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584,
+  ][i] }])),
+};
+const REMEDIATION_DIRECTIVE = [
+  'Investigate and fix COG-GTM/event-driven-devin. Open a pull request against main; do not merge or deploy.',
+  'Docusign eSignature (/docusign or /128703d6): signers whose names contain accented or non-Latin characters cannot finish signing.',
+  'Reproduce: open /docusign?signer=José Núñez → Sign → agree + Continue → complete Initial, Sign and Title → Finish. The default signer (Alex Rivera) completes.',
+  'Inspect app/services/verticals/128703d6.js (COMPLETION_STEPS, fitSignerStamp, STAMP_FONT), app/routes/verticals/128703d6.js and app/public/verticals/128703d6-assets/esign.js.',
+  'fitSignerStamp measures the Certificate of Completion signer stamp with a Helvetica metrics table that only covers printable ASCII, so any other character has no glyph entry.',
+  'Every Unicode name must complete (Latin accents such as José Núñez, Zoë Brontë, Łukasz Żółć; non-Latin such as 张伟 or Ελένη). Keep the stamp sized to its box and the stored signer name byte-for-byte unchanged (no transliteration of what the signer typed).',
+  'Add regression coverage in tests/128703d6-esignature.test.js and update the planted-failure expectations after the fix.',
+  'Do not disable Sentry/alerts, swallow the error, strip or reject non-ASCII names, or fake a completed envelope in the browser.',
+].join('\n');
 
 const invalid = (message, code = 'INVALID_REQUEST') => Object.assign(new Error(message), { name: 'ValidationError', status: 400, code });
 const hexId = seed => createHash('sha256').update(seed).digest('hex').toUpperCase();
@@ -134,6 +160,13 @@ const COMPLETION_STEPS = [
     ctx.signature.signatureId = hexId(`${envelope.envelopeId}:${ctx.signature.fullName}:${ctx.completedAt}`).slice(0, 32);
     ctx.signature.shortId = ctx.signature.signatureId.slice(0, 15);
   },
+  function fitSignerStamp(envelope, ctx) {
+    const text = `Signed by: ${ctx.signature.fullName}`;
+    let units = 0;
+    for (const ch of text) units += STAMP_FONT.glyphs[ch].wx;
+    const size = Math.max(STAMP_FONT.minSize, Math.min(STAMP_FONT.maxSize, (STAMP_FONT.boxWidth * 1000) / units));
+    ctx.signature.stamp = { text, font: STAMP_FONT.name, size: Math.round(size * 10) / 10, width: Math.round((units * size) / 10) / 100 };
+  },
   function sealCertificate(envelope, ctx) {
     ctx.certificate = {
       envelopeId: envelope.envelopeId,
@@ -145,11 +178,51 @@ const COMPLETION_STEPS = [
   },
 ];
 
-function completeEnvelope(demoId, { values, signature } = {}) {
+function reportCompletionFailure(error, envelope, ctx, step, identity) {
+  const context = {
+    envelopeId: envelope.envelopeId, step, signerName: envelope.signer.name, adoptedName: ctx.signature.fullName,
+    nonAsciiCharacters: [...new Set([...ctx.signature.fullName].filter(ch => ch.charCodeAt(0) > 126))].join(''),
+    signatureAdoption: ctx.signature.mode,
+  };
+  const tags = { route: ROUTE, service: SERVICE, customer: CUSTOMER, step, alert_path: 'instant' };
+  logger.error('Envelope completion failed', { ...context, service: SERVICE, error: error.message });
+  if (identity.suppressAlerts) return;
+  if (alertedEnvelopes.has(envelope.envelopeId)) {
+    logger.info('Alert already raised for this envelope; reset the demo to alert again', { service: SERVICE, envelopeId: envelope.envelopeId });
+    return;
+  }
+  alertedEnvelopes.add(envelope.envelopeId);
+  while (alertedEnvelopes.size > MAX_ENVELOPES) alertedEnvelopes.delete(alertedEnvelopes.values().next().value);
+  Sentry.captureException(error, { tags, extra: context });
+  logger.info('Posting alert and triggering Devin', { service: SERVICE, envelopeId: envelope.envelopeId });
+  createSessionAndAlert({
+    issueTitle: `${error.name}: ${error.message}`,
+    title: `Docusign on-call: signing fails for ${ctx.signature.fullName}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+    culprit: CULPRIT, errorType: error.name, errorValue: error.message,
+    customer: CUSTOMER, service: SERVICE, verticalLabel: 'Docusign — eSignature completion',
+    level: 'error', platform: 'node',
+    devinUserId: identity.devinUserId, devinOrgId: identity.devinOrgId, devinEmail: identity.devinEmail,
+    promptAppendix: REMEDIATION_DIRECTIVE, skipVulnerablePr: true,
+    tags: Object.entries(tags).map(([key, value]) => ({ key, value })), extra: context,
+  }).catch(err => logger.error('Failed to create Devin session for Docusign completion', { error: err.message, envelopeId: envelope.envelopeId }));
+}
+
+function completeEnvelope(demoId, { values, signature, ...identity } = {}) {
   const envelope = getEnvelope(demoId);
   if (envelope.status === 'completed') return envelope;
   const ctx = { values: validateTabs(values), signature: validateSignature(signature, envelope.signer), completedAt: new Date().toISOString() };
-  for (const step of COMPLETION_STEPS) step(envelope, ctx);
+  for (const step of COMPLETION_STEPS) {
+    try {
+      step(envelope, ctx);
+    } catch (error) {
+      reportCompletionFailure(error, envelope, ctx, step.name, identity);
+      throw Object.assign(error, {
+        status: 500, code: 'ENVELOPE_COMPLETION_FAILED', reference: envelope.envelopeId,
+        publicMessage: 'We could not finish signing this envelope. Your signature was not applied. Please try again later.',
+      });
+    }
+  }
   Object.assign(envelope, { status: 'completed', completedAt: ctx.completedAt, values: ctx.values, signature: ctx.signature, certificate: ctx.certificate });
   envelope.history.push(
     { at: ctx.completedAt, action: 'Signed', by: envelope.signer.name, detail: `Signature adopted: ${ctx.certificate.signatureAdoption}` },
@@ -164,7 +237,7 @@ function resetEnvelope(demoId, { signerName } = {}) {
 }
 
 module.exports = {
-  CUSTOMER, SERVICE, TABS, SIGNATURE_STYLES, DEFAULT_SIGNER, SENDER, DOCUMENT, COMPLETION_STEPS,
+  CUSTOMER, SERVICE, ROUTE, CULPRIT, REMEDIATION_DIRECTIVE, STAMP_FONT, TABS, SIGNATURE_STYLES, DEFAULT_SIGNER, SENDER, DOCUMENT, COMPLETION_STEPS,
   getEnvelope, markViewed, completeEnvelope, resetEnvelope, initialsOf, signerFor,
-  _envelopes: envelopes,
+  _envelopes: envelopes, _alertedEnvelopes: alertedEnvelopes,
 };
