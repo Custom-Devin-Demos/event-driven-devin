@@ -9841,6 +9841,16 @@ const ONCALL_SKINS = {
     supportCenter: 'Accrete Support',
     disclaimer: 'NOT ACTUALLY AN ACCRETE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Accrete product. Workspace data is synthetic.',
   },
+  '5a3928aa': {
+    slug: '5a3928aa',
+    company: 'StoreForce',
+    vertical: 'hightech',
+    page: {
+      file: '5a3928aa.html',
+      title: 'StoreForce | Retail Workforce Management Software',
+    },
+    disclaimer: 'NOT ACTUALLY A STOREFORCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real StoreForce product.',
+  },
 };
 
 function getOncallSkin(slug) {
