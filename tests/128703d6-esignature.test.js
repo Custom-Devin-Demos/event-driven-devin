@@ -172,3 +172,10 @@ describe('HTTP routes', () => {
     expect(res.status).toBe(400); expect(res.body.success).toBe(false); expect(res.body.error).toBeTruthy();
   });
 });
+
+describe('Sentry webhook dedup', () => {
+  test('issue webhooks for the completion culprit are treated as already alerted', () => {
+    const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
+    expect(isInstantPathEvent({ culprit: svc.CULPRIT, tags: [] })).toBe(true);
+  });
+});
