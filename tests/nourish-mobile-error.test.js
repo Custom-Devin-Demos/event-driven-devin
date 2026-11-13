@@ -185,8 +185,22 @@ describe('real Nourish router over HTTP', () => {
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert).toMatchObject({ repos: [REPO], sessionPlatform: 'macos', promptAppendix: PROMPT, skipVulnerablePr: true });
     expect(JSON.stringify(alert)).not.toContain('PRIVATE');
-    expect(PROMPT).toContain('React Native / Expo');
-    expect(PROMPT).toContain('EXPO_PUBLIC_NOURISH_DISABLE_FAILURE_REPORTS=1');
+    for (const content of [
+      'dependency-free native Swift/SwiftUI', 'README and AGENTS.md',
+      'exact Xcode project, scheme and build commands',
+      'NourishCore/Sources/NourishCore/MealAnalysis/', 'NourishMobile/',
+      'incomplete-nutrients mapping defect', 'avocado-toast-incomplete', 'Swift error',
+      'caught domain error rather than a fatal trap', 'do not require an uncaught crash',
+      'fix missing-nutrient handling defensively', 'native planner scaffold and baseline untouched',
+      'NOURISH_DISABLE_FAILURE_REPORTS=1', 'swift test --package-path NourishCore',
+      'an Xcode build', 'testing agent for before/after iPhone Simulator verification',
+      'recordings and screenshots', 'create no child sessions', 'never merge',
+    ]) expect(PROMPT).toContain(content);
+    for (const oldContent of ['Expo', 'TypeScript', 'TS TypeError', 'src/features', 'EXPO_PUBLIC', 'Node', 'npm', 'typecheck', 'CocoaPods']) {
+      expect(PROMPT).not.toContain(oldContent);
+      expect(CULPRIT).not.toContain(oldContent);
+    }
+    expect(CULPRIT).toBe('nourish/mobile NourishCore/Sources/NourishCore/MealAnalysis/');
     expect(PROMPT).toContain('DRAFT [DO NOT MERGE]');
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException.mock.calls[0][0].message).toBe('Seeded meal analysis response is missing nutrients');

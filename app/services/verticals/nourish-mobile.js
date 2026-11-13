@@ -4,7 +4,7 @@ const logger = require('../../telemetry/logger');
 
 const ERROR_PATH = '/api/nourish/mobile/error';
 const REPO = 'COG-GTM/nourish-mobile-demo';
-const CULPRIT = 'nourish/mobile src/features/meal-analysis/';
+const CULPRIT = 'nourish/mobile NourishCore/Sources/NourishCore/MealAnalysis/';
 const VALUES = Object.freeze({
   schemaVersion: 1,
   errorCode: 'NOURISH-MEAL-ANALYSIS-001',
@@ -12,12 +12,17 @@ const VALUES = Object.freeze({
   screen: 'meal-review',
   appVersion: '1.0.0',
 });
-const PROMPT = `Investigate only ${REPO} (React Native / Expo), in src/features/meal-analysis/.
-Reproduce the seeded avocado-toast-incomplete meal analysis response with missing nutrients,
-then fix handling defensively with regression coverage. Preserve baseline and planner modules.
-Keep reports OFF during all reproduction: EXPO_PUBLIC_NOURISH_DISABLE_FAILURE_REPORTS=1.
-Run lint, typecheck and tests. Build and run in the iPhone Simulator before and after;
-save recordings and screenshots. Work in this macOS session, with no child-session parallelization.
+const PROMPT = `Investigate only ${REPO}, a dependency-free native Swift/SwiftUI app.
+Read the current README and AGENTS.md for the exact Xcode project, scheme and build commands.
+Reproduce the incomplete-nutrients mapping defect in the seeded avocado-toast-incomplete response,
+surfaced as a Swift error in NourishCore/Sources/NourishCore/MealAnalysis/ and the NourishMobile/ UI.
+It may be a caught domain error rather than a fatal trap; do not require an uncaught crash.
+Then fix missing-nutrient handling defensively in the native module with regression coverage.
+Keep the native planner scaffold and baseline untouched.
+Keep reports OFF during all reproduction: NOURISH_DISABLE_FAILURE_REPORTS=1.
+Run swift test --package-path NourishCore and an Xcode build using the current repo instructions.
+Use the testing agent for before/after iPhone Simulator verification with recordings and screenshots.
+Work in this macOS session; create no child sessions.
 If macOS/Simulator is unavailable, report the blocker; do not delegate or claim simulator verification.
 Open a DRAFT [DO NOT MERGE] remediation PR against main; never merge.`;
 

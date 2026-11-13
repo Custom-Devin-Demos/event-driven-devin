@@ -31,7 +31,7 @@ in memory, resets on restart, and is not shared across replicas.
 The presence of `x-synthetic`, `x-oncall-mode: 1`, `?reports=off`, or server
 `NOURISH_REPORTS_DISABLED=1` suppresses **all** Sentry/Slack/Devin effects while
 retaining the 202 contract. Run mobile reproductions with
-`EXPO_PUBLIC_NOURISH_DISABLE_FAILURE_REPORTS=1`; never ship server secrets to Expo.
+`NOURISH_DISABLE_FAILURE_REPORTS=1`; never ship server secrets to the mobile app.
 
 ## Deployed-setup checklist (no deployment performed)
 
@@ -59,7 +59,14 @@ retaining the 202 contract. Run mobile reproductions with
 - Start with `NOURISH_REPORTS_DISABLED=1`; perform the synthetic curl above.
   Remove the switch only for an intentional real incident. No live alert
   was sent as part of this implementation's tests.
-- The responder prompt scopes remediation to React Native/Expo meal analysis,
-  preserves baseline/planner, requires lint/typecheck/tests and before/after
-  iPhone Simulator evidence, and requests a draft do-not-merge PR with no
-  child-session parallelization. This bridge does not change the mobile app.
+- The responder targets the dependency-free native Swift/SwiftUI app, reading
+  its current README/AGENTS for exact Xcode project, scheme and build commands.
+  Reproduce the seeded `avocado-toast-incomplete` missing-nutrients mapping
+  defect in `NourishCore/Sources/NourishCore/MealAnalysis/` and the `NourishMobile/`
+  UI, then fix handling defensively with regression coverage. A caught Swift
+  domain error is sufficient; an uncaught crash is not required. Keep the
+  native planner scaffold and baseline untouched. Run
+  `swift test --package-path NourishCore`, an Xcode build, and before/after
+  iPhone Simulator verification via the testing agent with recordings/screenshots.
+  Open a DRAFT DO NOT MERGE remediation PR, never merge, and create no child
+  sessions. This bridge does not change the mobile app.
