@@ -115,11 +115,14 @@ function openStream(query) {
         status: res.statusCode,
         headers: res.headers,
         events,
-        async next(name) {
+        async next(name, timeoutMs = 2000) {
+          const deadline = Date.now() + timeoutMs;
           for (;;) {
             const found = events.find((e) => e.event === name && !e.seen);
             if (found) { found.seen = true; return found.data; }
-            await new Promise((r) => { waiters.push(r); });
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) throw new Error(`timed out waiting for SSE event "${name}"`);
+            await new Promise((r) => { waiters.push(r); setTimeout(r, remaining); });
           }
         },
         close: () => req.destroy(),
@@ -139,7 +142,7 @@ beforeAll((done) => {
   });
 });
 
-afterAll((done) => { server.close(done); });
+afterAll((done) => { server.closeAllConnections(); server.close(done); });
 
 beforeEach(async () => {
   createSessionAndAlert.mockClear();
