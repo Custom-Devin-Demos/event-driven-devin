@@ -99,12 +99,16 @@ function validateSignature(signature, signer) {
     if (typeof signature.image !== 'string' || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature.image) || signature.image.length > 400000) {
       throw invalid('Draw your signature before adopting it.', 'SIGNATURE_REQUIRED');
     }
+    if (signature.initialsImage != null && (typeof signature.initialsImage !== 'string' || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature.initialsImage) || signature.initialsImage.length > 200000)) {
+      throw invalid('Draw your initials before adopting them.', 'SIGNATURE_REQUIRED');
+    }
   } else if (!SIGNATURE_STYLES.includes(signature.style)) {
     throw invalid('Choose a signature style.', 'SIGNATURE_REQUIRED');
   }
   return {
     fullName, initials, mode: signature.mode === 'draw' ? 'draw' : 'style', style: signature.mode === 'draw' ? null : signature.style,
-    image: signature.mode === 'draw' ? signature.image : null, signerName: signer.name,
+    image: signature.mode === 'draw' ? signature.image : null,
+    initialsImage: signature.mode === 'draw' && signature.initialsImage ? signature.initialsImage : null, signerName: signer.name,
   };
 }
 

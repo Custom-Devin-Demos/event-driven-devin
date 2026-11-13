@@ -58,8 +58,10 @@ describe('envelope lifecycle', () => {
     for (const style of svc.SIGNATURE_STYLES) {
       expect(svc.completeEnvelope(nextId(), { values: VALUES, signature: { ...STYLE_SIG, style } }).status).toBe('completed');
     }
-    const drawn = { ...STYLE_SIG, mode: 'draw', image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' };
-    expect(svc.completeEnvelope(nextId(), { values: VALUES, signature: drawn }).certificate.signatureAdoption).toBe('Drawn on Device');
+    const drawn = { ...STYLE_SIG, mode: 'draw', image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', initialsImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' };
+    const drawnEnv = svc.completeEnvelope(nextId(), { values: VALUES, signature: drawn });
+    expect(drawnEnv.certificate.signatureAdoption).toBe('Drawn on Device');
+    expect(drawnEnv.signature.initialsImage).toBe(drawn.initialsImage);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
@@ -82,6 +84,7 @@ describe('envelope lifecycle', () => {
     ['bad style', VALUES, { ...STYLE_SIG, style: 'comic-sans' }],
     ['empty name', VALUES, { ...STYLE_SIG, fullName: '' }],
     ['draw without image', VALUES, { ...STYLE_SIG, mode: 'draw' }],
+    ['bad initials image', VALUES, { ...STYLE_SIG, mode: 'draw', image: 'data:image/png;base64,AAAA', initialsImage: 'javascript:alert(1)' }],
   ])('rejects %s with a 400', (_label, values, signature) => {
     expect(() => svc.completeEnvelope(nextId(), { values, signature })).toThrow(expect.objectContaining({ status: 400 }));
   });

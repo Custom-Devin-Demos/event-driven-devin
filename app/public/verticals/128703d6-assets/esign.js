@@ -270,7 +270,7 @@
       const sig = state.signature;
       const request = api('/envelope/complete', { method: 'POST', body: {
         values: { 'initial-1': true, 'sign-1': true, 'title-1': state.values['title-1'].trim() },
-        signature: { fullName: sig.fullName, initials: sig.initials, mode: sig.mode, style: sig.style, image: sig.image },
+        signature: { fullName: sig.fullName, initials: sig.initials, mode: sig.mode, style: sig.style, image: sig.image, initialsImage: sig.mode === 'draw' ? sig.iniImage : null },
       } });
       for (const li of steps) { li.className = 'active'; await pause(650); li.className = 'done'; }
       state.envelope = await request;
@@ -283,7 +283,7 @@
 
   function enterCompletedView() {
     const env = state.envelope; const saved = env.signature || {};
-    if (!state.signature) state.signature = { fullName: saved.fullName, initials: saved.initials, mode: saved.mode, style: saved.style, image: saved.image, iniImage: null };
+    if (!state.signature) state.signature = { fullName: saved.fullName, initials: saved.initials, mode: saved.mode, style: saved.style, image: saved.image, iniImage: saved.initialsImage || null };
     state.signature.hash = (saved.shortId || state.signature.hash || '').toUpperCase();
     state.values = { 'initial-1': true, 'sign-1': true, 'title-1': (env.values && env.values['title-1']) || state.values['title-1'] || '' };
     state.completedView = true; state.agreed = true;
