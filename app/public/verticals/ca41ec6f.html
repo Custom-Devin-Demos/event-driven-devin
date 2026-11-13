@@ -43,7 +43,7 @@ h1 { font-size:20px; margin:4px 0 2px; }
 .primary { background:var(--blue); color:#fff; border:0; border-radius:6px; padding:10px 16px; font-weight:600; }
 .ghost { background:none; border:1px solid var(--line); border-radius:6px; padding:10px 16px; }
 .ref { font-family:ui-monospace, Menlo, monospace; font-size:18px; color:var(--green); }
-/* Presenter control (?ops=1 or Alt+.): starts the load replay; the monitor itself is not shown */
+/* Presenter readout (?ops=1 or Alt+.): p95 and alert events; the monitor itself is not shown */
 .ops { display:none; position:fixed; right:16px; bottom:52px; width:380px; background:#0d1117; color:#c9d1d9; font:12px/1.5 ui-monospace, Menlo, monospace; border-radius:8px; padding:12px 14px; box-shadow:0 10px 30px rgba(0,0,0,.35); z-index:50; }
 .ops-on .ops { display:block; }
 .ops button { font:inherit; background:#238636; color:#fff; border:0; border-radius:6px; padding:6px 12px; margin:8px 0; }
@@ -89,12 +89,11 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
     <p class="sub" id="count">Recherche en cours…</p>
     <div id="results"></div>
   </main>
-  <div class="perf"><span id="perf-calls">— appels API</span><span>Disponibilités affichées en <b id="perf-ms">—</b></span><span id="perf-load">Trafic normal</span></div>
+  <div class="perf"><span id="perf-calls">— appels API</span><span>Disponibilités affichées en <b id="perf-ms">—</b></span><span id="perf-load">Heure de pointe (lundi 8h)</span></div>
 </div>
 
 <div class="ops" id="ops">
   <div>presenter · alt+. to hide · <span id="rep-mode"></span></div>
-  <button type="button" id="rush">Replay Monday 08:00 rush</button>
   <div>availability p95 <b id="t-p95">—</b> · warn 800 ms · timeout 3000 ms · <span id="mon-status">OK</span></div>
   <ul id="events"></ul>
 </div>
@@ -107,18 +106,20 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
   var REPORT_PATH = IOS ? '/api/doctolib/ios/latency' : '/api/ca41ec6f/monitor/alert';
   var REPORTS_ON = params.get('reports') !== 'off';
   var IOS_APP = { appVersion: '26.11.0', device: 'iPhone 16 Pro', osVersion: 'iOS 26.1' };
-  var WARN_MS = 800, WINDOW = 200, RUSH_SECONDS = 40, TICK_MS = 500;
+  // Monday 08:00 is the baseline: every availability call is a slow sequential scan, so the first
+  // search crosses the 800 ms p95 warning and alerts as soon as its slots finish loading.
+  var WARN_MS = 800, LOAD = 0.9;
   var NAMES = ['Claire Dubois','Hugo Moreau','Camille Laurent','Thomas Bernard','Léa Petit','Antoine Robert','Manon Richard','Julien Durand','Sarah Lefèvre','Nicolas Simon','Inès Michel','Maxime Garcia','Chloé David','Lucas Bertrand','Emma Roux','Paul Vincent','Juliette Fournier','Louis Girard','Alice Bonnet','Victor Lambert'];
   var STREETS = ['rue de Rivoli','boulevard Haussmann','rue du Faubourg Saint-Antoine','avenue de la République','rue de Vaugirard','rue Oberkampf','boulevard Saint-Germain','rue de la Convention','avenue des Ternes','rue Lafayette'];
   var practitioners = NAMES.map(function (n, i) {
     return { id: i + 1, name: 'Dr ' + n, address: (12 + i * 7) + ' ' + STREETS[i % STREETS.length] + ', 750' + String(1 + (i * 3) % 20).padStart(2, '0') + ' Paris', sector: i % 3 === 0 ? 'Secteur 2' : 'Conventionné secteur 1', fullyBooked: n === 'Hugo Moreau' };
   });
   var $ = function (id) { return document.getElementById(id); };
-  var traffic = 0.08, rushing = false, rushStart = 0, samples = [], alerted = false, generation = 0, lastAllSlotsMs = 0;
+  var samples = [], alerted = false, generation = 0, lastAllSlotsMs = 0;
 
   // Synthetic latency of one availability call: a sequential scan whose cost grows with concurrent load.
   function callLatency() {
-    var base = 60 + 1500 * Math.pow(traffic, 1.7);
+    var base = 60 + 1500 * Math.pow(LOAD, 1.7);
     return Math.max(20, base * (0.7 + Math.random() * 0.6));
   }
   function pct(arr, p) { if (!arr.length) return 0; var s = arr.slice().sort(function (a, b) { return a - b; }); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; }
@@ -132,6 +133,7 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
 
   function renderResults() {
     var gen = ++generation, started = performance.now(), calls = 1, done = 0;
+    samples = [];
     $('count').textContent = practitioners.length + ' résultats · prochaines disponibilités';
     $('results').innerHTML = practitioners.map(function (p) {
       return '<div class="card"><div class="avatar">' + initials(p.name) + '</div><div><h2>' + p.name + '</h2><div class="meta">Dermatologue · ' + p.address + '</div><span class="badge">' + p.sector + '</span></div>' +
@@ -145,7 +147,7 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
         (function (p) {
           inflight++; calls++;
           var ms = callLatency();
-          recordSample(ms);
+          samples.push(ms);
           setTimeout(function () {
             inflight--; done++;
             if (gen !== generation) return;
@@ -154,7 +156,7 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
               ? slots.map(function (s) { return '<button type="button" class="slot" data-p="' + p.id + '" data-s="' + s + '">' + s + '</button>'; }).join('')
               : '<div class="none">Aucune disponibilité dans les 14 prochains jours</div>');
             $('perf-calls').textContent = calls + ' appels API';
-            if (done === practitioners.length) { lastAllSlotsMs = Math.round(performance.now() - started); $('perf-ms').textContent = lastAllSlotsMs + ' ms'; }
+            if (done === practitioners.length) { lastAllSlotsMs = Math.round(performance.now() - started); $('perf-ms').textContent = lastAllSlotsMs + ' ms'; evaluate(); }
             next();
           }, ms);
         })(queue.shift());
@@ -163,26 +165,13 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
     next();
   }
 
-  function recordSample(ms) { samples.push(ms); if (samples.length > WINDOW) samples.shift(); }
-
-  function tick() {
-    if (rushing) {
-      var t = (Date.now() - rushStart) / 1000;
-      traffic = Math.min(0.95, 0.08 + 0.87 * Math.min(1, t / RUSH_SECONDS));
-      if (t > RUSH_SECONDS + 25) rushing = false;
-    } else {
-      traffic = Math.max(0.08, traffic - 0.02);
-    }
-    for (var i = 0; i < 12; i++) recordSample(callLatency());
-    var p50 = pct(samples, 0.5), p95 = pct(samples, 0.95);
+  function evaluate() {
+    var p50 = pct(samples, 0.5), p95 = pct(samples, 0.95), warn = p95 > WARN_MS;
     $('t-p95').textContent = Math.round(p95) + ' ms';
-    $('perf-load').textContent = traffic > 0.5 ? 'Heure de pointe (lundi 8h)' : 'Trafic normal';
-    var warn = p95 > WARN_MS;
     $('mon-status').textContent = warn ? 'WARN' : 'OK';
     $('mon-status').className = warn ? 'warn' : '';
     if (warn && !alerted) raiseWarning(p50, p95);
     if (!warn) alerted = false;
-    if (!rushing && !warn && traffic <= 0.08) $('rush').disabled = false;
   }
 
   function event(text) { var li = document.createElement('li'); li.textContent = new Date().toLocaleTimeString('en-GB') + ' · ' + text; $('events').prepend(li); }
@@ -222,10 +211,6 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
     device.querySelector('.screen').appendChild(view);
   }
 
-  $('rush').addEventListener('click', function () {
-    rushing = true; rushStart = Date.now(); this.disabled = true;
-    event('Traffic replay started: Monday 08:00 rush (patients searching "Dermatologue · Paris")');
-  });
   $('search-form').addEventListener('submit', function (e) { e.preventDefault(); renderResults(); });
 
   document.addEventListener('click', function (e) {
@@ -246,9 +231,6 @@ body.ios { min-height:100vh; display:flex; align-items:center; justify-content:c
 
   toggleOps(params.get('ops') === '1');
   renderResults();
-  tick();
-  setInterval(tick, TICK_MS);
-  setInterval(function () { if (rushing) renderResults(); }, 8000);
 })();
 </script>
 </body>

@@ -9,8 +9,8 @@ const {
 
 const router = express.Router();
 
-// One warning per cooldown: the monitor stays in WARN while the rush replays, and re-running the
-// demo after the cooldown raises a fresh alert.
+// One warning per cooldown: every slow page load reports, and reloading the demo after the
+// cooldown raises a fresh alert.
 const parsedCooldown = parseInt(process.env.DOCTOLIB_SEARCH_ALERT_COOLDOWN_SECONDS, 10);
 const COOLDOWN_MS = (Number.isNaN(parsedCooldown) ? 60 : parsedCooldown) * 1000;
 const parsedMax = parseInt(process.env.DOCTOLIB_SEARCH_ALERT_MAX_PER_HOUR, 10);
