@@ -8,6 +8,11 @@ const SERVICE = 'customer-128703d6-esignature';
 const ROUTE = 'POST /api/128703d6/envelope/complete';
 const CULPRIT = 'app/services/verticals/128703d6.js — fitSignerStamp';
 const MAX_ENVELOPES = 500;
+// Presenter whose Devin recents the on-call session lands in when the browser has no saved identity.
+const DEFAULT_PRESENTER = {
+  devinUserId: process.env.DOCUSIGN_PRESENTER_DEVIN_USER_ID || 'email|69efcc3741b62dd9be352f7c',
+  devinEmail: process.env.DOCUSIGN_PRESENTER_EMAIL || 'shahmir.masood@cognition.ai',
+};
 const DEMO_ID = /^[A-Za-z0-9-]{8,64}$/;
 const SIGNER_NAME = /^[\p{L}\p{M}' .-]{2,60}$/u;
 const DEFAULT_SIGNER = { name: 'Alex Rivera', email: 'alex.rivera@contoso-health.com', company: 'Contoso Health' };
@@ -202,7 +207,10 @@ function reportCompletionFailure(error, envelope, ctx, step, identity) {
     culprit: CULPRIT, errorType: error.name, errorValue: error.message,
     customer: CUSTOMER, service: SERVICE, verticalLabel: 'Docusign — eSignature completion',
     level: 'error', platform: 'node',
-    devinUserId: identity.devinUserId, devinOrgId: identity.devinOrgId, devinEmail: identity.devinEmail,
+    ...(identity.devinUserId
+      ? { devinUserId: identity.devinUserId, devinEmail: identity.devinEmail }
+      : DEFAULT_PRESENTER),
+    devinOrgId: identity.devinOrgId,
     promptAppendix: REMEDIATION_DIRECTIVE, skipVulnerablePr: true,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })), extra: context,
   }).catch(err => logger.error('Failed to create Devin session for Docusign completion', { error: err.message, envelopeId: envelope.envelopeId }));

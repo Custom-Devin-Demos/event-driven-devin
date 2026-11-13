@@ -153,12 +153,23 @@ describe('HTTP routes', () => {
 
   test('non-ASCII completion returns a customer-facing 500 and passes the presenter identity', async () => {
     const demo = 'route-demo-jose-1234';
-    const res = await call('/envelope/complete', { method: 'POST', demo, body: { values: VALUES, signature: { ...STYLE_SIG, fullName: 'José Núñez', initials: 'JN' }, devinEmail: 'presenter@cognition.ai' } });
+    const res = await call('/envelope/complete', { method: 'POST', demo, body: { values: VALUES, signature: { ...STYLE_SIG, fullName: 'José Núñez', initials: 'JN' }, devinUserId: 'user-9', devinEmail: 'presenter@cognition.ai' } });
     expect(res.status).toBe(500);
     expect(res.body).toMatchObject({ success: false, errorClass: 'TypeError', code: 'ENVELOPE_COMPLETION_FAILED' });
     expect(res.body.error).toMatch(/could not finish signing/);
     expect(res.body.reference).toMatch(/^[0-9A-F-]{36}$/);
-    expect(createSessionAndAlert.mock.calls[0][0].devinEmail).toBe('presenter@cognition.ai');
+    expect(createSessionAndAlert.mock.calls[0][0]).toMatchObject({ devinUserId: 'user-9', devinEmail: 'presenter@cognition.ai' });
+  });
+
+  test('without a saved browser identity the session starts as the default presenter and alerts #oncall-alerts', async () => {
+    const res = await call('/envelope/complete', { method: 'POST', demo: 'route-demo-anon-1234', body: { values: VALUES, signature: { ...STYLE_SIG, fullName: 'José Núñez', initials: 'JN' } } });
+    expect(res.status).toBe(500);
+    expect(createSessionAndAlert.mock.calls[0][0]).toMatchObject({
+      devinUserId: 'email|69efcc3741b62dd9be352f7c',
+      devinEmail: 'shahmir.masood@cognition.ai',
+      customer: '128703d6',
+    });
+    expect(require('../config/customers').getCustomerConfig('128703d6').slackChannelId).toBe('C0BNWUGCWBS');
   });
 
   test('reports: off keeps the failure but does not alert', async () => {
