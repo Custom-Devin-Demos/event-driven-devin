@@ -103,23 +103,58 @@ describe('real Nourish router over HTTP', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
-  test('kill switch produces zero side effects and suppressed reports dedup', async () => {
+  test('kill switch produces zero side effects and dedups separately from live reports', async () => {
     process.env.NOURISH_REPORTS_DISABLED = '1';
     await start();
     const first = await post();
-    delete process.env.NOURISH_REPORTS_DISABLED;
     expect((await post()).data).toEqual({ ...first.data, duplicate: true });
     expect(Sentry.withScope).not.toHaveBeenCalled();
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+    delete process.env.NOURISH_REPORTS_DISABLED;
+    const live = await post();
+    expect(live.data.duplicate).toBe(false);
+    expect(live.data.reportId).not.toBe(first.data.reportId);
+    expect((await post()).data).toEqual({ ...live.data, duplicate: true });
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('synthetic and live reports retain independent report IDs in either order', async () => {
+    await start();
+    const synthetic = await post(body, { 'x-synthetic': '1' });
+    const live = await post();
+    expect(synthetic.data.duplicate).toBe(false);
+    expect(live.data.duplicate).toBe(false);
+    expect(live.data.reportId).not.toBe(synthetic.data.reportId);
+    expect((await post(body, { 'x-synthetic': '1' })).data).toEqual({ ...synthetic.data, duplicate: true });
+    expect((await post()).data).toEqual({ ...live.data, duplicate: true });
+    const android = { ...body, platform: 'android' };
+    const liveFirst = await post(android);
+    const syntheticSecond = await post(android, { 'x-synthetic': '1' });
+    expect(syntheticSecond.data.duplicate).toBe(false);
+    expect(syntheticSecond.data.reportId).not.toBe(liveFirst.data.reportId);
+    expect(Sentry.captureException).toHaveBeenCalledTimes(2);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test('invalid/random fixture IDs and duplicates cannot bypass IP limit', async () => {
     await start({ perClient: 3 });
-    expect((await post({ ...body, fixtureId: 'random-1' })).status).toBe(400);
-    expect((await post({ ...body, fixtureId: 'random-2' })).status).toBe(400);
-    expect((await post(body, { 'x-synthetic': '1' })).status).toBe(202);
-    expect((await post(body, { 'x-forwarded-for': '203.0.113.2' })).status).toBe(429);
-    expect((await post({ ...body, fixtureId: 'random-3' })).status).toBe(429);
+    const headers = { 'x-forwarded-for': '203.0.113.2', 'x-synthetic': '1' };
+    expect((await post({ ...body, fixtureId: 'random-1' }, headers)).status).toBe(400);
+    expect((await post({ ...body, fixtureId: 'random-2' }, headers)).status).toBe(400);
+    expect((await post(body, headers)).status).toBe(202);
+    expect((await post(body, { ...headers, 'x-forwarded-for': '198.51.100.3, 203.0.113.2' })).status).toBe(429);
+    expect((await post({ ...body, fixtureId: 'random-3' }, headers)).status).toBe(429);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('distinct proxy-added addresses get separate client buckets but share the global cap', async () => {
+    await start({ perClient: 1, globalMax: 3 });
+    const headers = { 'x-synthetic': '1', 'x-forwarded-for': '198.51.100.1, 203.0.113.1' };
+    expect((await post(body, headers)).status).toBe(202);
+    expect((await post(body, headers)).status).toBe(429);
+    expect((await post(body, { ...headers, 'x-forwarded-for': '198.51.100.1, 203.0.113.2' })).status).toBe(202);
+    expect((await post(body, { ...headers, 'x-forwarded-for': '198.51.100.1, 203.0.113.3' })).status).toBe(429);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 

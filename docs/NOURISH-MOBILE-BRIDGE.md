@@ -16,14 +16,16 @@ curl -i -X POST https://devindemos.com/api/nourish/mobile/error \
 JSON/schema returns 400, bodies over 2kb return 413, and excess attempts return
 429. Per process, all attempts (including invalid, duplicate and suppressed)
 count toward 10 per client IP and 100 globally per 10-minute fixed window.
-Client buckets expire and are capped at 1000. This service does not trust
-caller-supplied forwarding headers; behind the existing proxy the per-IP limit
-may conservatively share a bucket. The global limit still applies.
+Client buckets expire and are capped at 1000. Like the existing on-call limiter,
+the bridge uses the rightmost X-Forwarded-For address appended by nginx, falling
+back to the socket address without that header. Earlier caller-supplied entries
+do not affect the bucket. Keep direct application access private behind nginx
+so callers cannot forge the proxy-added address. The global limit still applies.
 
 Identical reports dedup for 10 minutes, returning the original reportId with
-`duplicate:true`. With three allowed platforms there are at most three dedup
-entries. Suppressed reports participate in dedup too, so a smoke test can defer
-a subsequent live report on that platform until its window expires. State is
+`duplicate:true`. Suppressed and live reports use separate dedup state, with
+at most six entries across three allowed platforms. Synthetic smoke tests and
+disabled reports never swallow a subsequent live report on that platform. State is
 in memory, resets on restart, and is not shared across replicas.
 
 The presence of `x-synthetic`, `x-oncall-mode: 1`, `?reports=off`, or server

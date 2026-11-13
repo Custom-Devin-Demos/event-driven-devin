@@ -14,7 +14,11 @@ function createRouter({ now = Date.now, perClient = 10, globalMax = 100, windowM
     for (const [ip, slot] of clients) {
       if (time - slot.start >= windowMs) clients.delete(ip);
     }
-    const ip = req.ip || req.socket.remoteAddress;
+    // nginx appends the real client address; match the on-call limiter.
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = typeof forwarded === 'string' && forwarded.trim()
+      ? forwarded.split(',').pop().trim()
+      : (req.socket.remoteAddress || 'unknown');
     const client = clients.get(ip) || { start: time, count: 0 };
     global.count += 1;
     client.count += 1;
@@ -33,15 +37,15 @@ function createRouter({ now = Date.now, perClient = 10, globalMax = 100, windowM
     for (const [key, report] of reports) {
       if (time - report.created >= windowMs) reports.delete(key);
     }
-    // Strict validation leaves exactly three possible dedup keys.
-    const key = req.body.platform;
+    const suppressed = Object.hasOwn(req.headers, 'x-synthetic')
+      || req.headers['x-oncall-mode'] === '1' || req.query.reports === 'off'
+      || process.env.NOURISH_REPORTS_DISABLED === '1';
+    // Three allowed platforms, each with separate suppressed and live state.
+    const key = `${suppressed}:${req.body.platform}`;
     const existing = reports.get(key);
     if (existing) return res.status(202).json({ accepted: true, reportId: existing.reportId, duplicate: true });
     const reportId = uuidv4();
     reports.set(key, { reportId, created: time });
-    const suppressed = Object.hasOwn(req.headers, 'x-synthetic')
-      || req.headers['x-oncall-mode'] === '1' || req.query.reports === 'off'
-      || process.env.NOURISH_REPORTS_DISABLED === '1';
     if (!suppressed) reportFailure(req.body.platform, reportId);
     return res.status(202).json({ accepted: true, reportId, duplicate: false });
   });
