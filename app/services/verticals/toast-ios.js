@@ -120,6 +120,17 @@ async function resolveUserIdByEmail(email, orgId) {
   return '';
 }
 
+function reproductionContext(details, multiplayer, labor, stackTrace) {
+  const lines = ['*Report details (from the device):*'];
+  Object.entries(details).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') lines.push(`- ${key}: ${value}`);
+  });
+  if (multiplayer) lines.push(`- multiplayer: \`${JSON.stringify(multiplayer)}\``);
+  if (labor) lines.push(`- labor: \`${JSON.stringify(labor)}\``);
+  if (stackTrace) lines.push('', '*Stack trace:*', '```', stackTrace, '```');
+  return lines.join('\n');
+}
+
 function reportAppFailure(report) {
   const reference = uuidv4();
   const platform = clip(report.platform || 'ios', 32);
@@ -205,7 +216,7 @@ function reportAppFailure(report) {
     project: APP_PROJECT,
     release,
     sessionPlatform: TOAST_IOS_SESSION_PLATFORM || undefined,
-    promptAppendix: APP_REMEDIATION_DIRECTIVE,
+    promptAppendix: `${APP_REMEDIATION_DIRECTIVE}\n\n${reproductionContext(details, multiplayer, labor, stackTrace)}`,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: {
       reference,

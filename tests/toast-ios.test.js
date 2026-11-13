@@ -164,9 +164,13 @@ describe('Toast Now iOS failure report bridge', () => {
       slackMemberId: '',
       slackMemberIdFallback: '',
       issueTitle: "MenuSyncError.staleMenuVersion: Couldn't 86 Margarita. Menu changed on another device.",
-      promptAppendix: APP_REMEDIATION_DIRECTIVE,
       release: APP_RELEASE,
     });
+    expect(alert.promptAppendix.startsWith(APP_REMEDIATION_DIRECTIVE)).toBe(true);
+    expect(alert.promptAppendix).toContain('errorCode: TST-86-4091');
+    expect(alert.promptAppendix).toContain('participants: Max R. (iPhone 17 Pro), Marco D. (iPhone 17)');
+    expect(alert.promptAppendix).toContain('menuVersionKnown: 1');
+    expect(alert.promptAppendix).toContain('"opId":');
     expect(alert.extra).toMatchObject({
       errorCode: 'TST-86-4091',
       action: 'eightySixItem',
@@ -195,6 +199,7 @@ describe('Toast Now iOS failure report bridge', () => {
     expect(alert.extra.action).toBe('editShift');
     expect(alert.extra.multiplayer).toBeUndefined();
     expect(JSON.parse(alert.extra.labor)).toEqual({ employee: 'Claudia W.', shiftId: 's-1' });
+    expect(alert.promptAppendix).toContain('labor: `{"employee":"Claudia W.","shiftId":"s-1"}`');
     expect(alert.tags).toEqual(expect.arrayContaining([{ key: 'multiplayer', value: 'false' }]));
   });
 
