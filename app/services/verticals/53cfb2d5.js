@@ -6,7 +6,7 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
-const SLACK_MEMBER_ID = process.env.NOURISH_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const SLACK_MEMBER_ID = process.env.NOURISH_SLACK_MEMBER_ID || '';
 
 const SERVICE = 'customer-53cfb2d5-coverage-check';
 const ROUTE = '/api/53cfb2d5/coverage-check';
@@ -177,7 +177,7 @@ function reportLatencyBreach(context) {
     verticalLabel: 'Nourish Coverage Check',
     promptAppendix: REMEDIATION_DIRECTIVE,
     customer: '53cfb2d5',
-    slackMemberId: data.devinEmail ? '' : SLACK_MEMBER_ID,
+    slackMemberId: '',
     slackMemberIdFallback: SLACK_MEMBER_ID,
     tags: [
       { key: 'route', value: ROUTE },
