@@ -1,9 +1,11 @@
 jest.mock('../app/services/devin-session', () => ({ createSessionAndAlert: jest.fn(() => Promise.resolve({})) }));
+jest.mock('../app/telemetry/logger', () => ({ error: jest.fn(), warn: jest.fn(), info: jest.fn() }));
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn(), withScope: jest.fn((fn) => fn({ addEventProcessor: jest.fn() })) },
 }));
 
 const express = require('express');
+const logger = require('../app/telemetry/logger');
 const { Sentry } = require('../app/telemetry/sentry');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { ERROR_PATH, VALUES, REPO, CULPRIT, PROMPT, validReport } = require('../app/services/verticals/nourish-mobile');
@@ -101,6 +103,7 @@ describe('real Nourish router over HTTP', () => {
     expect(Sentry.withScope).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(logger.error).not.toHaveBeenCalled();
   });
 
   test('kill switch produces zero side effects and dedups separately from live reports', async () => {
@@ -110,6 +113,7 @@ describe('real Nourish router over HTTP', () => {
     expect((await post()).data).toEqual({ ...first.data, duplicate: true });
     expect(Sentry.withScope).not.toHaveBeenCalled();
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(logger.error).not.toHaveBeenCalled();
     delete process.env.NOURISH_REPORTS_DISABLED;
     const live = await post();
     expect(live.data.duplicate).toBe(false);
@@ -171,6 +175,12 @@ describe('real Nourish router over HTTP', () => {
     await start();
     const result = await post(body, { 'x-untrusted-message': 'PRIVATE', authorization: 'PRIVATE' }, '?message=PRIVATE');
     expect(result.status).toBe(202);
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith('Nourish mobile app reported a failure', {
+      customer: 'nourish-mobile', service: 'customer-nourish-mobile', route: ERROR_PATH,
+      errorCode: VALUES.errorCode, fixtureId: VALUES.fixtureId, screen: VALUES.screen,
+      platform: body.platform, appVersion: VALUES.appVersion, reportId: result.data.reportId,
+    });
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert).toMatchObject({ repos: [REPO], sessionPlatform: 'macos', promptAppendix: PROMPT, skipVulnerablePr: true });
@@ -192,9 +202,13 @@ describe('real Nourish router over HTTP', () => {
   test('asynchronous alert failures do not reject the accepted report or retry on duplicate', async () => {
     createSessionAndAlert.mockRejectedValueOnce(new Error('unavailable'));
     await start();
-    expect((await post()).status).toBe(202);
+    const result = await post();
+    expect(result.status).toBe(202);
     expect((await post()).data.duplicate).toBe(true);
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith('Nourish report alert failed', {
+      reportId: result.data.reportId, error: 'unavailable',
+    });
   });
 
   test('webhook recognizes instant tags and tagless issue culprits', () => {

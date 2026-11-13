@@ -33,6 +33,11 @@ function reportFailure(platform, reportId) {
   const tags = { customer: 'nourish-mobile', service: 'customer-nourish-mobile',
     route: ERROR_PATH, alert_path: 'instant', platform, error_code: VALUES.errorCode };
   const extra = { ...VALUES, platform, reportId };
+  logger.error('Nourish mobile app reported a failure', {
+    customer: tags.customer, service: tags.service, route: ERROR_PATH,
+    errorCode: VALUES.errorCode, fixtureId: VALUES.fixtureId, screen: VALUES.screen,
+    platform, appVersion: VALUES.appVersion, reportId,
+  });
   const error = new Error(message);
   error.name = VALUES.errorCode;
   error.stack = `${VALUES.errorCode}: ${message}\n    at ${CULPRIT}:1:1`;
@@ -54,7 +59,7 @@ function reportFailure(platform, reportId) {
     repos: [REPO], sessionPlatform: 'macos', promptAppendix: PROMPT,
     skipVulnerablePr: true, release: 'nourish-mobile@1.0.0',
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })), extra,
-  })).catch(() => logger.error('Nourish report alert failed', { reportId }));
+  })).catch((error) => logger.error('Nourish report alert failed', { reportId, error: error.message }));
 }
 
 module.exports = { ERROR_PATH, REPO, CULPRIT, VALUES, PROMPT, validReport, reportFailure };
