@@ -63,6 +63,12 @@ describe('envelope lifecycle', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
+  test('accepts initials from uncased scripts', () => {
+    const id = nextId();
+    svc.getEnvelope(id, { signerName: '张伟' });
+    expect(svc.completeEnvelope(id, { values: VALUES, signature: { ...STYLE_SIG, fullName: '张伟', initials: '张' } }).status).toBe('completed');
+  });
+
   test('custom signer name and per-demo isolation', () => {
     const a = nextId(); const b = nextId();
     expect(svc.getEnvelope(a, { signerName: 'Jordan Lee' }).signer.name).toBe('Jordan Lee');

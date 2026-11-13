@@ -94,7 +94,7 @@ function validateSignature(signature, signer) {
   const fullName = typeof signature.fullName === 'string' ? signature.fullName.trim().replace(/\s+/g, ' ') : '';
   const initials = typeof signature.initials === 'string' ? signature.initials.trim().toUpperCase() : '';
   if (!SIGNER_NAME.test(fullName)) throw invalid('Enter your full name to adopt a signature.', 'SIGNATURE_REQUIRED');
-  if (!/^[\p{Lu}]{1,4}$/u.test(initials)) throw invalid('Enter your initials (up to 4 letters).', 'SIGNATURE_REQUIRED');
+  if (!/^\p{L}{1,4}$/u.test(initials)) throw invalid('Enter your initials (up to 4 letters).', 'SIGNATURE_REQUIRED');
   if (signature.mode === 'draw') {
     if (typeof signature.image !== 'string' || !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature.image) || signature.image.length > 400000) {
       throw invalid('Draw your signature before adopting it.', 'SIGNATURE_REQUIRED');

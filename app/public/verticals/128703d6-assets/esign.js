@@ -61,7 +61,8 @@
     $('#primary-row').classList.toggle('unread', !done);
     const changed = env.completedAt || env.sentAt;
     $('#primary-date').textContent = fmtDate(changed); $('#primary-time').textContent = fmtTime(changed);
-    $('#primary-action').textContent = done ? 'Download' : 'Sign';
+    $('#primary-subject').setAttribute('href', done ? '#/completed' : '#/sign');
+    $('#primary-action').textContent = done ? 'View' : 'Sign';
     $('#primary-action').className = done ? 'ghost-btn' : 'primary-btn';
     $('#inbox-count').textContent = done ? '0' : '1'; $('#inbox-count').hidden = done;
   }
@@ -72,7 +73,7 @@
     const anchor = id => $(`.tab-anchor[data-tab="${id}"]`);
     const signedMarkup = (kind) => {
       const isIni = kind === 'ini';
-      const body = sig.mode === 'draw'
+      const body = sig.mode === 'draw' && (isIni ? sig.iniImage : sig.image)
         ? `<img src="${isIni ? sig.iniImage : sig.image}" alt="${isIni ? sig.initials : sig.fullName}">`
         : `<span style="font-family:${styleFamily(sig.style)}">${escapeHtml(isIni ? sig.initials : sig.fullName)}</span>`;
       return `<button class="signed-tab" data-tab-btn="${isIni ? 'initial-1' : 'sign-1'}" aria-label="${isIni ? 'Initialed' : 'Signed'} — click to change"><span class="signed-stamp"><span class="ds-by">${isIni ? 'DS' : 'Docusigned by:'}</span><span class="ds-sig ${isIni ? 'signed-ini' : ''}">${body}</span>${isIni ? '' : `<span class="ds-hash">${sig.hash}…</span>`}</span></button>`;
@@ -88,7 +89,7 @@
       anchor('title-1').innerHTML = '<input class="tab-text required" id="title-input" data-tab-btn="title-1" maxlength="60" placeholder="Title" aria-label="Title (required)">';
       $('#title-input').addEventListener('input', e => { state.values['title-1'] = e.target.value; updateProgress(); });
     }
-    const t = $('#title-input'); t.value = v['title-1'] || '';
+    const t = $('#title-input'); t.value = v['title-1'] || ''; t.disabled = !state.agreed || state.completedView;
     t.classList.toggle('filled', !!(v['title-1'] || '').trim()); t.classList.toggle('required', !(v['title-1'] || '').trim());
     $$('[data-tab-btn]').forEach(el => { if (el.tagName === 'BUTTON') el.onclick = () => onTab(el.dataset.tabBtn); });
     updateProgress();
@@ -115,7 +116,7 @@
   function navLabel(id) { return { 'initial-1': 'Initial', 'sign-1': 'Sign', 'title-1': 'Fill In' }[id]; }
   function positionNavTag() {
     const tag = $('#nav-tag');
-    if (!state.agreed) { tag.hidden = true; return; }
+    if (!state.agreed || state.completedView) { tag.hidden = true; return; }
     tag.hidden = false;
     const left = remaining();
     const started = Object.keys(state.values).length > 0 || state.started;
@@ -142,6 +143,13 @@
   };
 
   function onTab(id) {
+    if (state.completedView) return;
+    if (!state.agreed) {
+      const ersd = $('#ersd'); ersd.classList.remove('attn'); void ersd.offsetWidth; ersd.classList.add('attn');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast('Review the disclosure first', 'Check "I agree to use electronic records and signatures" and select Continue to start signing.');
+      return;
+    }
     state.started = true;
     if (id === 'title-1') return;
     if (state.signature && !state.values[id]) { state.values[id] = true; renderTabs(); afterFill(id); return; }
@@ -216,7 +224,7 @@
   function resetCeremony() {
     Object.assign(state, { agreed: false, values: {}, signature: null, started: false, drawn: { sig: false, ini: false } });
     $('#ersd').hidden = false; $('#action-bar').hidden = true; $('#ersd-agree').checked = false; $('#ersd-continue').disabled = true;
-    document.body.classList.remove('signing-active');
+    document.body.classList.remove('signing-active', 'agreed');
     const t = $('.tab-anchor[data-tab="title-1"]'); t.innerHTML = '';
     $$('canvas').forEach(c => { c.getContext('2d').clearRect(0, 0, c.width, c.height); });
     renderTabs();
@@ -224,7 +232,11 @@
   async function route() {
     const hash = location.hash || '#/agreements';
     if (!state.envelope) await load();
-    if (hash.startsWith('#/sign')) {
+    if (!hash.startsWith('#/completed')) leaveCompletedView();
+    if (hash.startsWith('#/completed')) {
+      if (state.envelope.status !== 'completed') { location.hash = '#/agreements'; return; }
+      show('signing'); enterCompletedView();
+    } else if (hash.startsWith('#/sign')) {
       if (state.envelope.status === 'completed') { location.hash = '#/done'; return; }
       show('signing'); if (!state.agreed) resetCeremony(); setTimeout(positionNavTag, 50);
     } else if (hash.startsWith('#/done')) {
@@ -238,11 +250,11 @@
     paintEnvelope(); renderTabs();
   }
 
-  $('#primary-action').onclick = () => { location.hash = state.envelope && state.envelope.status === 'completed' ? '#/done' : '#/sign'; };
+  $('#primary-action').onclick = () => { location.hash = state.envelope && state.envelope.status === 'completed' ? '#/completed' : '#/sign'; };
   $('#ersd-agree').onchange = e => { $('#ersd-continue').disabled = !e.target.checked; };
   $('#ersd-continue').onclick = async () => {
     try { state.envelope = await api('/envelope/view', { method: 'POST', body: signerParam ? { signerName: signerParam } : {} }); } catch (err) { toast('Unable to continue', err.message); return; }
-    state.agreed = true; $('#ersd').hidden = true; $('#action-bar').hidden = false; document.body.classList.add('signing-active');
+    state.agreed = true; $('#ersd').hidden = true; $('#action-bar').hidden = false; document.body.classList.add('signing-active', 'agreed');
     renderTabs(); positionNavTag();
   };
   $('#ersd-disclosure').onclick = () => info('Electronic Record and Signature Disclosure', '<p>From time to time, Northwind Systems, Inc. (we, us or Company) may be required by law to provide to you certain written notices or disclosures. Described below are the terms and conditions for providing to you such notices and disclosures electronically through the Docusign system.</p><p>You may request paper copies at any time, withdraw your consent to receive notices electronically, and must have a supported browser and an email account to access these records.</p>');
@@ -251,21 +263,46 @@
     const left = remaining();
     if (left.length) { goTo(left[0]); return; }
     const btn = $('#finish'); btn.disabled = true; btn.textContent = 'Finishing…';
+    const overlay = $('#finishing'); const steps = $$('#finishing-steps li');
+    steps.forEach(li => { li.className = ''; }); overlay.hidden = false;
+    const pause = ms => new Promise(r => setTimeout(r, ms));
     try {
       const sig = state.signature;
-      state.envelope = await api('/envelope/complete', { method: 'POST', body: {
+      const request = api('/envelope/complete', { method: 'POST', body: {
         values: { 'initial-1': true, 'sign-1': true, 'title-1': state.values['title-1'].trim() },
         signature: { fullName: sig.fullName, initials: sig.initials, mode: sig.mode, style: sig.style, image: sig.image },
       } });
+      for (const li of steps) { li.className = 'active'; await pause(650); li.className = 'done'; }
+      state.envelope = await request;
+      await pause(250);
       location.hash = '#/done';
     } catch (err) {
       toast('Unable to complete signing', err.message);
-    } finally { btn.textContent = 'Finish'; updateProgress(); }
+    } finally { overlay.hidden = true; btn.textContent = 'Finish'; updateProgress(); }
   };
+
+  function enterCompletedView() {
+    const env = state.envelope; const saved = env.signature || {};
+    if (!state.signature) state.signature = { fullName: saved.fullName, initials: saved.initials, mode: saved.mode, style: saved.style, image: saved.image, iniImage: null };
+    state.signature.hash = (saved.shortId || state.signature.hash || '').toUpperCase();
+    state.values = { 'initial-1': true, 'sign-1': true, 'title-1': (env.values && env.values['title-1']) || state.values['title-1'] || '' };
+    state.completedView = true; state.agreed = true;
+    document.body.classList.add('completed-mode', 'signing-active', 'agreed');
+    $('#ersd').hidden = true; $('#action-bar').hidden = true; $('#completed-bar').hidden = false;
+    renderTabs(); $('#req-count').textContent = 'Completed'; $('#req-count').classList.add('done');
+  }
+  function leaveCompletedView() {
+    if (!state.completedView) return;
+    state.completedView = false;
+    document.body.classList.remove('completed-mode');
+    $('#completed-bar').hidden = true;
+    if (state.envelope && state.envelope.status !== 'completed') resetCeremony();
+  }
 
   function renderDone() {
     const env = state.envelope; paintEnvelope();
     $('#cert-status').textContent = 'Completed';
+    $('#mail-time').textContent = `${fmtDate(env.completedAt)} ${fmtTime(env.completedAt)}`;
     $('#cert-subject').textContent = env.subject;
     $('#cert-adoption').textContent = env.certificate ? env.certificate.signatureAdoption : '';
     $('#cert-sigid').textContent = env.signature ? env.signature.signatureId : '';
@@ -285,7 +322,7 @@
     const b = e.target.closest('[data-menu]'); if (!b) return; toggleMenu(false);
     const env = state.envelope;
     switch (b.dataset.menu) {
-      case 'later': location.hash = '#/agreements'; toast('Saved', 'Your progress is saved. You can finish signing from your Inbox.', true); break;
+      case 'later': location.hash = '#/agreements'; toast('Finish later', 'This envelope stays in your Inbox under Need to Sign. Reopen it any time to sign.', true); break;
       case 'print': window.print(); break;
       case 'assign': info('Assign to Someone Else', '<p>Reassigning is disabled in this demonstration environment.</p>'); break;
       case 'decline': info('Decline to Sign', '<p>Declining is disabled in this demonstration environment so the envelope stays ready for the next run.</p>'); break;
@@ -298,8 +335,11 @@
   $('#info').onclick = () => info('Document Information', `<dl><dt>Document</dt><dd>${state.envelope.document.name}</dd><dt>Pages</dt><dd>${state.envelope.document.pages}</dd><dt>Envelope ID</dt><dd>${state.envelope.envelopeId}</dd><dt>Sent</dt><dd>${fmtDate(state.envelope.sentAt)} ${fmtTime(state.envelope.sentAt)}</dd></dl>`);
   $('#print').onclick = () => window.print();
   $('#download').onclick = () => window.print();
-  $('#done-download').onclick = () => { show('signing'); window.print(); show('done'); };
-  $('#done-print').onclick = $('#done-download').onclick;
+  const printCompleted = () => { if (location.hash !== '#/completed') location.hash = '#/completed'; setTimeout(() => window.print(), 400); };
+  $('#done-download').onclick = printCompleted; $('#done-print').onclick = printCompleted;
+  $('#cb-download').onclick = () => window.print(); $('#cb-print').onclick = () => window.print();
+  $('#done-view').onclick = () => { location.hash = '#/completed'; };
+  $('#mail-view').onclick = () => { location.hash = '#/completed'; };
   const applyZoom = () => { $('#pages').style.transform = `scale(${state.zoom})`; $('#pages').style.marginBottom = `${(state.zoom - 1) * 2200}px`; setTimeout(positionNavTag, 50); };
   $('#zoom-in').onclick = () => { state.zoom = Math.min(1.5, +(state.zoom + 0.1).toFixed(1)); applyZoom(); };
   $('#zoom-out').onclick = () => { state.zoom = Math.max(0.6, +(state.zoom - 0.1).toFixed(1)); applyZoom(); };
@@ -313,6 +353,7 @@
   async function resetDemo() {
     try {
       state.envelope = await api('/envelope/reset', { method: 'POST', body: signerParam ? { signerName: signerParam } : {} });
+      state.completedView = false; document.body.classList.remove('completed-mode'); $('#completed-bar').hidden = true;
       resetCeremony(); paintEnvelope();
       if (location.hash === '#/agreements') route(); else location.hash = '#/agreements';
       toast('Demo reset', 'The envelope is ready to sign again.', true);
