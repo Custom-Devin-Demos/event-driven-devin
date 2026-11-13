@@ -45,6 +45,9 @@ const PORT = process.env.PORT || 3000;
 app.use(lifecoRoutes);
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
+// The bridge owns its small body parser and limits before any body parsing.
+app.use(require('./routes/verticals/nourish-mobile'));
+
 // Middleware: parse JSON (capture raw body for webhook signature verification)
 app.use(express.json({
   verify: (req, _res, buf) => {
