@@ -9753,6 +9753,33 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A SANTANDER SITE — internal demo only, not affiliated with, endorsed by, or a real Santander UK product.',
   },
+  '7d9d12df': {
+    slug: '7d9d12df',
+    company: 'Accrete',
+    brandMark: 'a',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: '7d9d12df.html', title: 'Seats | Workspace settings | Accrete Knowledge Engine' },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 Knowledge Engine: Add seats',
+      service: 'workspace-seats-api',
+      release: 'knowledge-engine@2026.11.2',
+      team: 'workspace-admin-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/licenses/provision}',
+      baseline: '~350ms (7-day p95, before knowledge-engine@2026.11.2)',
+      symptom: 'Add seats in Knowledge Engine workspace settings got slow after the last release and takes longer with every request. Process memory trends up alongside latency.',
+      impact: 'Workspace admins wait several seconds for every seat request to complete, and the wait grows under sustained use.',
+    },
+    theme: {
+      '--accent': '#3422D2',
+      '--ink': '#171717',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0A0A0A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Accrete Support',
+    disclaimer: 'NOT ACTUALLY AN ACCRETE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Accrete product. Workspace data is synthetic.',
+  },
 };
 
 function getOncallSkin(slug) {
