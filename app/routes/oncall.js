@@ -21,6 +21,7 @@ const { BATCH: CIBC_PAYMENT, sendMoney } = require('../services/oncall-verticals
 const { BATCH: LB_REROUTE, rerouteOrders } = require('../services/oncall-verticals/logicbroker-reroute');
 const { STORE: WALMART_PICKUP_STORE, reservePickupSlot } = require('../services/oncall-verticals/walmartfulfillment');
 const { isTeamsWebhookUrl } = require('../services/teams');
+const { createOlbRouter, rebaseOlbLinks } = require('../services/verticals/e7fd3fee-olb');
 const {
   FLEET,
   isFleetReport,
@@ -263,6 +264,11 @@ function buildSkinBrandShim(skin) {
  * URL a DE shares for a custom demo; the /oncall hub itself is never skinned.
  * Registered before /oncall/:vertical so "c" is never treated as a vertical.
  */
+function decorateSkinHtml(skin, scenario, html) {
+  const page = skin.siteReplica === 'e7fd3fee-olb' ? rebaseOlbLinks(html, `/oncall/c/${skin.slug}/olb`) : html;
+  return page.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.hideRibbon, skin)}\n${buildSkinBrandShim(skin)}\n</body>`);
+}
+
 function serveSkinPage(skin, res, next) {
   const scenario = ALERT_SCENARIOS[skin.vertical];
   if (!scenario) return next();
@@ -270,10 +276,19 @@ function serveSkinPage(skin, res, next) {
   if (!pagePath) return next();
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
-    res.type('html').send(
-      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.hideRibbon, skin)}\n${buildSkinBrandShim(skin)}\n</body>`)
-    );
+    res.type('html').send(decorateSkinHtml(skin, scenario, html));
   });
+}
+
+/**
+ * Skins with siteReplica 'e7fd3fee-olb' carry the whole Online Banking replica
+ * under /oncall/c/<slug>/olb, every page shimmed, so the presenter can sign in
+ * and navigate exactly as on /e7fd3fee/olb.
+ */
+for (const skin of Object.values(ONCALL_SKINS)) {
+  const scenario = ALERT_SCENARIOS[skin.vertical];
+  if (skin.siteReplica !== 'e7fd3fee-olb' || !scenario) continue;
+  router.use(createOlbRouter(`/oncall/c/${skin.slug}/olb`, (html) => decorateSkinHtml(skin, scenario, html)));
 }
 
 router.get('/oncall/c/:slug', (req, res, next) => {

@@ -634,6 +634,26 @@ const ALERT_SCENARIOS = {
     // Branded page only: not offered on the generic hub.
     unlisted: true,
   },
+  ericadispute: {
+    vertical: 'ericadispute',
+    apiPath: '/api/e7fd3fee/erica/chat',
+    oncallApiPath: '/api/oncall/ericadispute/chat',
+    owner: 'Priya Raman (erica-disputes-oncall)',
+    brand: 'Online Banking (Erica card disputes)',
+    service: 'erica-svc',
+    endpoint: 'POST /api/oncall/ericadispute/chat',
+    monitor: 'Error rate \u2014 POST /api/oncall/ericadispute/chat',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/ericadispute/chat}.as_count() / sum:trace.express.request.hits{service:checkout-api,resource:POST /api/oncall/ericadispute/chat}.as_count() * 100',
+    metricValue: '100% of Mastercard dispute filings (HTTP 500)',
+    threshold: '> 2%',
+    baseline: '~0.1% (7-day)',
+    release: 'erica-svc@3.8.1',
+    symptom: 'Erica fails with HTTP 500 when a customer confirms Lock card and dispute charge on a Mastercard charge. Visa disputes file normally.',
+    impact: 'Mastercard holders cannot dispute an unrecognized charge in Erica; the card stays unlocked and the dispute is not filed.',
+    alertOnStatus: [500],
+    // Branded page only: not offered on the generic hub.
+    unlisted: true,
+  },
   rebooking: {
     vertical: 'rebooking',
     page: 'e7a1c4d9.html',

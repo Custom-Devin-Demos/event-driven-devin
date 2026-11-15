@@ -322,7 +322,7 @@
       if (panel.hidden) { unread.hidden = false; }
     } else if (r.status === 401) {
       var e = (r.json && r.json.error) || {};
-      showAlert(e.message || 'Your session ended. Please sign in again.', e.redirect || '/e7fd3fee/olb/login', 'Sign in');
+      showAlert(e.message || 'Your session ended. Please sign in again.', e.redirect || window.location.pathname.replace(/\/[^\/]*$/, '') + '/login', 'Sign in');
     } else if (r.status === 403) {
       showAlert('Your session expired. Refresh the page and try again.', window.location.pathname, 'Refresh page');
     } else {

@@ -25,7 +25,7 @@
       return;
     }
     if (!$n.data('masked')) { $n.data('masked', $n.html()); }
-    $.ajax({ url: '/e7fd3fee/olb/account-reveal', data: { id: $b.data('account'), reveal: 1 }, dataType: 'json' })
+    $.ajax({ url: window.location.pathname.replace(/\/[^\/]*$/, '') + '/account-reveal', data: { id: $b.data('account'), reveal: 1 }, dataType: 'json' })
       .done(function (r) {
         $n.empty().append($('<span aria-hidden="true"></span>').text(r.account_number)).append($('<span class="sr-only"></span>').text(r.spoken));
         $b.attr('aria-pressed', 'true').html('Hide<span class="sr-only"> full number</span>');

@@ -44,6 +44,7 @@ const { checkoutOrder: checkoutHomeImprovementOrder } = require('../services/onc
 const { checkoutBasket: checkoutBrandStoreBasket } = require('../services/oncall-verticals/brandstore');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
 const { submitCardPayment } = require('../services/oncall-verticals/cardpayment');
+const ericaDispute = require('../services/oncall-verticals/ericadispute');
 const { createSessionAndAlert } = require('../services/devin-session');
 const { getOncallSkin } = require('../../config/oncall-skins');
 const { runWithAlertDestination } = require('../services/alert-destination');
@@ -646,6 +647,42 @@ router.post('/api/oncall/cardpayment/payment', async (req, res) => {
       errorClass: error.name,
       code: error.code || 'PAYMENT_FAILED',
       requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/ericadispute/chat — Erica chat on the Online Banking skin
+ * (1d03555d). A failed dispute raises the automated alert with a Devin session
+ * only for requests from an automated-alert skin outside ?repro=1 pages, capped
+ * per client per hour.
+ */
+router.post('/api/oncall/ericadispute/chat', (req, res) => {
+  const body = req.body || {};
+  const skin = getOncallSkin(req.get('x-oncall-skin'));
+  const fromAutomatedSkin = Boolean(skin && skin.vertical === 'ericadispute' && skin.alertPath === 'automated');
+  // The responder reproduces from a ?repro=1 page: same failure, no new alert or session.
+  const repro = /[?&]repro=1(&|#|$)/.test(req.get('referer') || '');
+  try {
+    res.json(ericaDispute.chat({
+      text: typeof body.text === 'string' ? body.text.slice(0, 500) : '',
+      action: body.action,
+      locale: body.locale,
+      sessionKey: req.get('X-CSRF-Token') || req.ip,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
+      raiseAlert: () => fromAutomatedSkin && !repro && automatedAlertAllowed(req),
+    }));
+  } catch (error) {
+    res.status(500).json({
+      error: {
+        code: 'ERICA_ACTION_FAILED',
+        message: "Erica couldn't file your dispute. Nothing has changed.",
+        errorClass: error.name,
+        correlation_id: error.referenceId || req.requestId,
+      },
+      messages: error.ericaMessages,
     });
   }
 });
