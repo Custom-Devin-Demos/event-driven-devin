@@ -2885,6 +2885,8 @@ const ONCALL_SKINS = {
     vertical: 'ericadispute',
     alertPath: 'automated',
     siteReplica: 'e7fd3fee-olb',
+    // Erica's launcher and panel dock bottom-right.
+    ribbonSide: 'left',
     paths: ['/bofa-erica-oncall'],
     page: { file: 'e7fd3fee.html', title: 'Bank of America - Banking, Credit Cards, Loans and Merrill Investing' },
     theme: {
