@@ -8,7 +8,7 @@ const http = require('http');
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 const e7fd3feeRoutes = require('../app/routes/verticals/e7fd3fee');
-const { ALERT_SCENARIOS } = require('../app/services/oncall');
+const { ALERT_SCENARIOS, buildOncallSessionPrompt } = require('../app/services/oncall');
 const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 const { getOncallSkin } = require('../config/oncall-skins');
 const { createSessionAndAlert } = require('../app/services/devin-session');
@@ -59,13 +59,24 @@ describe('Online Banking + Erica on-call skin (1d03555d)', () => {
   const fromSkin = { 'X-Oncall-Skin': SKIN };
   beforeEach(() => createSessionAndAlert.mockClear());
 
-  test('is an automated-alert skin on the e7fd3fee homepage and replica', () => {
-    expect(getOncallSkin(SKIN)).toMatchObject({
-      vertical: 'ericadispute', alertPath: 'automated', siteReplica: 'e7fd3fee-olb', page: { file: 'e7fd3fee.html' },
+  test('pages #oncall-alerts with an immediate Devin session from the e7fd3fee homepage and replica', () => {
+    const skin = getOncallSkin(SKIN);
+    expect(skin).toMatchObject({
+      vertical: 'ericadispute', siteReplica: 'e7fd3fee-olb', alertDestination: 'slack', page: { file: 'e7fd3fee.html' },
+      devinSession: { auto: true, onCallIsTriggerer: true },
     });
+    expect(skin.alertPath).toBeUndefined();
     expect(ALERT_SCENARIOS.ericadispute).toMatchObject({
-      apiPath: '/api/e7fd3fee/erica/chat', oncallApiPath: '/api/oncall/ericadispute/chat', unlisted: true,
+      apiPath: '/api/e7fd3fee/erica/chat', oncallApiPath: '/api/oncall/ericadispute/chat', alertOnStatus: [500], unlisted: true,
     });
+  });
+
+  test('the session prompt asks for a local before/after recording of the Erica dispute', () => {
+    const prompt = buildOncallSessionPrompt(ALERT_SCENARIOS.ericadispute, getOncallSkin(SKIN), 'ref-1');
+    expect(prompt).toContain('POST /api/oncall/ericadispute/chat');
+    expect(prompt).toContain('recording_start');
+    expect(prompt).toContain('/oncall/c/1d03555d/olb/accounts');
+    expect(prompt).toContain('never on the live page');
   });
 
   test('skin URL and friendly path serve the shimmed homepage with Log in pointing at the skin replica', async () => {
@@ -76,7 +87,8 @@ describe('Online Banking + Erica on-call skin (1d03555d)', () => {
     expect(friendly).toEqual(skinned);
     expect(skinned).toContain(`window.location.href='${OLB}/login'`);
     expect(skinned).not.toContain('/e7fd3fee/olb');
-    expect(skinned).toContain('const automatedAlertPath = true');
+    expect(skinned).toContain('const automatedAlertPath = false');
+    expect(skinned).toContain('const alertOnStatus = [500]');
     expect(skinned).toContain('NOT ACTUALLY A BANK OF AMERICA SITE');
   });
 
@@ -108,39 +120,20 @@ describe('Online Banking + Erica on-call skin (1d03555d)', () => {
     expect(html).not.toContain('oncall-ribbon');
   });
 
-  test('a Mastercard dispute from the skin fails with 500 and raises the automated alert', async () => {
+  test('a Mastercard dispute fails with 500 and the Erica error card, raising no alert server-side', async () => {
     const confirm = await stageDispute('VELOCITY GEAR', fromSkin);
-    const res = await chat({ action: confirm, devinEmail: 'presenter@devindemos.com', devinUserId: 'user-1', devinOrgId: 'org-1' }, fromSkin);
+    const res = await chat({ action: confirm }, fromSkin);
     expect(res.status).toBe(500);
     const body = await res.json();
     expect(body.error).toMatchObject({ code: 'ERICA_ACTION_FAILED', errorClass: 'TypeError' });
     expect(body.messages[0].card).toMatchObject({ type: 'error', title: 'Erica error: dispute not filed' });
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    expect(createSessionAndAlert.mock.calls[0][0]).toMatchObject({
-      customer: SKIN,
-      errorType: 'TypeError',
-      service: 'erica-svc',
-      culprit: 'app/services/oncall-verticals/ericadispute.js — buildDisputeFiling',
-      devinEmail: 'presenter@devindemos.com',
-    });
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
-  test('Visa disputes file and requests without the skin header raise nothing', async () => {
+  test('Visa disputes file', async () => {
     const visa = await stageDispute('TARGET 00023481 CHARLOTTE NC $73.52', fromSkin);
     const ok = await chat({ action: visa }, fromSkin);
     expect(ok.status).toBe(200);
     expect((await ok.json()).messages[0].card).toMatchObject({ type: 'dispute_confirmation' });
-    const mastercard = await stageDispute('VELOCITY GEAR');
-    expect((await chat({ action: mastercard })).status).toBe(500);
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
-  });
-
-  test('a ?repro=1 reproduction fails the same way without raising an alert', async () => {
-    const headers = { ...fromSkin, Referer: `${baseUrl}${OLB}/accounts?repro=1` };
-    const confirm = await stageDispute('VELOCITY GEAR', headers);
-    const res = await chat({ action: confirm }, headers);
-    expect(res.status).toBe(500);
-    expect((await res.json()).messages[0].card).toMatchObject({ title: 'Erica error: dispute not filed' });
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 });
