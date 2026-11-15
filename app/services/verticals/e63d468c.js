@@ -134,6 +134,7 @@ function resetState() {
   const deployment = renderDeployment();
   STATE.seededAt = now;
   STATE.retiredAt = null;
+  STATE.retiring = false;
   STATE.alertedAt = null;
   STATE.notification = null;
   STATE.status = 'OK';
@@ -183,9 +184,10 @@ async function retireNodeGroup(data) {
     requestId, nodeGroup: 'fleet-al2', from: STATE.al2Desired, to: 0, service: SERVICE,
   });
 
-  if (STATE.retiredAt) {
+  if (STATE.retiredAt || STATE.retiring) {
     return formatRollout(requestId);
   }
+  STATE.retiring = true;
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
@@ -290,6 +292,8 @@ async function retireNodeGroup(data) {
     });
 
     throw error;
+  } finally {
+    STATE.retiring = false;
   }
 }
 

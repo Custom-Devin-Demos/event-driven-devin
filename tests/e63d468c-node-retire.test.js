@@ -46,6 +46,12 @@ describe('prod-east telemetry-ingest monitor (e63d468c)', () => {
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   });
 
+  test('overlapping clicks roll out once and alert once', async () => {
+    const results = await Promise.allSettled([retireNodeGroup({}), retireNodeGroup({})]);
+    expect(results.filter((r) => r.status === 'rejected')).toHaveLength(1);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
   test('reset restores the opening state and the failure reproduces again', async () => {
     await expect(retireNodeGroup({})).rejects.toThrow();
     const reset = resetCluster();
