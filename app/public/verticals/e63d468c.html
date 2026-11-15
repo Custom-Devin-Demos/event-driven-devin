@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monitor Status | e63d468c</title>
+<link rel="icon" href="/verticals/assets/e63d468c/favicon.ico">
+<style>
+*{box-sizing:border-box}
+:root{--v-ink:#1c2b34;--v-muted:#5f6b77;--v-line:#e1e4ea;--v-bg:#f6f7f9;--v-blue:#2a6ad8;--v-purple:#632ca6;
+--v-ok:#3cb663;--v-alert:#e7334d;--v-warn:#f0951d;--v-nodata:#9aa3ad;--v-nav:#24133f}
+html,body{margin:0;height:100%;font-family:"Noto Sans","Open Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--v-ink);font-size:13px;background:#fff}
+a{color:var(--v-blue);text-decoration:none;cursor:pointer}
+.sidenav{position:fixed;left:0;top:0;bottom:0;width:76px;background:var(--v-nav);display:flex;flex-direction:column;align-items:stretch;padding:8px 0;z-index:5}
+.sidenav a{color:#cbbfe3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;font-size:10px;cursor:pointer}
+.sidenav a .ic{font-size:18px;line-height:20px}
+.sidenav a:hover,.sidenav a.active{background:#3a2463;color:#fff}
+.sidenav a.active{box-shadow:inset 3px 0 0 #a778f2}
+.sidenav .logo{padding:6px 0 12px}.sidenav .logo img{width:38px;filter:brightness(0) invert(1)}
+.sidenav .spacer{flex:1}
+.sidenav .user{display:flex;justify-content:center;padding:8px 0}
+.avatar{width:28px;height:28px;border-radius:50%;background:#7e57c2;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600}
+main{margin-left:76px;min-height:100%}
+.topbar{display:flex;align-items:center;gap:14px;padding:0 20px;height:52px;border-bottom:1px solid var(--v-line);background:#fff;position:sticky;top:0;z-index:3}
+.topbar.alerting{box-shadow:inset 0 -3px 0 var(--v-alert)}
+.topbar.okline{box-shadow:inset 0 -3px 0 var(--v-ok)}
+.crumb{font-size:19px;display:flex;align-items:center;gap:10px}.crumb .sep{color:#9aa3ad;font-size:16px}
+.crumb .ico{font-size:20px;color:#3d4954}
+.tabs{display:flex;gap:26px;margin-left:24px;height:100%}
+.tabs a{color:#3d4954;font-size:14px;display:flex;align-items:center;height:100%;border-bottom:2px solid transparent}
+.tabs a.on{border-bottom-color:var(--v-blue);color:var(--v-ink);font-weight:600}
+.topbar .right{margin-left:auto;display:flex;gap:18px;align-items:center;color:#3d4954;font-size:13px}
+.btn{border:1px solid #c9ced6;background:#fff;border-radius:4px;padding:5px 10px;font-size:13px;color:var(--v-ink);cursor:pointer;display:inline-flex;gap:6px;align-items:center;font-family:inherit}
+.btn:hover{background:#f2f4f7}.btn.primary{background:var(--v-blue);border-color:var(--v-blue);color:#fff}.btn.primary:hover{background:#2159bd}
+.btn.danger{background:#fff;border-color:var(--v-alert);color:var(--v-alert)}
+.pill{display:inline-block;border-radius:3px;font-size:11px;font-weight:700;color:#fff;padding:2px 7px;letter-spacing:.3px;text-transform:uppercase}
+.pill.OK{background:var(--v-ok)}.pill.ALERT{background:var(--v-alert)}.pill.WARN{background:var(--v-warn)}.pill.NODATA{background:var(--v-nodata)}
+.pill.wide{min-width:72px;text-align:center;padding:5px 8px}
+.tag{display:inline-block;background:#eef1f5;border-radius:3px;padding:2px 6px;margin:0 4px 4px 0;font-size:12px;color:#33414c}
+.tag b{font-weight:600;color:#1b3a6b}
+.page{padding:16px 20px}
+.hdr{padding:14px 20px 10px;border-bottom:1px solid var(--v-line)}
+.hdr .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;color:#3d4954}
+.hdr .row .div{width:1px;height:18px;background:var(--v-line)}
+.hdr h1{font-size:18px;font-weight:600;margin:4px 0 10px}
+.chip{border:1px solid var(--v-line);border-radius:14px;padding:3px 10px;font-size:12px}
+.layout{display:grid;grid-template-columns:220px 1fr 300px;min-height:calc(100vh - 160px)}
+.layout>section{border-right:1px solid var(--v-line);padding:14px 16px}
+.layout>section:last-child{border-right:0}
+h3{font-size:13px;font-weight:600;margin:0 0 10px}
+.timeline{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid #dfe3e9}
+.timeline li{position:relative;padding:0 0 14px 10px;font-size:12px;color:#3d4954}
+.timeline li:before{content:"";position:absolute;left:-20px;top:3px;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #9aa3ad}
+.timeline li.ALERT:before{border-color:var(--v-alert)}.timeline li.OK:before{border-color:var(--v-ok)}
+.timeline li.sel{background:#fdecef;margin-left:-6px;padding-left:16px;border-radius:3px}
+.graphwrap{border:1px solid var(--v-line);border-radius:4px;padding:10px 12px 4px;margin-bottom:14px}
+.graphwrap .gt{display:flex;gap:8px;align-items:center;margin-bottom:6px;font-size:12px}
+.ctrl{display:flex;gap:10px;align-items:center;padding:10px 20px;border-bottom:1px solid var(--v-line);background:#fff;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;font-size:11px;color:var(--v-muted)}
+.field .box{border:1px solid #c9ced6;border-radius:4px;padding:4px 8px;font-size:13px;color:var(--v-ink);min-width:90px;background:#fff}
+.timebox{margin-left:auto;display:flex;align-items:center;gap:8px;border:1px solid #c9ced6;border-radius:4px;padding:4px 8px}
+.timebox .badge{background:#eef1f5;border-radius:3px;padding:1px 6px;font-size:12px}
+.live{background:#3cb663;color:#fff;border-radius:3px;padding:1px 6px;font-size:11px;font-weight:700}
+.msg h2{font-size:15px;margin:0 0 10px}
+.msg p,.msg li{font-size:13px;line-height:1.55}
+.msg code,.mono{font-family:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.qbox{background:#f6f7f9;border:1px solid var(--v-line);border-radius:4px;padding:8px 10px;word-break:break-all}
+.side h4{font-size:13px;margin:14px 0 6px}.side .sent{display:flex;gap:6px;align-items:center;margin:5px 0;font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}.dot.g{background:var(--v-ok)}.dot.r{background:var(--v-alert)}.dot.y{background:var(--v-warn)}.dot.n{background:#9aa3ad}
+.side .btn{width:100%;justify-content:center;margin:4px 0}
+table.grid{width:100%;border-collapse:collapse;font-size:13px}
+table.grid th{text-align:left;font-size:11px;font-weight:700;color:#33414c;padding:8px 10px;border-bottom:1px solid var(--v-line);text-transform:uppercase;letter-spacing:.2px;white-space:nowrap;background:#fff;position:sticky;top:52px}
+table.grid td{padding:9px 10px;border-bottom:1px solid #eef0f3;white-space:nowrap}
+table.grid tr.click{cursor:pointer}table.grid tr.click:hover td{background:#f5f8ff}
+table.grid tr.selrow td{background:#eaf1ff}
+.st{font-size:11px;font-weight:700;border-radius:3px;padding:3px 6px;text-transform:uppercase}
+.st.run{background:#e3f6e8;color:#1f7a3d}.st.bad{background:#fde3e7;color:#b3132d}.st.pend{background:#fff1dc;color:#a35b00}.st.term{background:#eceff3;color:#55606b}
+.bar{height:4px;background:#e6e9ee;border-radius:2px;width:70px;margin-top:3px}.bar i{display:block;height:4px;border-radius:2px;background:#3d8af7}
+.bar i.hot{background:var(--v-alert)}
+.k8s{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 52px)}
+.facets{border-right:1px solid var(--v-line);padding:12px;background:#fafbfc}
+.reslist{border:1px solid #c9ced6;border-radius:4px;background:#fff;overflow:hidden}
+.reslist .h{background:#eef1f5;padding:8px 10px;font-weight:600}
+.reslist a{display:block;padding:7px 12px;color:var(--v-ink)}.reslist a.sub{padding-left:26px}
+.reslist a.on{background:#dfe9fc;color:#1a4fb0;font-weight:600}
+.reslist .grp{background:var(--v-blue);color:#fff;padding:7px 12px;font-weight:600}
+.facet{margin-top:14px}.facet .t{font-weight:600;font-size:12px;margin-bottom:6px;color:#33414c;text-transform:uppercase}
+.facet label{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:#3d4954}
+.filterbar{display:flex;gap:0;margin:12px 16px;border:1px solid #c9ced6;border-radius:4px;overflow:hidden}
+.filterbar span{background:#eef1f5;padding:7px 12px;color:#33414c;border-right:1px solid #c9ced6}
+.filterbar input{border:0;flex:1;padding:7px 10px;font-size:13px;font-family:inherit;color:var(--v-ink)}
+.summary{display:flex;gap:14px;align-items:center;padding:0 16px 8px;color:#3d4954}
+.panel{position:fixed;right:0;top:0;bottom:0;width:560px;background:#fff;border-left:1px solid var(--v-line);box-shadow:-8px 0 24px rgba(0,0,0,.08);z-index:6;display:flex;flex-direction:column}
+.panel header{padding:14px 18px;border-bottom:1px solid var(--v-line);display:flex;align-items:center;gap:10px}
+.panel header b{font-size:15px}.panel header .x{margin-left:auto;cursor:pointer;font-size:20px;color:#5f6b77}
+.panel .ptabs{display:flex;gap:20px;padding:0 18px;border-bottom:1px solid var(--v-line)}
+.panel .ptabs a{padding:10px 0;color:#3d4954;border-bottom:2px solid transparent}.panel .ptabs a.on{border-bottom-color:var(--v-blue);color:var(--v-ink);font-weight:600}
+.panel .pbody{padding:14px 18px;overflow:auto;flex:1}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:6px 10px;font-size:12px;margin-bottom:14px}.kv div:nth-child(odd){color:var(--v-muted)}
+.logs{background:#1b1f24;color:#d6dde6;border-radius:4px;padding:10px 12px;font-family:"Roboto Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6;white-space:pre-wrap}
+.logs .err{color:#ff8a9a}.logs .dim{color:#8b96a3}
+.evlist{border:1px solid var(--v-line);border-radius:4px}
+.ev{display:grid;grid-template-columns:130px 24px 1fr;gap:10px;padding:10px 14px;border-bottom:1px solid #eef0f3;align-items:start}
+.ev:last-child{border-bottom:0}.ev .when{color:var(--v-muted);font-size:12px}.ev .src{font-size:16px;text-align:center}
+.ev .title{font-weight:600}.ev .body{color:#3d4954;font-size:12px;margin-top:3px}
+.ev.ALERT{background:#fff6f7}.ev.OK{background:#f5fbf6}
+.demo{position:fixed;left:86px;bottom:14px;width:330px;background:#fff;border:1px solid #c9ced6;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:9}
+.demo header{padding:10px 12px;font-weight:700;border-bottom:1px solid var(--v-line);display:flex}
+.demo header button{margin-left:auto;border:0;background:none;font-size:18px;cursor:pointer}
+.demo #demoBody{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.demo .btn{justify-content:center}.demo .note{font-size:11px;color:var(--v-muted);line-height:1.45}
+.hidden{display:none!important}
+.toast{position:fixed;bottom:20px;right:20px;max-width:420px;background:rgba(0,0,0,.85);color:#fff;padding:10px 16px;border-radius:4px;z-index:10;transition:opacity .25s,transform .25s}
+.toast.hidden{display:block!important;opacity:0;transform:translateY(12px);pointer-events:none}
+.empty{color:var(--v-muted);padding:30px;text-align:center}
+.demo .btn:disabled{opacity:.4;cursor:not-allowed}
+
+.reset{display:none;font-size:11px;color:var(--v-muted);background:none;border:1px solid var(--v-line);border-radius:3px;padding:1px 6px;cursor:pointer;align-self:flex-start}
+.demo.failed .reset{display:inline-block}
+.back{position:fixed;right:10px;bottom:6px;font-size:10px;color:#9aa3ad;z-index:4}
+</style>
+</head>
+<body>
+<nav class="sidenav">
+  <a class="logo" href="#/monitors"><img src="/verticals/assets/e63d468c/bits.png" alt="Datadog"></a>
+  <a data-nav="search"><span class="ic">⌕</span><span>Go to...</span></a>
+  <a data-nav="watchdog"><span class="ic">◉</span><span>Watchdog</span></a>
+  <a data-nav="service"><span class="ic">◇</span><span>APM</span></a>
+  <a data-nav="infra" href="#/kubernetes/pods"><span class="ic">▦</span><span>Infrastructure</span></a>
+  <a data-nav="monitors" href="#/monitors"><span class="ic">◔</span><span>Monitors</span></a>
+  <a data-nav="logs"><span class="ic">≡</span><span>Logs</span></a>
+  <a data-nav="events" href="#/events"><span class="ic">⚑</span><span>Events</span></a>
+  <a data-nav="incidents"><span class="ic">△</span><span>Incidents</span></a>
+  <div class="spacer"></div>
+  <a data-nav="integrations"><span class="ic">⧉</span><span>Integrations</span></a>
+  <a class="demo-toggle" id="demoToggle" title="Demo controls (shift+D)"><span class="ic">⚙</span><span>Settings</span></a>
+  <div class="user"><span class="avatar">PO</span></div>
+</nav>
+<main id="app"></main>
+<aside id="demo" class="demo hidden">
+  <header>Demo controls <button id="demoClose">×</button></header>
+  <div id="demoBody"></div>
+</aside>
+<div id="toast" class="toast hidden"></div>
+<a class="back" href="/">← All Demos</a>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const API = "/api/e63d468c";
+let S = null, skew = 0, selPod = null, podTab = "overview", busy = false;
+const OTHER_PODS = [
+  ["fleet-api-5c9f8d7b6-4hkxz", "fleet", 2, "5 days", 1.4, 41], ["fleet-api-5c9f8d7b6-9qwpl", "fleet", 3, "5 days", 1.2, 39],
+  ["fleet-api-5c9f8d7b6-tz2mv", "fleet", 4, "5 days", 1.6, 44], ["vehicle-events-consumer-77d6b9c5f-bn4ks", "fleet", 2, "6 days", 3.1, 52],
+  ["vehicle-events-consumer-77d6b9c5f-r8xdj", "fleet", 4, "6 days", 2.8, 49], ["web-frontend-6b7c8d9f4-2lmnp", "web", 3, "6 days", 0.4, 12],
+  ["web-frontend-6b7c8d9f4-kx7qr", "web", 4, "6 days", 0.5, 13], ["coredns-7f8c9d6b5-6tqhz", "kube-system", 2, "6 days", 0.2, 9],
+  ["coredns-7f8c9d6b5-m2vjx", "kube-system", 3, "6 days", 0.2, 9], ["aws-node-8kq2w", "kube-system", 2, "6 days", 0.9, 18],
+  ["aws-node-p4lzt", "kube-system", 3, "6 days", 0.8, 18], ["aws-node-x7m9c", "kube-system", 4, "6 days", 0.9, 17],
+  ["kube-proxy-5ndwq", "kube-system", 2, "6 days", 0.1, 6], ["kube-proxy-h9rkt", "kube-system", 3, "6 days", 0.1, 6],
+  ["kube-proxy-v2fsl", "kube-system", 4, "6 days", 0.1, 6], ["datadog-agent-4fzpq", "datadog", 2, "6 days", 1.9, 27],
+  ["datadog-agent-jw8rn", "datadog", 3, "6 days", 1.8, 26], ["datadog-agent-tq5lx", "datadog", 4, "6 days", 2.0, 27],
+];
+const SRC = { cloud: "☁", k8s: "⎈", monitor: "◔", slack: "#" };
+function now() { return Date.now() + skew; }
+function fmtClock(t) { return new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" }); }
+function fmtDay(t) { return new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function monitorStatus() { return S ? S.status : "OK"; }
+function monitorName() { return S.monitor.name.replace("{{kube_cluster_name.name}}", "prod-east"); }
+function nodeByName(n) { return S.nodes.find((x) => x.name === n) || { name: n, nodeGroup: "fleet-al2", osImage: "Amazon Linux 2", kubelet: "v1.32", zone: "" }; }
+function ingestPods() { return S.pods.map((p) => ({ ...p, ns: p.namespace, ingest: true, cpu: p.status === "Running" ? 0.7 : 0, mem: p.memPct || 0 })); }
+function allPods() {
+  const fleet = S.nodes.filter((n) => n.nodeGroup === "fleet");
+  const others = OTHER_PODS.map(([name, ns, ni, age, cpu, mem]) => ({ name, ns, node: (fleet[ni - 2] || fleet[0]).name, status: "Running", ready: "1/1", restarts: 0, age, cpu, mem }));
+  return ingestPods().concat(others);
+}
+function events() { return S.events.filter((e) => e.t <= now() + 1000); }
+function replicasAt(t) {
+  if (!S.retiredAt || t < S.retiredAt + 3000) return 2;
+  if (t < S.retiredAt + 6000) return 1;
+  return S.replicas.ready;
+}
+function graph(w, h) {
+  const end = now(), start = end - 15 * 60e3, pad = 26, W = w - pad - 8, H = h - 24;
+  const pts = []; for (let t = start; t <= end; t += 5000) pts.push([t, replicasAt(t)]);
+  const x = (t) => pad + ((t - start) / (end - start)) * W, y = (v) => 6 + H - (v / 3) * H;
+  let line = "", red = "";
+  pts.forEach(([t, v], i) => { line += (i ? "L" : "M") + x(t).toFixed(1) + " " + y(v).toFixed(1); });
+  const area = line + `L${x(end)} ${y(0)}L${x(start)} ${y(0)}Z`;
+  if (S.alertedAt) { const a = Math.max(start, S.retiredAt + 6000); red = `<rect x="${x(a)}" y="6" width="${Math.max(0, x(end) - x(a))}" height="${H}" fill="#e7334d" opacity=".12"/>`; }
+  let ticks = ""; for (let i = 0; i <= 5; i++) { const t = start + (i * (end - start)) / 5; ticks += `<text x="${x(t)}" y="${h - 4}" font-size="10" fill="#5f6b77" text-anchor="middle">${new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</text>`; }
+  let grid = ""; [0, 1, 2, 3].forEach((v) => { grid += `<line x1="${pad}" x2="${pad + W}" y1="${y(v)}" y2="${y(v)}" stroke="#eef0f3"/><text x="${pad - 6}" y="${y(v) + 3}" font-size="10" fill="#5f6b77" text-anchor="end">${v}</text>`; });
+  const thr = `<line x1="${pad}" x2="${pad + W}" y1="${y(1)}" y2="${y(1)}" stroke="#e7334d" stroke-dasharray="4 3"/>`;
+  const col = monitorStatus() === "ALERT" ? "#e7334d" : "#3cb663";
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${red}${thr}<path d="${area}" fill="${col}" opacity=".14"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2"/>${ticks}</svg>`;
+}
+function topbar(crumb, tabs, cls) {
+  return `<div class="topbar ${cls || ""}"><div class="crumb">${crumb}</div>${tabs ? `<div class="tabs">${tabs}</div>` : ""}<div class="right"><span>✎ Edit</span><span>⧉ Clone</span><span>⤓ Export</span><span>More ▾</span></div></div>`;
+}
+function viewMonitors() {
+  const st = monitorStatus();
+  const rows = [[st, monitorName(), "env:prod", true], ["OK", "[P2] fleet-api p99 latency above 800ms on prod-east", "env:prod"],
+    ["OK", "[P2] vehicle-events-consumer Kafka lag > 50k on prod-east", "env:prod"], ["OK", "[P3] web-frontend 5xx rate above 2%", "env:prod"],
+    ["OK", "[P2] EKS node NotReady on {{kube_cluster_name.name}}", "env:prod"], ["OK", "[P3] Disk usage above 85% on {{host.name}}", "env:prod"],
+    ["WARN", "[P4] coredns latency elevated on data-platform", "env:staging"], ["OK", "[P2] edge-ingest pods not ready on edge-ingest", "env:prod"],
+    ["OK", "[P3] Datadog agent not reporting on {{host.name}}", "env:prod"]];
+  return topbar(`<span class="ico">◔</span> Monitors`, `<a class="on">List</a><a>Triggered</a><a>Downtimes</a><a>Quality</a><a>Analytics</a>`) +
+    `<div class="filterbar"><span>Search</span><input value="team:platform" readonly></div>
+    <div class="summary"><span>${rows.length} monitors</span><span>${rows.filter((r) => r[0] === "ALERT").length} Alert</span></div>
+    <div class="page" style="padding-top:0"><table class="grid"><tr><th>Status</th><th>Name</th><th>Tags</th><th>Priority</th></tr>
+    ${rows.map(([s, n, t, me]) => `<tr class="click" ${me ? `onclick="location.hash='#/monitors/${S.monitor.id}'"` : ""}><td><span class="pill wide ${s}">${s}</span></td><td>${me ? `<a>[P1] ${esc(n)}</a>` : esc(n)}</td><td><span class="tag">${t}</span><span class="tag">team:platform</span></td><td>${me ? "P1" : n.match(/\[(P\d)\]/)[1]}</td></tr>`).join("")}</table></div>`;
+}
+function viewMonitor() {
+  const st = monitorStatus(), alerted = st === "ALERT";
+  const evs = events().filter((e) => e.src === "monitor" && e.title.includes("telemetry-ingest"));
+  const ready = S.replicas.ready, sel = evs[0];
+  const tags = S.monitor.tags.map((t) => { const [k, v] = t.split(":"); return `<span class="tag">${k}:<b>${v}</b></span>`; }).join("");
+  const p0 = S.pods[0];
+  const msg = alerted ? `
+    <h2>[P1] [Triggered] telemetry-ingest pods not ready on prod-east</h2>
+    <p><b>What's happening?</b><br>telemetry-ingest has <b>${ready}/${S.replicas.desired}</b> replicas available. Pods are in <b>CrashLoopBackOff</b>; last container exit <b>${esc(p0.lastState ? p0.lastState.reason : "")}</b> (exit code ${p0.lastState ? p0.lastState.exitCode : ""}) against a ${esc(p0.resources.limits.memory)} limit.</p>
+    <ul><li><b>Service:</b> telemetry-ingest</li><li><b>Cluster:</b> prod-east (EKS 1.33)</li><li><b>Namespace:</b> fleet</li>
+    <li><b>Started:</b> after node group <code>fleet-al2</code> (Amazon Linux 2) scaled 2 → 0 and pods moved to <code>fleet</code> (Amazon Linux 2023) nodes</li></ul>
+    <p><b>Steps to investigate</b></p><ol><li>Check the pods in <a href="#/kubernetes/pods">Kubernetes Explorer</a></li><li>Check container logs for the startup memory sizing line</li></ol>
+    <p class="mono" style="color:#5f6b77">${S.monitor.notify.join(" ")}</p>` :
+    `<h2>No alert in the selected window</h2><p>telemetry-ingest is healthy: ${ready}/${S.replicas.desired} replicas available on prod-east.</p><p class="mono" style="color:#5f6b77">Notifies ${S.monitor.notify.join(" ")}</p>`;
+  const n = S.notification;
+  const deliv = `<div class="sent"><span class="dot ${!n ? "n" : n.status === "sent" ? "g" : n.status === "error" ? "r" : "y"}"></span># slack-automated-alerts<span style="margin-left:auto;color:#5f6b77">${n ? esc(n.status) : "—"}</span></div>`;
+  return topbar(`<span class="ico">◔</span> Monitors <span class="sep">›</span> Status`, "", alerted ? "alerting" : "") +
+    `<div class="hdr"><div class="row"><span class="pill ${st}">${st}</span><span class="btn">🔈 Not Muted ▾</span><span class="btn">✓ Resolve</span><span class="div"></span>
+     <span>Metric Monitor</span><span class="div"></span><span>Created Nov 3, 2026</span><span class="chip">Priority P1</span><span class="chip">Platform Team</span></div>
+     <h1>${esc(S.monitor.name)}</h1><div>${tags}</div></div>
+    <div class="ctrl"><div class="field">status<span class="box">* ▾</span></div><div class="field">kube_cluster_name<span class="box">prod-east ▾</span></div>
+     <div class="field">kube_deployment<span class="box">telemetry-ingest ▾</span></div><div class="timebox"><span class="badge">15m</span>Past 15 Minutes <span class="live">LIVE</span></div></div>
+    <div class="layout"><section><h3>Selected Event</h3>
+      ${sel ? `<div style="padding:8px;border-radius:3px;background:${sel.status === "ALERT" ? "#fdecef" : "#eef8f1"};margin-bottom:14px">${fmtClock(sel.t)} <span class="pill ${sel.status}">${sel.status}</span></div>` : `<div class="empty" style="padding:10px 0">No events</div>`}
+      <h3>Event timeline</h3><ul class="timeline">${evs.map((e) => `<li class="${e.status}">${fmtDay(e.t)} <span class="pill ${e.status}">${e.status}</span><br><span class="tag">kube_cluster_name:prod-east</span></li>`).join("") || "<li>No state changes in the past 15 minutes</li>"}</ul></section>
+     <section><div class="graphwrap"><div class="gt"><b>Monitor behavior</b><span class="pill ${st}">${st}</span><span class="tag">kube_deployment:telemetry-ingest</span><span style="margin-left:auto;color:#5f6b77">replicas available: <b>${ready}</b> / ${S.replicas.desired}</span></div>${graph(760, 170)}</div>
+      <div class="msg"><h3>Event Details</h3>${msg}</div><h3 style="margin-top:16px">Query</h3><div class="qbox mono">${esc(S.monitor.query)}</div></section>
+     <section class="side"><h3>${alerted ? "Automatically Triggered" : "Notifications"}</h3><div style="color:#5f6b77;font-size:12px">Message sent to</div>${deliv}
+      <h4>Next Steps</h4><span class="btn">🔈 Not Muted ▾</span><span class="btn">✓ Resolve</span><span class="btn">⚠ Declare Incident</span><span class="btn">▤ Create Case</span>
+      <h4>Investigate</h4><a href="#/kubernetes/pods">Kubernetes Explorer: prod-east / fleet</a><br><a href="#/events">Event stream: kube_cluster_name:prod-east</a></section></div>`;
+}
+function stClass(s) { return s === "Running" ? "run" : s === "ContainerCreating" ? "pend" : s === "Terminating" ? "term" : "bad"; }
+function viewPods(nodesView) {
+  const pods = allPods();
+  const counts = { Running: 0, Bad: 0 }; pods.forEach((p) => (p.status === "Running" ? counts.Running++ : counts.Bad++));
+  const al2 = S.nodes.filter((n) => n.nodeGroup === "fleet-al2").length;
+  const left = `<div class="facets"><div class="reslist"><div class="h">Select Resources</div><a>Processes</a><a>Containers</a>
+    <div class="grp">⎈ Kubernetes</div><a class="sub ${nodesView ? "" : "on"}" href="#/kubernetes/pods">Pods</a><a class="sub">Clusters</a><a class="sub">Namespaces</a>
+    <a class="sub ${nodesView ? "on" : ""}" href="#/kubernetes/nodes">Nodes</a><a class="sub">Workloads ›</a></div>
+    <div class="facet"><div class="t">Status</div><label><span><span class="dot g"></span> Running</span><span>${counts.Running}</span></label><label><span><span class="dot r"></span> Not ready</span><span>${counts.Bad}</span></label></div>
+    <div class="facet"><div class="t">Cluster</div><label><span>prod-east</span><span>${pods.length}</span></label></div>
+    <div class="facet"><div class="t">Node group</div><label><span>fleet</span><span>3</span></label><label><span>fleet-al2</span><span>${al2}</span></label></div></div>`;
+  const head = nodesView ? `<tr><th>Node</th><th>Status</th><th>Node group</th><th>OS image</th><th>Kubelet</th><th>Zone</th><th>Pods</th></tr>`
+    : `<tr><th>↑ Pod</th><th>Status</th><th>Cluster</th><th>Namespace</th><th>Node</th><th>Age</th><th>Ready</th><th>Restarts</th><th>% CPU</th><th>% Mem</th></tr>`;
+  const rows = nodesView ? S.nodes.map((n) => `<tr><td>${n.name}</td><td><span class="st run">${n.status}</span></td><td>${n.nodeGroup}</td><td>${n.osImage}</td><td>${n.kubelet}</td><td>${n.zone}</td><td>${pods.filter((p) => p.node === n.name).length}</td></tr>`).join("")
+    : pods.map((p) => `<tr class="click ${selPod === p.name ? "selrow" : ""}" onclick="openPod('${p.name}')"><td>${p.name}</td><td><span class="st ${stClass(p.status)}">${p.status}</span></td><td><a>prod-east</a></td><td><a>${p.ns}</a></td><td>${p.node.split(".")[0]}</td><td>${p.age}</td><td>${p.ready}</td><td>${p.restarts}</td><td>${p.cpu.toFixed(2)}%<div class="bar"><i style="width:${Math.min(100, p.cpu * 10)}%"></i></div></td><td>${p.mem}%<div class="bar"><i class="${p.mem >= 95 ? "hot" : ""}" style="width:${p.mem}%"></i></div></td></tr>`).join("");
+  return topbar(`<span class="ico">⎈</span> Kubernetes ▾`, `<a>Overview</a><a class="on">Explorer</a>`) +
+    `<div class="k8s">${left}<div><div class="filterbar"><span>Filter by</span><input value="kube_cluster_name:prod-east" readonly></div>
+     <div class="summary"><span>Showing 1–${nodesView ? S.nodes.length : pods.length} of ${nodesView ? S.nodes.length : pods.length} ${nodesView ? "Nodes" : "Pods"}</span><span class="live">LIVE</span><span>${fmtClock(now())}</span></div>
+     <table class="grid">${head}${rows}</table></div></div>${!nodesView && selPod ? podPanel(pods.find((p) => p.name === selPod)) : ""}`;
+}
+function podPanel(p) {
+  if (!p) return "";
+  const node = nodeByName(p.node), ls = p.lastState;
+  const logs = p.ingest ? p.logs.map((l) => `<span class="dim">${fmtClock(now() - 20000)} stdout</span> ${esc(l)}`).join("\n") + (ls ? `\n<span class="err">container exited: ${ls.reason} (exit code ${ls.exitCode})</span>` : "") : `<span class="dim">${fmtClock(now() - 5000)} stdout</span> GET /healthz 200`;
+  const body = podTab === "logs" ? `<div class="logs">${logs}</div>` : `<div class="kv">
+    <div>Status</div><div><span class="st ${stClass(p.status)}">${p.status}</span></div><div>Namespace</div><div>${p.ns}</div>
+    <div>Node</div><div>${node.name}</div><div>Node group</div><div>${node.nodeGroup}</div><div>Node OS image</div><div>${node.osImage}</div><div>Kubelet</div><div>${node.kubelet}</div>
+    <div>Container</div><div>${p.ingest ? "telemetry-ingest" : p.name.split("-").slice(0, p.ns === "fleet" || p.ns === "web" ? -2 : -1).join("-")}</div>
+    ${p.ingest ? `<div>Image</div><div class="mono">${esc(p.image)}</div><div>Resources</div><div class="mono">requests.memory ${esc(p.resources.requests.memory)} · limits.memory ${esc(p.resources.limits.memory)}</div><div>Env</div><div class="mono">${p.env.length ? esc(p.env.join(", ")) : "none"}</div>` : ""}
+    <div>Restarts</div><div>${p.restarts}</div>${ls ? `<div>Last state</div><div><span class="st bad">Terminated</span> ${ls.reason} · exit code ${ls.exitCode}</div>` : ""}</div>`;
+  return `<div class="panel"><header><span class="st ${stClass(p.status)}">${p.status}</span><b>${p.name}</b><span class="x" onclick="closePod()">×</span></header>
+    <div class="ptabs"><a class="${podTab === "overview" ? "on" : ""}" onclick="setPodTab('overview')">Overview</a><a class="${podTab === "logs" ? "on" : ""}" onclick="setPodTab('logs')">Logs</a><a>Events</a><a>YAML</a></div><div class="pbody">${body}</div></div>`;
+}
+window.openPod = (n) => { selPod = n; render(); };
+window.closePod = () => { selPod = null; render(); };
+window.setPodTab = (t) => { podTab = t; render(); };
+function viewEvents() {
+  return topbar(`<span class="ico">⚑</span> Events`, `<a class="on">Explorer</a><a>Pipelines</a><a>Correlation</a>`) +
+    `<div class="filterbar"><span>Search</span><input value="kube_cluster_name:prod-east" readonly></div>
+     <div class="page" style="padding-top:0"><div class="evlist">${events().map((e) => `<div class="ev ${e.status || ""}"><div class="when">${fmtDay(e.t)}</div><div class="src">${SRC[e.src] || "•"}</div><div><div class="title">${esc(e.title)}</div><div class="body">${esc(e.body)}</div></div></div>`).join("")}</div></div>`;
+}
+function demoPanel() {
+  const failed = !!S.retiredAt && S.status === "ALERT";
+  const phase = !S.retiredAt ? "prod-east healthy. fleet-al2 still has 2 Amazon Linux 2 nodes running telemetry-ingest."
+    : failed ? "fleet-al2 retired. telemetry-ingest crash-looping, monitor in ALERT." : "fleet-al2 retired. telemetry-ingest healthy on Amazon Linux 2023.";
+  $("#demo").classList.toggle("failed", !!S.retiredAt);
+  $("#demoBody").innerHTML = `<div class="note"><b>${phase}</b></div>
+    <button class="btn danger" id="retireBtn" ${S.retiredAt || busy ? "disabled" : ""}>Retire AL2 node group (fleet-al2 2 → 0)</button>
+    <button class="reset" id="resetBtn" title="Put prod-east back to its opening state: fleet-al2 restored, pods healthy, monitor OK">Reset</button>`;
+  $("#retireBtn").onclick = retire;
+  $("#resetBtn").onclick = resetDemo;
+}
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.remove("hidden"); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.add("hidden"), 5500); }
+function devinIds() { return { devinUserId: localStorage.getItem("devinUserId") || "", devinOrgId: localStorage.getItem("devinOrgId") || "", devinEmail: localStorage.getItem("devinEmail") || "" }; }
+async function retire() {
+  if (busy || (S && S.retiredAt)) return;
+  busy = true; demoPanel(); toast("fleet-al2 scaling 2 → 0 · draining Amazon Linux 2 nodes");
+  try {
+    const r = await fetch(API + "/nodegroups/retire", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(devinIds()) });
+    const d = await r.json(); apply(d);
+    toast(r.ok ? "telemetry-ingest rescheduled onto fleet · 2/2 ready" : `[Triggered] ${d.errorClass}: telemetry-ingest ${d.replicas.ready}/${d.replicas.desired} ready on prod-east`);
+    if (!r.ok) location.hash = "#/monitors/" + S.monitor.id;
+  } catch (e) { toast("Request failed: " + e.message); } finally { busy = false; render(); }
+}
+async function resetDemo() {
+  const r = await fetch(API + "/nodegroups/retire/reset", { method: "POST" });
+  apply(await r.json()); selPod = null; podTab = "overview"; render(); toast("Reset · back to standby");
+}
+function apply(d) { S = d; skew = d.now - Date.now(); }
+function render() {
+  if (!S) return;
+  const h = location.hash || "#/monitors/" + S.monitor.id;
+  let html, nav;
+  if (h.startsWith("#/kubernetes")) { html = viewPods(h.includes("nodes")); nav = "infra"; document.title = "Kubernetes Explorer | e63d468c"; }
+  else if (h.startsWith("#/events")) { html = viewEvents(); nav = "events"; document.title = "Event Explorer | e63d468c"; }
+  else if (/#\/monitors\/\d+/.test(h)) { html = viewMonitor(); nav = "monitors"; document.title = `${monitorStatus() === "ALERT" ? "[Alert] " : ""}Monitor Status | e63d468c`; }
+  else { html = viewMonitors(); nav = "monitors"; document.title = "Manage Monitors | e63d468c"; }
+  const y = window.scrollY; $("#app").innerHTML = html; window.scrollTo(0, y);
+  document.querySelectorAll(".sidenav a").forEach((a) => a.classList.toggle("active", a.dataset.nav === nav));
+  demoPanel();
+}
+async function refresh() { try { const r = await fetch(API + "/cluster"); apply(await r.json()); render(); } catch (e) { /* server restarting */ } }
+window.addEventListener("hashchange", () => { selPod = null; render(); });
+document.addEventListener("keydown", (e) => { if (e.shiftKey && e.key.toLowerCase() === "d" && !/input|textarea/i.test(e.target.tagName)) $("#demo").classList.toggle("hidden"); });
+$("#demoToggle").onclick = () => $("#demo").classList.toggle("hidden");
+$("#demoClose").onclick = () => $("#demo").classList.add("hidden");
+refresh(); setInterval(refresh, 5000);
+(function () {
+  if (localStorage.getItem("devinOrgId") && localStorage.getItem("devinUserId")) return;
+  fetch("/api/config").then((r) => r.json()).then((cfg) => {
+    if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem("devinOrgId", cfg.defaultOrgId);
+    if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem("devinUserId", cfg.defaultUserId);
+  }).catch(() => {});
+})();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
