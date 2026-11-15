@@ -653,26 +653,16 @@ router.post('/api/oncall/cardpayment/payment', async (req, res) => {
 
 /**
  * POST /api/oncall/ericadispute/chat — Erica chat on the Online Banking skin
- * (1d03555d). A failed dispute raises the automated alert with a Devin session
- * only for requests from an automated-alert skin outside ?repro=1 pages, capped
- * per client per hour.
+ * (1d03555d). Its 500s page on-call through the shim (scenario alertOnStatus).
  */
 router.post('/api/oncall/ericadispute/chat', (req, res) => {
   const body = req.body || {};
-  const skin = getOncallSkin(req.get('x-oncall-skin'));
-  const fromAutomatedSkin = Boolean(skin && skin.vertical === 'ericadispute' && skin.alertPath === 'automated');
-  // The responder reproduces from a ?repro=1 page: same failure, no new alert or session.
-  const repro = /[?&]repro=1(&|#|$)/.test(req.get('referer') || '');
   try {
     res.json(ericaDispute.chat({
       text: typeof body.text === 'string' ? body.text.slice(0, 500) : '',
       action: body.action,
       locale: body.locale,
       sessionKey: req.get('X-CSRF-Token') || req.ip,
-      devinUserId: body.devinUserId,
-      devinOrgId: body.devinOrgId,
-      devinEmail: body.devinEmail,
-      raiseAlert: () => fromAutomatedSkin && !repro && automatedAlertAllowed(req),
     }));
   } catch (error) {
     res.status(500).json({

@@ -1,10 +1,10 @@
 // On-Call copy of app/services/verticals/e7fd3fee-erica.js for the Online Banking + Erica skin (1d03555d).
+// The on-call shim pages #oncall-alerts on its 500s, so it raises no alert itself.
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { createSessionAndAlert } = require('../devin-session');
 const fixtures = require('../verticals/e7fd3fee-erica-fixtures.json');
 
 const SERVICE = 'erica-svc';
@@ -15,25 +15,6 @@ const CUSTOMER_REF = 'cust_tok_7f3a91c2';
 const SUPPORT_LINE = '800.732.9194';
 const MODEL = Object.freeze({ inventory_id: 'MRM-ERICA-NLU-0042', name: 'erica-intent-rules', version: '3.8.1' });
 const PROMPT_TEMPLATE = Object.freeze({ id: 'erica.card_dispute', version: '2.4.0' });
-
-const REMEDIATION_DIRECTIVE = [
-  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
-  '',
-  'Erica threw while filing a card dispute after the customer confirmed "Lock card and dispute charge" in Online Banking. '
-    + 'Investigate `app/services/oncall-verticals/ericadispute.js` (`resolveNetworkReason` / `buildDisputeFiling`), fix the root cause, '
-    + 'add a regression test, and open a PR against `main`.',
-  '',
-  'Reproduce before you diagnose. Your first action after reading the alert, before reading any source file and before proposing a cause, '
-    + 'is to start the server (node app/server.js), open /oncall/c/1d03555d/olb/accounts?repro=1 in a real browser with your screen recording running, '
-    + 'open Erica, choose "I don\'t recognize a charge", pick the SQ *VELOCITY GEAR $487.23 Mastercard ••••9012 charge and confirm "Lock card and dispute charge", '
-    + 'so the recording shows the red "Erica error: dispute not filed" card. Always use ?repro=1 for your own clicks: the request fails identically '
-    + 'but raises no Slack alert or Devin session. If it does not reproduce, stop and report that instead of fixing anything.',
-  '',
-  'Verification evidence is mandatory and must be visual, not curl-only: after the fix, repeat exactly the same ?repro=1 browser flow with a second '
-    + 'screen recording, showing the "Dispute filed" confirmation where the error card used to be. Attach both recordings (reproduction under a '
-    + '"Reproduction" heading, post-fix plus a screenshot under a "Fix Verification" heading) to the pull request and post them as a PR comment. '
-    + 'Do not report the fix as complete until both recordings are attached.',
-].join('\n');
 
 /** Maps Erica's internal dispute reasons to card-network reason codes. */
 const NETWORK_REASON_CODES = {
@@ -149,7 +130,7 @@ function caseNumber() {
   return `CD-${new Date().getFullYear()}-${String(Math.floor(100000 + Math.random() * 899999))}`;
 }
 
-function confirmStaged(ctx, stageId, data) {
+function confirmStaged(ctx, stageId) {
   const staged = stages.get(stageId);
   if (!staged) {
     rai(ctx, 'guardrail_block', { decision: { outcome: 'blocked', confidence: 1, rationale_codes: ['STAGE_NOT_FOUND_OR_EXPIRED'] }, guardrails: [{ name: 'explicit_confirmation', version: '1.0', result: 'fail' }], customer_impact: 'financial_action' });
@@ -197,36 +178,6 @@ function confirmStaged(ctx, stageId, data) {
     });
     const extra = { referenceId, network: txn.network, transactionId: txn.id, internalReason: 'unrecognized_charge', customerRef: CUSTOMER_REF };
     Sentry.captureException(error, { tags: { route: ROUTE, service: SERVICE, page: PAGE, card_network: txn.network, intent: 'confirm_staged_action' }, extra });
-    if (data.raiseAlert && data.raiseAlert()) createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/oncall-verticals/ericadispute.js — buildDisputeFiling',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
-      service: SERVICE,
-      verticalLabel: 'Bank of America — Erica Card Dispute',
-      customer: SKIN,
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      tags: [
-        { key: 'route', value: ROUTE }, { key: 'service', value: SERVICE }, { key: 'card_network', value: txn.network }, { key: 'intent', value: 'confirm_staged_action' }, { key: 'page', value: PAGE },
-      ],
-      extra,
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: `ERICA-${referenceId.slice(0, 8).toUpperCase()}`,
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'erica-svc@3.8.1',
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    }).catch((err) => {
-      logger.error('Failed to trigger Devin session from Erica dispute error', { error: err.message });
-    });
 
     error.referenceId = referenceId;
     error.ericaMessages = [{
@@ -255,7 +206,7 @@ function chat(data) {
     rai(ctx, 'intent_classification', { input: { hash: hash(action.type) }, decision: { outcome: action.type, confidence: 1, rationale_codes: ['STRUCTURED_ACTION'] }, customer_impact: 'informational' });
     if (action.type === 'welcome') return reply(ctx, clone(fixtures.welcome.messages));
     if (action.type === 'select_dispute_transaction') return selectDispute(ctx, payload.transaction_id);
-    if (action.type === 'confirm_staged') return confirmStaged(ctx, payload.stage_id, data);
+    if (action.type === 'confirm_staged') return confirmStaged(ctx, payload.stage_id);
     if (action.type === 'cancel_staged') {
       stages.delete(payload.stage_id);
       rai(ctx, 'transaction_executed', { decision: { outcome: 'canceled_by_customer', confidence: 1, rationale_codes: ['CUSTOMER_DECLINED_CONFIRMATION'] }, customer_impact: 'financial_action' });

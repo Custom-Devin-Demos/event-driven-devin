@@ -2883,8 +2883,19 @@ const ONCALL_SKINS = {
     company: 'Bank of America',
     brandMark: 'B',
     vertical: 'ericadispute',
-    alertPath: 'automated',
     siteReplica: 'e7fd3fee-olb',
+    alertDestination: 'slack',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from Erica in the Online Banking page linked above. Confirming "Lock card and dispute charge" posts to POST /api/oncall/ericadispute/chat, so that endpoint is the backend of this incident.',
+        'Proof requirements for this incident (customer-facing web page):',
+        '1. Start a screen recording with recording_start before you change any code. Reproduce locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled (never on the live page, which would page on-call again): run the app, open http://localhost:<port>/oncall/c/1d03555d/olb/accounts, open Erica, choose "I don\'t recognize a charge", pick the SQ *VELOCITY GEAR $487.23 Mastercard \u2022\u2022\u2022\u20229012 charge and confirm "Lock card and dispute charge"; capture the red "Erica error: dispute not filed" card.',
+        '2. After the fix, repeat the same flow on your branch and capture the "Dispute filed" confirmation. Keep recording across both passes, annotate each with annotate_recording, then recording_stop.',
+        '3. Keep the Visa path and the dispute confirmation fields working; do not catch the error and return success. Add a regression test, attach the recording and both screenshots to the PR, and post root cause and the PR link in this alert thread. Do not merge or deploy.',
+      ].join('\n'),
+    },
     // Erica's launcher and panel dock bottom-right.
     ribbonSide: 'left',
     paths: ['/bofa-erica-oncall'],
