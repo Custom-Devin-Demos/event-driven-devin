@@ -244,7 +244,9 @@ async function retireNodeGroup(data) {
     STATE.events.push({ t: STATE.alertedAt, src: 'monitor', title: `[Triggered] ${MONITOR.name.replace('{{kube_cluster_name.name}}', 'prod-east')}`, body: 'replicas_available = 0 (threshold < 1)', status: 'ALERT' });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, kube_cluster_name: 'prod-east', kube_deployment: 'telemetry-ingest' },
+      tags: {
+        route: ROUTE, service: SERVICE, alert_path: 'instant', kube_cluster_name: 'prod-east', kube_deployment: 'telemetry-ingest',
+      },
       extra: { requestId, pods: STATE.pods.map((p) => ({ name: p.name, status: p.status, node: p.node })) },
     });
 
