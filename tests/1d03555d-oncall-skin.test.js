@@ -89,6 +89,8 @@ describe('Online Banking + Erica on-call skin (1d03555d)', () => {
     expect(html).toContain('data-endpoint="/api/e7fd3fee/erica/chat"');
     expect(html).toContain('const oncallApiPath = "/api/oncall/ericadispute/chat"');
     expect((await fetch(`${baseUrl}${OLB}/assets/js/erica.js`)).status).toBe(200);
+    expect(html).toContain('id="erica-launcher"');
+    expect(html).toMatch(/id="oncall-ribbon" style="[^"]*left:16px/);
   });
 
   test('sign-in redirects stay inside the skin', async () => {
