@@ -449,7 +449,9 @@
         document.getElementById('sumTotal').textContent = gbp(total);
         document.getElementById('itemCount').textContent = count + ' items';
         document.getElementById('amount').value = total.toFixed(2);
-        document.getElementById('submitBtn').textContent = 'Checkout and pay ' + gbp(total);
+        var sb = document.getElementById('submitBtn');
+        sb.disabled = total <= 0;
+        sb.textContent = total > 0 ? 'Checkout and pay ' + gbp(total) : 'Your trolley is empty';
       }
       host.addEventListener('click', function (e) {
         var b = e.target.closest('button[data-k]');
@@ -475,6 +477,7 @@
   <script>
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!(parseFloat(document.getElementById('amount').value) > 0)) return;
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
       const label = btn.textContent;
@@ -496,7 +499,7 @@
       } catch (err) {
         result.className = 'result-box error';
         result.innerHTML = '<div class="error-title">Sorry, something went wrong</div><div>Please check your connection and try again.</div>';
-      } finally { btn.disabled = false; btn.textContent = label; }
+      } finally { btn.disabled = !(parseFloat(document.getElementById('amount').value) > 0); btn.textContent = label; }
     });
   </script>
   <script src="/session-cap-banner.js"></script>
