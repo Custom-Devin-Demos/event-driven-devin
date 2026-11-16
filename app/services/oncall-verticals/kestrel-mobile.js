@@ -3,12 +3,13 @@ const logger = require('../../telemetry/logger');
 const { Sentry } = require('../../telemetry/sentry');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { ownerRotation, postMessage, postThreadReply } = require('../slack');
-const { createDevinSession } = require('../devin-api');
+const { createDevinSession, sendDevinSessionMessage } = require('../devin-api');
 const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
 /**
- * Kestrel Bank mobile payments API (fictional bank) — the shared backend the
- * native Kestrel iOS and Android apps call from "Make a payment".
+ * Kestrel Bank payments API (fictional bank) — the shared backend that Kestrel
+ * Online Banking (web) and the native iOS and Android apps call from
+ * "Make a payment".
  *
  * Kept separate from the shared banking vertical on purpose: tuning this
  * service never changes NatWest or the other banking skins.
@@ -21,7 +22,8 @@ const KESTREL = {
   repos: ['COG-GTM/event-driven-devin', 'COG-GTM/ios-demos', 'COG-GTM/android-demos'],
   serviceFile: 'app/services/oncall-verticals/kestrel-mobile.js',
   appDir: 'apps/2e790636',
-  platforms: { ios: 'iOS', android: 'Android' },
+  webPage: 'app/public/verticals/2e790636.html',
+  platforms: { web: 'Web', ios: 'iOS', android: 'Android' },
 };
 
 const PAYMENT_CONFIG = {
@@ -36,7 +38,16 @@ const PAYMENT_CONFIG = {
 
 const LATENCY = { authorizeHoldMs: 120, amlWindowMs: 150, submitMs: 150 };
 const ACCOUNT = { number: '41827365', sortCode: '40-27-19', balanceMinor: 218462 };
-const PAYEES = { 'priya-shah': { name: 'Priya Shah', sortCode: '20-45-77', account: '63391028' } };
+const ACCOUNTS = {
+  41827365: { name: 'Everyday Account', balanceMinor: ACCOUNT.balanceMinor },
+  70254418: { name: 'Easy Access Saver', balanceMinor: 125000 },
+};
+const PAYEES = {
+  'priya-shah': { name: 'Priya Shah', sortCode: '20-45-77', account: '63391028' },
+  'oakfield-lettings': { name: 'Oakfield Lettings', sortCode: '30-96-26', account: '18840552' },
+  'own-41827365': { name: 'Everyday Account', sortCode: '40-27-19', account: '41827365' },
+  'own-70254418': { name: 'Easy Access Saver', sortCode: '40-27-19', account: '70254418' },
+};
 const CALM_ERROR = "We couldn't make this payment right now. Nothing has left your account. Please try again in a few minutes.";
 const ALERT_COOLDOWN_MS = Number(process.env.KESTREL_ALERT_COOLDOWN_MS) > 0
   ? Number(process.env.KESTREL_ALERT_COOLDOWN_MS)
@@ -88,13 +99,14 @@ async function screenAll(transactions, trace, sleep) {
 function validatePayment(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const payee = Object.hasOwn(PAYEES, body.payeeId) ? PAYEES[body.payeeId] : null;
-  if (body.fromAccount !== ACCOUNT.number || !payee) return null;
-  if (!Number.isInteger(body.amountMinor) || body.amountMinor < 1 || body.amountMinor > 100000) return null;
+  const account = Object.hasOwn(ACCOUNTS, body.fromAccount) ? ACCOUNTS[body.fromAccount] : null;
+  if (!account || !payee || payee.account === body.fromAccount) return null;
+  if (!Number.isInteger(body.amountMinor) || body.amountMinor < 1 || body.amountMinor > account.balanceMinor) return null;
   if (body.currency !== 'GBP') return null;
   const reference = typeof body.reference === 'string'
     ? body.reference.replace(/[^\w .-]/g, '').trim().slice(0, 18)
     : '';
-  return { fromAccount: ACCOUNT.number, payeeId: body.payeeId, payee, amountMinor: body.amountMinor, reference };
+  return { fromAccount: body.fromAccount, payeeId: body.payeeId, payee, amountMinor: body.amountMinor, reference };
 }
 
 async function makePayment(payment, { sleep = realSleep, now = Date.now } = {}) {
@@ -125,7 +137,7 @@ async function makePayment(payment, { sleep = realSleep, now = Date.now } = {}) 
     ...base,
     ok: true,
     confirmationId: `KB-PAY-${crypto.randomBytes(2).toString('hex')}`,
-    balanceMinor: ACCOUNT.balanceMinor - payment.amountMinor,
+    balanceMinor: ACCOUNTS[payment.fromAccount].balanceMinor - payment.amountMinor,
   };
 }
 
@@ -143,17 +155,17 @@ function screenSpan(result) {
 }
 
 function alertTitle() {
-  return `Make a payment failing — ${KESTREL.service} (Kestrel Bank iOS + Android)`;
+  return `Make a payment failing — ${KESTREL.service} (Kestrel Bank web, iOS + Android)`;
 }
 
 function buildAlertMessage(result, { reference, platform, release, now }) {
   return [
     `:rotating_light: *[Triggered] ${alertTitle()}*`,
     '',
-    `*Service:* ${KESTREL.service} — shared payments API behind the Kestrel Bank iOS and Android apps`,
+    `*Service:* ${KESTREL.service} — shared payments API behind Kestrel Online Banking (web) and the iOS and Android apps`,
     '*Where:* Make a payment → Make payment',
     `*Error:* HTTP 504 HOLD_EXPIRED after ${result.durationMs.toLocaleString('en-US')} ms (SLO ${PAYMENT_CONFIG.sloMs} ms)`,
-    '*Affected clients:* iOS and Android (both apps call this API)',
+    '*Affected clients:* Web, iOS and Android (all three call this API)',
     `*First report:* ${KESTREL.platforms[platform] || 'unknown client'} · ${release}`,
     `*Release:* ${KESTREL.release}`,
     `*Owner:* ${ownerRotation(KESTREL.owner)}`,
@@ -174,41 +186,68 @@ function buildAlertBlocks(result, ctx) {
   ];
 }
 
+const CLIENTS = [
+  {
+    key: 'web', label: 'Web', os: 'Linux', repo: KESTREL.repos[0], where: KESTREL.webPage,
+    how: 'Chrome on Linux, http://localhost:<port>/oncall/c/2e790636?reports=off (the page calls this API directly)',
+    setup: 'maximize Chrome on the Kestrel Make a payment page',
+    taps: 'Make payment (Everyday Account → Priya Shah, £25)',
+    receipt: 'confirmation with the KB-PAY reference; Everyday Account £2,159.62',
+  },
+  {
+    key: 'ios', label: 'iOS', os: 'macOS', repo: KESTREL.repos[1], where: KESTREL.appDir,
+    how: 'iOS Simulator, app apps/2e790636 with the payments base URL override from its DEMO.md (`make run`, demo alerts OFF; never `make demo`, never devindemos.com; use @skills:ios-demos-simulator-testing if available)',
+    setup: 'Window → Fit Screen / ⌘3 in Simulator, app on its Home screen',
+    taps: 'Home → Make a payment → Make payment',
+    receipt: 'Payment sent receipt; balance £2,159.62',
+  },
+  {
+    key: 'android', label: 'Android', os: 'Linux', repo: KESTREL.repos[2], where: KESTREL.appDir,
+    how: 'Android emulator, app apps/2e790636 with the payments base URL override from its DEMO.md (`make run`, demo alerts OFF; never `make demo`, never devindemos.com; use @skills:android-demos-runtime-testing)',
+    setup: "maximize the emulator window (e.g. `wmctrl -r 'Android Emulator' -b add,maximized_vert`) and check a screenshot, app on its Home screen",
+    taps: 'Home → Make a payment → Make payment',
+    receipt: 'Payment sent receipt; balance £2,159.62',
+  },
+];
+
 function buildSessionPrompt(result, { reference, platform, release, channel, threadTs }) {
   const screen = screenSpan(result);
   const spanLines = result.spans
     .map((span) => `  - ${span.name}: ${span.count} call(s), ${span.totalMs} ms total`)
     .join('\n');
-  const prompt = `Kestrel Bank (a fictional bank used for public demos) customers cannot make payments from the native mobile apps. Both the iOS and Android apps call the same backend, ${KESTREL.service}, and both fail the same way: the Make payment button spins for ~9 s, then the app shows "${CALM_ERROR}" No money moves.
+  const children = CLIENTS.map((c) => `   - a *${c.os}* child for *${c.label}*: repos ${c.repo === KESTREL.repos[0] ? c.repo : `${c.repo} + ${KESTREL.repos[0]}`}, ${c.how}. Title "Kestrel ${c.label} testing — ${reference}".`).join('\n');
+  const prep = CLIENTS.map((c) => `   - ${c.label}: ${c.setup}; taps: ${c.taps}; success shows ${c.receipt}.`).join('\n');
+  const prompt = `Kestrel Bank (a fictional bank used for public demos) customers cannot make payments on ANY client. Kestrel Online Banking (web), the iOS app and the Android app all call the same backend, ${KESTREL.service}, and all three fail the same way: Make payment spins for ~9 s, then shows "${CALM_ERROR}" No money moves.
 
 *Alert:* ${alertTitle()} — Triggered
 *Incident Ref:* ${reference}
-*Observed:* POST /api/oncall/${KESTREL.slug}/mobile/payments → HTTP 504 HOLD_EXPIRED after ${result.durationMs} ms (SLO ${PAYMENT_CONFIG.sloMs} ms); first reported from the ${KESTREL.platforms[platform] || 'unknown'} app (${release}); release ${KESTREL.release}
+*Affected clients:* Web, iOS and Android
+*Observed:* POST /api/oncall/${KESTREL.slug}/mobile/payments → HTTP 504 HOLD_EXPIRED after ${result.durationMs} ms (SLO ${PAYMENT_CONFIG.sloMs} ms); first reported from the ${KESTREL.platforms[platform] || 'unknown'} client (${release}); release ${KESTREL.release}
 *Server spans for this payment:*
 ${spanLines}
   (screening: ${screen.count} transactions, concurrency ${result.screeningConcurrency})
 
 Repositories:
-- Backend (the shared defect): https://github.com/${KESTREL.repos[0]} — ${KESTREL.serviceFile}, route in app/routes/oncall.js, tests in tests/
+- Backend (the shared defect) + web client: https://github.com/${KESTREL.repos[0]} — ${KESTREL.serviceFile}, route in app/routes/oncall.js, web page ${KESTREL.webPage}, tests in tests/
 - iOS client: https://github.com/${KESTREL.repos[1]} — ${KESTREL.appDir} (read its DEMO.md)
 - Android client: https://github.com/${KESTREL.repos[2]} — ${KESTREL.appDir} (read its DEMO.md)
 
 You are the LEAD for this incident, on Linux. Steps:
-1. Diagnose: confirm from the code and the spans above where the ~9 s goes and why the payment fails (compare against the authorization hold TTL). State it as evidence, not guesses. Confirm the iOS and Android clients are thin clients of this API (no client fix needed) by reading their payment code read-only.
-2. Fix the backend in ${KESTREL.repos[0]} only, in ${KESTREL.serviceFile}. Keep the 5 s authorization hold, keep the 90-day AML window, screen every transaction exactly once, never exceed the partner ceiling (screeningPartnerMaxConcurrency). Add a jest regression test (tests/2e790636-kestrel-mobile-payments*.test.js) that fails on main and passes on the fix; run it and the existing Kestrel tests. Open a PR titled "Kestrel Bank: fix mobile Make a payment 504s (iOS + Android)". Do NOT merge — main keeps the bug so the demo can be re-run.
-3. Create TWO testing child Devin sessions in parallel, each given the diagnosis, PR branch and the instructions in step 4:
-   - a *macOS* child: repos ${KESTREL.repos[1]} + ${KESTREL.repos[0]}, iOS Simulator, app ${KESTREL.appDir} (use @skills:ios-demos-simulator-testing if available)
-   - a *Linux* child: repos ${KESTREL.repos[2]} + ${KESTREL.repos[0]}, Android emulator, app ${KESTREL.appDir} (use @skills:android-demos-runtime-testing)
-   Title them "Kestrel iOS testing — ${reference}" and "Kestrel Android testing — ${reference}", and ask to be notified when each finishes.
-4. Each testing child must: run ${KESTREL.repos[0]} locally TWICE with no Slack/Devin credentials — main on port 3100 and the fix branch on port 3101 — and launch the app with the payments base URL override from its DEMO.md (\`make run\`, demo alerts OFF; never \`make demo\`, never devindemos.com). BEFORE starting each recording, make the phone fill the full desktop height (Android: maximize the emulator window, e.g. \`wmctrl -r 'Android Emulator' -b add,maximized_vert\`, and check a screenshot; iOS: Window → Fit Screen / ⌘3 in Simulator), with the app on its Home screen. Then make THREE SEPARATE recordings with Devin's built-in screen recorder (recording_start → annotate_recording → recording_stop), real taps on the real app:
-   - Recording "<iOS|Android> BEFORE — backend main": annotate setup "Backend main on :3100 (planted defect), alerts off"; test_start "It should make a £25 payment to Priya Shah on backend main"; tap Home → Make a payment → Make payment; when the calm error appears, assertion test_result=failed: "HTTP 504 HOLD_EXPIRED after <measured> s (SLO 1.5 s); calm error shown; balance unchanged £2,184.62".
-   - Recording "<iOS|Android> AFTER — fix branch": setup "Backend fix branch on :3101, alerts off"; test_start "It should make a £25 payment in under 1.5 s on the fix branch"; same taps; assertion passed: "HTTP 200 in <measured> s; Payment sent receipt; balance £2,159.62".
-   - Recording "<iOS|Android> REGRESSION — fix branch": test_start "It should complete 3 back-to-back payments under 1.5 s"; three payments, one assertion per payment with its measured time; then test_start "It should pass the backend regression test" with one assertion stating the jest result (FAIL on main, PASS on fix).
-   Use the server's request log for every measured time, and also quote the app's own "Time to confirm" value in each assertion — the recorder compresses idle footage, so the on-screen timer is the viewer's proof of the real wait. For BEFORE only, also render a real-time copy from that recording's raw chunks at their original cadence (no speed-up; duration must match the raw capture) and attach it as "<iOS|Android>-BEFORE-realtime.mp4". Each recording_stop needs a short title and a summary that leads with PASS/FAIL. Keep each recording under 2 minutes, with no long idle setup inside it. Send all three recordings (the recorder's own output) plus the BEFORE real-time copy as attachments in the final message, with the measured times in a 3-row table. Do not open PRs in the app repos.
-5. When both children finish, open each child's recordings (devin_session_interact get_attachments), confirm all six recordings plus the two BEFORE real-time copies exist, play, and show the right result, and attach all eight to your final message; send a child back to re-record if one is missing or wrong. Then:
-   - post ONE comment on your PR with a table: rows BEFORE / AFTER / REGRESSION, columns iOS / Android, each cell the measured time + PASS/FAIL and the recording, plus links to both testing sessions;
-   - reply ONCE in the Slack alert thread with: Root cause (1 line), PR link, the two testing session links;
-   - end with a short final message: root cause in one sentence, the fix in one sentence, the PR link, the 2×3 results table, the two testing session links, and the eight videos attached (six recordings + two real-time BEFORE copies).
+1. Diagnose: confirm from the code and the spans above where the ~9 s goes and why the payment fails (compare against the authorization hold TTL). State it as evidence, not guesses. Confirm the web page and the iOS and Android apps are thin clients of this API (no client fix needed) by reading their payment code read-only.
+2. Fix the backend in ${KESTREL.repos[0]} only, in ${KESTREL.serviceFile}. Keep the 5 s authorization hold, keep the 90-day AML window, screen every transaction exactly once, never exceed the partner ceiling (screeningPartnerMaxConcurrency). Add a jest regression test (tests/2e790636-kestrel-mobile-payments*.test.js) that fails on main and passes on the fix; run it and the existing Kestrel tests. Open a PR titled "Kestrel Bank: fix Make a payment 504s (web + iOS + Android)". Do NOT merge — main keeps the bug so the demo can be re-run.
+3. Create THREE testing child Devin sessions in parallel, each given the diagnosis, PR branch and the instructions in step 4, and ask to be notified when each finishes:
+${children}
+4. Each testing child must: run ${KESTREL.repos[0]} locally TWICE with no Slack/Devin credentials — main on port 3100 and the fix branch on port 3101 — and point its client at it (demo alerts OFF). BEFORE starting each recording, make the client fill the screen and start from the payment entry point:
+${prep}
+   Then make THREE SEPARATE recordings with Devin's built-in screen recorder (recording_start → annotate_recording → recording_stop), real taps/clicks on the real client:
+   - Recording "<Web|iOS|Android> BEFORE — backend main": annotate setup "Backend main on :3100 (planted defect), alerts off"; test_start "It should make a £25 payment to Priya Shah on backend main"; make the payment; when the calm error appears, assertion test_result=failed: "HTTP 504 HOLD_EXPIRED after <measured> s (SLO 1.5 s); calm error shown; balance unchanged £2,184.62".
+   - Recording "<Web|iOS|Android> AFTER — fix branch": setup "Backend fix branch on :3101, alerts off"; test_start "It should make a £25 payment in under 1.5 s on the fix branch"; same steps; assertion passed: "HTTP 200 in <measured> s; confirmation shown; balance £2,159.62".
+   - Recording "<Web|iOS|Android> REGRESSION — fix branch": test_start "It should complete 3 back-to-back payments under 1.5 s"; three payments, one assertion per payment with its measured time; then test_start "It should pass the backend regression test" with one assertion stating the jest result (FAIL on main, PASS on fix).
+   Use the server's request log for every measured time, and also quote the client's own on-screen timer ("Time to confirm" in the apps, the stopwatch on the web page) in each assertion — the recorder compresses idle footage, so the on-screen timer is the viewer's proof of the real wait. For BEFORE only, also render a real-time copy from that recording's raw chunks at their original cadence (no speed-up; duration must match the raw capture) and attach it as "<Web|iOS|Android>-BEFORE-realtime.mp4". Each recording_stop needs a short title and a summary that leads with PASS/FAIL. Keep each recording under 2 minutes, with no long idle setup inside it. Send all three recordings plus the BEFORE real-time copy as attachments in the final message, with the measured times in a 3-row table. Do not open PRs; the web child does not touch the web page.
+5. When all three children finish, open each child's recordings (devin_session_interact get_attachments), confirm all nine recordings plus the three BEFORE real-time copies exist, play, and show the right result, and attach all twelve to your final message; send a child back to re-record if one is missing or wrong. Then:
+   - post ONE comment on your PR with a table: rows BEFORE / AFTER / REGRESSION, columns Web / iOS / Android, each cell the measured time + PASS/FAIL and the recording, plus links to the three testing sessions;
+   - reply ONCE in the Slack alert thread with: Root cause (1 line), PR link, the three testing session links;
+   - end with a short final message: root cause in one sentence, the fix in one sentence, the PR link, the 3×3 results table, the three testing session links, and the twelve videos attached (nine recordings + three real-time BEFORE copies).
 `;
   if (channel && threadTs) return `${prompt}\n*Slack Thread:* channel=${channel} thread_ts=${threadTs}`;
   return prompt;
@@ -220,6 +259,42 @@ function resolveSessionIdentity() {
     userId: process.env.DEVIN_ONCALL_USER_ID || null,
     apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
   };
+}
+
+function oncallBotId() {
+  const id = (process.env.KESTREL_ONCALL_BOT_ID || process.env.DEVIN_ONCALL_BOT_ID || '').trim();
+  if (!id) return null;
+  return /^bot-[0-9a-f]{32}$/.test(id) ? id : null;
+}
+
+function buildBotPage(result, ctx) {
+  const lead = buildSessionPrompt(result, ctx);
+  return `:rotating_light: On-call page — ${alertTitle()} (${ctx.reference})
+
+You are the OnCall Bot and this incident is yours. Respond to it the way you respond to every on-call page:
+- Dispatch ONE lead child session on Linux with repos ${KESTREL.repos.join(', ')}, titled "[On-Call] ${ctx.reference} Kestrel Bank payments failing (web + iOS + Android)", whose prompt is the lead runbook below verbatim. Let it create its three testing children (approve them).
+- Track it to the end: when the lead reports, check the PR exists and the 3×3 BEFORE / AFTER / REGRESSION table (Web / iOS / Android) is complete, and send it back if a recording is missing.
+- Bring the result to your owner in one Inbox item on the PR (review only — merging needs their approval; main keeps the bug for the demo).
+- If the same incident pages you again, it joins this response; do not dispatch a second lead.
+
+----- LEAD RUNBOOK -----
+${lead}`;
+}
+
+async function pageOncallBot(botId, result, ctx) {
+  const response = await sendDevinSessionMessage(botId, buildBotPage(result, ctx), resolveSessionIdentity());
+  if (!response) return null;
+  return { id: botId, url: response.url || process.env.KESTREL_ONCALL_BOT_URL || null };
+}
+
+async function startLeadSession(result, ctx) {
+  const session = await createDevinSession(buildSessionPrompt(result, ctx), {
+    ...resolveSessionIdentity(),
+    title: `[On-Call] ${ctx.reference} Kestrel Bank payments failing (web + iOS + Android)`,
+    platform: 'linux',
+    repos: KESTREL.repos,
+  });
+  return session ? { id: session.sessionId, url: session.url } : null;
 }
 
 async function runIncident(incident, result, ctx) {
@@ -243,27 +318,35 @@ async function runIncident(incident, result, ctx) {
     return incident;
   }
   const release = reserveSession();
+  const promptCtx = { ...ctx, channel, threadTs };
   try {
-    const session = await createDevinSession(buildSessionPrompt(result, { ...ctx, channel, threadTs }), {
-      ...resolveSessionIdentity(),
-      title: `[On-Call] ${incident.reference} Kestrel Bank mobile payments failing (iOS + Android)`,
-      platform: 'linux',
-      repos: KESTREL.repos,
-    });
-    if (!session) {
+    const botId = oncallBotId();
+    let responder = null;
+    if (botId) {
+      responder = await pageOncallBot(botId, result, promptCtx);
+      if (responder) incident.bot = responder;
+      else logger.warn('OnCall Bot page failed — starting a plain Devin session instead', { reference: incident.reference, botId });
+    }
+    if (!responder) {
+      responder = await startLeadSession(result, promptCtx);
+      if (responder) incident.session = responder;
+    }
+    if (!responder) {
       release();
       return incident;
     }
-    incident.session = { id: session.sessionId, url: session.url };
     if (token && channel && threadTs) {
-      await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [{
+      const text = incident.bot
+        ? `:robot_face: *OnCall Bot is responding to this alert*${responder.url ? ` — <${responder.url}|View OnCall Bot>` : ''} (dispatches a Linux lead; Web, iOS and Android testing sub-sessions)`
+        : `:mag: *Devin is investigating this alert* — <${responder.url}|View session> (lead on Linux; Web, iOS and Android testing sub-sessions)`;
+      await postThreadReply(token, channel, threadTs, incident.bot ? 'OnCall Bot is responding' : `Devin is investigating: ${responder.url}`, [{
         type: 'section',
-        text: { type: 'mrkdwn', text: `:mag: *Devin is investigating this alert* — <${session.url}|View session> (lead on Linux; iOS and Android testing sub-sessions)` },
-      }]).catch((error) => logger.error('Kestrel session link reply failed', { error: error.message }));
+        text: { type: 'mrkdwn', text },
+      }]).catch((error) => logger.error('Kestrel responder link reply failed', { error: error.message }));
     }
   } catch (error) {
     release();
-    logger.error('Kestrel Devin session failed', { reference: incident.reference, error: error.message });
+    logger.error('Kestrel incident responder failed', { reference: incident.reference, error: error.message });
   }
   return incident;
 }
@@ -282,7 +365,7 @@ function raiseIncident(result, { platform, release, nowMs = Date.now() } = {}) {
   const reference = `KB-${crypto.randomBytes(3).toString('hex')}`;
   const now = new Date(nowMs);
   activeIncident = {
-    reference, openedAt: nowMs, platforms: new Set([platform]), failures: 1, alert: null, session: null,
+    reference, openedAt: nowMs, platforms: new Set([platform]), failures: 1, alert: null, session: null, bot: null,
   };
   const ctx = { reference, platform, release, now };
   incrementMetric('kestrel.payments.hold_expired', { service: KESTREL.service, platform });
@@ -310,6 +393,7 @@ module.exports = {
   clientRelease,
   buildAlertMessage,
   buildSessionPrompt,
+  buildBotPage,
   raiseIncident,
   resetIncidentsForTests,
 };

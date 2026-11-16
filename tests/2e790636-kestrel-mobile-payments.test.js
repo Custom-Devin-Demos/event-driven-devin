@@ -5,6 +5,7 @@ jest.mock('../app/services/slack', () => ({
 }));
 jest.mock('../app/services/devin-api', () => ({
   createDevinSession: jest.fn().mockResolvedValue({ sessionId: 's-kestrel', url: 'https://app.devin.ai/sessions/s-kestrel' }),
+  sendDevinSessionMessage: jest.fn().mockResolvedValue({ sessionId: 'bot-conversation', url: 'https://app.devin.ai/sessions/bot-conversation' }),
 }));
 jest.mock('../app/telemetry/logger', () => ({ error: jest.fn(), info: jest.fn(), warn: jest.fn() }));
 jest.mock('../app/telemetry/sentry', () => ({ Sentry: { captureMessage: jest.fn(), captureException: jest.fn() } }));
@@ -12,8 +13,8 @@ jest.mock('../app/telemetry/datadog', () => ({ incrementMetric: jest.fn(), recor
 
 const express = require('express');
 const http = require('http');
-const { postMessage } = require('../app/services/slack');
-const { createDevinSession } = require('../app/services/devin-api');
+const { postMessage, postThreadReply } = require('../app/services/slack');
+const { createDevinSession, sendDevinSessionMessage } = require('../app/services/devin-api');
 const kestrel = require('../app/services/oncall-verticals/kestrel-mobile');
 const bankingVertical = require('../app/services/oncall-verticals/banking');
 
@@ -31,6 +32,8 @@ describe('Kestrel mobile payments API (2e790636)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     kestrel.resetIncidentsForTests();
+    delete process.env.KESTREL_ONCALL_BOT_ID;
+    delete process.env.DEVIN_ONCALL_BOT_ID;
   });
 
   test('validates the seeded payment and rejects anything else', () => {
@@ -71,15 +74,27 @@ describe('Kestrel mobile payments API (2e790636)', () => {
     expect(kestrel.PAYMENT_CONFIG).not.toBe(bankingVertical.COMPLIANCE_CONFIG);
   });
 
-  test('alert names both platforms and the prompt asks for iOS + Android testing sub-sessions', () => {
+  test('web payments use the same validation: own accounts and Oakfield, never to the same account', () => {
+    expect(kestrel.validatePayment({ ...PAYMENT, payeeId: 'oakfield-lettings' })).not.toBeNull();
+    expect(kestrel.validatePayment({ ...PAYMENT, payeeId: 'own-70254418' })).not.toBeNull();
+    expect(kestrel.validatePayment({ ...PAYMENT, payeeId: 'own-41827365' })).toBeNull();
+    expect(kestrel.validatePayment({ ...PAYMENT, fromAccount: '70254418', payeeId: 'own-41827365' })).not.toBeNull();
+    expect(kestrel.validatePayment({ ...PAYMENT, amountMinor: 218463 })).toBeNull();
+    expect(kestrel.platformOf('web')).toBe('web');
+  });
+
+  test('alert names web, iOS and Android and the prompt asks for three testing sub-sessions', () => {
     const result = { durationMs: 9342, screeningConcurrency: 1, spans: [{ name: 'payments.aml_screen', count: 36, totalMs: 8922 }] };
     const ctx = { reference: 'KB-abc123', platform: 'android', release: 'kestrel-mobile@1.0', now: new Date(0) };
     const alert = kestrel.buildAlertMessage(result, ctx);
-    expect(alert).toContain('iOS and Android');
+    expect(alert).toContain('*Affected clients:* Web, iOS and Android');
     expect(alert).toContain('HTTP 504 HOLD_EXPIRED after 9,342 ms');
     const prompt = kestrel.buildSessionPrompt(result, ctx);
     expect(prompt).toContain('*macOS* child');
-    expect(prompt).toContain('*Linux* child');
+    expect(prompt).toContain('*Linux* child for *Web*');
+    expect(prompt).toContain('*macOS* child for *iOS*');
+    expect(prompt).toContain('*Linux* child for *Android*');
+    expect(prompt).toContain('columns Web / iOS / Android');
     expect(prompt).toContain('BEFORE — backend main');
     expect(prompt).toContain('recording_start');
     expect(prompt).toContain('REGRESSION — fix branch');
@@ -98,6 +113,52 @@ describe('Kestrel mobile payments API (2e790636)', () => {
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     expect(createDevinSession.mock.calls[0][1]).toMatchObject({ platform: 'linux', repos: kestrel.KESTREL.repos });
+  });
+
+  test('web, iOS and Android failures in one window join a single incident', async () => {
+    const result = { durationMs: 9342, screeningConcurrency: 1, spans: [] };
+    const first = kestrel.raiseIncident(result, { platform: 'web', release: 'kestrel-web@2026.11.2', nowMs: 1000 });
+    await first.outcome;
+    kestrel.raiseIncident(result, { platform: 'ios', release: 'kestrel-mobile@1.0', nowMs: 2000 });
+    const third = kestrel.raiseIncident(result, { platform: 'android', release: 'kestrel-mobile@1.0', nowMs: 3000 });
+    expect([...third.incident.platforms]).toEqual(['web', 'ios', 'android']);
+    expect(third.incident.failures).toBe(3);
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+  });
+
+  test('with the OnCall Bot configured, the alert pages the Bot instead of starting a plain session', async () => {
+    process.env.KESTREL_ONCALL_BOT_ID = 'bot-e6009d3547b7409da6ab72c02a823939';
+    const result = { durationMs: 9342, screeningConcurrency: 1, spans: [] };
+    const raised = kestrel.raiseIncident(result, { platform: 'web', release: 'kestrel-web@2026.11.2', nowMs: 1000 });
+    const incident = await raised.outcome;
+    expect(createDevinSession).not.toHaveBeenCalled();
+    expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
+    const [target, page] = sendDevinSessionMessage.mock.calls[0];
+    expect(target).toBe('bot-e6009d3547b7409da6ab72c02a823939');
+    expect(page).toContain('You are the OnCall Bot');
+    expect(page).toContain(incident.reference);
+    expect(page).toContain('LEAD RUNBOOK');
+    expect(page).toContain('*Slack Thread:* channel=C0TEST');
+    expect(incident.bot).toMatchObject({ id: 'bot-e6009d3547b7409da6ab72c02a823939' });
+    expect(postThreadReply.mock.calls[0][4][0].text.text).toContain('OnCall Bot is responding');
+  });
+
+  test('falls back to a plain Devin session when paging the Bot fails, and ignores a malformed bot id', async () => {
+    process.env.KESTREL_ONCALL_BOT_ID = 'bot-e6009d3547b7409da6ab72c02a823939';
+    sendDevinSessionMessage.mockResolvedValueOnce(null);
+    const result = { durationMs: 9342, screeningConcurrency: 1, spans: [] };
+    const incident = await kestrel.raiseIncident(result, { platform: 'ios', release: 'kestrel-mobile@1.0', nowMs: 1000 }).outcome;
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(incident.session).toMatchObject({ id: 's-kestrel' });
+    expect(incident.bot).toBeNull();
+
+    kestrel.resetIncidentsForTests();
+    jest.clearAllMocks();
+    process.env.KESTREL_ONCALL_BOT_ID = 'not-a-bot';
+    await kestrel.raiseIncident(result, { platform: 'ios', release: 'kestrel-mobile@1.0', nowMs: 1000 }).outcome;
+    expect(sendDevinSessionMessage).not.toHaveBeenCalled();
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
   });
 
   describe('route', () => {
