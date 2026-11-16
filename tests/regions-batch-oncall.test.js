@@ -822,6 +822,20 @@ describe('TN3270 batch console presentation', () => {
     }
     expect(request.mock.calls[0][1]).toMatchObject({ method: 'POST', mode: 'cors', credentials: 'omit', headers: { 'Content-Type': 'application/json' } });
   });
+  test.each([false, undefined])('server simulated=%s disables browser triggers and resolves without affecting rendering', async (simulated) => {
+    browserRun();
+    data.simulated = simulated;
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    const tracked = { 'rg-batch-earlier-mft': { runId: 'earlier', routingKey: keys.mft, service: 'mft' } };
+    storage.set('rgBatchPdSent', JSON.stringify(tracked));
+    await ui.poll();
+    expect(elements.get('default-jobs').children).toHaveLength(10);
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events()).toEqual([]);
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual(tracked);
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+  });
   test('reload does not resend; new runs get fresh dedup keys and old-run incidents are ignored', () => {
     browserRun();
     storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));

@@ -209,7 +209,7 @@ const browserServices={
  sql:{source:'RGW-MFTSQL-07',component:'SQL',error:'SSL Provider: The client and server do not possess a common algorithm. [SQLSTATE 08001]'},
  mf:{source:'RGP1',component:'MF',error:'IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND; ABEND=S013'}
 };
-let browserRunId=null;
+let browserRunId=null,browserSimulated=false;
 const browserPending=new Map(),browserResetRuns=new Set();
 function readBrowserStore(key){try{const value=JSON.parse(localStorage.getItem(key)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch{return {}}}
 function writeBrowserStore(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{console.warn('Batch browser storage unavailable');return false}}
@@ -246,12 +246,14 @@ function browserService(incident){
  if(id==='PN02JGH'||jobs.includes('SETTLE_POST')||/mainframe|zos/i.test(name))return 'mf';
 }
 async function postBrowserEvent(body){
+ if(!browserSimulated)return false;
  try{const response=await fetch('https://events.pagerduty.com/v2/enqueue',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:globalThis.AbortSignal?.timeout?.(15000)});if(!response.ok)throw Error('Delivery failed');return true}
  catch{console.warn('Batch event delivery failed');return false}
 }
 function triggerBrowserEvents(data){
+ browserSimulated=data.simulated===true;
  browserRunId=data.run?.run_id||null;
- if(!browserRunId||browserResetRuns.has(browserRunId))return;
+ if(!browserSimulated||!browserRunId||browserResetRuns.has(browserRunId))return;
  const keys=browserKeys();if(!Object.keys(keys).length)return;
  for(const incident of data.incidents){
   const service=browserService(incident),key=keys[service];
