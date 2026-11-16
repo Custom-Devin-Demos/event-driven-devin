@@ -10003,6 +10003,25 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BANCO ALMENARA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco Almenara product. Banco Almenara is a fictional bank.',
   },
+  'c32407c6': {
+    slug: 'c32407c6',
+    company: 'TELUS',
+    brandMark: 'T',
+    vertical: 'telco',
+    page: { file: 'c32407c6.html', title: 'Bring your own phone plans | TELUS' },
+    theme: {
+      '--accent': '#2B8000',
+      '--ink': '#2A2C2E',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#4B286D',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'TELUS Support',
+    alertCard: {
+      impact: 'Plan purchases in My TELUS wait ~8 seconds before confirming; subscribers retry or abandon checkout.',
+    },
+    disclaimer: 'NOT ACTUALLY A TELUS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TELUS product.',
+  },
 };
 
 function getOncallSkin(slug) {
