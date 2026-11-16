@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Clinic Worklist | LONGITUDE Clinic Demo</title>
+<style>
+:root{--navy:#003c71;--blue:#0072ce;--ink:#1b2430;--muted:#5b6675;--line:#d5dbe3;--canvas:#f3f5f8;--red:#b3261e;--redbg:#fdecea;--yellow:#8a6100;--yellowbg:#fff6d6;--green:#176b3c;--greenbg:#e7f5ec}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif}
+button{font:inherit;cursor:pointer}button:disabled{opacity:.6;cursor:wait}a{color:var(--blue)}
+button:focus-visible,a:focus-visible{outline:3px solid #f5aa1c;outline-offset:2px}
+.hidden{display:none!important}
+.demo-strip{background:#e8eef6;color:var(--navy);font-size:11px;text-align:center;padding:5px 16px;border-bottom:1px solid var(--line)}
+.masthead{background:var(--navy);color:#fff;display:flex;align-items:center;gap:24px;padding:14px 32px}
+.wordmark{font-size:19px;line-height:1.05;font-weight:700;letter-spacing:.2px}.wordmark span{display:block;font-weight:400}
+.product{border-left:1px solid rgba(255,255,255,.35);padding-left:24px;font-size:20px;font-weight:300;letter-spacing:.5px}.product b{font-weight:700}
+.masthead .who{margin-left:auto;font-size:12px;text-align:right;opacity:.9}
+.nav{background:#fff;border-bottom:1px solid var(--line);display:flex;gap:28px;padding:0 32px;font-size:13px}
+.nav span{padding:11px 0;color:var(--muted)}.nav .on{color:var(--navy);font-weight:700;border-bottom:3px solid var(--blue)}
+.coverage{margin:20px 32px 0;background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:4px;padding:10px 16px;font-size:13px}
+main{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:20px;padding:20px 32px 40px;max-width:1500px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:4px}
+.panel h2{margin:0;padding:13px 16px;font-size:15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.panel h2 small{font-weight:400;color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{padding:11px 16px;text-align:left;border-bottom:1px solid #e8ecf1;vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:#fafbfc}
+tr:last-child td{border-bottom:0}td small{display:block;color:var(--muted);font-size:12px}
+.tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:#e3f0fc;color:var(--blue);border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+.send{background:var(--blue);color:#fff;border:0;border-radius:3px;padding:7px 12px;font-size:13px;white-space:nowrap}
+.status{font-size:12px;color:var(--muted)}.status.ok{color:var(--green)}.status.fail{color:var(--red);font-weight:700}
+.notice{margin:0 0 16px;border-radius:4px;padding:12px 16px;border:1px solid #f1b5b0;background:var(--redbg);color:#5f1410;grid-column:1/-1}
+.notice.success{border-color:#b5dcc3;background:var(--greenbg);color:#0f4a29}.notice strong{display:block}.notice p{margin:2px 0 0}
+.lane{padding:12px 16px;border-bottom:1px solid #e8ecf1}.lane:last-child{border-bottom:0}
+.lane h3{margin:0 0 8px;font-size:13px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}.dot.red{background:var(--red)}.dot.yellow{background:#e0a800}
+.count{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px}
+.alert{border-radius:3px;padding:8px 10px;margin-top:6px;font-size:13px}.alert.red{background:var(--redbg);border-left:3px solid var(--red)}.alert.yellow{background:var(--yellowbg);border-left:3px solid #e0a800}
+.alert small{display:block;color:var(--muted);font-size:12px}.empty{color:var(--muted);font-size:13px;margin:0}
+.ops{margin:0 32px 40px;background:#fff;border:1px dashed #9aa6b5;border-radius:4px;padding:14px 16px;font-size:12px;max-width:1436px}
+.ops h2{margin:0 0 6px;font-size:13px}.ops button{background:#fff;border:1px solid var(--line);border-radius:3px;padding:5px 10px;margin-right:8px}
+.ops pre{background:#f3f5f8;padding:10px;overflow:auto;max-height:260px;white-space:pre-wrap}
+.card{border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin:8px 0}.card h3{margin:0 0 4px;font-size:13px}.card p{margin:2px 0}.card dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:6px 0}.card dt{color:var(--muted)}.card dd{margin:0;word-break:break-word}.card a{margin-right:12px}
+main>*{min-width:0}.notice,.ops{overflow-wrap:anywhere}
+@media(max-width:600px){.masthead{gap:14px;flex-wrap:wrap}.nav{overflow-x:auto;white-space:nowrap}thead{display:none}table,tbody,tr,td{display:block}tr{padding:10px 16px;border-bottom:1px solid #e8ecf1}tr:last-child{border-bottom:0}td{padding:2px 0;border:0}td:last-child{padding-top:8px}.send{width:100%}.ops{min-width:0}}
+@media(max-width:900px){main{grid-template-columns:1fr;padding:16px}.masthead,.nav{padding-left:16px;padding-right:16px}.coverage,.ops{margin-left:16px;margin-right:16px}th:nth-child(3),td:nth-child(3){display:none}}
+</style>
+</head>
+<body>
+<div class="demo-strip"><strong>Demo only</strong> · Synthetic clinic, patients and devices · Not a Boston Scientific product and not connected to any device</div>
+<header class="masthead">
+  <div class="wordmark">Boston<span>Scientific</span></div>
+  <div class="product"><b>LONGITUDE</b> Clinic</div>
+  <div class="who"><span id="clinicName">Clinic</span><br>Device clinic nurse · Demo user</div>
+</header>
+<nav class="nav" aria-label="Clinic"><span class="on">Patient list</span><span>Alerts</span><span>Scheduled follow-ups</span><span>Reports</span><span>Clinic settings</span></nav>
+<div class="coverage"><strong>Holiday coverage:</strong> the device clinic is closed Thursday through Sunday. Red alerts page the on-call electrophysiologist; yellow alerts wait for Monday review.</div>
+<main>
+  <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
+  <section class="panel" aria-labelledby="patientsTitle">
+    <h2 id="patientsTitle">Monitored patients <small>Remote transmissions from home Communicators</small></h2>
+    <table>
+      <thead><tr><th>Patient</th><th>Implanted device</th><th>Last transmission</th><th>Status</th><th></th></tr></thead>
+      <tbody id="patients"><tr><td colspan="5" class="status">Loading patient list…</td></tr></tbody>
+    </table>
+  </section>
+  <section class="panel" aria-labelledby="worklistTitle">
+    <h2 id="worklistTitle">Alert worklist <small>Today</small></h2>
+    <div class="lane"><h3><span class="dot red"></span>Red alerts <span class="count" id="redCount">0</span></h3><div id="redLane"><p class="empty">No red alerts.</p></div></div>
+    <div class="lane"><h3><span class="dot yellow"></span>Yellow alerts <span class="count" id="yellowCount">0</span></h3><div id="yellowLane"><p class="empty">No yellow alerts.</p></div></div>
+  </section>
+</main>
+<section id="demoToolbar" class="ops hidden" aria-labelledby="opsTitle">
+  <h2 id="opsTitle">Presenter tools <span id="revision"></span></h2>
+  <p id="deliveryStatus">Rehearsal mode: a failing transmission previews the Teams card here and sends nothing.</p>
+  <p><button id="reset">Reset worklist</button><a id="sourceLink" href="#" target="_blank" rel="noopener">Incident baseline source</a></p>
+  <p id="incidentState">Send a transmission for a patient to begin. Patient D (SICD-A300, red alert) is the failing case.</p>
+  <div id="teamsCard" class="card">Trigger the failing transmission to generate the alert preview.</div>
+  <pre id="payload">No alert generated yet.</pre>
+</section>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const lockedIdentity = {};
+  function savedIdentity() {
+    const identity = { devinOrgId: '', devinUserId: '', devinEmail: '' };
+    try { for (const key of Object.keys(identity)) identity[key] = localStorage.getItem(key) || ''; } catch (_) {}
+    return { ...identity, ...lockedIdentity };
+  }
+  const identityReady = (async () => {
+    try {
+      const identity = savedIdentity();
+      if (identity.devinOrgId && identity.devinUserId) return;
+      const response = await fetch('/api/config');
+      if (!response.ok) return;
+      const cfg = await response.json();
+      if (cfg.lockOrg && cfg.defaultOrgId) lockedIdentity.devinOrgId = cfg.defaultOrgId;
+      if (cfg.lockUser && cfg.defaultUserId) lockedIdentity.devinUserId = cfg.defaultUserId;
+      for (const [key, value] of Object.entries(lockedIdentity)) localStorage.setItem(key, value);
+    } catch (_) {}
+  })();
+  $('demoToolbar').classList.toggle('hidden', new URLSearchParams(location.search).get('ops') !== '1');
+  const START_HINT = $('incidentState').textContent;
+  let patients = [], models = [], busy = false;
+  const status = {}, worklist = { red: [], yellow: [] };
+  const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
+  const daysAgo = n => n === 1 ? 'Yesterday' : `${n} days ago`;
+  function notice(title, text, success = false) {
+    $('notice').replaceChildren(el('strong', '', title), el('p', '', text));
+    $('notice').classList.remove('hidden'); $('notice').classList.toggle('success', success);
+  }
+  function renderPatients() {
+    $('patients').replaceChildren(...patients.map(p => {
+      const row = el('tr'), model = models.find(m => m.model === p.model) || {};
+      const who = el('td', '', p.name); who.append(el('small', '', `${p.id} · Age ${p.age}`));
+      const device = el('td', '', p.model); if (model.isNew) device.append(el('span', 'tag', 'New model')); device.append(el('small', '', model.family || ''));
+      const state = status[p.id] || { text: 'Monitored', kind: '' };
+      const action = el('td'), button = el('button', 'send', 'Send transmission');
+      button.dataset.patient = p.id; button.disabled = busy; action.append(button);
+      row.append(who, device, el('td', '', daysAgo(p.lastTransmissionDaysAgo)), el('td', `status ${state.kind}`, state.text), action);
+      return row;
+    }));
+  }
+  function renderWorklist() {
+    for (const severity of ['red', 'yellow']) {
+      const items = worklist[severity];
+      $(`${severity}Count`).textContent = items.length;
+      $(`${severity}Lane`).replaceChildren(...(items.length ? items.map(a => { const card = el('div', `alert ${severity}`, a.label); card.append(el('small', '', `${a.patient} · ${a.model} · Review within ${a.reviewWithinHours} h · ${a.notify.join(', ')}`)); return card; }) : [el('p', 'empty', `No ${severity} alerts.`)]));
+    }
+  }
+  function renderAlert(data) {
+    $('teamsCard').replaceChildren();
+    $('deliveryStatus').textContent = data.dryRun ? 'Rehearsal mode. Nothing sent; no alert-created session.' : data.sent ? 'Teams webhook accepted. Follow the Teams thread for the responder; no session is claimed until its link appears.' : 'Teams delivery was not confirmed. No Slack fallback.';
+    if (!data.card) { $('teamsCard').textContent = data.sent ? 'Delivered to Teams. Watch the channel for the card and Devin’s investigation.' : data.error || 'No alert delivery details were returned.'; $('payload').textContent = JSON.stringify(data, null, 2); return; }
+    const renderBlocks = blocks => blocks.forEach(block => {
+      if (block.type === 'TextBlock') $('teamsCard').append(el(block.weight === 'Bolder' ? 'h3' : 'p', '', block.text));
+      if (block.type === 'ColumnSet') block.columns.forEach(column => renderBlocks(column.items || []));
+      if (block.type === 'Container') renderBlocks(block.items || []);
+      if (block.type === 'FactSet') { const list = el('dl'); block.facts.forEach(f => list.append(el('dt', '', f.title), el('dd', '', f.value))); $('teamsCard').append(list); }
+    });
+    renderBlocks(data.card.body);
+    const actions = [...(data.card.actions || []), ...data.card.body.filter(block => block.type === 'ActionSet').flatMap(block => block.actions)];
+    actions.forEach(action => { const a = el('a', '', action.title); a.href = action.url; a.target = '_blank'; a.rel = 'noopener'; $('teamsCard').append(a); });
+    $('payload').textContent = JSON.stringify(data.payload, null, 2);
+  }
+  async function send(patientId) {
+    const patient = patients.find(p => p.id === patientId);
+    busy = true; status[patientId] = { text: 'Receiving transmission…', kind: '' }; renderPatients(); $('notice').classList.add('hidden');
+    try {
+      await identityReady;
+      const response = await fetch('/api/acee28a2/transmissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientId, ...savedIdentity() }) });
+      const data = await response.json();
+      if (response.ok) {
+        worklist[data.alert.severity].unshift({ ...data.alert, patient: patient.name, model: data.model });
+        status[patientId] = { text: `${data.alert.severity === 'red' ? 'Red' : 'Yellow'} alert on worklist`, kind: 'ok' };
+        notice('Transmission processed.', `${patient.name}: ${data.alert.label}. Routed to the ${data.alert.severity} alert worklist (${data.transmissionId}).`, true);
+        $('incidentState').textContent = `Observed HTTP 200 on ${data.revision}. Alert routed; no incident generated.`;
+      } else {
+        status[patientId] = { text: 'Transmission not processed', kind: 'fail' };
+        notice('Transmission received but not processed.', `${patient.name}'s transmission could not be routed. No alert reached the worklist and nobody was paged.`);
+        $('incidentState').textContent = `Observed HTTP ${response.status}: ${data.code}. ${data.diagnostic || data.error}`;
+        if (response.status >= 500) renderAlert(data.alert || { ok: false, sent: false });
+      }
+    } catch (error) {
+      status[patientId] = { text: 'Transmission not processed', kind: 'fail' };
+      notice('The clinic site is temporarily unavailable.', 'The transmission was not processed. Please try again.');
+      $('incidentState').textContent = error.message;
+    } finally { busy = false; renderPatients(); renderWorklist(); }
+  }
+  $('patients').addEventListener('click', event => { const id = event.target.dataset && event.target.dataset.patient; if (id && !busy) send(id); });
+  $('reset').onclick = () => { if (busy) return; for (const key of Object.keys(status)) delete status[key]; worklist.red = []; worklist.yellow = []; $('notice').classList.add('hidden'); $('teamsCard').textContent = 'Trigger the failing transmission to generate the alert preview.'; $('payload').textContent = 'No alert generated yet.'; $('incidentState').textContent = START_HINT; renderPatients(); renderWorklist(); };
+  fetch('/api/acee28a2/patients').then(r => { if (!r.ok) throw new Error('Patient list unavailable'); return r.json(); }).then(data => {
+    patients = data.patients; models = data.models; $('clinicName').textContent = data.clinic; $('revision').textContent = `· ${data.revision}`; $('sourceLink').href = data.sourceUrl;
+    if (data.liveTeams) $('deliveryStatus').textContent = 'LIVE mode: choose Teams on the demo hub. A failing transmission posts to the eashan-demo Teams channel; no Slack fallback.';
+    renderPatients(); renderWorklist();
+  }).catch(() => notice('Patient list unavailable.', 'Refresh when the service is ready.'));
+})();
+</script>
+</body>
+</html>
