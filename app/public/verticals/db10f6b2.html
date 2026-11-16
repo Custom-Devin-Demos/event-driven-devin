@@ -94,16 +94,18 @@ function legacyJob(job,incidents){
  return {state,name,jobId,label:state==='failed'?failure:state==='hold'?'HELD':state==='ready'?'CC 0000':'AWAITING'};
 }
 function renderMonitors(incidents){
- const hasIncident=id=>incidents.some(i=>i.status!=='resolved'&&(serviceJobs[i.service.id]||[]).includes(id));
- const mft=hasIncident('MFT_INBOUND'),sqlStage=hasIncident('SQL_STAGE'),edwLoad=hasIncident('EDW_LOAD'),sql=sqlStage||edwLoad,jes=hasIncident('SETTLE_POST');
+ const state=id=>jobState({id},incidents)[0];
+ const mft=state('MFT_INBOUND'),sqlStage=state('SQL_STAGE'),edwLoad=state('EDW_LOAD'),jes=state('SETTLE_POST');
+ const sql=sqlStage==='failed'||edwLoad==='failed';
+ const label=state=>({scheduled:'WAITING',failed:'FAILED · 08001',hold:'HELD',ready:'COMPLETE'})[state];
  for(const[id,text,failed]of[
-  ['mft-status',mft?'FAILED':'WAITING',mft],
-  ['mft-detail',mft?'FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure':'Awaiting inbound settlement file from FEDACH-CLEARING.',mft],
-  ['sql-stage-status',sqlStage?'FAILED · 08001':'WAITING',sqlStage],
-  ['edw-load-status',edwLoad?'FAILED · 08001':'WAITING',edwLoad],
-  ['sql-detail',sql?'Login timeout expired; SSL Provider: The client and server cannot communicate, because they do not possess a common algorithm. [SQLSTATE 08001]':'No execution history in this session. Awaiting upstream transfer.',sql],
-  ['jes-status',jes?'ABEND S013':'AWAITING INPUT',jes],
-  ['jes-detail',jes?'IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND\nIEC130I INPUT DD STATEMENT MISSING\nIEF272I SETLPOST STEP010 - STEP WAS NOT EXECUTED.\n$HASP395 SETLPOST ENDED - ABEND=S013':'JES2 HAS NO OUTPUT FOR SETLPOST.\nAWAITING RG.SETTLE.D261115.INPUT',jes]
+  ['mft-status',mft==='failed'?'FAILED':mft==='ready'?'TRANSFER COMPLETE':label(mft),mft==='failed'],
+  ['mft-detail',mft==='failed'?'FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure':mft==='hold'?'TRANSFER HELD — DO NOT RESUBMIT':mft==='ready'?'TRANSFER COMPLETE — CC 0000':'Awaiting inbound settlement file from FEDACH-CLEARING.',mft==='failed'],
+  ['sql-stage-status',label(sqlStage),sqlStage==='failed'],
+  ['edw-load-status',label(edwLoad),edwLoad==='failed'],
+  ['sql-detail',sql?'Login timeout expired; SSL Provider: The client and server cannot communicate, because they do not possess a common algorithm. [SQLSTATE 08001]':sqlStage==='scheduled'&&edwLoad==='scheduled'?'No execution history in this session. Awaiting upstream transfer.':'SQL_STAGE '+label(sqlStage)+' / EDW_LOAD '+label(edwLoad),sql],
+  ['jes-status',jes==='failed'?'ABEND S013':jes==='hold'?'HELD':jes==='ready'?'COMPLETE · CC 0000':'AWAITING INPUT',jes==='failed'],
+  ['jes-detail',jes==='failed'?'IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND\nIEC130I INPUT DD STATEMENT MISSING\nIEF272I SETLPOST STEP010 - STEP WAS NOT EXECUTED.\n$HASP395 SETLPOST ENDED - ABEND=S013':jes==='hold'?'SETLPOST HELD — DO NOT RESUBMIT':jes==='ready'?'$HASP395 SETLPOST ENDED - RC=0000':'JES2 HAS NO OUTPUT FOR SETLPOST.\nAWAITING RG.SETTLE.D261115.INPUT',jes==='failed']
  ]){const el=$(id);el.textContent=text;el.classList.toggle('failed',failed)}
 }
 function render(data){

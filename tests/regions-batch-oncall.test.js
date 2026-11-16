@@ -609,14 +609,24 @@ describe('legacy batch console presentation', () => {
   });
   test('configured service IDs work; resolved/unrelated incidents do not light evidence; reset clears it', () => {
     data.service_jobs = { CUSTOM_MFT: ['MFT_INBOUND'] };
-    data.incidents = [incident('CUSTOM_MFT', '', 'acknowledged')];
+    data.incidents = [incident('CUSTOM_MFT')];
     ui.render(data);
     expect(elements.get('mft-status').textContent).toBe('FAILED');
-    data.incidents = [incident('CUSTOM_MFT', '', 'resolved'), incident('OTHER')];
+    data.incidents = [incident('CUSTOM_MFT', '', 'acknowledged'), incident('CUSTOM_MFT', '', 'resolved'), incident('OTHER')];
     ui.render(data);
     expect(elements.get('mft-status').textContent).toBe('WAITING');
     data.incidents = [];
     ui.render(data);
+    for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
+      expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
+      expect(elements.get(id).classList.toggle).toHaveBeenLastCalledWith('failed', false);
+    }
+  });
+  test.each(['HOLD', 'COMPLETE', 'RELEASED'])('monitors follow %s directives instead of incident presence', (directive) => {
+    data.incidents = [incident('PU8BL8X', `${directive} MFT_INBOUND, SQL_STAGE, EDW_LOAD, SETTLE_POST`), incident('PQZQKW7'), incident('PN02JGH')];
+    ui.render(data);
+    const expected = directive === 'HOLD' ? 'HELD' : 'COMPLETE';
+    for (const id of ['mft-status', 'sql-stage-status', 'edw-load-status', 'jes-status']) expect(elements.get(id).textContent).toContain(expected);
     for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
       expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
       expect(elements.get(id).classList.toggle).toHaveBeenLastCalledWith('failed', false);
