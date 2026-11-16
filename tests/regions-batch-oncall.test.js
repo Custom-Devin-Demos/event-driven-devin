@@ -358,12 +358,13 @@ describe('batch settlement HTTP and native page', () => {
   });
 
   test('serves native skin, anonymous slug and friendly URL with no shim interception of Run', async () => {
+    expect(getOncallSkin(SLUG).disclaimer).toBeUndefined();
     for (const route of [`/oncall/c/${SLUG}`, `/${SLUG}`, '/regions-batch-oncall']) {
       const response = await fetch(base + route);
       expect(response.status).toBe(200);
       const html = await response.text();
       expect(html).toContain('<title>Regions — Enterprise Batch Control</title>');
-      expect(html).toContain('Not a Regions Bank system — internal demo only.');
+      expect(html).not.toContain('Not a Regions Bank system — internal demo only.');
       expect(html).toContain('--accent:#356e20');
       expect(html).not.toContain('← All Demos');
       expect(html).toContain("action('/api/oncall/batchsettlement/runs')");
