@@ -105,6 +105,30 @@
     .btn:hover { background: var(--bt-granate-dark); }
     .btn:disabled { background: #a8737b; cursor: progress; }
 
+    .form-msg { display: none; margin: 0 0 16px; border-radius: 8px; padding: 10px 14px; font-size: 13px; }
+    .form-msg.error { display: block; background: var(--bt-err-soft); border: 1px solid #f5c2bc; color: var(--bt-err); }
+    .form-msg ul { list-style: none; }
+    .fg input.invalid, .fg select.invalid { border-color: var(--bt-err); }
+    .notice { border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; background: #fdf6e7; border: 1px solid #ecd59f; color: #7a5a12; }
+
+    .review { padding: 20px 24px 24px; }
+    .review[hidden] { display: none; }
+    .review h3 { font-size: 16px; font-weight: 700; outline: none; }
+    .review .lead { font-size: 13px; color: var(--bt-muted); margin: 2px 0 16px; }
+    .review dl { border: 1px solid var(--bt-line); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+    .review dl > div { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 16px; padding: 11px 16px; border-top: 1px solid var(--bt-line); font-size: 14px; }
+    .review dl > div:first-child { border-top: none; }
+    .review dt { color: var(--bt-muted); }
+    .review dd { font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+    .review dd small { display: block; font-weight: 400; color: var(--bt-muted); font-size: 12px; }
+    .review dl > div.total { background: var(--bt-granate-soft); font-size: 16px; }
+    .review dl > div.total dt { color: var(--bt-ink); font-weight: 600; }
+    .review dl > div.total dd { color: var(--bt-granate); font-weight: 700; }
+    .review .actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; border-top: 1px solid var(--bt-line); padding-top: 18px; }
+    .btn-sec { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 24px; border-radius: 8px; border: 1px solid var(--bt-granate); background: var(--bt-white); color: var(--bt-granate); font-family: var(--sans); font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-sec:hover { background: var(--bt-granate-soft); }
+    .btn-sec:disabled { opacity: .5; cursor: not-allowed; }
+
     .result-box { display: none; margin: 0 24px 24px; border-radius: 8px; padding: 14px 16px; font-size: 14px; }
     .result-box.success { display: block; background: var(--bt-ok-soft); border: 1px solid #b6e0c8; color: var(--bt-ok); }
     .result-box.error { display: block; background: var(--bt-err-soft); border: 1px solid #f5c2bc; color: var(--bt-err); }
@@ -172,6 +196,11 @@
       .tabs a { padding: 12px 10px; white-space: nowrap; }
       .card-h { padding: 18px 16px 0; }
       form#transferForm { padding: 18px 16px 20px; }
+      .review { padding: 18px 16px 20px; }
+      .review dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+      .review dd { text-align: left; }
+      .review .actions { flex-direction: column-reverse; align-items: stretch; }
+      .btn-sec { width: 100%; }
       .radios { flex-direction: column; }
       .summary { flex-direction: column; align-items: stretch; }
       .btn { width: 100%; }
@@ -257,7 +286,7 @@
           <a href="#">Periódicas</a>
           <a href="#">Programadas</a>
         </div>
-        <form id="transferForm">
+        <form id="transferForm" novalidate>
           <div class="row">
             <div class="fg">
               <label for="fromAccount">Cuenta de cargo</label>
@@ -296,15 +325,35 @@
           <div class="fg">
             <label>Tipo de transferencia</label>
             <div class="radios">
-              <label class="radio on"><input type="radio" name="speed" checked><span>Inmediata<small>Disponible en segundos</small></span></label>
-              <label class="radio"><input type="radio" name="speed"><span>Ordinaria<small>Llega el siguiente día hábil</small></span></label>
+              <label class="radio on"><input type="radio" name="speed" value="inmediata" checked><span>Inmediata<small>Disponible en segundos</small></span></label>
+              <label class="radio"><input type="radio" name="speed" value="ordinaria"><span>Ordinaria<small>Llega el siguiente día hábil</small></span></label>
             </div>
           </div>
+          <div id="formMsg" class="form-msg" role="alert" aria-live="assertive"></div>
           <div class="summary">
             <div class="note">Te pediremos confirmar la operación con la app Toledo Firma si el importe supera tu límite diario.</div>
             <button type="submit" class="btn" id="submitBtn">Transferir</button>
           </div>
         </form>
+        <div id="review" class="review" hidden aria-labelledby="reviewTitle">
+          <h3 id="reviewTitle" tabindex="-1">Revisa y confirma la transferencia</h3>
+          <p class="lead">Comprueba los datos antes de firmar la orden. No se enviar&aacute; nada hasta que pulses Confirmar transferencia.</p>
+          <div id="reviewNotice" class="notice" hidden></div>
+          <dl>
+            <div><dt>Cuenta de cargo</dt><dd id="rvFrom"></dd></div>
+            <div><dt>Destinatario</dt><dd id="rvTo"></dd></div>
+            <div><dt>Importe</dt><dd id="rvAmount"></dd></div>
+            <div><dt>Concepto</dt><dd id="rvConcept"></dd></div>
+            <div><dt>Tipo de transferencia</dt><dd id="rvSpeed"></dd></div>
+            <div><dt>Comisi&oacute;n estimada</dt><dd id="rvFee"></dd></div>
+            <div><dt>Fecha valor</dt><dd id="rvValueDate"></dd></div>
+            <div class="total"><dt>Total a cargar</dt><dd id="rvTotal"></dd></div>
+          </dl>
+          <div class="actions">
+            <button type="button" class="btn-sec" id="editBtn">Modificar</button>
+            <button type="button" class="btn" id="confirmBtn">Confirmar transferencia</button>
+          </div>
+        </div>
         <div id="result" class="result-box"></div>
       </section>
 
@@ -383,31 +432,157 @@
     })();
   </script>
   <script>
-    function eur(v) { return Number(v).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' \u20AC'; }
-    document.getElementById('transferForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      const result = document.getElementById('result');
-      btn.disabled = true; btn.textContent = 'Procesando\u2026';
-      result.className = 'result-box';
-      try {
-        const res = await fetch('/api/banking/transfer', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+    function eur(v) { return Number(v).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' }) + ' \u20AC'; }
+    (function () {
+      // Mirrors FEE_TIERS in app/services/oncall-verticals/banking.js.
+      var FEE_TIERS = {
+        premium:  { rate: 0, flat: 0 },
+        standard: { rate: 0.001, flat: 2.50 },
+        basic:    { rate: 0.002, flat: 4.99 },
+      };
+      var PER_OPERATION_LIMIT = 3000;
+      var form = document.getElementById('transferForm');
+      var review = document.getElementById('review');
+      var formMsg = document.getElementById('formMsg');
+      var confirmBtn = document.getElementById('confirmBtn');
+      var editBtn = document.getElementById('editBtn');
+      var result = document.getElementById('result');
+      var fromSel = document.getElementById('fromAccount');
+      var toSel = document.getElementById('toAccount');
+      var amountInput = document.getElementById('amount');
+      var tierSel = document.getElementById('accountTier');
+      var conceptInput = document.getElementById('concept');
+
+      function estimateFee(tierKey, amount) {
+        var tier = FEE_TIERS[tierKey] || FEE_TIERS.standard;
+        return Math.round(Math.max(tier.rate * amount, tier.flat) * 100) / 100;
+      }
+      function valueDate(speed, now) {
+        var d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (speed !== 'ordinaria') return d;
+        d.setDate(d.getDate() + 1);
+        var day = d.getDay();
+        if (day === 6) d.setDate(d.getDate() + 2);
+        else if (day === 0) d.setDate(d.getDate() + 1);
+        return d;
+      }
+      function formatDate(d) {
+        return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      function selectedText(sel) {
+        var opt = sel.options[sel.selectedIndex];
+        return opt ? opt.textContent.trim() : '';
+      }
+      function selectedSpeed() {
+        var r = form.querySelector('input[name="speed"]:checked');
+        return r && r.value === 'ordinaria' ? 'ordinaria' : 'inmediata';
+      }
+      function clearErrors() {
+        formMsg.className = 'form-msg';
+        formMsg.textContent = '';
+        [amountInput, toSel].forEach(function (el) { el.classList.remove('invalid'); el.removeAttribute('aria-invalid'); });
+      }
+      function showErrors(errors) {
+        formMsg.className = 'form-msg error';
+        var ul = document.createElement('ul');
+        errors.forEach(function (e) {
+          var li = document.createElement('li');
+          li.textContent = e.msg;
+          ul.appendChild(li);
+          e.el.classList.add('invalid');
+          e.el.setAttribute('aria-invalid', 'true');
         });
-        const data = await res.json();
-        if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = '<div class="t">No hemos podido completar la transferencia</div><div class="d">Int\u00E9ntalo de nuevo en unos minutos. No se ha realizado ning\u00FAn cargo en tu cuenta.</div>';
-        } else {
-          result.className = 'result-box success';
-          result.innerHTML = '<div class="t">Transferencia realizada</div><div class="d">Se han cargado ' + eur(data.debitAmount) + ' en tu cuenta (incluye ' + eur(data.fee) + ' de comisi\u00F3n).</div>';
+        formMsg.textContent = '';
+        formMsg.appendChild(ul);
+        errors[0].el.focus();
+      }
+      function setText(id, text) { document.getElementById(id).textContent = text; }
+      function showForm() {
+        review.hidden = true;
+        form.hidden = false;
+      }
+
+      [amountInput, fromSel, toSel].forEach(function (el) {
+        el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', clearErrors);
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearErrors();
+        result.className = 'result-box';
+        result.innerHTML = '';
+        var raw = amountInput.value.trim();
+        var amount = parseFloat(raw);
+        var errors = [];
+        if (raw === '' || !isFinite(amount) || amount <= 0) {
+          errors.push({ el: amountInput, msg: 'Introduce un importe mayor que 0,00 \u20AC.' });
         }
-      } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = '<div class="t">Error de conexi\u00F3n</div><div class="d">Comprueba tu conexi\u00F3n e int\u00E9ntalo de nuevo.</div>';
-      } finally { btn.disabled = false; btn.textContent = 'Transferir'; }
-    });
+        if (fromSel.value === toSel.value) {
+          errors.push({ el: toSel, msg: 'La cuenta de cargo y la cuenta destino no pueden ser la misma.' });
+        }
+        if (errors.length) { showErrors(errors); return; }
+
+        var speed = selectedSpeed();
+        var fee = estimateFee(tierSel.value, amount);
+        var notice = document.getElementById('reviewNotice');
+        if (amount > PER_OPERATION_LIMIT) {
+          notice.textContent = 'El importe supera tu l\u00EDmite por operaci\u00F3n (' + eur(PER_OPERATION_LIMIT) + '). Te pediremos confirmar la operaci\u00F3n con la app Toledo Firma.';
+          notice.hidden = false;
+        } else {
+          notice.hidden = true;
+          notice.textContent = '';
+        }
+        setText('rvFrom', selectedText(fromSel));
+        setText('rvTo', selectedText(toSel));
+        setText('rvAmount', eur(amount));
+        setText('rvConcept', conceptInput.value.trim() || '\u2014');
+        setText('rvSpeed', speed === 'ordinaria' ? 'Ordinaria' : 'Inmediata');
+        var feeEl = document.getElementById('rvFee');
+        feeEl.textContent = eur(fee);
+        var small = document.createElement('small');
+        small.textContent = selectedText(tierSel);
+        feeEl.appendChild(small);
+        setText('rvValueDate', formatDate(valueDate(speed, new Date())));
+        setText('rvTotal', eur(Math.round((amount + fee) * 100) / 100));
+
+        form.hidden = true;
+        review.hidden = false;
+        document.getElementById('reviewTitle').focus();
+      });
+
+      editBtn.addEventListener('click', function () {
+        showForm();
+        document.getElementById('submitBtn').focus();
+      });
+
+      confirmBtn.addEventListener('click', async function () {
+        confirmBtn.disabled = true; editBtn.disabled = true;
+        confirmBtn.textContent = 'Procesando\u2026';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/banking/transfer', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            result.className = 'result-box error';
+            result.innerHTML = '<div class="t">No hemos podido completar la transferencia</div><div class="d">Int\u00E9ntalo de nuevo en unos minutos. No se ha realizado ning\u00FAn cargo en tu cuenta.</div>';
+          } else {
+            result.className = 'result-box success';
+            result.innerHTML = '<div class="t">Transferencia realizada</div><div class="d">Se han cargado ' + eur(data.debitAmount) + ' en tu cuenta (incluye ' + eur(data.fee) + ' de comisi\u00F3n).</div>';
+          }
+        } catch (err) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="t">Error de conexi\u00F3n</div><div class="d">Comprueba tu conexi\u00F3n e int\u00E9ntalo de nuevo.</div>';
+        } finally {
+          confirmBtn.disabled = false; editBtn.disabled = false;
+          confirmBtn.textContent = 'Confirmar transferencia';
+          showForm();
+          result.scrollIntoView({ block: 'nearest' });
+        }
+      });
+    })();
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>
