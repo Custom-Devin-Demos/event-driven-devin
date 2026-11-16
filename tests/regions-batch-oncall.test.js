@@ -529,7 +529,7 @@ describe('TN3270 batch console presentation', () => {
   const shellIds = new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1].split("$('fire').onclick")[0];
   const jobs = require('../app/services/oncall-verticals/batchsettlement-jobs.json');
-  let ui, elements, data, request;
+  let ui, elements, data, request, storage;
   const incident = (service, content = '', status = 'triggered') => ({ id: 'P' + service, status,
     service: { id: service, name: service }, title: 'Synthetic settlement incident', created_at: '2026-11-16T02:00:00Z',
     notes: content ? [{ content, created_at: '2026-11-16T02:01:00Z', author: 'Operator' }] : [] });
@@ -541,8 +541,11 @@ describe('TN3270 batch console presentation', () => {
       classList: { toggle: jest.fn(), remove: jest.fn(), add: jest.fn() }, append(...children) { this.children.push(...children); },
       replaceChildren(...children) { this.children = children; } });
     elements = new Map();
+    storage = new Map(Object.entries(presenter));
     request = jest.fn(async () => ({ ok: true, status: 200, json: async () => data }));
-    ui = vm.createContext({ fetch: request, location: { hash: '' }, localStorage: { getItem: (key) => presenter[key] || '' },
+    ui = vm.createContext({ fetch: request, location: { hash: '', search: '', pathname: '/oncall/c/db10f6b2' },
+      URLSearchParams, atob: (value) => Buffer.from(value, 'base64').toString('utf8'), history: { replaceState: jest.fn() }, console: { warn: jest.fn() },
+      localStorage: { getItem: (key) => storage.get(key) || null, setItem: jest.fn((key, value) => storage.set(key, value)), removeItem: (key) => storage.delete(key) },
       document: { createElement: element, getElementById(id) {
         if (!shellIds.has(id)) return elements.get(id) || null;
         if (!elements.has(id)) elements.set(id, element());
@@ -555,8 +558,8 @@ describe('TN3270 batch console presentation', () => {
     for (const value of ['Session A - [24 x 80]  RGP1.REGIONS.TN3270', 'File Edit View Communication Actions Window Help',
       'Menu  Utilities  Compilers  Options  Status  Help', 'COMMAND INPUT ===&gt;', 'SCROLL ===&gt; CSR',
       '4B MA  *  a  SYSTEM  03/024', 'aria-label="F5 Submit overnight settlement"', 'aria-label="F6 Reset local state"',
-      'SUBMIT SETTLE / S SETTLE / F5', 'No local run']) expect(html).toContain(value);
-    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd']) expect(html).toContain('id="screen-' + id + '"');
+      'SUBMIT SETTLE / S SETTLE / F5', 'SDSF SYSLOG']) expect(html).toContain(value);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'log']) expect(html).toContain('id="screen-' + id + '"');
     expect(html).toContain('width:80ch');
     expect(html).toContain('white-space:pre');
     expect(html).toContain('min-height:44px');
@@ -585,23 +588,49 @@ describe('TN3270 batch console presentation', () => {
     expect(elements.get('mft-status').textContent).toBe('WAITING');
     expect(elements.get('jes-status').textContent).toBe('AWAITING INPUT');
   });
-  test('incident arrivals illuminate only failed jobs and render a textual response log with real links', () => {
+  test('incident state renders timestamped SYSLOG failures without incident or collaboration concepts', () => {
+    data.run = { created_at: '2026-11-16T01:59:00Z', status: 'complete', sent: ['mft', 'sql', 'mf'] };
     data.incidents = [incident('PU8BL8X'), incident('PQZQKW7'), incident('PN02JGH')];
-    data.activity = [{ content: 'Devin session started', created_at: '2026-11-16T02:02:00Z',
-      service: 'PagerDuty', author: 'PagerDuty', session_url: 'https://app.devin.ai/sessions/local-test',
-      slack_thread_url: 'https://slack.com/archives/test' }];
+    data.activity = [{ content: 'Devin session started', author: 'PagerDuty', service: 'Slack',
+      session_url: 'https://app.devin.ai/sessions/test', slack_thread_url: 'https://slack.com/test' }];
     ui.render(data);
-    expect(elements.get('jobs').children.filter((row) => row.className === 'job failed')
-      .map((row) => [row.dataset.jobId, row.children[5].textContent.trim()])).toEqual([
-      ['MFT_INBOUND', 'RC 0008'], ['SQL_STAGE', 'RC 0012'], ['EDW_LOAD', 'RC 0012'], ['SETTLE_POST', 'ABEND S013'],
-    ]);
-    expect(elements.get('mft-detail').textContent.replace(/\n/g, '')).toBe('FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure');
-    expect(elements.get('sql-detail').textContent.replace(/\n/g, '')).toContain('[SQLSTATE 08001]');
-    expect(elements.get('jes-detail').textContent).toContain('$HASP395 SETLPOST ENDED - ABEND=S013');
-    expect(text(elements.get('default-log'))).toContain('DEVIN SESSION STARTED');
-    const links = elements.get('default-log').children.flatMap((el) => el.children).filter((el) => el.tagName === 'A');
-    expect(links.map((link) => link.href)).toEqual([data.activity[0].session_url, data.activity[0].slack_thread_url]);
-    expect(elements.get('notes').children).toHaveLength(1);
+    const log = text(elements.get('syslog'));
+    for (const message of ['$HASP100 SETTLE ON INTRDR', 'AXW0008E MFTINBND AXWAY TRANSFER FAILED',
+      '$HASP395 MFTINBND ENDED - RC=0008', '$HASP395 SQLSTAGE ENDED - RC=0012',
+      '$HASP395 EDWLOAD ENDED - RC=0012', 'IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND',
+      'IEC130I INPUT DD STATEMENT MISSING', 'IEF450I SETLPOST STEP010 - ABEND=S013',
+      '$HASP395 SETLPOST ENDED - ABEND=S013']) expect(log).toContain(message);
+    expect(log).toContain('01:59:00 $HASP100');
+    expect(log).toContain('02:00:00 AXW0008E');
+    expect(text(elements.get('default-log'))).toBe(log);
+    for (const el of elements.values()) expect(text(el)).not.toMatch(/pagerduty|slack|on-call|devin|war room|PD#|TRIGGERED/i);
+    expect(html.replace(/<script>[\s\S]*?<\/script>/g, '')).not.toMatch(/pagerduty|slack|on-call|devin|war room/i);
+    expect(html).not.toContain('opsText');
+    expect(html).not.toContain('MutationObserver');
+  });
+  test('HOLD and RELEASE directives become operator commands at the state transition timestamp', () => {
+    data.incidents = [incident('PU8BL8X', 'Devin: GL_POST HOLD; TREASURY COMPLETE')];
+    data.incidents[0].notes[0].author = 'Devin';
+    ui.render(data);
+    const log = text(elements.get('syslog'));
+    expect(log).toContain('02:01:00 $HJ(JOB04206)');
+    expect(log).toContain('$HASP890 JOB(GLPOST) STATUS=(HELD)');
+    expect(log).toContain('02:01:00 $AJ(JOB04209)');
+    expect(log).toContain('$HASP395 TREASRY ENDED - RC=0000');
+    expect(log).not.toMatch(/Devin|GL_POST HOLD|TREASURY COMPLETE/);
+    data.incidents[0].notes.push({ content: 'GL_POST RELEASED', created_at: '2026-11-16T02:04:00Z' });
+    ui.render(data);
+    expect(text(elements.get('syslog'))).toContain('02:04:00 $AJ(JOB04206)');
+    expect(text(elements.get('syslog'))).not.toContain('$HJ(JOB04206)');
+    expect(ui.jobState({ id: 'GL_POST' }, data.incidents)[0]).toBe('ready');
+  });
+  test('empty state and unknown services emit no fabricated job errors', () => {
+    data.incidents = [incident('OTHER')];
+    ui.render(data);
+    expect(text(elements.get('syslog'))).toBe('IEE000I RGP1 SYSTEM LOG - NO MESSAGES');
+    data.incidents = [];
+    ui.render(data);
+    expect(text(elements.get('default-log'))).toBe('IEE000I RGP1 SYSTEM LOG - NO MESSAGES');
   });
   test.each(['HOLD', 'COMPLETE', 'RELEASED'])('all monitors and ST follow %s rather than stale incidents', (directive) => {
     data.incidents = [incident('PU8BL8X', directive + ' MFT_INBOUND, SQL_STAGE, EDW_LOAD, SETTLE_POST'), incident('PQZQKW7'), incident('PN02JGH')];
@@ -632,9 +661,9 @@ describe('TN3270 batch console presentation', () => {
       expect(elements.get(id).classList.toggle).toHaveBeenCalledWith('failed', false);
     }
   });
-  test.each([['=1', 'st'], ['MFT', 'mft'], ['=3', 'sql'], ['SPOOL', 'spool'], ['=5', 'pd'], ['SPLIT', 'default']])('command %s selects %s', (command, screen) => {
+  test.each([['=1', 'st'], ['MFT', 'mft'], ['=3', 'sql'], ['SPOOL', 'spool'], ['=5', 'log'], ['LOG', 'log'], ['PD', 'log'], ['SPLIT', 'default']])('command %s selects %s', (command, screen) => {
     ui.runCommand(command);
-    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd', 'help']) expect(elements.get('screen-' + id).hidden).toBe(id !== screen);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'log', 'help']) expect(elements.get('screen-' + id).hidden).toBe(id !== screen);
     expect(elements.get('command').value).toBe('');
     expect(request).not.toHaveBeenCalled();
   });
@@ -661,70 +690,87 @@ describe('TN3270 batch console presentation', () => {
     expect(elements.get('default-log').scrollBy).toHaveBeenCalledWith({ top: 180 });
     ui.activatePF('F11');
     expect(elements.get('screen-scroll').scrollBy).toHaveBeenCalledWith({ left: 240 });
-    for (const screen of ['st', 'mft', 'sql', 'spool', 'pd', 'default']) {
+    for (const screen of ['st', 'mft', 'sql', 'spool', 'log', 'default']) {
       ui.activatePF('F9');
       expect(elements.get('screen-' + screen).hidden).toBe(false);
     }
     elements.get('fire').disabled = true;
     ui.activatePF('F5');
-    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE ALREADY ACTIVE');
     ui.runCommand('BADCOMMAND');
-    expect(elements.get('feedback').textContent).toContain('COMMAND BADCOMMAND NOT FOUND');
+    expect(elements.get('feedback').textContent).toContain('ISRZ002 COMMAND NOT ACTIVE');
   });
-  test('initial incident fragment selects PD before data arrives, reveals once, and survives polling', () => {
-    const id = 'incident-PPU8BL8X';
-    ui.location.hash = '#' + id;
+  test('initial incident fragment selects ST, waits for state, highlights the job, and reveals only once', () => {
+    ui.location.hash = '#incident-PPU8BL8X';
     ui.followIncidentHash();
-    expect(elements.get('screen-pd').hidden).toBe(false);
+    expect(elements.get('screen-st').hidden).toBe(false);
     expect(request).not.toHaveBeenCalled();
     data.incidents = [incident('PU8BL8X')];
     ui.render(data);
+    const id = 'job-MFT_INBOUND';
     expect(elements.get(id).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
     expect(elements.get(id).classList.add).toHaveBeenCalledWith('incident-focus');
     ui.render(data);
     expect(elements.get(id).className).toContain('incident-focus');
     expect(elements.get(id).scrollIntoView).not.toHaveBeenCalled();
-    ui.switchScreen('st');
+    ui.switchScreen('log');
     ui.render(data);
-    expect(elements.get('screen-st').hidden).toBe(false);
+    expect(elements.get('screen-log').hidden).toBe(false);
     expect(html).toContain("window.addEventListener('hashchange',followIncidentHash)");
     expect(html).toContain('followIncidentHash();\npoll();');
   });
-  test('hash changes reveal another incident, while missing and unrelated fragments are safe', () => {
-    data.incidents = [incident('PU8BL8X'), incident('PQZQKW7')];
+  test('hash changes use custom service mappings; absent, unknown and unrelated fragments are safe', () => {
+    data.service_jobs = { CUSTOM: ['SQL_STAGE', 'EDW_LOAD'] };
+    data.incidents = [incident('CUSTOM'), incident('OTHER')];
     ui.render(data);
-    ui.location.hash = '#incident-PPU8BL8X';
+    ui.location.hash = '#incident-PCUSTOM';
     ui.followIncidentHash();
-    ui.location.hash = '#incident-PPQZQKW7';
-    ui.followIncidentHash();
-    expect(elements.get('incident-PPU8BL8X').classList.remove).toHaveBeenCalledWith('incident-focus');
-    expect(elements.get('incident-PPQZQKW7').scrollIntoView).toHaveBeenCalledTimes(1);
-    ui.location.hash = '#incident-NOT_IN_STATE';
-    expect(() => ui.followIncidentHash()).not.toThrow();
-    ui.switchScreen('st');
-    ui.location.hash = '#unrelated';
-    ui.followIncidentHash();
+    expect(elements.get('job-SQL_STAGE').scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(elements.get('job-EDW_LOAD').classList.add).toHaveBeenCalledWith('incident-focus');
     expect(elements.get('screen-st').hidden).toBe(false);
+    for (const hash of ['#incident-POTHER', '#incident-NOT_IN_STATE', '#unrelated', '']) {
+      ui.location.hash = hash;
+      expect(() => ui.followIncidentHash()).not.toThrow();
+    }
+    expect(elements.get('job-EDW_LOAD').classList.remove).toHaveBeenCalledWith('incident-focus');
     expect(request).not.toHaveBeenCalled();
   });
   test('persistent polling warnings keep submit, command, API-error and reset results on a separate line', async () => {
-    data.warning = 'Fixture persistent poll warning';
+    data.warning = 'PagerDuty Slack/on-call Devin dispatch failure';
     await ui.action('/api/oncall/batchsettlement/runs');
     expect(elements.get('feedback').textContent).toContain('IKJ56250I JOB SETTLE(JOB04200) SUBMITTED');
-    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
     ui.runCommand('INVALID');
     await ui.poll();
-    expect(elements.get('feedback').textContent).toContain('COMMAND INVALID NOT FOUND');
-    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(elements.get('feedback').textContent).toContain('ISRZ002 COMMAND NOT ACTIVE');
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
     request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
     await ui.action('/api/oncall/batchsettlement/runs');
-    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE ALREADY ACTIVE');
     request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
     await ui.action('/api/oncall/batchsettlement/reset');
-    expect(elements.get('feedback').textContent).toBe('Local state reset');
-    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
     expect(html).toContain('.messages>span{display:block}');
     expect(html).not.toContain('#error:not(.hidden)+#feedback{display:none}');
+  });
+  test('dispatch failures show terminal reset/resubmit instructions while other warnings stay generic', async () => {
+    data.warning = 'Slack/Devin dispatch unavailable; start a new run to retry';
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('IKJ56251I SETTLE NOT DISPATCHED - F6 RESET THEN F5 SUBMIT');
+    expect(elements.get('error').textContent).not.toMatch(/pagerduty|slack|on-call|devin|war room/i);
+    expect(elements.get('error').classList.toggle).toHaveBeenCalledWith('hidden', false);
+    ui.runCommand('INVALID');
+    await ui.poll();
+    expect(elements.get('feedback').textContent).toBe('ISRZ002 COMMAND NOT ACTIVE');
+    expect(elements.get('error').textContent).toContain('F6 RESET THEN F5 SUBMIT');
+    data.warning = 'PagerDuty API token not configured; incident polling disabled';
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
+    data.warning = '';
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('');
+    expect(elements.get('error').classList.toggle).toHaveBeenCalledWith('hidden', true);
   });
   test('existing API identity and endpoints are preserved with submission, reset and 409 messages', async () => {
     await ui.action('/api/oncall/batchsettlement/runs');
@@ -734,13 +780,191 @@ describe('TN3270 batch console presentation', () => {
     expect(request.mock.calls[1][0]).toBe('/api/oncall/batchsettlement/state');
     request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
     await ui.action('/api/oncall/batchsettlement/runs');
-    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
-    request.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'Fixture error' }) });
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE ALREADY ACTIVE');
+    request.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'PagerDuty Slack/on-call Devin dispatch failure' }) });
     await ui.action('/api/oncall/batchsettlement/runs');
-    expect(elements.get('feedback').textContent).toBe('Fixture error');
+    expect(elements.get('feedback').textContent).toBe('ISRZ002 COMMAND NOT ACTIVE');
     request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
     await ui.action('/api/oncall/batchsettlement/reset');
-    expect(elements.get('feedback').textContent).toBe('Local state reset');
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+    request.mockRejectedValueOnce(new Error('PagerDuty Slack/on-call Devin dispatch failure'));
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE UNAVAILABLE - DISPLAY MAY BE STALE');
+  });
+  const endpoint = 'https://events.pagerduty.com/v2/enqueue';
+  const keys = { mft: 'a'.repeat(32), sql: 'b'.repeat(32), mf: 'c'.repeat(32) };
+  const events = () => request.mock.calls.filter(([url]) => url === endpoint).map(([, options]) => JSON.parse(options.body));
+  function browserRun() {
+    data.run = { run_id: 'run-one', created_at: '2026-11-16T01:59:00Z', status: 'complete', sent: ['mft', 'sql', 'mf'] };
+    data.incidents = ['PU8BL8X', 'PQZQKW7', 'PN02JGH'].map((service) => ({ ...incident(service), custom_details: { run_id: 'run-one' } }));
+  }
+  test('browser delivery is disabled without saved keys, including empty or corrupt configuration', () => {
+    browserRun();
+    for (const saved of [undefined, '{}', 'bad JSON', JSON.stringify({ mft: 'bad-key' })]) {
+      if (saved) storage.set('rgBatchPdRoutingKeys', saved);
+      ui.triggerBrowserEvents(data);
+    }
+    expect(request).not.toHaveBeenCalled();
+  });
+  test('incremental arrivals trigger once per service with the matching key, payload and per-run dedup', () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents({ ...data, incidents: data.incidents.slice(0, 1) });
+    ui.triggerBrowserEvents(data);
+    ui.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(3);
+    for (const [index, service] of ['mft', 'sql', 'mf'].entries()) {
+      expect(events()[index]).toMatchObject({ routing_key: keys[service], event_action: 'trigger', dedup_key: 'rg-batch-run-one-' + service,
+        payload: { summary: data.incidents[index].title, source: service === 'mf' ? 'RGP1' : 'RGW-MFTSQL-07', severity: 'critical',
+          component: service.toUpperCase(), group: 'Enterprise Batch Operations', class: 'overnight-settlement',
+          custom_details: { run_id: 'run-one', incident_id: data.incidents[index].id, error_text: expect.any(String) } } });
+      expect(events()[index].payload.custom_details.error_text).toMatch(/handshake_failure|08001|S013/);
+    }
+    expect(request.mock.calls[0][1]).toMatchObject({ method: 'POST', mode: 'cors', credentials: 'omit', headers: { 'Content-Type': 'application/json' } });
+  });
+  test.each([false, undefined])('server simulated=%s disables browser triggers and resolves without affecting rendering', async (simulated) => {
+    browserRun();
+    data.simulated = simulated;
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    const tracked = { 'rg-batch-earlier-mft': { runId: 'earlier', routingKey: keys.mft, service: 'mft' } };
+    storage.set('rgBatchPdSent', JSON.stringify(tracked));
+    await ui.poll();
+    expect(elements.get('default-jobs').children).toHaveLength(10);
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events()).toEqual([]);
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual(tracked);
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+  });
+  test('reload does not resend; new runs get fresh dedup keys and old-run incidents are ignored', () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents(data);
+    const reloaded = vm.createContext({ fetch: request, localStorage: ui.localStorage, console: ui.console });
+    vm.runInContext(script, reloaded);
+    reloaded.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(3);
+    data.run.run_id = 'run-two';
+    reloaded.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(3);
+    data.incidents = data.incidents.map((i) => ({ ...i, custom_details: { run_id: 'run-two' } }));
+    reloaded.triggerBrowserEvents(data);
+    expect(events().slice(3).map((e) => e.dedup_key)).toEqual(['rg-batch-run-two-mft', 'rg-batch-run-two-sql', 'rg-batch-run-two-mf']);
+  });
+  test('successful reset resolves all current-run dedup keys after triggers, then clears tracking', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents(data);
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events().map((e) => e.event_action)).toEqual(['trigger', 'trigger', 'trigger', 'resolve', 'resolve', 'resolve']);
+    expect(events().slice(3)).toEqual(['mft', 'sql', 'mf'].map((service) => ({ routing_key: keys[service], event_action: 'resolve', dedup_key: 'rg-batch-run-one-' + service })));
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual({});
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+  });
+  test('failed trigger releases its reservation and the next poll retries only that service', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    let fail = true;
+    request.mockImplementation(async (url, options) => {
+      const rejected = url === endpoint && JSON.parse(options.body).routing_key === keys.mft && fail;
+      return { ok: !rejected, status: rejected ? 429 : 202, json: async () => data };
+    });
+    ui.triggerBrowserEvents(data);
+    await new Promise(setImmediate);
+    expect(Object.keys(JSON.parse(storage.get('rgBatchPdSent')))).toHaveLength(2);
+    fail = false;
+    await ui.poll();
+    await new Promise(setImmediate);
+    expect(events()).toHaveLength(4);
+    expect(events()[3]).toMatchObject({ event_action: 'trigger', dedup_key: 'rg-batch-run-one-mft' });
+    expect(Object.keys(JSON.parse(storage.get('rgBatchPdSent')))).toHaveLength(3);
+  });
+  test('reset resolves both earlier and latest runs and stale polls cannot retrigger either', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    const firstRun = { ...data };
+    ui.triggerBrowserEvents(data);
+    data.run = { ...data.run, run_id: 'run-two' };
+    data.incidents = data.incidents.map((i) => ({ ...i, custom_details: { run_id: 'run-two' } }));
+    ui.triggerBrowserEvents(data);
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events()).toHaveLength(12);
+    expect(events().slice(6).map((e) => [e.event_action, e.dedup_key])).toEqual(
+      ['run-one', 'run-two'].flatMap((run) => ['mft', 'sql', 'mf'].map((service) => ['resolve', 'rg-batch-' + run + '-' + service])));
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual({});
+    ui.triggerBrowserEvents(firstRun);
+    ui.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(12);
+  });
+  test('failed resolve keeps its record and a later reset retries it even after the run is cleared', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents(data);
+    await new Promise(setImmediate);
+    let fail = true;
+    request.mockImplementation(async (url, options) => {
+      if (url.endsWith('/reset')) { data.run = null; data.incidents = []; }
+      const rejected = url === endpoint && JSON.parse(options.body).routing_key === keys.mft && fail;
+      return { ok: !rejected, status: rejected ? 503 : 202, json: async () => data };
+    });
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(Object.keys(JSON.parse(storage.get('rgBatchPdSent')))).toEqual(['rg-batch-run-one-mft']);
+    fail = false;
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events()).toHaveLength(7);
+    expect(events()[6]).toEqual({ routing_key: keys.mft, event_action: 'resolve', dedup_key: 'rg-batch-run-one-mft' });
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual({});
+  });
+  test('failed reset sends no resolves and delivery/storage failures never break rendering', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    request.mockImplementation(async (url) => {
+      if (url === endpoint) throw Error('sensitive delivery failure');
+      return { ok: !url.endsWith('/reset'), status: 500, json: async () => data };
+    });
+    expect(() => ui.render(data)).not.toThrow();
+    await ui.action('/api/oncall/batchsettlement/reset');
+    expect(events()).toHaveLength(3);
+    expect(events().every((e) => e.event_action === 'trigger')).toBe(true);
+    expect(ui.console.warn).toHaveBeenCalledWith('Batch event delivery failed');
+    expect(JSON.stringify(ui.console.warn.mock.calls)).not.toContain('sensitive');
+    storage.delete('rgBatchPdSent');
+    ui.localStorage.setItem.mockImplementation(() => { throw Error('Storage denied'); });
+    expect(() => ui.render(data)).not.toThrow();
+    expect(events()).toHaveLength(3);
+  });
+  test('service mapping accepts custom serviceJobs and service-name fallbacks', () => {
+    data.service_jobs = { CUSTOM: ['EDW_LOAD'] };
+    ui.render(data);
+    expect(ui.browserService(incident('CUSTOM'))).toBe('sql');
+    expect(ui.browserService({ service: { name: 'Axway MFT Gateway' } })).toBe('mft');
+    expect(ui.browserService({ service: { name: 'Mainframe Batch zOS' } })).toBe('mf');
+    expect(ui.browserService(incident('OTHER'))).toBeUndefined();
+  });
+  test('setup supports save/clear and immediately removes imported key fragments, including invalid ones', () => {
+    ui.location.hash = '#pdkeys=' + Buffer.from(JSON.stringify(keys)).toString('base64url');
+    ui.configureBrowserEvents();
+    expect(JSON.parse(storage.get('rgBatchPdRoutingKeys'))).toEqual(keys);
+    expect(ui.history.replaceState).toHaveBeenCalledWith(null, '', '/oncall/c/db10f6b2');
+    ui.location.hash = '';
+    ui.location.search = '?pdsetup=1';
+    ui.configureBrowserEvents();
+    expect(elements.get('pd-setup').hidden).toBe(false);
+    expect(elements.get('pd-key-sql').value).toBe(keys.sql);
+    elements.get('pd-key-mft').value = 'd'.repeat(32);
+    elements.get('pd-setup-form').onsubmit({ preventDefault: jest.fn() });
+    expect(JSON.parse(storage.get('rgBatchPdRoutingKeys')).mft).toBe('d'.repeat(32));
+    elements.get('pd-clear').onclick();
+    expect(storage.has('rgBatchPdRoutingKeys')).toBe(false);
+    expect(storage.has('rgBatchPdSent')).toBe(false);
+    ui.location.hash = '#pdkeys=malformed';
+    ui.configureBrowserEvents();
+    expect(storage.has('rgBatchPdRoutingKeys')).toBe(false);
+    expect(ui.history.replaceState).toHaveBeenLastCalledWith(null, '', '/oncall/c/db10f6b2?pdsetup=1');
   });
 });
 
