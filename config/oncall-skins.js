@@ -9904,13 +9904,13 @@ const ONCALL_SKINS = {
   },
   '14e47290': {
     slug: '14e47290',
-    company: 'Tesco Mobile',
-    vertical: 'telco',
+    company: 'Tesco',
+    vertical: 'banking',
     page: {
       file: '14e47290.html',
-      title: 'Flexible plans/Anytime Upgrade Flex | Why Tesco Mobile | Tesco Mobile',
+      title: 'Trolley - Tesco Groceries',
     },
-    disclaimer: 'NOT ACTUALLY A TESCO MOBILE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tesco Mobile product.',
+    disclaimer: 'NOT ACTUALLY A TESCO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tesco product.',
   },
 };
 
