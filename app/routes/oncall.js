@@ -13,6 +13,8 @@ const {
   getOncallConfigView,
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
+const { createBatchSettlement } = require('../services/oncall-verticals/batchsettlement');
+const batchSettlementRouter = require('./batchsettlement');
 const { normalizeAlertDestination } = require('../services/alert-destination');
 const { BATCH: STATESTREET_BATCH, releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
 const { BATCH: REGIONS_BILLS, submitBillPayments } = require('../services/oncall-verticals/regions');
@@ -86,6 +88,7 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 const ONCALL_HOURLY_CAPS = {
   trigger: 50,
   settlement: 50,
+  batchSettlement: 50,
   regionsBillPay: 50,
   wealthRebalance: 50,
   cibcEtransfer: 50,
@@ -727,7 +730,8 @@ router.post('/api/oncall/regions/bill-pay/submit', (req, res, next) => {
  * telemetry fires normally; the legacy automated-alert pipeline is not used.
  */
 router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
-  if (!ALERT_SCENARIOS[req.params.vertical]) {
+  const scenario = ALERT_SCENARIOS[req.params.vertical];
+  if (!scenario || scenario.webhookOnly) {
     return res.status(404).json({ ok: false, error: `Unknown vertical: ${req.params.vertical}` });
   }
   next();
@@ -1088,5 +1092,9 @@ router.post('/api/oncall/config', oncallCap('config'), (req, res) => {
   if (!result.ok) return res.status(400).json(result);
   res.json(result);
 });
+
+router.use('/api/oncall/batchsettlement', batchSettlementRouter(
+  createBatchSettlement({ postAlert: postOncallAlert, getSkin: getOncallSkin }), oncallCap('batchSettlement'),
+));
 
 module.exports = router;

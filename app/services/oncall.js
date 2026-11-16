@@ -78,6 +78,18 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  batchsettlement: {
+    vertical: 'batchsettlement', page: 'db10f6b2.html', unlisted: true, webhookOnly: true,
+    apiPath: '/api/batchsettlement/unused', oncallApiPath: '/api/oncall/batchsettlement/unused',
+    brand: 'Regions Bank', owner: 'Enterprise Batch Operations (batch-and-file-transfer-ops)',
+    service: 'axway-mft-gateway', endpoint: 'Axway inbound clearing / settlement route',
+    monitor: 'Axway MFT inbound settlement file not received by SLA, TLS handshake failure',
+    metricQuery: 'settlement.inbound.file_received{service:axway-mft-gateway}',
+    metricValue: '0 files received', threshold: '1 file by 02:15 America/Chicago',
+    baseline: '1 settlement file per overnight run', release: 'CHG0091842',
+    symptom: 'Inbound settlement file missing; TLS handshake failure.',
+    impact: 'SQL, mainframe settlement, GL and downstream distribution blocked.',
+  },
   walmartorders: {
     vertical: 'walmartorders', page: 'db261a21.html',
     apiPath: '/api/db261a21/orders', oncallApiPath: '/api/oncall/walmartorders/orders',
