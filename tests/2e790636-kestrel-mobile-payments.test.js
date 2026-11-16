@@ -80,8 +80,9 @@ describe('Kestrel mobile payments API (2e790636)', () => {
     const prompt = kestrel.buildSessionPrompt(result, ctx);
     expect(prompt).toContain('*macOS* child');
     expect(prompt).toContain('*Linux* child');
-    expect(prompt).toContain('BEFORE (main :3100)');
-    expect(prompt).toContain('REGRESSION (fix :3101)');
+    expect(prompt).toContain('BEFORE — backend main');
+    expect(prompt).toContain('recording_start');
+    expect(prompt).toContain('REGRESSION — fix branch');
     expect(prompt).toContain('Do NOT merge');
   });
 
