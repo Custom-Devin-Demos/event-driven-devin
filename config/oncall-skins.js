@@ -9912,6 +9912,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A TESCO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tesco product.',
   },
+  '41d89daa': {
+    slug: '41d89daa',
+    company: 'Banco Toledo',
+    vertical: 'banking',
+    page: {
+      file: '41d89daa.html',
+      title: 'Transferencias | Banco Toledo',
+    },
+    disclaimer: 'NOT ACTUALLY A BANCO TOLEDO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco Toledo product.',
+  },
 };
 
 function getOncallSkin(slug) {
