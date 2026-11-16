@@ -751,6 +751,24 @@ describe('TN3270 batch console presentation', () => {
     expect(html).toContain('.messages>span{display:block}');
     expect(html).not.toContain('#error:not(.hidden)+#feedback{display:none}');
   });
+  test('dispatch failures show terminal reset/resubmit instructions while other warnings stay generic', async () => {
+    data.warning = 'Slack/Devin dispatch unavailable; start a new run to retry';
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('IKJ56251I SETTLE NOT DISPATCHED - F6 RESET THEN F5 SUBMIT');
+    expect(elements.get('error').textContent).not.toMatch(/pagerduty|slack|on-call|devin|war room/i);
+    expect(elements.get('error').classList.toggle).toHaveBeenCalledWith('hidden', false);
+    ui.runCommand('INVALID');
+    await ui.poll();
+    expect(elements.get('feedback').textContent).toBe('ISRZ002 COMMAND NOT ACTIVE');
+    expect(elements.get('error').textContent).toContain('F6 RESET THEN F5 SUBMIT');
+    data.warning = 'PagerDuty API token not configured; incident polling disabled';
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
+    data.warning = '';
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('');
+    expect(elements.get('error').classList.toggle).toHaveBeenCalledWith('hidden', true);
+  });
   test('existing API identity and endpoints are preserved with submission, reset and 409 messages', async () => {
     await ui.action('/api/oncall/batchsettlement/runs');
     expect(request.mock.calls[0][0]).toBe('/api/oncall/batchsettlement/runs');

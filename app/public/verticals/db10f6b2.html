@@ -191,6 +191,7 @@ function renderMonitors(incidents){
 function field(value,width){return String(value).slice(0,width).padEnd(width)}
 function wrap(value){return String(value).split('\n').map(line=>(line.match(/.{1,80}/g)||['']).join('\n')).join('\n')}
 function clock(value){return new Date(value).toISOString().slice(11,19)}
+function stateWarning(warning){return !warning?'':/dispatch unavailable; start a new run to retry$/i.test(warning)?'IKJ56251I SETTLE NOT DISPATCHED - F6 RESET THEN F5 SUBMIT':'ISRZ002 STATE UPDATE INCOMPLETE'}
 function jobRow(job,index,incidents,compact){
  const {state,name,jobId,label}=legacyJob(job,incidents),row=node('div',undefined,(compact?'summary-job ':'job ')+state);
  row.dataset.jobId=job.id;
@@ -322,7 +323,7 @@ function runCommand(value){
  $('command').value='';
 }
 async function poll(){
- try{const r=await fetch('/api/oncall/batchsettlement/state');const data=await r.json();if(!r.ok)throw Error(data.error);render(data);$('error').textContent=data.warning?'ISRZ002 STATE UPDATE INCOMPLETE':'';$('error').classList.toggle('hidden',!data.warning)}
+ try{const r=await fetch('/api/oncall/batchsettlement/state');const data=await r.json();if(!r.ok)throw Error(data.error);render(data);$('error').textContent=stateWarning(data.warning);$('error').classList.toggle('hidden',!data.warning)}
  catch(e){$('error').textContent='ISRZ002 STATE UPDATE UNAVAILABLE - DISPLAY MAY BE STALE';$('error').classList.remove('hidden')}
 }
 async function action(path){
