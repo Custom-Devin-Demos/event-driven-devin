@@ -707,6 +707,25 @@ describe('TN3270 batch console presentation', () => {
     expect(elements.get('screen-st').hidden).toBe(false);
     expect(request).not.toHaveBeenCalled();
   });
+  test('persistent polling warnings keep submit, command, API-error and reset results on a separate line', async () => {
+    data.warning = 'Fixture persistent poll warning';
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toContain('IKJ56250I JOB SETTLE(JOB04200) SUBMITTED');
+    expect(elements.get('error').textContent).toBe(data.warning);
+    ui.runCommand('INVALID');
+    await ui.poll();
+    expect(elements.get('feedback').textContent).toContain('COMMAND INVALID NOT FOUND');
+    expect(elements.get('error').textContent).toBe(data.warning);
+    request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
+    await ui.action('/api/oncall/batchsettlement/reset');
+    expect(elements.get('feedback').textContent).toBe('Local state reset');
+    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(html).toContain('.messages>span{display:block}');
+    expect(html).not.toContain('#error:not(.hidden)+#feedback{display:none}');
+  });
   test('existing API identity and endpoints are preserved with submission, reset and 409 messages', async () => {
     await ui.action('/api/oncall/batchsettlement/runs');
     expect(request.mock.calls[0][0]).toBe('/api/oncall/batchsettlement/runs');
