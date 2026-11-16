@@ -246,8 +246,8 @@ function browserService(incident){
  if(id==='PN02JGH'||jobs.includes('SETTLE_POST')||/mainframe|zos/i.test(name))return 'mf';
 }
 async function postBrowserEvent(body){
- try{const response=await fetch('https://events.pagerduty.com/v2/enqueue',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:globalThis.AbortSignal?.timeout?.(15000)});if(!response.ok)throw Error('Delivery failed')}
- catch{console.warn('Batch event delivery failed')}
+ try{const response=await fetch('https://events.pagerduty.com/v2/enqueue',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:globalThis.AbortSignal?.timeout?.(15000)});if(!response.ok)throw Error('Delivery failed');return true}
+ catch{console.warn('Batch event delivery failed');return false}
 }
 function triggerBrowserEvents(data){
  browserRunId=data.run?.run_id||null;
@@ -262,18 +262,19 @@ function triggerBrowserEvents(data){
   records[dedup]={runId:browserRunId,service,routingKey:key};
   if(!writeBrowserStore(browserSentStore,records))continue;
   const info=browserServices[service],details=incident.custom_details||{};
-  const pending=postBrowserEvent({routing_key:key,event_action:'trigger',dedup_key:dedup,payload:{summary:incident.title,source:details.host||info.source,severity:'critical',component:info.component,group:'Enterprise Batch Operations',class:'overnight-settlement',custom_details:{...details,run_id:browserRunId,incident_id:incident.id,error_text:details.error_text||details.error||info.error}}}).finally(()=>browserPending.delete(dedup));
+  const pending=postBrowserEvent({routing_key:key,event_action:'trigger',dedup_key:dedup,payload:{summary:incident.title,source:details.host||info.source,severity:'critical',component:info.component,group:'Enterprise Batch Operations',class:'overnight-settlement',custom_details:{...details,run_id:browserRunId,incident_id:incident.id,error_text:details.error_text||details.error||info.error}}}).then(success=>{if(!success){const latest=readBrowserStore(browserSentStore);delete latest[dedup];writeBrowserStore(browserSentStore,latest)}}).finally(()=>browserPending.delete(dedup));
   browserPending.set(dedup,pending);
  }
 }
 async function resolveBrowserEvents(runId){
- if(!runId)return;
- browserResetRuns.add(runId);
- const records=Object.entries(readBrowserStore(browserSentStore)).filter(([,record])=>record?.runId===runId);
+ if(runId)browserResetRuns.add(runId);
+ const records=Object.entries(readBrowserStore(browserSentStore)).filter(([,record])=>!runId||record?.runId===runId);
  await Promise.all(records.map(async([dedup,record])=>{
   await browserPending.get(dedup);
-  await postBrowserEvent({routing_key:record.routingKey,event_action:'resolve',dedup_key:dedup});
-  const latest=readBrowserStore(browserSentStore);delete latest[dedup];writeBrowserStore(browserSentStore,latest);
+  if(!readBrowserStore(browserSentStore)[dedup])return;
+  if(await postBrowserEvent({routing_key:record.routingKey,event_action:'resolve',dedup_key:dedup})){
+   const latest=readBrowserStore(browserSentStore);delete latest[dedup];writeBrowserStore(browserSentStore,latest);
+  }
  }));
 }
 function jobRow(job,index,incidents,compact){
@@ -413,7 +414,7 @@ async function poll(){
 }
 async function action(path){
  const resetRun=path.endsWith('reset')?browserRunId:null;
- try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(response.status===409?'IKJ56250I JOB SETTLE ALREADY ACTIVE':'ISRZ002 COMMAND NOT ACTIVE');void resolveBrowserEvents(resetRun);$('feedback').textContent=path.endsWith('reset')?'IKJ56250I LOCAL DISPLAY RESET':'IKJ56250I JOB SETTLE(JOB04200) SUBMITTED'+(data.dry_run?' / DRY RUN':'');await poll()}
+ try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(response.status===409?'IKJ56250I JOB SETTLE ALREADY ACTIVE':'ISRZ002 COMMAND NOT ACTIVE');if(path.endsWith('reset'))void resolveBrowserEvents(resetRun);$('feedback').textContent=path.endsWith('reset')?'IKJ56250I LOCAL DISPLAY RESET':'IKJ56250I JOB SETTLE(JOB04200) SUBMITTED'+(data.dry_run?' / DRY RUN':'');await poll()}
  catch(e){$('feedback').textContent=e.message==='IKJ56250I JOB SETTLE ALREADY ACTIVE'?e.message:'ISRZ002 COMMAND NOT ACTIVE'}
 }
 $('fire').onclick=()=>action('/api/oncall/batchsettlement/runs');$('reset').onclick=()=>action('/api/oncall/batchsettlement/reset');

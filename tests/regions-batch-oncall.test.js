@@ -848,6 +848,45 @@ describe('TN3270 batch console presentation', () => {
     expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual({});
     expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
   });
+  test('failed trigger releases its reservation and the next poll retries only that service', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    let fail = true;
+    request.mockImplementation(async (url, options) => {
+      const rejected = url === endpoint && JSON.parse(options.body).routing_key === keys.mft && fail;
+      return { ok: !rejected, status: rejected ? 429 : 202, json: async () => data };
+    });
+    ui.triggerBrowserEvents(data);
+    await new Promise(setImmediate);
+    expect(Object.keys(JSON.parse(storage.get('rgBatchPdSent')))).toHaveLength(2);
+    fail = false;
+    await ui.poll();
+    await new Promise(setImmediate);
+    expect(events()).toHaveLength(4);
+    expect(events()[3]).toMatchObject({ event_action: 'trigger', dedup_key: 'rg-batch-run-one-mft' });
+    expect(Object.keys(JSON.parse(storage.get('rgBatchPdSent')))).toHaveLength(3);
+  });
+  test('failed resolve keeps its record and a later reset retries it even after the run is cleared', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents(data);
+    await new Promise(setImmediate);
+    let fail = true;
+    request.mockImplementation(async (url, options) => {
+      if (url.endsWith('/reset')) { data.run = null; data.incidents = []; }
+      const rejected = url === endpoint && JSON.parse(options.body).routing_key === keys.mft && fail;
+      return { ok: !rejected, status: rejected ? 503 : 202, json: async () => data };
+    });
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(Object.keys(JSON.parse(storage.get('rgBatchPdSent')))).toEqual(['rg-batch-run-one-mft']);
+    fail = false;
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events()).toHaveLength(7);
+    expect(events()[6]).toEqual({ routing_key: keys.mft, event_action: 'resolve', dedup_key: 'rg-batch-run-one-mft' });
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual({});
+  });
   test('failed reset sends no resolves and delivery/storage failures never break rendering', async () => {
     browserRun();
     storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
