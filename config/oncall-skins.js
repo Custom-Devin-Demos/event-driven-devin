@@ -9988,6 +9988,18 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A KESTREL BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Kestrel Bank product. Kestrel Bank is a fictional bank.',
   },
+  'a108e174': {
+    slug: 'a108e174',
+    company: 'Yelp',
+    vertical: 'telco',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: {
+      file: 'a108e174.html',
+      title: 'Yelp Local Business Pricing | Yelp Business Page, Yelp Ads, Upgrade Package',
+    },
+    disclaimer: 'NOT ACTUALLY A YELP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Yelp product.',
+  },
 };
 
 function getOncallSkin(slug) {
