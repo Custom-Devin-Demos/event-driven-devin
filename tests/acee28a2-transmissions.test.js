@@ -46,8 +46,10 @@ test('the page is labelled synthetic and collects no credentials', () => {
   const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/acee28a2.html'), 'utf8');
   expect(html).toContain('Demo only');
   expect(html).toContain('Not a Boston Scientific product');
+  const logo = html.match(/<img class="wordmark" src="\/verticals\/([^"]+)"/);
+  expect(fs.existsSync(path.join(__dirname, '../app/public/verticals', logo[1]))).toBe(true);
   expect(html).not.toContain('type="password"');
-  expect(html).not.toMatch(/<img\b/);
+  expect(html.match(/<img\b/g)).toHaveLength(1);
 });
 
 test('established device models route red and yellow alerts to their worklists', () => {
