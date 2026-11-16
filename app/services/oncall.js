@@ -1807,22 +1807,22 @@ function teamsOnlyNotes(skin) {
   return config.promptAppendix.trim() || null;
 }
 
-function pagerdutyCardFields(skin) {
+function pagerdutyCardFields(skin, onCall) {
   const incident = skin && skin.alertCard && skin.alertCard.pagerduty;
   if (!skin || skin.telemetryBrand !== 'pagerduty' || !isPlainObject(incident)) return null;
   return [
     ['Service', incident.service],
     ['Urgency', 'High'],
-    ['Escalation policy', 'Batch and File Transfer Operations'],
-    ['Assigned to', 'on-call (<@U0BQZBHCNMA>)'],
+    ['Escalation policy', incident.escalationPolicy],
+    ['Assigned to', onCall ? `on-call (${onCall})` : null],
     ['Incident', `<${incident.incidentUrl}|#${incident.number}>`],
-  ];
+  ].filter(([, value]) => value);
 }
 
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin }) {
 
   const card = resolveAlertCard(scenario, skin);
-  const pagerdutyFields = pagerdutyCardFields(skin);
+  const pagerdutyFields = pagerdutyCardFields(skin, onCall);
   if (pagerdutyFields) return [card.monitor, ...pagerdutyFields.map(([label, value]) => `*${label}:* ${value}`),
     `Repo: ${skinRepoUrl(skin)}`].join('\n');
   const brand = skin ? skin.company : scenario.brand;
@@ -2202,7 +2202,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const brand = skin ? skin.company : scenario.brand;
   // alertCard.compact keeps only the fields a reader acts on; the fallback text keeps every fact.
   const compact = Boolean(skin && isPlainObject(skin.alertCard) && skin.alertCard.compact);
-  const pagerdutyFields = pagerdutyCardFields(skin);
+  const pagerdutyFields = pagerdutyCardFields(skin, onCall);
   const blocks = pagerdutyFields ? [
     headerBlock(card.monitor),
     ...fieldPairs(pagerdutyFields),

@@ -116,6 +116,7 @@ const ONCALL_SKINS = {
     disclaimer: 'Not a Regions Bank system — internal demo only.',
     alertCard: {
       title: 'Axway MFT inbound settlement file not received by SLA, TLS handshake failure',
+      pagerduty: { escalationPolicy: 'Batch and File Transfer Operations' },
       service: 'axway-mft-gateway', team: 'batch-and-file-transfer-ops',
       symptom: 'Axway inbound settlement file is missing after a TLS handshake failure.',
       impact: 'SQL loads, mainframe settlement and downstream reporting are blocked.',

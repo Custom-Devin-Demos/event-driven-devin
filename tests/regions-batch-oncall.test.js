@@ -25,7 +25,7 @@ const createRouter = require('../app/routes/batchsettlement');
 const { SLUG } = require('../config/regions-batch');
 const { getOncallSkin } = require('../config/oncall-skins');
 const { postOncallAlert, resetSkinAlertMemory } = require('../app/services/oncall');
-const { postMessage, postThreadReply } = require('../app/services/slack');
+const { postMessage, postThreadReply, lookupSlackUserByEmail } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 const logger = require('../app/telemetry/logger');
@@ -432,6 +432,32 @@ test('simulated native dispatch renders the exact PagerDuty Slack blocks and pas
     expect(prompt).not.toMatch(/datadog/i);
     expect(prompt).toContain(first.body.run_id);
     console.log('SIMULATED_PAGERDUTY_SLACK_BLOCKS ' + JSON.stringify(blocks));
+  } finally { service.reset(); }
+});
+
+test.each([
+  ['resolved presenter', 'UOTHER123', 'UOTHER123'],
+  ['skin fallback', null, 'UFALLBACK77'],
+])('PagerDuty card honors %s and the configured escalation policy', async (_name, resolvedMember, expectedMember) => {
+  jest.clearAllMocks();
+  resetSkinAlertMemory();
+  process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
+  lookupSlackUserByEmail.mockResolvedValueOnce(resolvedMember);
+  const baseSkin = getOncallSkin(SLUG);
+  const skin = { ...baseSkin, onCallSlackMemberId: 'UFALLBACK77', alertCard: { ...baseSkin.alertCard,
+    pagerduty: { escalationPolicy: 'Regional Batch Operations' } } };
+  const service = createBatchSettlement({ env: {}, postAlert: postOncallAlert, getSkin: () => skin });
+  try {
+    service.start({ skin: SLUG, ...presenter });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect((await service.state()).run.session_url).toContain('batch-test');
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    const fields = blocks.flatMap((block) => block.fields || []).map((field) => field.text);
+    expect(fields).toContain(`*Assigned to:*\non-call (<@${expectedMember}>)`);
+    expect(fields).toContain('*Escalation policy:*\nRegional Batch Operations');
+    expect(text).toContain(`*Assigned to:* on-call (<@${expectedMember}>)`);
+    expect(text).toContain('*Escalation policy:* Regional Batch Operations');
+    expect(JSON.stringify(blocks)).not.toContain('U0BQZBHCNMA');
   } finally { service.reset(); }
 });
 

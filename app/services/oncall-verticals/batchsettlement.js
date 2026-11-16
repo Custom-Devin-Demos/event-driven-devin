@@ -142,7 +142,8 @@ function createBatchSettlement({ http = axios, postAlert, getSkin, env = process
       const result = await postAlert('batchsettlement', {
         skin: { ...skin, devinSession: { ...skin.devinSession,
           promptAppendix: `${simulated ? simulatedPrompt(run.planned_incidents) : skin.devinSession.promptAppendix}\nTriggered by PagerDuty: ${incidentUrl}\nMFT service: ${services[0][1]} (use this configured service ID instead of the default MFT service for this run).` },
-        alertCard: { ...skin.alertCard, title, pagerduty: { incidentUrl, number: incident.incident_number || incident.id, service: serviceNames[0] },
+        alertCard: { ...skin.alertCard, title, pagerduty: { ...skin.alertCard.pagerduty,
+          incidentUrl, number: incident.incident_number || incident.id, service: serviceNames[0] },
           endpointLabel: `Triggered by PagerDuty: ${incidentUrl}`,
           symptom: `${skin.alertCard.symptom} Triggered by PagerDuty: ${incidentUrl}` } },
         ...run.presenter, destination: 'slack', unique: true, runRef: runId,
