@@ -38,6 +38,7 @@ const {
   reportLockLatency,
   getLockLatencyStatus,
 } = require('../services/oncall-verticals/cardlock');
+const kestrelMobile = require('../services/oncall-verticals/kestrel-mobile');
 const {
   PARTIFUL,
   isPartifulReport,
@@ -858,6 +859,47 @@ router.get(`${CARDLOCK_FAILURE_PATH}/:reference`, (req, res) => {
   const status = getLockLatencyStatus(req.params.reference, token);
   if (!status) return res.status(404).json({ error: 'Unknown reference' });
   return res.json(status);
+});
+
+/**
+ * POST /api/oncall/2e790636/mobile/payments — Kestrel Bank "Make a payment"
+ * from the native iOS and Android apps (shared kestrel-payments-api). A failed
+ * payment raises one alert + one Devin session per cooldown window, only when
+ * the app sends `X-Demo-Alerts: on` and the request is not synthetic.
+ */
+router.post(`/api/oncall/${kestrelMobile.KESTREL.slug}/mobile/payments`, async (req, res, next) => {
+  try {
+    const payment = kestrelMobile.validatePayment(req.body);
+    if (!payment) {
+      return res.status(400).json({ status: 'rejected', error: 'Expected the Kestrel Everyday Account, a saved payee and a GBP amount' });
+    }
+    const platform = kestrelMobile.platformOf(req.get('x-client-platform'));
+    const release = kestrelMobile.clientRelease(req.get('x-client-release'));
+    const result = await kestrelMobile.makePayment(payment);
+    if (result.ok) {
+      return res.json({
+        status: 'completed',
+        confirmationId: result.confirmationId,
+        balanceMinor: result.balanceMinor,
+        durationMs: result.durationMs,
+      });
+    }
+    const alertsOn = String(req.get('x-demo-alerts') || '').toLowerCase() === 'on' && !req.get('x-synthetic');
+    let reference = null;
+    if (alertsOn) {
+      const raised = kestrelMobile.raiseIncident(result, { platform, release });
+      ({ reference } = raised.incident);
+    }
+    return res.status(504).json({
+      status: 'failed',
+      error: result.error,
+      message: kestrelMobile.CALM_ERROR,
+      durationMs: result.durationMs,
+      reference,
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 const PARTIFUL_FAILURE_PATH = `/api/oncall/${PARTIFUL.slug}/rsvp-page-failure`;
