@@ -7,6 +7,7 @@
 :root{--accent:#356e20;--ink:#000;--green:#33ff33;--cyan:#00ffff;--red:#ff3333;--yellow:#ffff00;--blue:#5555ff}
 *{box-sizing:border-box}body{margin:0;background:#bdbdbd;color:#000;font:13px system-ui,sans-serif}
 header{background:#24521b;color:#fff;padding:10px 18px}h1{font-size:15px;font-weight:500;margin:0}
+.presenter-setup{position:fixed;top:45px;right:12px;z-index:100;background:#fff;color:#111;border:1px solid #555;padding:12px;width:min(340px,calc(100% - 24px));font:13px system-ui,sans-serif}.presenter-setup label{display:block;margin:8px 0}.presenter-setup input{display:block;box-sizing:border-box;width:100%;min-height:36px}.presenter-setup button{min-height:44px;margin-right:8px}
 main{padding:24px 12px;max-width:1080px;margin:auto}.emulator{border:2px solid;border-color:#fff #606060 #606060 #fff;background:#c0c0c0;padding:3px;min-width:0}
 .window-title{background:#24521b;color:#fff;font:12px/26px system-ui,sans-serif;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .menu-bar{padding:5px 8px;font:12px/20px system-ui,sans-serif;word-spacing:12px;border-bottom:1px solid #808080}
@@ -36,6 +37,16 @@ a,.pr-badge{color:var(--cyan);text-decoration:underline}a:focus-visible,button:f
 </head>
 <body>
 <header><h1>Regions — Enterprise Batch Control</h1></header>
+<aside id="pd-setup" class="presenter-setup" aria-label="Presenter setup" hidden>
+<strong>Presenter setup</strong>
+<p>Saved only in this browser. Reset the run before clearing configuration.</p>
+<form id="pd-setup-form" autocomplete="off">
+<label>MFT routing key<input id="pd-key-mft" type="password" autocomplete="off" spellcheck="false"></label>
+<label>SQL routing key<input id="pd-key-sql" type="password" autocomplete="off" spellcheck="false"></label>
+<label>Mainframe routing key<input id="pd-key-mf" type="password" autocomplete="off" spellcheck="false"></label>
+<button type="submit">Save</button><button id="pd-clear" type="button">Clear</button>
+</form><p id="pd-setup-status" role="status"></p>
+</aside>
 <main>
 <section class="emulator" aria-label="Regions TN3270 emulator session">
 <div class="window-title">Session A - [24 x 80]  RGP1.REGIONS.TN3270  Regions — Enterprise Batch Control</div>
@@ -192,6 +203,79 @@ function field(value,width){return String(value).slice(0,width).padEnd(width)}
 function wrap(value){return String(value).split('\n').map(line=>(line.match(/.{1,80}/g)||['']).join('\n')).join('\n')}
 function clock(value){return new Date(value).toISOString().slice(11,19)}
 function stateWarning(warning){return !warning?'':/dispatch unavailable; start a new run to retry$/i.test(warning)?'IKJ56251I SETTLE NOT DISPATCHED - F6 RESET THEN F5 SUBMIT':'ISRZ002 STATE UPDATE INCOMPLETE'}
+const browserKeyStore='rgBatchPdRoutingKeys',browserSentStore='rgBatchPdSent';
+const browserServices={
+ mft:{source:'RGW-MFTSQL-07',component:'MFT',error:'javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure'},
+ sql:{source:'RGW-MFTSQL-07',component:'SQL',error:'SSL Provider: The client and server do not possess a common algorithm. [SQLSTATE 08001]'},
+ mf:{source:'RGP1',component:'MF',error:'IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND; ABEND=S013'}
+};
+let browserRunId=null;
+const browserPending=new Map(),browserResetRuns=new Set();
+function readBrowserStore(key){try{const value=JSON.parse(localStorage.getItem(key)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch{return {}}}
+function writeBrowserStore(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{console.warn('Batch browser storage unavailable');return false}}
+function validateBrowserKeys(input){
+ if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Invalid configuration');
+ const keys={};
+ for(const name of Object.keys(browserServices)){const value=String(input[name]||'').trim();if(value&&!/^[A-Za-z0-9]{32}$/.test(value))throw Error('Invalid configuration');if(value)keys[name]=value}
+ return keys;
+}
+function browserKeys(){try{return validateBrowserKeys(readBrowserStore(browserKeyStore))}catch{return {}}}
+function configureBrowserEvents(){
+ if(location.hash.startsWith('#pdkeys=')){
+  try{const encoded=location.hash.slice(8).replace(/-/g,'+').replace(/_/g,'/');writeBrowserStore(browserKeyStore,validateBrowserKeys(JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length/4)*4,'=')))))}
+  catch{console.warn('Batch browser configuration invalid')}
+  finally{history.replaceState(null,'',location.pathname+location.search)}
+ }
+ if(new URLSearchParams(location.search).get('pdsetup')!=='1')return;
+ $('pd-setup').hidden=false;
+ const keys=browserKeys();for(const name of Object.keys(browserServices))$('pd-key-'+name).value=keys[name]||'';
+ $('pd-setup-form').onsubmit=event=>{
+  event.preventDefault();
+  try{const values=Object.fromEntries(Object.keys(browserServices).map(name=>[name,$('pd-key-'+name).value]));$('pd-setup-status').textContent=writeBrowserStore(browserKeyStore,validateBrowserKeys(values))?'Saved locally.':'Unable to save locally.'}
+  catch{$('pd-setup-status').textContent='Enter a 32-character alphanumeric key for each configured service.'}
+ };
+ $('pd-clear').onclick=()=>{
+  try{localStorage.removeItem(browserKeyStore);localStorage.removeItem(browserSentStore);for(const name of Object.keys(browserServices))$('pd-key-'+name).value='';$('pd-setup-status').textContent='Local configuration cleared.'}
+  catch{$('pd-setup-status').textContent='Unable to clear local configuration.'}
+ };
+}
+function browserService(incident){
+ const id=incident.service?.id,jobs=serviceJobs[id]||[],name=incident.service?.name||'';
+ if(id==='PU8BL8X'||jobs.includes('MFT_INBOUND')||/axway|\bmft\b/i.test(name))return 'mft';
+ if(id==='PQZQKW7'||jobs.some(job=>['SQL_STAGE','EDW_LOAD'].includes(job))||/sql|edw/i.test(name))return 'sql';
+ if(id==='PN02JGH'||jobs.includes('SETTLE_POST')||/mainframe|zos/i.test(name))return 'mf';
+}
+async function postBrowserEvent(body){
+ try{const response=await fetch('https://events.pagerduty.com/v2/enqueue',{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:globalThis.AbortSignal?.timeout?.(15000)});if(!response.ok)throw Error('Delivery failed')}
+ catch{console.warn('Batch event delivery failed')}
+}
+function triggerBrowserEvents(data){
+ browserRunId=data.run?.run_id||null;
+ if(!browserRunId||browserResetRuns.has(browserRunId))return;
+ const keys=browserKeys();if(!Object.keys(keys).length)return;
+ for(const incident of data.incidents){
+  const service=browserService(incident),key=keys[service];
+  if(!key||incident.status==='resolved')continue;
+  if(incident.custom_details?.run_id?incident.custom_details.run_id!==browserRunId:Date.parse(incident.created_at)<Date.parse(data.run.created_at))continue;
+  const dedup='rg-batch-'+browserRunId+'-'+service,records=readBrowserStore(browserSentStore);
+  if(records[dedup])continue;
+  records[dedup]={runId:browserRunId,service,routingKey:key};
+  if(!writeBrowserStore(browserSentStore,records))continue;
+  const info=browserServices[service],details=incident.custom_details||{};
+  const pending=postBrowserEvent({routing_key:key,event_action:'trigger',dedup_key:dedup,payload:{summary:incident.title,source:details.host||info.source,severity:'critical',component:info.component,group:'Enterprise Batch Operations',class:'overnight-settlement',custom_details:{...details,run_id:browserRunId,incident_id:incident.id,error_text:details.error_text||details.error||info.error}}}).finally(()=>browserPending.delete(dedup));
+  browserPending.set(dedup,pending);
+ }
+}
+async function resolveBrowserEvents(runId){
+ if(!runId)return;
+ browserResetRuns.add(runId);
+ const records=Object.entries(readBrowserStore(browserSentStore)).filter(([,record])=>record?.runId===runId);
+ await Promise.all(records.map(async([dedup,record])=>{
+  await browserPending.get(dedup);
+  await postBrowserEvent({routing_key:record.routingKey,event_action:'resolve',dedup_key:dedup});
+  const latest=readBrowserStore(browserSentStore);delete latest[dedup];writeBrowserStore(browserSentStore,latest);
+ }));
+}
 function jobRow(job,index,incidents,compact){
  const {state,name,jobId,label}=legacyJob(job,incidents),row=node('div',undefined,(compact?'summary-job ':'job ')+state);
  row.dataset.jobId=job.id;
@@ -251,6 +335,7 @@ function systemLog(data){
 function render(data){
  serviceJobs=data.service_jobs||serviceJobs;
  currentIncidents=data.incidents;
+ triggerBrowserEvents(data);
  $('fire').disabled=data.run?.status==='active';
  $('jobs').replaceChildren(...data.jobs.map((job,index)=>jobRow(job,index,data.incidents,false)));
  $('default-jobs').replaceChildren(...data.jobs.map((job,index)=>jobRow(job,index,data.incidents,true)));
@@ -327,7 +412,8 @@ async function poll(){
  catch(e){$('error').textContent='ISRZ002 STATE UPDATE UNAVAILABLE - DISPLAY MAY BE STALE';$('error').classList.remove('hidden')}
 }
 async function action(path){
- try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(response.status===409?'IKJ56250I JOB SETTLE ALREADY ACTIVE':'ISRZ002 COMMAND NOT ACTIVE');$('feedback').textContent=path.endsWith('reset')?'IKJ56250I LOCAL DISPLAY RESET':'IKJ56250I JOB SETTLE(JOB04200) SUBMITTED'+(data.dry_run?' / DRY RUN':'');await poll()}
+ const resetRun=path.endsWith('reset')?browserRunId:null;
+ try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(response.status===409?'IKJ56250I JOB SETTLE ALREADY ACTIVE':'ISRZ002 COMMAND NOT ACTIVE');void resolveBrowserEvents(resetRun);$('feedback').textContent=path.endsWith('reset')?'IKJ56250I LOCAL DISPLAY RESET':'IKJ56250I JOB SETTLE(JOB04200) SUBMITTED'+(data.dry_run?' / DRY RUN':'');await poll()}
  catch(e){$('feedback').textContent=e.message==='IKJ56250I JOB SETTLE ALREADY ACTIVE'?e.message:'ISRZ002 COMMAND NOT ACTIVE'}
 }
 $('fire').onclick=()=>action('/api/oncall/batchsettlement/runs');$('reset').onclick=()=>action('/api/oncall/batchsettlement/reset');
@@ -335,6 +421,8 @@ $('command-form').onsubmit=event=>{event.preventDefault();runCommand($('command'
 for(const button of document.querySelectorAll('[data-pf]'))button.onclick=()=>activatePF(button.dataset.pf);
 document.addEventListener('keydown',handleTerminalKey);
 window.addEventListener('hashchange',followIncidentHash);
+window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#pdkeys='))configureBrowserEvents()});
+configureBrowserEvents();
 followIncidentHash();
 poll();setInterval(poll,5000);
 </script>

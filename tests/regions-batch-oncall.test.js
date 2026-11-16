@@ -529,7 +529,7 @@ describe('TN3270 batch console presentation', () => {
   const shellIds = new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1].split("$('fire').onclick")[0];
   const jobs = require('../app/services/oncall-verticals/batchsettlement-jobs.json');
-  let ui, elements, data, request;
+  let ui, elements, data, request, storage;
   const incident = (service, content = '', status = 'triggered') => ({ id: 'P' + service, status,
     service: { id: service, name: service }, title: 'Synthetic settlement incident', created_at: '2026-11-16T02:00:00Z',
     notes: content ? [{ content, created_at: '2026-11-16T02:01:00Z', author: 'Operator' }] : [] });
@@ -541,8 +541,11 @@ describe('TN3270 batch console presentation', () => {
       classList: { toggle: jest.fn(), remove: jest.fn(), add: jest.fn() }, append(...children) { this.children.push(...children); },
       replaceChildren(...children) { this.children = children; } });
     elements = new Map();
+    storage = new Map(Object.entries(presenter));
     request = jest.fn(async () => ({ ok: true, status: 200, json: async () => data }));
-    ui = vm.createContext({ fetch: request, location: { hash: '' }, localStorage: { getItem: (key) => presenter[key] || '' },
+    ui = vm.createContext({ fetch: request, location: { hash: '', search: '', pathname: '/oncall/c/db10f6b2' },
+      URLSearchParams, atob: (value) => Buffer.from(value, 'base64').toString('utf8'), history: { replaceState: jest.fn() }, console: { warn: jest.fn() },
+      localStorage: { getItem: (key) => storage.get(key) || null, setItem: jest.fn((key, value) => storage.set(key, value)), removeItem: (key) => storage.delete(key) },
       document: { createElement: element, getElementById(id) {
         if (!shellIds.has(id)) return elements.get(id) || null;
         if (!elements.has(id)) elements.set(id, element());
@@ -787,6 +790,110 @@ describe('TN3270 batch console presentation', () => {
     request.mockRejectedValueOnce(new Error('PagerDuty Slack/on-call Devin dispatch failure'));
     await ui.poll();
     expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE UNAVAILABLE - DISPLAY MAY BE STALE');
+  });
+  const endpoint = 'https://events.pagerduty.com/v2/enqueue';
+  const keys = { mft: 'a'.repeat(32), sql: 'b'.repeat(32), mf: 'c'.repeat(32) };
+  const events = () => request.mock.calls.filter(([url]) => url === endpoint).map(([, options]) => JSON.parse(options.body));
+  function browserRun() {
+    data.run = { run_id: 'run-one', created_at: '2026-11-16T01:59:00Z', status: 'complete', sent: ['mft', 'sql', 'mf'] };
+    data.incidents = ['PU8BL8X', 'PQZQKW7', 'PN02JGH'].map((service) => ({ ...incident(service), custom_details: { run_id: 'run-one' } }));
+  }
+  test('browser delivery is disabled without saved keys, including empty or corrupt configuration', () => {
+    browserRun();
+    for (const saved of [undefined, '{}', 'bad JSON', JSON.stringify({ mft: 'bad-key' })]) {
+      if (saved) storage.set('rgBatchPdRoutingKeys', saved);
+      ui.triggerBrowserEvents(data);
+    }
+    expect(request).not.toHaveBeenCalled();
+  });
+  test('incremental arrivals trigger once per service with the matching key, payload and per-run dedup', () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents({ ...data, incidents: data.incidents.slice(0, 1) });
+    ui.triggerBrowserEvents(data);
+    ui.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(3);
+    for (const [index, service] of ['mft', 'sql', 'mf'].entries()) {
+      expect(events()[index]).toMatchObject({ routing_key: keys[service], event_action: 'trigger', dedup_key: 'rg-batch-run-one-' + service,
+        payload: { summary: data.incidents[index].title, source: service === 'mf' ? 'RGP1' : 'RGW-MFTSQL-07', severity: 'critical',
+          component: service.toUpperCase(), group: 'Enterprise Batch Operations', class: 'overnight-settlement',
+          custom_details: { run_id: 'run-one', incident_id: data.incidents[index].id, error_text: expect.any(String) } } });
+      expect(events()[index].payload.custom_details.error_text).toMatch(/handshake_failure|08001|S013/);
+    }
+    expect(request.mock.calls[0][1]).toMatchObject({ method: 'POST', mode: 'cors', credentials: 'omit', headers: { 'Content-Type': 'application/json' } });
+  });
+  test('reload does not resend; new runs get fresh dedup keys and old-run incidents are ignored', () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents(data);
+    const reloaded = vm.createContext({ fetch: request, localStorage: ui.localStorage, console: ui.console });
+    vm.runInContext(script, reloaded);
+    reloaded.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(3);
+    data.run.run_id = 'run-two';
+    reloaded.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(3);
+    data.incidents = data.incidents.map((i) => ({ ...i, custom_details: { run_id: 'run-two' } }));
+    reloaded.triggerBrowserEvents(data);
+    expect(events().slice(3).map((e) => e.dedup_key)).toEqual(['rg-batch-run-two-mft', 'rg-batch-run-two-sql', 'rg-batch-run-two-mf']);
+  });
+  test('successful reset resolves all current-run dedup keys after triggers, then clears tracking', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    ui.triggerBrowserEvents(data);
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events().map((e) => e.event_action)).toEqual(['trigger', 'trigger', 'trigger', 'resolve', 'resolve', 'resolve']);
+    expect(events().slice(3)).toEqual(['mft', 'sql', 'mf'].map((service) => ({ routing_key: keys[service], event_action: 'resolve', dedup_key: 'rg-batch-run-one-' + service })));
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual({});
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+  });
+  test('failed reset sends no resolves and delivery/storage failures never break rendering', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    request.mockImplementation(async (url) => {
+      if (url === endpoint) throw Error('sensitive delivery failure');
+      return { ok: !url.endsWith('/reset'), status: 500, json: async () => data };
+    });
+    expect(() => ui.render(data)).not.toThrow();
+    await ui.action('/api/oncall/batchsettlement/reset');
+    expect(events()).toHaveLength(3);
+    expect(events().every((e) => e.event_action === 'trigger')).toBe(true);
+    expect(ui.console.warn).toHaveBeenCalledWith('Batch event delivery failed');
+    expect(JSON.stringify(ui.console.warn.mock.calls)).not.toContain('sensitive');
+    storage.delete('rgBatchPdSent');
+    ui.localStorage.setItem.mockImplementation(() => { throw Error('Storage denied'); });
+    expect(() => ui.render(data)).not.toThrow();
+    expect(events()).toHaveLength(3);
+  });
+  test('service mapping accepts custom serviceJobs and service-name fallbacks', () => {
+    data.service_jobs = { CUSTOM: ['EDW_LOAD'] };
+    ui.render(data);
+    expect(ui.browserService(incident('CUSTOM'))).toBe('sql');
+    expect(ui.browserService({ service: { name: 'Axway MFT Gateway' } })).toBe('mft');
+    expect(ui.browserService({ service: { name: 'Mainframe Batch zOS' } })).toBe('mf');
+    expect(ui.browserService(incident('OTHER'))).toBeUndefined();
+  });
+  test('setup supports save/clear and immediately removes imported key fragments, including invalid ones', () => {
+    ui.location.hash = '#pdkeys=' + Buffer.from(JSON.stringify(keys)).toString('base64url');
+    ui.configureBrowserEvents();
+    expect(JSON.parse(storage.get('rgBatchPdRoutingKeys'))).toEqual(keys);
+    expect(ui.history.replaceState).toHaveBeenCalledWith(null, '', '/oncall/c/db10f6b2');
+    ui.location.hash = '';
+    ui.location.search = '?pdsetup=1';
+    ui.configureBrowserEvents();
+    expect(elements.get('pd-setup').hidden).toBe(false);
+    expect(elements.get('pd-key-sql').value).toBe(keys.sql);
+    elements.get('pd-key-mft').value = 'd'.repeat(32);
+    elements.get('pd-setup-form').onsubmit({ preventDefault: jest.fn() });
+    expect(JSON.parse(storage.get('rgBatchPdRoutingKeys')).mft).toBe('d'.repeat(32));
+    elements.get('pd-clear').onclick();
+    expect(storage.has('rgBatchPdRoutingKeys')).toBe(false);
+    expect(storage.has('rgBatchPdSent')).toBe(false);
+    ui.location.hash = '#pdkeys=malformed';
+    ui.configureBrowserEvents();
+    expect(storage.has('rgBatchPdRoutingKeys')).toBe(false);
+    expect(ui.history.replaceState).toHaveBeenLastCalledWith(null, '', '/oncall/c/db10f6b2?pdsetup=1');
   });
 });
 
