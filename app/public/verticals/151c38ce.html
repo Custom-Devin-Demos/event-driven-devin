@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Make a claim | Insurance support | L&amp;G</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,700&family=Newsreader:opsz,wght@6..72,500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent: #005dba;
+        --ink: #1d1d1b;
+        --surface: #ffffff;
+        --chrome-bg: #005dba;
+        --chrome-text: #ffffff;
+        --muted: color-mix(in srgb, var(--ink) 70%, var(--surface));
+        --line: color-mix(in srgb, var(--ink) 18%, var(--surface));
+        --panel: color-mix(in srgb, var(--ink) 5%, var(--surface));
+        --tint: color-mix(in srgb, var(--accent) 8%, var(--surface));
+        --sans: "Nunito Sans", Arial, sans-serif;
+        --serif: "Newsreader", "Times New Roman", serif;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--ink);
+        font: 16px/1.5 var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: var(--accent);
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: var(--serif);
+        font-weight: 500;
+        line-height: 1.2;
+        margin: 0;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      /* Audience bar */
+      .audience {
+        background: var(--panel);
+        font-size: 13px;
+      }
+      .audience .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .audience nav {
+        display: flex;
+      }
+      .audience a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 16px;
+        color: var(--ink);
+        text-decoration: none;
+        border-top: 3px solid transparent;
+      }
+      .audience a.active {
+        background: var(--surface);
+        border-top-color: var(--ink);
+        font-weight: 700;
+      }
+      .audience .sites {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* Header */
+      .header {
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .header-row {
+        height: 76px;
+        display: flex;
+        align-items: center;
+        gap: 32px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        color: var(--ink);
+        text-decoration: none;
+        font-family: var(--serif);
+        font-size: 28px;
+        letter-spacing: -0.01em;
+        flex-shrink: 0;
+      }
+      .brand svg {
+        width: 30px;
+        height: 30px;
+      }
+      .nav {
+        display: flex;
+        gap: 4px;
+        flex: 1;
+      }
+      .nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 12px;
+        border-radius: 12px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 15px;
+      }
+      .nav a:hover {
+        background: var(--panel);
+      }
+      .nav a.active {
+        background: var(--accent);
+        color: var(--chrome-text);
+      }
+      .util {
+        display: flex;
+        gap: 4px;
+      }
+      .util a {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 56px;
+        min-height: 48px;
+        gap: 2px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .util svg {
+        width: 20px;
+        height: 20px;
+      }
+      .menu-btn {
+        display: none;
+        margin-left: auto;
+        min-width: 44px;
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+        color: var(--ink);
+        font: 500 14px var(--sans);
+      }
+
+      .crumbs {
+        font-size: 14px;
+        padding: 4px 0;
+      }
+      .crumbs a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--ink);
+      }
+      .crumbs span {
+        margin: 0 8px;
+      }
+
+      /* Hero */
+      .hero {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        min-height: 220px;
+        background: linear-gradient(110deg, color-mix(in srgb, var(--chrome-bg) 70%, #000) 0%, var(--chrome-bg) 100%);
+      }
+      .hero img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .hero-box {
+        position: relative;
+        margin: 48px;
+        display: inline-block;
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+        padding: 20px 28px;
+        border-radius: 12px;
+        max-width: 560px;
+      }
+      .hero-box h1 {
+        font-size: 44px;
+      }
+      .hero-box p {
+        margin: 8px 0 0;
+        font-size: 17px;
+      }
+
+      /* Main */
+      .intro {
+        max-width: 760px;
+        padding: 40px 0 8px;
+      }
+      .intro h2 {
+        font-size: 34px;
+        margin-bottom: 16px;
+      }
+      .intro p {
+        margin: 0 0 12px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: 32px;
+        padding: 24px 0 56px;
+        align-items: start;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 32px;
+      }
+      .card h2 {
+        font-size: 28px;
+      }
+      .card-intro {
+        color: var(--muted);
+        margin: 8px 0 24px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 20px;
+        min-width: 0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      label {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      select,
+      input,
+      textarea {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 14px;
+        border: 1px solid color-mix(in srgb, var(--ink) 45%, var(--surface));
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--ink);
+        font: 16px var(--sans);
+      }
+      textarea {
+        min-height: 104px;
+        resize: vertical;
+      }
+      select:focus,
+      input:focus,
+      textarea:focus,
+      .btn:focus-visible,
+      a:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+        outline-offset: 2px;
+      }
+      .money {
+        position: relative;
+      }
+      .money span {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+      .money input {
+        padding-left: 30px;
+      }
+      .hint {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+        margin-top: 8px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+        padding: 0 22px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--chrome-text);
+        font: 500 16px var(--sans);
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: color-mix(in srgb, var(--accent) 85%, #000);
+      }
+      .btn:disabled {
+        opacity: 0.7;
+        cursor: progress;
+      }
+      .btn svg {
+        width: 14px;
+        height: 14px;
+      }
+      .btn-link {
+        min-height: 44px;
+        border: 0;
+        background: none;
+        color: var(--ink);
+        text-decoration: underline;
+        font: 16px var(--sans);
+        cursor: pointer;
+      }
+      .result-box {
+        display: none;
+        margin-top: 20px;
+        padding: 16px 18px;
+        border-radius: 8px;
+        border-left: 4px solid;
+      }
+      .result-box.success {
+        display: block;
+        background: color-mix(in srgb, #00633d 8%, var(--surface));
+        border-color: #00633d;
+      }
+      .result-box.error {
+        display: block;
+        background: color-mix(in srgb, #c8102e 7%, var(--surface));
+        border-color: #c8102e;
+      }
+
+      .aside h3 {
+        font-size: 22px;
+        margin-bottom: 16px;
+      }
+      .steps {
+        list-style: none;
+        margin: 0 0 24px;
+        padding: 0;
+      }
+      .steps li {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      .step-num {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--chrome-text);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .steps .sub {
+        display: block;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .summary {
+        background: var(--panel);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .summary h3 {
+        font-size: 19px;
+        margin-bottom: 10px;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 0;
+        border-top: 1px solid var(--line);
+        font-size: 15px;
+      }
+      .summary-row span:last-child {
+        font-weight: 700;
+        text-align: right;
+      }
+      .help p {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+
+      /* Accordions */
+      .details {
+        padding: 8px 0 56px;
+        max-width: 760px;
+      }
+      .details h2 {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
+      .details > p {
+        font-family: var(--serif);
+        font-size: 19px;
+        color: var(--muted);
+        margin: 0 0 20px;
+      }
+      details {
+        background: var(--panel);
+        border-radius: 12px;
+        margin-bottom: 10px;
+      }
+      summary {
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 60px;
+        padding: 0 20px;
+        font-weight: 700;
+        font-size: 17px;
+        cursor: pointer;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary::after {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-right: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        transform: rotate(45deg) translateY(-3px);
+        transition: transform 0.15s;
+      }
+      details[open] summary::after {
+        transform: rotate(-135deg);
+      }
+      details p {
+        margin: 0;
+        padding: 0 20px 20px;
+      }
+
+      /* Footer */
+      .range {
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+        padding: 48px 0;
+      }
+      .range h2 {
+        font-size: 32px;
+        margin-bottom: 24px;
+      }
+      .range-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 24px;
+      }
+      .range-grid strong {
+        display: block;
+        font-family: var(--serif);
+        font-weight: 500;
+        font-size: 19px;
+        margin-bottom: 10px;
+      }
+      .range-grid a {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 12px;
+        margin-bottom: 6px;
+        border: 1px solid color-mix(in srgb, var(--chrome-text) 45%, transparent);
+        border-radius: 8px;
+        color: var(--chrome-text);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .footer {
+        padding: 32px 0 40px;
+        font-size: 14px;
+      }
+      .footer nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 20px;
+      }
+      .footer nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--ink);
+        text-decoration: none;
+      }
+      .footer-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+      }
+
+      @media (max-width: 1000px) {
+        .nav,
+        .util {
+          display: none;
+        }
+        .menu-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 14px;
+        }
+        .header.nav-open .header-row {
+          height: auto;
+          flex-wrap: wrap;
+          padding: 16px 0;
+        }
+        .header.nav-open .nav {
+          display: flex;
+          flex-direction: column;
+          flex-basis: 100%;
+          order: 3;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .range-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 600px) {
+        .wrap {
+          padding: 0 16px;
+        }
+        .audience .sites {
+          display: none;
+        }
+        .audience a {
+          padding: 0 10px;
+        }
+        .hero {
+          min-height: 180px;
+        }
+        .hero-box {
+          margin: 24px 16px;
+          padding: 16px 20px;
+        }
+        .hero-box h1 {
+          font-size: 32px;
+        }
+        .intro h2 {
+          font-size: 28px;
+        }
+        .card {
+          padding: 20px;
+        }
+        .row {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .range-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="audience">
+      <div class="wrap">
+        <nav aria-label="Audience">
+          <a href="#" class="active">Personal</a>
+          <a href="#">Adviser</a>
+          <a href="#">Employer</a>
+          <a href="#">Institutional</a>
+        </nav>
+        <span class="sites">Our websites
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+        </span>
+      </div>
+    </div>
+
+    <header class="header">
+      <div class="wrap header-row">
+        <a class="brand" href="#" aria-label="L&amp;G home">
+          <svg viewBox="0 0 30 30" aria-hidden="true">
+            <circle cx="15" cy="15" r="14" fill="var(--accent)" />
+            <text x="15" y="21" text-anchor="middle" font-family="Newsreader, serif" font-size="17" fill="#fff">L</text>
+          </svg>
+          L&amp;G
+        </a>
+        <nav class="nav" id="primaryNav" aria-label="Primary">
+          <a href="#" class="active" aria-current="page">Insurance</a>
+          <a href="#">ISAs</a>
+          <a href="#">Pension savings</a>
+          <a href="#">Retirement</a>
+          <a href="#">Later life mortgages</a>
+        </nav>
+        <div class="util">
+          <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M15.5 15.5L21 21" stroke="currentColor" stroke-width="1.8" /></svg>Search</a>
+          <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4h9v16h-9M4 12h11m-4-4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>Log in</a>
+          <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>Register</a>
+          <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M7 10h10M7 13h6" stroke="currentColor" stroke-width="1.8" /></svg>Contact us</a>
+        </div>
+        <button class="menu-btn" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="#">Existing customers</a><span aria-hidden="true">&rsaquo;</span><a href="#">How do I make a claim</a><span aria-hidden="true">&rsaquo;</span>Start a claim
+        </nav>
+
+        <section class="hero">
+          <img
+            src="https://www.legalandgeneral.com/cdn-cgi/image/width=1400/asset/4acea8/globalassets/personal/existing-customers/how-do-i-make-a-claim/claims-hero.jpg"
+            alt=""
+            onerror="this.remove()"
+          />
+          <div class="hero-box">
+            <h1>Start a claim online</h1>
+            <p>Submit your claim securely, anytime &ndash; no need to wait for office hours.</p>
+          </div>
+        </section>
+
+        <section class="intro">
+          <h2>We&rsquo;re here to help you make a claim, quickly and simply</h2>
+          <p>We understand this might be a difficult time. Tell us about the policy you&rsquo;re claiming on and we&rsquo;ll guide you through the rest. You can upload documents and track your progress in My Account.</p>
+        </section>
+
+        <div class="layout">
+          <section class="card">
+            <h2>Claim details</h2>
+            <p class="card-intro">Choose the policy, the type of claim and the amount you&rsquo;re claiming.</p>
+            <form id="claimForm">
+              <div class="field">
+                <label for="policyId">Policy you&rsquo;re claiming on</label>
+                <select id="policyId">
+                  <option value="POL-5003">Life Insurance &middot; Policy ending 5003</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="claimType">Type of claim</label>
+                  <select id="claimType">
+                    <option value="medical">Life Insurance claim</option>
+                    <option value="medical">Terminal Illness claim</option>
+                    <option value="medical">Critical Illness claim</option>
+                    <option value="medical">Income Protection claim</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="amount">Amount you&rsquo;re claiming</label>
+                  <div class="money">
+                    <span aria-hidden="true">&pound;</span>
+                    <input type="number" id="amount" value="150000" min="1" step="0.01" required />
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="description">Tell us what happened</label>
+                <textarea id="description" required>Claim on my late father's joint life policy. Death certificate and policy documents ready to upload.</textarea>
+                <span class="hint">You&rsquo;ll be able to upload supporting documents after you submit.</span>
+              </div>
+              <div class="actions">
+                <button type="submit" id="submitBtn" class="btn">Submit claim
+                  <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
+                </button>
+                <button type="reset" class="btn-link">Start again</button>
+              </div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+
+          <aside class="card aside">
+            <h3>What happens next</h3>
+            <ol class="steps">
+              <li>
+                <span class="step-num">1</span>
+                <div><strong>Submit your claim</strong><span class="sub">You get a claim reference straight away.</span></div>
+              </li>
+              <li>
+                <span class="step-num">2</span>
+                <div><strong>Upload your documents</strong><span class="sub">This helps us begin your assessment sooner.</span></div>
+              </li>
+              <li>
+                <span class="step-num">3</span>
+                <div><strong>Track your progress</strong><span class="sub">Check where your claim is from any device.</span></div>
+              </li>
+            </ol>
+            <div class="summary" aria-live="polite">
+              <h3>Your claim</h3>
+              <div class="summary-row"><span>Policy</span><span id="summaryPolicy"></span></div>
+              <div class="summary-row"><span>Claim type</span><span id="summaryType"></span></div>
+              <div class="summary-row"><span>Amount</span><span id="summaryAmount"></span></div>
+            </div>
+            <div class="help">
+              <p><strong>Need help with your claim?</strong></p>
+              <p>Our Claims team can talk you through it. You may also have free access to Wellbeing support as part of your policy.</p>
+            </div>
+          </aside>
+        </div>
+
+        <section class="details">
+          <h2>Need more details about your claim?</h2>
+          <p>Helpful information on what you&rsquo;ll need for each type of claim.</p>
+          <details>
+            <summary>Life Insurance</summary>
+            <p>You&rsquo;ll need the policy number if you have it, a copy of the death certificate and details of the person making the claim.</p>
+          </details>
+          <details>
+            <summary>Over 50s Insurance</summary>
+            <p>We&rsquo;ll ask for the policyholder&rsquo;s details, the death certificate and the details of the person dealing with their estate.</p>
+          </details>
+          <details>
+            <summary>Terminal Illness Claim</summary>
+            <p>We&rsquo;ll ask for details of the diagnosis and your treating specialist so we can request medical evidence.</p>
+          </details>
+          <details>
+            <summary>Critical Illness Claim</summary>
+            <p>Tell us the condition, the date of diagnosis and the hospital or specialist involved.</p>
+          </details>
+          <details>
+            <summary>Income Protection Claim</summary>
+            <p>We&rsquo;ll need details of your employer, when you stopped working and your GP or specialist.</p>
+          </details>
+        </section>
+      </div>
+    </main>
+
+    <section class="range" aria-label="Our product range">
+      <div class="wrap">
+        <h2>Our product range</h2>
+        <div class="range-grid">
+          <div>
+            <strong>Investments</strong>
+            <a href="#">Stocks and Shares ISA</a>
+            <a href="#">Our services</a>
+          </div>
+          <div>
+            <strong>Pensions &amp; Retirement</strong>
+            <a href="#">Saving for retirement</a>
+            <a href="#">Lifetime Mortgages</a>
+            <a href="#">Retirement Planner</a>
+          </div>
+          <div>
+            <strong>Insurance</strong>
+            <a href="#">Life Insurance</a>
+            <a href="#">Critical Illness Cover</a>
+            <a href="#">Over 50 Life Insurance</a>
+            <a href="#">Income Protection</a>
+          </div>
+          <div>
+            <strong>Other links</strong>
+            <a href="#">Log in</a>
+            <a href="#">Register</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="wrap">
+        <nav aria-label="Legal">
+          <a href="#">Cookie policy</a>
+          <a href="#">Accessibility</a>
+          <a href="#">Legal and regulatory information</a>
+          <a href="#">Privacy notice</a>
+          <a href="#">Security information</a>
+          <a href="#">Making a complaint</a>
+          <a href="#">Beware of scams</a>
+        </nav>
+        <div class="footer-bottom">
+          <span>&copy; L&amp;G 2026</span>
+          <span class="brand" aria-hidden="true">L&amp;G</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+    </script>
+    <script>
+      const form = document.getElementById("claimForm");
+      const policyId = document.getElementById("policyId");
+      const claimType = document.getElementById("claimType");
+      const amount = document.getElementById("amount");
+      const description = document.getElementById("description");
+      const result = document.getElementById("result");
+      const summaryPolicy = document.getElementById("summaryPolicy");
+      const summaryType = document.getElementById("summaryType");
+      const summaryAmount = document.getElementById("summaryAmount");
+      const submitBtn = document.getElementById("submitBtn");
+      const submitLabel = submitBtn.firstChild;
+      const errorText =
+        "We couldn\u2019t submit your claim right now. Please try again in a few minutes. If this keeps happening, contact our Claims team.";
+
+      function updateSummary() {
+        summaryPolicy.textContent = policyId.options[policyId.selectedIndex].textContent.split(" \u00b7 ")[0];
+        summaryType.textContent = claimType.options[claimType.selectedIndex].textContent;
+        const value = parseFloat(amount.value);
+        summaryAmount.textContent = Number.isFinite(value)
+          ? value.toLocaleString("en-GB", { style: "currency", currency: "GBP" })
+          : "\u2014";
+      }
+
+      const header = document.querySelector(".header");
+      const menuBtn = document.querySelector(".menu-btn");
+      menuBtn.addEventListener("click", () => {
+        const open = header.classList.toggle("nav-open");
+        menuBtn.setAttribute("aria-expanded", String(open));
+      });
+
+      let submission = 0;
+      function setIdle() {
+        submitBtn.disabled = false;
+        submitLabel.textContent = "Submit claim ";
+      }
+
+      form.addEventListener("input", updateSummary);
+      form.addEventListener("change", updateSummary);
+      form.addEventListener("reset", () => {
+        submission++;
+        setIdle();
+        result.className = "result-box";
+        result.textContent = "";
+        requestAnimationFrame(updateSummary);
+      });
+      updateSummary();
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const current = ++submission;
+        submitBtn.disabled = true;
+        submitLabel.textContent = "Submitting your claim\u2026 ";
+        result.className = "result-box";
+        result.textContent = "";
+        try {
+          const res = await fetch("/api/insurance/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              policyId: policyId.value,
+              claimType: claimType.value,
+              amount: parseFloat(amount.value),
+              description: description.value,
+              devinUserId: localStorage.getItem("devinUserId") || "",
+              devinOrgId: localStorage.getItem("devinOrgId") || "",
+              devinEmail: localStorage.getItem("devinEmail") || "",
+            }),
+          });
+          let d = {};
+          try {
+            d = await res.json();
+          } catch (_) {}
+          if (current !== submission) return;
+          if (!res.ok) {
+            result.className = "result-box error";
+            result.textContent = errorText;
+          } else {
+            result.className = "result-box success";
+            result.textContent = `Claim submitted. Your claim reference is ${d.claimId}. You can now upload your documents and track your claim in My Account.`;
+          }
+        } catch (_) {
+          if (current !== submission) return;
+          result.className = "result-box error";
+          result.textContent = errorText;
+        } finally {
+          if (current === submission) setIdle();
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
