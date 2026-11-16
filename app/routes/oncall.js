@@ -730,7 +730,8 @@ router.post('/api/oncall/regions/bill-pay/submit', (req, res, next) => {
  * telemetry fires normally; the legacy automated-alert pipeline is not used.
  */
 router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
-  if (!ALERT_SCENARIOS[req.params.vertical]) {
+  const scenario = ALERT_SCENARIOS[req.params.vertical];
+  if (!scenario || scenario.webhookOnly) {
     return res.status(404).json({ ok: false, error: `Unknown vertical: ${req.params.vertical}` });
   }
   next();

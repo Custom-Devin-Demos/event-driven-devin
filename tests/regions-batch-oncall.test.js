@@ -10,6 +10,10 @@ jest.mock('../app/services/devin-api', () => ({ createDevinSession: jest.fn().mo
 jest.mock('../app/services/sonar-pr-trigger', () => ({ scheduleVulnerablePR: jest.fn() }));
 jest.mock('../app/services/datadog-incidents', () => ({ declareDatadogIncident: jest.fn() }));
 jest.mock('../app/services/datadog-incident-slack', () => ({ queueIncidentChannelInvites: jest.fn() }));
+jest.mock('../app/services/oncall', () => {
+  const actual = jest.requireActual('../app/services/oncall');
+  return { ...actual, postOncallAlert: jest.fn(actual.postOncallAlert) };
+});
 
 const express = require('express');
 const fs = require('fs');
@@ -241,6 +245,17 @@ describe('batch settlement HTTP and native page', () => {
     expect((await request('pagerduty-webhook', {}, '')).status).toBe(401);
     expect((await request('pagerduty-webhook', {}, 'wrong')).status).toBe(401);
     expect(postAlert).not.toHaveBeenCalled();
+  });
+
+  test('generic trigger rejects the webhook-only scenario without dispatching', async () => {
+    postOncallAlert.mockClear();
+    for (const body of [{ skin: SLUG }, {}]) {
+      const response = await fetch(`${base}/api/oncall/trigger/batchsettlement`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      expect(response.status).toBe(404);
+    }
+    expect(postOncallAlert).not.toHaveBeenCalled();
   });
 
   test('run 202/409, repeated signed webhook 200/200, reset clears only local state', async () => {

@@ -79,7 +79,7 @@ const DEMO_BASE_URL = () =>
  */
 const ALERT_SCENARIOS = {
   batchsettlement: {
-    vertical: 'batchsettlement', page: 'db10f6b2.html', unlisted: true,
+    vertical: 'batchsettlement', page: 'db10f6b2.html', unlisted: true, webhookOnly: true,
     apiPath: '/api/batchsettlement/unused', oncallApiPath: '/api/oncall/batchsettlement/unused',
     brand: 'Regions Bank', owner: 'Enterprise Batch Operations (batch-and-file-transfer-ops)',
     service: 'axway-mft-gateway', endpoint: 'Axway inbound clearing / settlement route',
