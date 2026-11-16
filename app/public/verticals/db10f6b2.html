@@ -29,7 +29,7 @@ a,.pr-badge{color:var(--cyan);text-decoration:underline}a:focus-visible,button:f
 .pfkeys button{font:inherit;line-height:1.4;min-height:1.4em;padding:0 1ch 0 0;color:var(--cyan);background:#000;border:0;border-radius:0;cursor:pointer;white-space:pre;text-decoration:none}
 .pfkeys button:disabled{color:var(--blue);cursor:wait}.oia{color:var(--blue);border-top:1px solid var(--blue);white-space:pre;overflow:hidden;max-width:80ch;margin:auto}
 .scheduled .status{color:#00ff00}.empty{color:var(--green)}.screen small{font:inherit}.link-gap{white-space:pre}
-.incident-focus>.line:first-child{color:#fff;text-decoration:underline}
+.incident-focus{background:#0000ff;color:#fff;outline:1px solid var(--cyan)}
 @media(max-width:900px){.screen{font-size:16px}}
 @media(max-width:650px){main{padding:8px 0}.emulator{border-left:0;border-right:0}.screen{padding:10px 8px 4px}.menu-bar{word-spacing:5px;font-size:11px}header{padding:10px 12px}h1{font-size:14px}.pfkeys{min-height:0}.pfkeys button{min-height:44px;display:flex;align-items:center}.pfkeys .primary-key{order:-1}.window-title{font-size:11px}.oia{font-size:12px}}
 </style>
@@ -49,11 +49,11 @@ a,.pr-badge{color:var(--cyan);text-decoration:underline}a:focus-visible,button:f
 <form id="command-form" class="command-line" autocomplete="off"><label for="command">COMMAND INPUT ===&gt; </label><input id="command" name="command" aria-label="3270 command line" spellcheck="false" maxlength="80"><span class="label">  SCROLL ===&gt; CSR</span></form>
 <div class="messages"><span id="error" role="alert" class="error hidden"></span><span id="feedback" role="status">READY. ENTER COMMAND OR SELECT A PF KEY.  F1=HELP</span></div>
 <div class="screen-area">
-<section id="screen-default" data-screen="default" class="view" aria-label="Split SDSF and incident log">
+<section id="screen-default" data-screen="default" class="view" aria-label="Split SDSF status and SYSLOG">
 <div class="line columns">NP JOBNAME  JOBID    SLA   STATUS/RC   PRED/SUCC</div>
 <div id="default-jobs"></div>
-<div class="line log-heading">-------------------- PAGERDUTY / RESPONSE LOG (UTC) -----------------------------</div>
-<div id="default-log" tabindex="0" role="region" aria-label="PagerDuty response log"></div>
+<div class="line log-heading">-------------------- SDSF SYSLOG / RGP1 (UTC) -----------------------------</div>
+<div id="default-log" tabindex="0" role="region" aria-label="SDSF system log"></div>
 </section>
 <section id="screen-st" data-screen="st" class="view" tabindex="0" aria-label="Full SDSF status and dependencies" hidden>
 <div class="line columns">NP JOBNAME  JOBID    OWNER                     SLA   STATUS/RC</div>
@@ -87,34 +87,26 @@ a,.pr-badge{color:var(--cyan);text-decoration:underline}a:focus-visible,button:f
 <pre id="jes-detail" class="evidence">JES2 HAS NO OUTPUT FOR SETLPOST.
 AWAITING RG.SETTLE.D261115.INPUT</pre>
 </section>
-<section id="screen-pd" data-screen="pd" class="view" tabindex="0" aria-label="PagerDuty incident and response log" hidden>
-<div class="line label">PagerDuty incident feed / Response timeline                         UTC</div>
-<div id="mode" class="line">CONNECTING</div>
-<div class="line">SYNC <span id="sync">CONNECTING</span>  <span id="run">No local run</span></div>
-<div id="count" class="line">10 jobs / 3 monitored services</div>
-<div id="incident-count" class="line">Polling every 5s</div>
-<div id="session" class="line"></div>
-<div id="fix-prs" class="line"></div>
-<div id="incidents"></div>
-<div class="line label">-------------------- RESPONSE TIMELINE -----------------------------------------</div>
-<div id="notes"></div>
+<section id="screen-log" data-screen="log" class="view" tabindex="0" aria-label="SDSF SYSLOG" hidden>
+<div class="line label">SDSF SYSLOG  RGP1                                             UTC</div>
+<div id="syslog"></div>
 </section>
 <section id="screen-help" data-screen="help" class="view" tabindex="0" aria-label="Terminal help" hidden>
 <div class="line label">ISPF COMMAND / PF KEY HELP</div>
 <pre class="evidence">
- =0 / SPLIT    SDSF status + PagerDuty response log
+ =0 / SPLIT    SDSF status + SYSLOG
  =1 / ST       Full SDSF status, owners and visible PRED/SUCC dependencies
  =2 / MFT      Axway SecureTransport transfer log
  =3 / SQL      SQL Server Agent job history
  =4 / SPOOL    JES2 spool for SETLPOST
- =5 / PD       PagerDuty incident and response log
+ =5 / LOG      SDSF SYSLOG (PD is an alias)
 
  SUBMIT SETTLE / S SETTLE / F5   Submit overnight settlement
  RESET / F6                    Reset local state only
  F3=Exit to split  F9=Swap screens  F7/F8=Up/Down  F10/F11=Left/Right
 
- Synthetic operations data only. Menu bars are reference text.
- CC 0000 requires an explicit job RELEASED or COMPLETE response note.</pre>
+ SYSTEM RGP1 / JES2. Menu bars are reference text.
+ CC 0000 indicates successful execution following job release.</pre>
 </section>
 </div>
 </div>
@@ -129,9 +121,7 @@ AWAITING RG.SETTLE.D261115.INPUT</pre>
 <script>
 const $=id=>document.getElementById(id);
 let serviceJobs={PU8BL8X:['MFT_INBOUND'],PQZQKW7:['SQL_STAGE','EDW_LOAD'],PN02JGH:['SETTLE_POST']};
-const onCallNotification='NOTIFIED ON-CALL: BATCH AND FILE TRANSFER OPERATIONS (ESCALATION LVL 1)';
-function opsText(value){return String(value).replace(/Devin session started/gi,onCallNotification).replace(/\bDevin\b/gi,'on-call responder')}
-function node(tag,text,cls){const el=document.createElement(tag);if(text!==undefined)el.textContent=opsText(text);if(cls)el.className=cls;return el}
+function node(tag,text,cls){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(cls)el.className=cls;return el}
 function time(value){return new Date(value).toLocaleString(undefined,{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}
 function jobState(job,incidents){
  const notes=incidents.flatMap(i=>i.notes).sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||''));
@@ -201,14 +191,10 @@ function renderMonitors(incidents){
 function field(value,width){return String(value).slice(0,width).padEnd(width)}
 function wrap(value){return String(value).split('\n').map(line=>(line.match(/.{1,80}/g)||['']).join('\n')).join('\n')}
 function clock(value){return new Date(value).toISOString().slice(11,19)}
-function appendLinks(el,record){
- for(const[url,label]of[[record.slack_thread_url,'War room (Slack)']]){
-  if(url){el.append(node('span','  ','link-gap'));const link=node('a',label);link.href=url;link.target='_blank';link.rel='noopener noreferrer';el.append(link)}
- }
-}
 function jobRow(job,index,incidents,compact){
  const {state,name,jobId,label}=legacyJob(job,incidents),row=node('div',undefined,(compact?'summary-job ':'job ')+state);
  row.dataset.jobId=job.id;
+ if(!compact){row.id='job-'+job.id;if(highlightedJobs.includes(job.id))row.className+=' incident-focus'}
  row.append(node('span',field(String(index+1).padStart(2,'0'),3),'seq'),node('span',field(name,9),'job-name'),node('span',field(jobId,9)));
  if(!compact)row.append(node('span',field(job.owner_team,26),'owner'));
  row.append(node('span',field(job.sla.slice(0,5),6),'sla'),node('span',field(label,12),'status'));
@@ -220,89 +206,103 @@ function jobRow(job,index,incidents,compact){
  }
  return row;
 }
+function jobEventTime(job,data){
+ const related=data.incidents.find(i=>(serviceJobs[i.service.id]||[]).includes(job.id));
+ let at=related?.created_at||data.run?.created_at||data.fetched_at;
+ let previous=jobState(job,data.incidents.map(i=>({...i,notes:[]})))[0];
+ const notes=data.incidents.flatMap(i=>i.notes).sort((a,b)=>a.created_at.localeCompare(b.created_at));
+ for(const note of notes){
+  const phase=jobState(job,data.incidents.map(i=>({...i,notes:i.notes.filter(n=>n.created_at<=note.created_at)})))[0];
+  if(phase!==previous){at=note.created_at;previous=phase}
+ }
+ return at;
+}
+function systemLog(data){
+ const entries=[];
+ const emit=(at,text,state='')=>entries.push({at,text:clock(at)+' '+text,state});
+ if(data.run)emit(data.run.created_at,'$HASP100 SETTLE ON INTRDR');
+ for(const job of data.jobs){
+  const {state,name,jobId}=legacyJob(job,data.incidents),at=jobEventTime(job,data);
+  const message=text=>emit(at,text,state);
+  if(state==='hold'){
+   message('$HJ('+jobId+')');
+   message('$HASP890 JOB('+name+') STATUS=(HELD)');
+  }else if(state==='ready'){
+   message('$AJ('+jobId+')');
+   message('$HASP890 JOB('+name+') STATUS=(RELEASED)');
+   message('$HASP395 '+name+' ENDED - RC=0000');
+  }else if(state==='failed'){
+   if(job.id==='SETTLE_POST'){
+    message('IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND');
+    message('IEC130I INPUT DD STATEMENT MISSING');
+    message('IEF450I SETLPOST STEP010 - ABEND=S013');
+    message('$HASP395 SETLPOST ENDED - ABEND=S013');
+   }else{
+    const rc=job.id==='MFT_INBOUND'?'0008':'0012';
+    if(job.id==='MFT_INBOUND')message('AXW0008E MFTINBND AXWAY TRANSFER FAILED - TLS HANDSHAKE FAILURE');
+    message('IEF450I '+name+' STEP010 - COND CODE '+rc);
+    message('$HASP395 '+name+' ENDED - RC='+rc);
+   }
+  }
+ }
+ return entries.sort((a,b)=>a.at.localeCompare(b.at));
+}
 function render(data){
  serviceJobs=data.service_jobs||serviceJobs;
- $('session').replaceChildren();
- if(data.run)appendLinks($('session'),data.run);
- $('fix-prs').replaceChildren(...fixPRs(data.incidents).map(url=>{
-  const link=node('a','Fix PR open');link.href=url;link.target='_blank';link.rel='noopener noreferrer';return link;
- }));
- $('mode').textContent=data.simulated?'PAGERDUTY / INCIDENT REPLAY':data.dry_run?'DRY RUN / NO EVENTS SENT':'PAGERDUTY / LIVE EVENTS';
- $('sync').textContent=time(data.fetched_at);
- $('run').textContent=data.run?data.run.status.toUpperCase()+' / '+data.run.sent.length+'/3 events':'No local run';
+ currentIncidents=data.incidents;
  $('fire').disabled=data.run?.status==='active';
  $('jobs').replaceChildren(...data.jobs.map((job,index)=>jobRow(job,index,data.incidents,false)));
  $('default-jobs').replaceChildren(...data.jobs.map((job,index)=>jobRow(job,index,data.incidents,true)));
  renderMonitors(data.incidents);
- $('incident-count').textContent=data.incidents.length+' active in session';
- $('incidents').replaceChildren(...data.incidents.map(i=>{
-  const el=node('div',undefined,'incident'+('incident-'+i.id===incidentTarget?' incident-focus':''));
-  el.id='incident-'+i.id;
-  el.append(node('div',wrap(clock(i.created_at)+' PD#'+(i.incident_number||i.id)+' '+i.status.toUpperCase()+' '+i.service.name),'line '+(i.status==='triggered'?'error':'label')),node('div',wrap(i.title),'line'),node('div',wrap(i.id+' / '+time(i.created_at)),'line'));
-  return el;
- }));
- if(!data.incidents.length)$('incidents').append(node('div','No active incidents since server start or last reset.','line empty'));
- const notes=[...data.incidents.flatMap(i=>i.notes.map(n=>({...n,service:i.service.name}))),...(data.activity||[])];
- if(data.run?.session_url&&!notes.some(n=>n.session_url===data.run.session_url))notes.push({created_at:data.run.created_at||data.fetched_at,service:'PagerDuty',author:'On-call responder',content:onCallNotification,slack_thread_url:data.run.slack_thread_url});
- notes.sort((a,b)=>a.created_at.localeCompare(b.created_at));
- $('notes').replaceChildren(...notes.map(n=>{
-  const el=node('div',undefined,'note');
-  el.append(node('div',wrap(clock(n.created_at)+' '+n.service+' / '+n.author),'line label'),node('div',wrap(n.content),'note-text'));
-  appendLinks(el,n);return el;
- }));
- if(!notes.length)$('notes').append(node('div','Awaiting incident response. Findings will appear in the alert Slack thread.','line empty'));
- const entries=[
-  ...data.incidents.map(i=>({created_at:i.created_at,text:clock(i.created_at)+' PD#'+(i.incident_number||i.id)+' '+i.status.toUpperCase()+' '+i.service.name.toUpperCase()+'  '+i.title,error:i.status==='triggered'})),
-  ...notes.map(n=>({...n,text:clock(n.created_at)+' '+n.content.toUpperCase().replace(/\s+/g,' ')}))
- ].sort((a,b)=>a.created_at.localeCompare(b.created_at));
- $('default-log').replaceChildren(...entries.map(entry=>{
-  const el=node('div',undefined,'line'+(entry.error?' error':''));
-  el.append(node('span',wrap(opsText(entry.text))));
-  if(entry.slack_thread_url){const links=node('div',undefined,'line');appendLinks(links,entry);el.append(links)}
-  return el;
- }));
- if(!entries.length)$('default-log').append(node('div','NO INCIDENTS. AWAITING SUBMIT SETTLE.','line'));
+ const entries=systemLog(data);
+ for(const id of ['default-log','syslog']){
+  $(id).replaceChildren(...entries.map(entry=>node('div',wrap(entry.text),'line'+(entry.state==='failed'?' error':entry.state==='hold'?' hold signal':''))));
+  if(!entries.length)$(id).append(node('div','IEE000I RGP1 SYSTEM LOG - NO MESSAGES','line'));
+ }
  revealIncident();
 }
-let activeScreen='default',incidentTarget='',pendingIncidentFocus=false;
+let activeScreen='default',incidentTarget='',pendingIncidentFocus=false,highlightedJobs=[],currentIncidents=[];
 const screenTitles={
  default:'SDSF STATUS DISPLAY ALL CLASSES                         RGP1  LINE 1-10 (10)',
  st:'SDSF STATUS DISPLAY ALL CLASSES / OWNERS / PRED-SUCC      RGP1  ST',
  mft:'AXWAY SECURETRANSPORT TRANSFER LOG                      RGP1  MFT',
  sql:'SQL SERVER AGENT JOB HISTORY                            RGP1  SQL',
  spool:'JES2 JOB OUTPUT / SETLPOST                              RGP1  SPOOL',
- pd:'PAGERDUTY INCIDENT / RESPONSE LOG                       RGP1  PD',
+ log:'SDSF SYSLOG                                            RGP1  LOG',
  help:'ISPF COMMAND / PF KEY HELP                              RGP1  HELP'
 };
 function switchScreen(screen){
  for(const id of Object.keys(screenTitles))$('screen-'+id).hidden=id!==screen;
  activeScreen=screen;
  $('screen-title').textContent=screenTitles[screen];
- if(screen==='pd')revealIncident();
+ if(screen==='st')revealIncident();
 }
 function revealIncident(){
- if(!pendingIncidentFocus||activeScreen!=='pd')return;
- const incident=$(incidentTarget);
- if(!incident)return;
- incident.classList.add('incident-focus');
- incident.scrollIntoView({block:'nearest',inline:'nearest'});
+ if(!pendingIncidentFocus||activeScreen!=='st')return;
+ const incident=currentIncidents.find(i=>'incident-'+i.id===incidentTarget);
+ const ids=incident&&(serviceJobs[incident.service.id]||[]);
+ const rows=(ids||[]).map(id=>$('job-'+id)).filter(Boolean);
+ if(!rows.length)return;
+ highlightedJobs=ids;
+ for(const row of rows)row.classList.add('incident-focus');
+ rows[0].scrollIntoView({block:'nearest',inline:'nearest'});
  pendingIncidentFocus=false;
 }
 function followIncidentHash(){
- const previous=incidentTarget&&$(incidentTarget);
- if(previous)previous.classList.remove('incident-focus');
+ for(const id of highlightedJobs){const row=$('job-'+id);if(row)row.classList.remove('incident-focus')}
+ highlightedJobs=[];
  incidentTarget=/^#incident-[A-Za-z0-9_-]+$/.test(location.hash)?location.hash.slice(1):'';
  pendingIncidentFocus=!!incidentTarget;
- if(incidentTarget)switchScreen('pd');
+ if(incidentTarget)switchScreen('st');
 }
 function activatePF(key){
  const actions={
   F1:()=>switchScreen('help'),F3:()=>switchScreen('default'),
-  F5:()=>{if($('fire').disabled)$('feedback').textContent='JOB ALREADY ACTIVE';else $('fire').click()},
+  F5:()=>{if($('fire').disabled)$('feedback').textContent='IKJ56250I JOB SETTLE ALREADY ACTIVE';else $('fire').click()},
   F6:()=>$('reset').click(),
   F7:()=>$(activeScreen==='default'?'default-log':'screen-'+activeScreen).scrollBy({top:-180}),
   F8:()=>$(activeScreen==='default'?'default-log':'screen-'+activeScreen).scrollBy({top:180}),
-  F9:()=>{const screens=['default','st','mft','sql','spool','pd'];switchScreen(screens[(screens.indexOf(activeScreen)+1)%screens.length])},
+  F9:()=>{const screens=['default','st','mft','sql','spool','log'];switchScreen(screens[(screens.indexOf(activeScreen)+1)%screens.length])},
   F10:()=>$('screen-scroll').scrollBy({left:-240}),F11:()=>$('screen-scroll').scrollBy({left:240})
  };
  if(!actions[key])return false;
@@ -314,26 +314,22 @@ function handleTerminalKey(event){
 }
 function runCommand(value){
  const command=value.trim().replace(/\s+/g,' ').toUpperCase();
- const screens={'=0':'default',SPLIT:'default','=1':'st',ST:'st','=2':'mft',MFT:'mft','=3':'sql',SQL:'sql','=4':'spool',SPOOL:'spool','=5':'pd',PD:'pd',HELP:'help'};
+ const screens={'=0':'default',SPLIT:'default','=1':'st',ST:'st','=2':'mft',MFT:'mft','=3':'sql',SQL:'sql','=4':'spool',SPOOL:'spool','=5':'log',LOG:'log',PD:'log',HELP:'help'};
  if(screens[command])switchScreen(screens[command]);
  else if(command==='SUBMIT SETTLE'||command==='S SETTLE')activatePF('F5');
  else if(command==='RESET')activatePF('F6');
- else if(command)$('feedback').textContent='IKJ56500I COMMAND '+command+' NOT FOUND. F1=HELP';
+ else if(command)$('feedback').textContent='ISRZ002 COMMAND NOT ACTIVE';
  $('command').value='';
 }
 async function poll(){
- try{const r=await fetch('/api/oncall/batchsettlement/state');const data=await r.json();if(!r.ok)throw Error(data.error);render(data);$('error').textContent=data.warning||'';$('error').classList.toggle('hidden',!data.warning)}
- catch(e){$('error').textContent=e.message+' — displayed state may be stale.';$('error').classList.remove('hidden')}
+ try{const r=await fetch('/api/oncall/batchsettlement/state');const data=await r.json();if(!r.ok)throw Error(data.error);render(data);$('error').textContent=data.warning?'ISRZ002 STATE UPDATE INCOMPLETE':'';$('error').classList.toggle('hidden',!data.warning)}
+ catch(e){$('error').textContent='ISRZ002 STATE UPDATE UNAVAILABLE - DISPLAY MAY BE STALE';$('error').classList.remove('hidden')}
 }
 async function action(path){
- try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(response.status===409?'JOB ALREADY ACTIVE':data.error);$('feedback').textContent=path.endsWith('reset')?data.message:'IKJ56250I JOB SETTLE(JOB04200) SUBMITTED'+(data.dry_run?' / DRY RUN':'');await poll()}
- catch(e){$('feedback').textContent=e.message}
+ try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(response.status===409?'IKJ56250I JOB SETTLE ALREADY ACTIVE':'ISRZ002 COMMAND NOT ACTIVE');$('feedback').textContent=path.endsWith('reset')?'IKJ56250I LOCAL DISPLAY RESET':'IKJ56250I JOB SETTLE(JOB04200) SUBMITTED'+(data.dry_run?' / DRY RUN':'');await poll()}
+ catch(e){$('feedback').textContent=e.message==='IKJ56250I JOB SETTLE ALREADY ACTIVE'?e.message:'ISRZ002 COMMAND NOT ACTIVE'}
 }
 $('fire').onclick=()=>action('/api/oncall/batchsettlement/runs');$('reset').onclick=()=>action('/api/oncall/batchsettlement/reset');
-const messageObserver=new MutationObserver(()=>{
- for(const id of ['error','feedback']){const el=$(id),text=opsText(el.textContent);if(text!==el.textContent)el.textContent=text}
-});
-for(const id of ['error','feedback'])messageObserver.observe($(id),{childList:true,subtree:true,characterData:true});
 $('command-form').onsubmit=event=>{event.preventDefault();runCommand($('command').value)};
 for(const button of document.querySelectorAll('[data-pf]'))button.onclick=()=>activatePF(button.dataset.pf);
 document.addEventListener('keydown',handleTerminalKey);

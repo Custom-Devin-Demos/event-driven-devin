@@ -555,8 +555,8 @@ describe('TN3270 batch console presentation', () => {
     for (const value of ['Session A - [24 x 80]  RGP1.REGIONS.TN3270', 'File Edit View Communication Actions Window Help',
       'Menu  Utilities  Compilers  Options  Status  Help', 'COMMAND INPUT ===&gt;', 'SCROLL ===&gt; CSR',
       '4B MA  *  a  SYSTEM  03/024', 'aria-label="F5 Submit overnight settlement"', 'aria-label="F6 Reset local state"',
-      'SUBMIT SETTLE / S SETTLE / F5', 'No local run']) expect(html).toContain(value);
-    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd']) expect(html).toContain('id="screen-' + id + '"');
+      'SUBMIT SETTLE / S SETTLE / F5', 'SDSF SYSLOG']) expect(html).toContain(value);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'log']) expect(html).toContain('id="screen-' + id + '"');
     expect(html).toContain('width:80ch');
     expect(html).toContain('white-space:pre');
     expect(html).toContain('min-height:44px');
@@ -585,57 +585,49 @@ describe('TN3270 batch console presentation', () => {
     expect(elements.get('mft-status').textContent).toBe('WAITING');
     expect(elements.get('jes-status').textContent).toBe('AWAITING INPUT');
   });
-  test('incident arrivals illuminate only failed jobs and render a textual response log with real links', () => {
+  test('incident state renders timestamped SYSLOG failures without incident or collaboration concepts', () => {
+    data.run = { created_at: '2026-11-16T01:59:00Z', status: 'complete', sent: ['mft', 'sql', 'mf'] };
     data.incidents = [incident('PU8BL8X'), incident('PQZQKW7'), incident('PN02JGH')];
-    data.activity = [{ content: 'Devin session started', created_at: '2026-11-16T02:02:00Z',
-      service: 'PagerDuty', author: 'PagerDuty', session_url: 'https://app.devin.ai/sessions/local-test',
-      slack_thread_url: 'https://slack.com/archives/test' }];
+    data.activity = [{ content: 'Devin session started', author: 'PagerDuty', service: 'Slack',
+      session_url: 'https://app.devin.ai/sessions/test', slack_thread_url: 'https://slack.com/test' }];
     ui.render(data);
-    expect(elements.get('jobs').children.filter((row) => row.className === 'job failed')
-      .map((row) => [row.dataset.jobId, row.children[5].textContent.trim()])).toEqual([
-      ['MFT_INBOUND', 'RC 0008'], ['SQL_STAGE', 'RC 0012'], ['EDW_LOAD', 'RC 0012'], ['SETTLE_POST', 'ABEND S013'],
-    ]);
-    expect(elements.get('mft-detail').textContent.replace(/\n/g, '')).toBe('FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure');
-    expect(elements.get('sql-detail').textContent.replace(/\n/g, '')).toContain('[SQLSTATE 08001]');
-    expect(elements.get('jes-detail').textContent).toContain('$HASP395 SETLPOST ENDED - ABEND=S013');
-    expect(text(elements.get('default-log'))).toContain('02:02:00 NOTIFIED ON-CALL: BATCH AND FILE TRANSFER OPERATIONS (ESCALATION LVL 1)');
-    const anchors = (el) => [...(el.tagName === 'A' ? [el] : []), ...el.children.flatMap(anchors)];
-    expect(anchors(elements.get('default-log')).map((link) => [link.textContent, link.href])).toEqual([['War room (Slack)', data.activity[0].slack_thread_url]]);
-    for (const el of elements.values()) {
-      expect(text(el)).not.toMatch(/devin/i);
-      expect(anchors(el).some((link) => link.href === data.activity[0].session_url)).toBe(false);
-    }
-    expect(elements.get('notes').children).toHaveLength(1);
+    const log = text(elements.get('syslog'));
+    for (const message of ['$HASP100 SETTLE ON INTRDR', 'AXW0008E MFTINBND AXWAY TRANSFER FAILED',
+      '$HASP395 MFTINBND ENDED - RC=0008', '$HASP395 SQLSTAGE ENDED - RC=0012',
+      '$HASP395 EDWLOAD ENDED - RC=0012', 'IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND',
+      'IEC130I INPUT DD STATEMENT MISSING', 'IEF450I SETLPOST STEP010 - ABEND=S013',
+      '$HASP395 SETLPOST ENDED - ABEND=S013']) expect(log).toContain(message);
+    expect(log).toContain('01:59:00 $HASP100');
+    expect(log).toContain('02:00:00 AXW0008E');
+    expect(text(elements.get('default-log'))).toBe(log);
+    for (const el of elements.values()) expect(text(el)).not.toMatch(/pagerduty|slack|on-call|devin|war room|PD#|TRIGGERED/i);
+    expect(html.replace(/<script>[\s\S]*?<\/script>/g, '')).not.toMatch(/pagerduty|slack|on-call|devin|war room/i);
+    expect(html).not.toContain('opsText');
+    expect(html).not.toContain('MutationObserver');
   });
-  test('real-mode fallback is timestamped in both logs, with Slack only and no session branding', () => {
-    data.run = { created_at: '2026-11-16T02:03:00Z', status: 'complete', sent: ['mft', 'sql', 'mf'],
-      session_url: 'https://app.devin.ai/sessions/real-mode', slack_thread_url: 'https://slack.com/archives/real-mode' };
-    ui.render(data);
-    for (const id of ['notes', 'default-log']) {
-      expect(text(elements.get(id))).toContain('02:03:00');
-      expect(text(elements.get(id))).toContain('NOTIFIED ON-CALL: BATCH AND FILE TRANSFER OPERATIONS (ESCALATION LVL 1)');
-      expect(text(elements.get(id))).toContain('War room (Slack)');
-      expect(text(elements.get(id))).not.toMatch(/devin/i);
-    }
-    data.run.slack_thread_url = null;
-    ui.render(data);
-    expect(text(elements.get('notes'))).not.toContain('War room');
-    data.run = null;
-    ui.render(data);
-    expect(text(elements.get('default-log'))).toBe('NO INCIDENTS. AWAITING SUBMIT SETTLE.');
-  });
-  test('responder authors, findings and warning copy use operator language without changing directive parsing', () => {
-    data.incidents = [incident('PU8BL8X', 'Devin: HOLD TREASURY; GL_POST COMPLETE')];
+  test('HOLD and RELEASE directives become operator commands at the state transition timestamp', () => {
+    data.incidents = [incident('PU8BL8X', 'Devin: GL_POST HOLD; TREASURY COMPLETE')];
     data.incidents[0].notes[0].author = 'Devin';
     ui.render(data);
-    expect(text(elements.get('notes'))).toContain('on-call responder');
-    expect(text(elements.get('notes'))).toContain('HOLD TREASURY; GL_POST COMPLETE');
-    for (const el of elements.values()) expect(text(el)).not.toMatch(/devin/i);
-    expect(ui.jobState({ id: 'TREASURY' }, data.incidents)[0]).toBe('hold');
+    const log = text(elements.get('syslog'));
+    expect(log).toContain('02:01:00 $HJ(JOB04206)');
+    expect(log).toContain('$HASP890 JOB(GLPOST) STATUS=(HELD)');
+    expect(log).toContain('02:01:00 $AJ(JOB04209)');
+    expect(log).toContain('$HASP395 TREASRY ENDED - RC=0000');
+    expect(log).not.toMatch(/Devin|GL_POST HOLD|TREASURY COMPLETE/);
+    data.incidents[0].notes.push({ content: 'GL_POST RELEASED', created_at: '2026-11-16T02:04:00Z' });
+    ui.render(data);
+    expect(text(elements.get('syslog'))).toContain('02:04:00 $AJ(JOB04206)');
+    expect(text(elements.get('syslog'))).not.toContain('$HJ(JOB04206)');
     expect(ui.jobState({ id: 'GL_POST' }, data.incidents)[0]).toBe('ready');
-    expect(ui.opsText('Slack/Devin dispatch unavailable')).toBe('Slack/on-call responder dispatch unavailable');
-    expect(ui.opsText('')).toBe('');
-    expect(html.replace(/<script>[\s\S]*?<\/script>/g, '')).not.toMatch(/devin/i);
+  });
+  test('empty state and unknown services emit no fabricated job errors', () => {
+    data.incidents = [incident('OTHER')];
+    ui.render(data);
+    expect(text(elements.get('syslog'))).toBe('IEE000I RGP1 SYSTEM LOG - NO MESSAGES');
+    data.incidents = [];
+    ui.render(data);
+    expect(text(elements.get('default-log'))).toBe('IEE000I RGP1 SYSTEM LOG - NO MESSAGES');
   });
   test.each(['HOLD', 'COMPLETE', 'RELEASED'])('all monitors and ST follow %s rather than stale incidents', (directive) => {
     data.incidents = [incident('PU8BL8X', directive + ' MFT_INBOUND, SQL_STAGE, EDW_LOAD, SETTLE_POST'), incident('PQZQKW7'), incident('PN02JGH')];
@@ -666,9 +658,9 @@ describe('TN3270 batch console presentation', () => {
       expect(elements.get(id).classList.toggle).toHaveBeenCalledWith('failed', false);
     }
   });
-  test.each([['=1', 'st'], ['MFT', 'mft'], ['=3', 'sql'], ['SPOOL', 'spool'], ['=5', 'pd'], ['SPLIT', 'default']])('command %s selects %s', (command, screen) => {
+  test.each([['=1', 'st'], ['MFT', 'mft'], ['=3', 'sql'], ['SPOOL', 'spool'], ['=5', 'log'], ['LOG', 'log'], ['PD', 'log'], ['SPLIT', 'default']])('command %s selects %s', (command, screen) => {
     ui.runCommand(command);
-    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd', 'help']) expect(elements.get('screen-' + id).hidden).toBe(id !== screen);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'log', 'help']) expect(elements.get('screen-' + id).hidden).toBe(id !== screen);
     expect(elements.get('command').value).toBe('');
     expect(request).not.toHaveBeenCalled();
   });
@@ -695,68 +687,67 @@ describe('TN3270 batch console presentation', () => {
     expect(elements.get('default-log').scrollBy).toHaveBeenCalledWith({ top: 180 });
     ui.activatePF('F11');
     expect(elements.get('screen-scroll').scrollBy).toHaveBeenCalledWith({ left: 240 });
-    for (const screen of ['st', 'mft', 'sql', 'spool', 'pd', 'default']) {
+    for (const screen of ['st', 'mft', 'sql', 'spool', 'log', 'default']) {
       ui.activatePF('F9');
       expect(elements.get('screen-' + screen).hidden).toBe(false);
     }
     elements.get('fire').disabled = true;
     ui.activatePF('F5');
-    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE ALREADY ACTIVE');
     ui.runCommand('BADCOMMAND');
-    expect(elements.get('feedback').textContent).toContain('COMMAND BADCOMMAND NOT FOUND');
+    expect(elements.get('feedback').textContent).toContain('ISRZ002 COMMAND NOT ACTIVE');
   });
-  test('initial incident fragment selects PD before data arrives, reveals once, and survives polling', () => {
-    const id = 'incident-PPU8BL8X';
-    ui.location.hash = '#' + id;
+  test('initial incident fragment selects ST, waits for state, highlights the job, and reveals only once', () => {
+    ui.location.hash = '#incident-PPU8BL8X';
     ui.followIncidentHash();
-    expect(elements.get('screen-pd').hidden).toBe(false);
+    expect(elements.get('screen-st').hidden).toBe(false);
     expect(request).not.toHaveBeenCalled();
     data.incidents = [incident('PU8BL8X')];
     ui.render(data);
+    const id = 'job-MFT_INBOUND';
     expect(elements.get(id).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
     expect(elements.get(id).classList.add).toHaveBeenCalledWith('incident-focus');
     ui.render(data);
     expect(elements.get(id).className).toContain('incident-focus');
     expect(elements.get(id).scrollIntoView).not.toHaveBeenCalled();
-    ui.switchScreen('st');
+    ui.switchScreen('log');
     ui.render(data);
-    expect(elements.get('screen-st').hidden).toBe(false);
+    expect(elements.get('screen-log').hidden).toBe(false);
     expect(html).toContain("window.addEventListener('hashchange',followIncidentHash)");
     expect(html).toContain('followIncidentHash();\npoll();');
   });
-  test('hash changes reveal another incident, while missing and unrelated fragments are safe', () => {
-    data.incidents = [incident('PU8BL8X'), incident('PQZQKW7')];
+  test('hash changes use custom service mappings; absent, unknown and unrelated fragments are safe', () => {
+    data.service_jobs = { CUSTOM: ['SQL_STAGE', 'EDW_LOAD'] };
+    data.incidents = [incident('CUSTOM'), incident('OTHER')];
     ui.render(data);
-    ui.location.hash = '#incident-PPU8BL8X';
+    ui.location.hash = '#incident-PCUSTOM';
     ui.followIncidentHash();
-    ui.location.hash = '#incident-PPQZQKW7';
-    ui.followIncidentHash();
-    expect(elements.get('incident-PPU8BL8X').classList.remove).toHaveBeenCalledWith('incident-focus');
-    expect(elements.get('incident-PPQZQKW7').scrollIntoView).toHaveBeenCalledTimes(1);
-    ui.location.hash = '#incident-NOT_IN_STATE';
-    expect(() => ui.followIncidentHash()).not.toThrow();
-    ui.switchScreen('st');
-    ui.location.hash = '#unrelated';
-    ui.followIncidentHash();
+    expect(elements.get('job-SQL_STAGE').scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(elements.get('job-EDW_LOAD').classList.add).toHaveBeenCalledWith('incident-focus');
     expect(elements.get('screen-st').hidden).toBe(false);
+    for (const hash of ['#incident-POTHER', '#incident-NOT_IN_STATE', '#unrelated', '']) {
+      ui.location.hash = hash;
+      expect(() => ui.followIncidentHash()).not.toThrow();
+    }
+    expect(elements.get('job-EDW_LOAD').classList.remove).toHaveBeenCalledWith('incident-focus');
     expect(request).not.toHaveBeenCalled();
   });
   test('persistent polling warnings keep submit, command, API-error and reset results on a separate line', async () => {
-    data.warning = 'Fixture persistent poll warning';
+    data.warning = 'PagerDuty Slack/on-call Devin dispatch failure';
     await ui.action('/api/oncall/batchsettlement/runs');
     expect(elements.get('feedback').textContent).toContain('IKJ56250I JOB SETTLE(JOB04200) SUBMITTED');
-    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
     ui.runCommand('INVALID');
     await ui.poll();
-    expect(elements.get('feedback').textContent).toContain('COMMAND INVALID NOT FOUND');
-    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(elements.get('feedback').textContent).toContain('ISRZ002 COMMAND NOT ACTIVE');
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
     request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
     await ui.action('/api/oncall/batchsettlement/runs');
-    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE ALREADY ACTIVE');
     request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
     await ui.action('/api/oncall/batchsettlement/reset');
-    expect(elements.get('feedback').textContent).toBe('Local state reset');
-    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE INCOMPLETE');
     expect(html).toContain('.messages>span{display:block}');
     expect(html).not.toContain('#error:not(.hidden)+#feedback{display:none}');
   });
@@ -768,13 +759,16 @@ describe('TN3270 batch console presentation', () => {
     expect(request.mock.calls[1][0]).toBe('/api/oncall/batchsettlement/state');
     request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
     await ui.action('/api/oncall/batchsettlement/runs');
-    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
-    request.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'Fixture error' }) });
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE ALREADY ACTIVE');
+    request.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'PagerDuty Slack/on-call Devin dispatch failure' }) });
     await ui.action('/api/oncall/batchsettlement/runs');
-    expect(elements.get('feedback').textContent).toBe('Fixture error');
+    expect(elements.get('feedback').textContent).toBe('ISRZ002 COMMAND NOT ACTIVE');
     request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
     await ui.action('/api/oncall/batchsettlement/reset');
-    expect(elements.get('feedback').textContent).toBe('Local state reset');
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I LOCAL DISPLAY RESET');
+    request.mockRejectedValueOnce(new Error('PagerDuty Slack/on-call Devin dispatch failure'));
+    await ui.poll();
+    expect(elements.get('error').textContent).toBe('ISRZ002 STATE UPDATE UNAVAILABLE - DISPLAY MAY BE STALE');
   });
 });
 
