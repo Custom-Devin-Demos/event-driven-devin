@@ -384,8 +384,45 @@ function listServiceKeys() {
   return keys;
 }
 
+/**
+ * Send a message to an existing Devin session — or to a Bot's current
+ * conversation by passing its `bot-<id>` — via
+ * POST /v3/organizations/{org_id}/sessions/{session_id}/messages.
+ * Returns { sessionId, url } or null when not configured / on failure.
+ */
+async function sendDevinSessionMessage(sessionId, message, options = {}) {
+  const { serviceKey, orgId } = resolveServiceAuth(options);
+  if (!serviceKey || !orgId || !sessionId) {
+    logger.warn('Devin service key, org ID or session ID missing — message not sent', { sessionId });
+    return null;
+  }
+  try {
+    const response = await axios.post(
+      `${DEVIN_API_BASE}/v3/organizations/${orgId}/sessions/${encodeURIComponent(sessionId)}/messages`,
+      { message },
+      {
+        headers: { Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+        timeout: 15000,
+      },
+    );
+    const data = response.data || {};
+    const id = data.session_id || sessionId;
+    logger.info('Devin session message sent via v3 API', { sessionId: id });
+    return { sessionId: id, url: data.url || null };
+  } catch (error) {
+    logger.error('Failed to send Devin session message via v3 API', {
+      sessionId,
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return null;
+  }
+}
+
 module.exports = {
   createDevinSession,
+  sendDevinSessionMessage,
   listEnterpriseOrgs,
   listServiceKeys,
   listOrgUsers,

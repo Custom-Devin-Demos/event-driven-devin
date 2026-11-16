@@ -266,6 +266,7 @@
       const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: '2-digit', minute: '2-digit' });
       const DEMO = { from: fromAccount.value, to: toAccount.value, amount: amountInput.value, reference: referenceInput.value };
       const balances = {};
+      const PAYEE_IDS = { 'PAYEE-PSHAH': 'priya-shah', 'PAYEE-OAKFIELD': 'oakfield-lettings', 'KB-41827365': 'own-41827365', 'KB-70254418': 'own-70254418' };
       Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
       let pending = false;
       let ticker = null;
@@ -273,7 +274,7 @@
       const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
       const selected = (select) => select.options[select.selectedIndex];
       const available = () => balances[fromAccount.value] || 0;
-      const maxPayable = () => Math.max(Math.floor(Math.min(available() - 2.5, available() / 1.001) * 100), 0) / 100;
+      const maxPayable = () => Math.max(Math.floor(available() * 100), 0) / 100;
       function parsedAmount() {
         const raw = amountInput.value.trim().replace(/,/g, '');
         if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
@@ -364,33 +365,31 @@
         const toName = to.dataset.name;
         let response;
         try {
-          response = await fetch('/api/banking/transfer', {
+          const alertsOn = new URLSearchParams(location.search).get('reports') !== 'off';
+          response = await fetch('/api/oncall/2e790636/mobile/payments', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Client-Platform': 'web',
+              'X-Client-Release': 'kestrel-web@2026.11.2',
+              'X-Demo-Alerts': alertsOn ? 'on' : 'off',
+            },
             body: JSON.stringify({
-              fromAccount: fromAccount.value,
-              toAccount: toAccount.value,
-              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
-              accountTier: accountTier.value,
-              devinUserId: localStorage.getItem('devinUserId') || '',
-              devinOrgId: localStorage.getItem('devinOrgId') || '',
-              devinEmail: localStorage.getItem('devinEmail') || '',
+              fromAccount: fromId.replace(/^KB-/, ''),
+              payeeId: PAYEE_IDS[toId] || toId,
+              amountMinor: Math.round(amount * 100),
+              currency: 'GBP',
+              reference: referenceInput.value.trim() || 'Online Banking',
             }),
           });
           const data = await response.json().catch(() => null);
           tick();
           if (!response.ok) throw new Error('not sent');
-          if (!data || !data.receipt) throw new Error('unknown');
-          const at = timeFmt.format(new Date(data.receipt.timestamp));
-          const paid = Number(data.receipt.amount);
-          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
-          if (data.duplicate) {
-            result.className = 'result-box notice';
-            result.textContent = S.duplicate(at, money.format(paid), toName, data.receipt.receiptId);
-            status.textContent = S.statusIdle;
-            stopTimer(true);
-            return;
-          }
+          if (!data || data.status !== 'completed' || !data.confirmationId) throw new Error('unknown');
+          const at = timeFmt.format(new Date());
+          const paid = Math.round(amount * 100) / 100;
+          const debited = paid;
+          data.receipt = { receiptId: data.confirmationId };
           balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
           if (toId !== fromId && Object.prototype.hasOwnProperty.call(balances, toId)) balances[toId] = Math.round((balances[toId] + paid) * 100) / 100;
           renderBalances();
