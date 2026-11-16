@@ -28,6 +28,7 @@ a,.pr-badge{color:var(--cyan);text-decoration:underline}a:focus-visible,button:f
 .pfkeys button{font:inherit;line-height:1.4;min-height:1.4em;padding:0 1ch 0 0;color:var(--cyan);background:#000;border:0;border-radius:0;cursor:pointer;white-space:pre;text-decoration:none}
 .pfkeys button:disabled{color:var(--blue);cursor:wait}.oia{color:var(--blue);border-top:1px solid var(--blue);white-space:pre;overflow:hidden;max-width:80ch;margin:auto}
 .scheduled .status{color:#00ff00}.empty{color:var(--green)}.screen small{font:inherit}.link-gap{white-space:pre}
+.incident-focus>.line:first-child{color:#fff;text-decoration:underline}
 @media(max-width:900px){.screen{font-size:16px}}
 @media(max-width:650px){main{padding:8px 0}.emulator{border-left:0;border-right:0}.screen{padding:10px 8px 4px}.menu-bar{word-spacing:5px;font-size:11px}header{padding:10px 12px}h1{font-size:14px}.pfkeys{min-height:0}.pfkeys button{min-height:44px;display:flex;align-items:center}.pfkeys .primary-key{order:-1}.window-title{font-size:11px}.oia{font-size:12px}}
 </style>
@@ -232,7 +233,7 @@ function render(data){
  renderMonitors(data.incidents);
  $('incident-count').textContent=data.incidents.length+' active in session';
  $('incidents').replaceChildren(...data.incidents.map(i=>{
-  const el=node('div',undefined,'incident');
+  const el=node('div',undefined,'incident'+('incident-'+i.id===incidentTarget?' incident-focus':''));
   el.id='incident-'+i.id;
   el.append(node('div',wrap(clock(i.created_at)+' PD#'+(i.incident_number||i.id)+' '+i.status.toUpperCase()+' '+i.service.name),'line '+(i.status==='triggered'?'error':'label')),node('div',wrap(i.title),'line'),node('div',wrap(i.id+' / '+time(i.created_at)),'line'));
   return el;
@@ -258,8 +259,9 @@ function render(data){
  if(data.run?.session_url&&!notes.some(n=>n.session_url===data.run.session_url)){
   const el=node('div','DEVIN SESSION STARTED','line');appendLinks(el,data.run);$('default-log').append(el);
  }
+ revealIncident();
 }
-let activeScreen='default';
+let activeScreen='default',incidentTarget='',pendingIncidentFocus=false;
 const screenTitles={
  default:'SDSF STATUS DISPLAY ALL CLASSES                         RGP1  LINE 1-10 (10)',
  st:'SDSF STATUS DISPLAY ALL CLASSES / OWNERS / PRED-SUCC      RGP1  ST',
@@ -273,6 +275,22 @@ function switchScreen(screen){
  for(const id of Object.keys(screenTitles))$('screen-'+id).hidden=id!==screen;
  activeScreen=screen;
  $('screen-title').textContent=screenTitles[screen];
+ if(screen==='pd')revealIncident();
+}
+function revealIncident(){
+ if(!pendingIncidentFocus||activeScreen!=='pd')return;
+ const incident=$(incidentTarget);
+ if(!incident)return;
+ incident.classList.add('incident-focus');
+ incident.scrollIntoView({block:'nearest',inline:'nearest'});
+ pendingIncidentFocus=false;
+}
+function followIncidentHash(){
+ const previous=incidentTarget&&$(incidentTarget);
+ if(previous)previous.classList.remove('incident-focus');
+ incidentTarget=/^#incident-[A-Za-z0-9_-]+$/.test(location.hash)?location.hash.slice(1):'';
+ pendingIncidentFocus=!!incidentTarget;
+ if(incidentTarget)switchScreen('pd');
 }
 function activatePF(key){
  const actions={
@@ -312,6 +330,8 @@ $('fire').onclick=()=>action('/api/oncall/batchsettlement/runs');$('reset').oncl
 $('command-form').onsubmit=event=>{event.preventDefault();runCommand($('command').value)};
 for(const button of document.querySelectorAll('[data-pf]'))button.onclick=()=>activatePF(button.dataset.pf);
 document.addEventListener('keydown',handleTerminalKey);
+window.addEventListener('hashchange',followIncidentHash);
+followIncidentHash();
 poll();setInterval(poll,5000);
 </script>
 </body></html>

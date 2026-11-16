@@ -526,6 +526,7 @@ describe('ported tile rules', () => {
 
 describe('TN3270 batch console presentation', () => {
   const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/db10f6b2.html'), 'utf8');
+  const shellIds = new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1].split("$('fire').onclick")[0];
   const jobs = require('../app/services/oncall-verticals/batchsettlement-jobs.json');
   let ui, elements, data, request;
@@ -535,13 +536,15 @@ describe('TN3270 batch console presentation', () => {
   const text = (el) => el.textContent + el.children.map(text).join('');
   beforeEach(() => {
     const element = (tag = 'div') => ({ tagName: tag.toUpperCase(), children: [], dataset: {}, textContent: '',
-      click: jest.fn(), scrollBy: jest.fn(),
-      classList: { toggle: jest.fn(), remove: jest.fn() }, append(...children) { this.children.push(...children); },
+      set id(value) { this._id = value; elements.set(value, this); }, get id() { return this._id; },
+      click: jest.fn(), scrollBy: jest.fn(), scrollIntoView: jest.fn(),
+      classList: { toggle: jest.fn(), remove: jest.fn(), add: jest.fn() }, append(...children) { this.children.push(...children); },
       replaceChildren(...children) { this.children = children; } });
     elements = new Map();
     request = jest.fn(async () => ({ ok: true, status: 200, json: async () => data }));
-    ui = vm.createContext({ fetch: request, localStorage: { getItem: (key) => presenter[key] || '' },
+    ui = vm.createContext({ fetch: request, location: { hash: '' }, localStorage: { getItem: (key) => presenter[key] || '' },
       document: { createElement: element, getElementById(id) {
+        if (!shellIds.has(id)) return elements.get(id) || null;
         if (!elements.has(id)) elements.set(id, element());
         return elements.get(id);
       } } });
@@ -667,6 +670,42 @@ describe('TN3270 batch console presentation', () => {
     expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
     ui.runCommand('BADCOMMAND');
     expect(elements.get('feedback').textContent).toContain('COMMAND BADCOMMAND NOT FOUND');
+  });
+  test('initial incident fragment selects PD before data arrives, reveals once, and survives polling', () => {
+    const id = 'incident-PPU8BL8X';
+    ui.location.hash = '#' + id;
+    ui.followIncidentHash();
+    expect(elements.get('screen-pd').hidden).toBe(false);
+    expect(request).not.toHaveBeenCalled();
+    data.incidents = [incident('PU8BL8X')];
+    ui.render(data);
+    expect(elements.get(id).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
+    expect(elements.get(id).classList.add).toHaveBeenCalledWith('incident-focus');
+    ui.render(data);
+    expect(elements.get(id).className).toContain('incident-focus');
+    expect(elements.get(id).scrollIntoView).not.toHaveBeenCalled();
+    ui.switchScreen('st');
+    ui.render(data);
+    expect(elements.get('screen-st').hidden).toBe(false);
+    expect(html).toContain("window.addEventListener('hashchange',followIncidentHash)");
+    expect(html).toContain('followIncidentHash();\npoll();');
+  });
+  test('hash changes reveal another incident, while missing and unrelated fragments are safe', () => {
+    data.incidents = [incident('PU8BL8X'), incident('PQZQKW7')];
+    ui.render(data);
+    ui.location.hash = '#incident-PPU8BL8X';
+    ui.followIncidentHash();
+    ui.location.hash = '#incident-PPQZQKW7';
+    ui.followIncidentHash();
+    expect(elements.get('incident-PPU8BL8X').classList.remove).toHaveBeenCalledWith('incident-focus');
+    expect(elements.get('incident-PPQZQKW7').scrollIntoView).toHaveBeenCalledTimes(1);
+    ui.location.hash = '#incident-NOT_IN_STATE';
+    expect(() => ui.followIncidentHash()).not.toThrow();
+    ui.switchScreen('st');
+    ui.location.hash = '#unrelated';
+    ui.followIncidentHash();
+    expect(elements.get('screen-st').hidden).toBe(false);
+    expect(request).not.toHaveBeenCalled();
   });
   test('existing API identity and endpoints are preserved with submission, reset and 409 messages', async () => {
     await ui.action('/api/oncall/batchsettlement/runs');
