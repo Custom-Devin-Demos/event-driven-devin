@@ -1,0 +1,157 @@
+[
+  {
+    "id": "MFT_INBOUND",
+    "upstream": [],
+    "downstream": [
+      "SQL_STAGE"
+    ],
+    "owner_team": "Managed File Transfer",
+    "on_call": {
+      "name": "Lena Voss",
+      "email": "lena.voss@batchops.example",
+      "phone": "+1-205-555-0100"
+    },
+    "sla": "02:15:00"
+  },
+  {
+    "id": "SQL_STAGE",
+    "upstream": [
+      "MFT_INBOUND"
+    ],
+    "downstream": [
+      "EDW_LOAD"
+    ],
+    "owner_team": "Data Integration",
+    "on_call": {
+      "name": "Arlen Kest",
+      "email": "arlen.kest@batchops.example",
+      "phone": "+1-205-555-0101"
+    },
+    "sla": "02:25:00"
+  },
+  {
+    "id": "EDW_LOAD",
+    "upstream": [
+      "SQL_STAGE"
+    ],
+    "downstream": [
+      "MF_EXTRACT"
+    ],
+    "owner_team": "Enterprise Data Warehouse",
+    "on_call": {
+      "name": "Arlen Kest",
+      "email": "arlen.kest@batchops.example",
+      "phone": "+1-205-555-0102"
+    },
+    "sla": "02:40:00"
+  },
+  {
+    "id": "MF_EXTRACT",
+    "upstream": [
+      "EDW_LOAD"
+    ],
+    "downstream": [
+      "SETTLE_POST"
+    ],
+    "owner_team": "Enterprise Data Warehouse",
+    "on_call": {
+      "name": "Arlen Kest",
+      "email": "arlen.kest@batchops.example",
+      "phone": "+1-205-555-0103"
+    },
+    "sla": "02:50:00"
+  },
+  {
+    "id": "SETTLE_POST",
+    "upstream": [
+      "MF_EXTRACT"
+    ],
+    "downstream": [
+      "GL_POST",
+      "STATEMENTS",
+      "FRAUD_REFRESH"
+    ],
+    "owner_team": "Core Settlement",
+    "on_call": {
+      "name": "Mira Ellery",
+      "email": "mira.ellery@batchops.example",
+      "phone": "+1-205-555-0104"
+    },
+    "sla": "03:10:00"
+  },
+  {
+    "id": "GL_POST",
+    "upstream": [
+      "SETTLE_POST"
+    ],
+    "downstream": [
+      "REG_REPORT",
+      "STATEMENTS",
+      "TREASURY"
+    ],
+    "owner_team": "Finance Technology",
+    "on_call": {
+      "name": "Dorian Vale",
+      "email": "dorian.vale@batchops.example",
+      "phone": "+1-205-555-0105"
+    },
+    "sla": "03:30:00"
+  },
+  {
+    "id": "REG_REPORT",
+    "upstream": [
+      "GL_POST"
+    ],
+    "downstream": [],
+    "owner_team": "Regulatory Technology",
+    "on_call": {
+      "name": "Nella Wren",
+      "email": "nella.wren@batchops.example",
+      "phone": "+1-205-555-0106"
+    },
+    "sla": "04:30:00"
+  },
+  {
+    "id": "STATEMENTS",
+    "upstream": [
+      "SETTLE_POST",
+      "GL_POST"
+    ],
+    "downstream": [],
+    "owner_team": "Customer Communications",
+    "on_call": {
+      "name": "Orin Thale",
+      "email": "orin.thale@batchops.example",
+      "phone": "+1-205-555-0107"
+    },
+    "sla": "05:00:00"
+  },
+  {
+    "id": "TREASURY",
+    "upstream": [
+      "GL_POST"
+    ],
+    "downstream": [],
+    "owner_team": "Treasury Technology",
+    "on_call": {
+      "name": "Sera Dain",
+      "email": "sera.dain@batchops.example",
+      "phone": "+1-205-555-0108"
+    },
+    "sla": "04:00:00"
+  },
+  {
+    "id": "FRAUD_REFRESH",
+    "upstream": [
+      "SETTLE_POST"
+    ],
+    "downstream": [],
+    "owner_team": "Financial Crime Data",
+    "on_call": {
+      "name": "Tavin Rell",
+      "email": "tavin.rell@batchops.example",
+      "phone": "+1-205-555-0109"
+    },
+    "sla": "04:15:00"
+  }
+]

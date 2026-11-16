@@ -101,7 +101,26 @@
  * served at /oncall/healthcare/<vertical>/<slug>, the URL shared for healthcare demos.
  */
 
+const { SLUG: BATCH_SLUG, promptAppendix: batchPrompt } = require('./regions-batch');
+
 const ONCALL_SKINS = {
+  [BATCH_SLUG]: {
+    slug: BATCH_SLUG, company: 'Regions Bank', vertical: 'batchsettlement', oncallOnly: true,
+    paths: ['/regions-batch-oncall'], hideRibbon: true, alertDestination: 'slack',
+    slackChannelId: 'C0BNWUGCWBS', slackChannelName: '#oncall-alerts',
+    onCallSlackMemberId: 'U0BQZBHCNMA', incidentInviteUserIds: ['U0BQZBHCNMA'],
+    devinSession: { auto: true, onCallIsTriggerer: true,
+      repo: { name: 'COG-GTM/rg-oncall', branch: 'main' }, promptAppendix: batchPrompt },
+    page: { file: `${BATCH_SLUG}.html`, title: 'Regions — Enterprise Batch Control' },
+    theme: { '--accent': '#356e20', '--ink': '#1f2430', '--surface': '#ffffff', '--chrome-bg': '#24521b', '--chrome-text': '#ffffff' },
+    disclaimer: 'Not a Regions Bank system — internal demo only.',
+    alertCard: {
+      title: 'Axway MFT inbound settlement file not received by SLA, TLS handshake failure',
+      service: 'axway-mft-gateway', team: 'batch-and-file-transfer-ops',
+      symptom: 'Axway inbound settlement file is missing after a TLS handshake failure.',
+      impact: 'SQL loads, mainframe settlement and downstream reporting are blocked.',
+    },
+  },
   db261a21: {
     slug: 'db261a21',
     company: 'Walmart',
