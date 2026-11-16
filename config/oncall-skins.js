@@ -4328,21 +4328,12 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A VIVID SEATS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Vivid Seats product.',
   },
-  '898defe9': {
-    slug: '898defe9',
+  '45a78d97': {
+    slug: '45a78d97',
     company: 'OpenSea',
-    brandMark: 'OS',
     vertical: 'banking',
     oncallOnly: true,
-    page: { file: '898defe9.html', title: 'Checkout | OpenSea' },
-    theme: {
-      '--accent': '#2081E2',
-      '--ink': '#121212',
-      '--surface': '#FFFFFF',
-      '--chrome-bg': '#121212',
-      '--chrome-text': '#FFFFFF',
-    },
-    supportCenter: 'OpenSea Help Center',
+    page: { file: '45a78d97.html', title: 'Pudgy Penguin #591 - Pudgy Penguins | OpenSea' },
     alertCard: {
       title: 'p95 latency \u2014 NFT checkout Complete purchase',
       release: 'checkout-web@1.0.3',
