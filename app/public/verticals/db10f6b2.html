@@ -40,7 +40,8 @@ function jobState(job,incidents){
   let holdSection=false;
   for(const raw of note.content.split('\n')){
    const line=raw.replace(/^\s*[-*]\s*/, '').trim().split(/\b(?:until|once|before)\b/i)[0];
-   if(/^[A-Z][A-Z ]+:/.test(line))holdSection=/^HOLD\b/.test(line);
+   const jobBullet=/^\s*[-*]\s*[A-Z][A-Z0-9_]*\s*:/.test(raw);
+   if(!jobBullet&&/^[A-Z][A-Z ]+:/.test(line))holdSection=/^HOLD\b/.test(line);
    let listDirective=null;
    for(const clause of line.split(/(;|,|\s+and\s+)/i)){
     if(clause===';'){listDirective=null;continue}

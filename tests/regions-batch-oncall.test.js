@@ -356,6 +356,18 @@ describe('ported tile rules', () => {
     expect(ui.jobState({ id: 'TREASURY' }, items)[0]).toBe('hold');
     expect(ui.jobState({ id: 'TREASURY' }, [incident('GL_POST COMPLETE; TREASURY remains scheduled')])[0]).toBe('scheduled');
   });
+  test('job-owner bullets preserve the HOLD section until the next heading', () => {
+    const items = [incident('HOLD:\n- TREASURY: Treasury Technology, SLA 04:00\n- GL_POST: Finance Technology, SLA 03:30\nRERUN ORDER:\n- REG_REPORT: Regulatory Technology')];
+    for (const id of ['TREASURY', 'GL_POST']) expect(ui.jobState({ id }, items)[0]).toBe('hold');
+    expect(ui.jobState({ id: 'REG_REPORT' }, items)[0]).toBe('scheduled');
+  });
+  test('live response note lists preserve failure and HOLD states with a Fix PR badge only', () => {
+    const content = 'Root cause: shared TLS profile is incompatible with the post-patch gateway policy.\nHOLD MF_EXTRACT, GL_POST, REG_REPORT, STATEMENTS, TREASURY, FRAUD_REFRESH\nDo not resubmit SQL_STAGE, EDW_LOAD\nFix PR https://github.com/COG-GTM/rg-oncall/pull/2\nAwaiting human approval to merge and release holds';
+    const items = [incident(content), incident('', 'PQZQKW7'), incident('', 'PN02JGH')];
+    for (const id of ['MFT_INBOUND', 'SETTLE_POST']) expect(ui.jobState({ id }, items)[0]).toBe('failed');
+    for (const id of ['SQL_STAGE', 'EDW_LOAD', 'MF_EXTRACT', 'GL_POST', 'REG_REPORT', 'STATEMENTS', 'TREASURY', 'FRAUD_REFRESH']) expect(ui.jobState({ id }, items)[0]).toBe('hold');
+    expect(ui.fixPRs(items)).toEqual(['https://github.com/COG-GTM/rg-oncall/pull/2']);
+  });
 });
 
 test('deployment accepts only the specified five secret formats and stages all five Actions secrets', () => {
