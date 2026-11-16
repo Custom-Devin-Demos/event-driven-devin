@@ -4,29 +4,127 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Regions — Enterprise Batch Control</title>
 <style>
-:root{--accent:#356e20;--ink:#1f2430;--line:#dce0df;--muted:#69736e}
-*{box-sizing:border-box}body{margin:0;background:#f3f5f3;color:var(--ink);font:13px system-ui,sans-serif;font-variant-numeric:tabular-nums}
-header{height:62px;background:#24521b;color:white;display:flex;align-items:center;justify-content:space-between;padding:0 28px}h1{font-size:18px;font-weight:600;letter-spacing:-.3px}header small{opacity:.8;font-size:11px;letter-spacing:1.4px}
-main{max-width:1600px;margin:auto;padding:25px 28px 14px}.intro{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}h2{font-size:24px;letter-spacing:-.7px;margin:0 0 6px}p{margin:0;color:var(--muted)}
-button{font:inherit;cursor:pointer;border:1px solid var(--accent);border-radius:3px;min-height:44px;padding:11px 16px;font-weight:600;background:var(--accent);color:white}button:disabled{opacity:.55;cursor:wait}.quiet{color:#4b574e;background:transparent;border:0;font-weight:500}
-.topline{display:flex;gap:30px;align-items:center;padding:13px 17px;border:1px solid var(--line);background:white;margin-bottom:18px}.eyebrow{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted)}.topline strong{font-size:12px;display:block;margin-top:4px}.mode{margin-left:auto;border:1px solid #d8dfd5;padding:5px 8px;color:var(--accent);font-size:10px;letter-spacing:.7px}
-.layout{display:grid;grid-template-columns:minmax(670px,1.7fr) minmax(330px,1fr);gap:18px;align-items:start}.panel{border:1px solid var(--line);background:#fff}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:15px 17px;border-bottom:1px solid var(--line)}h3{font-size:13px;margin:0}small,.small{font-size:11px;color:var(--muted)}.legend{display:flex;gap:12px;font-size:10px;color:var(--muted)}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#8b949b;margin-right:4px}.dot.failed{background:#b72e35}.dot.hold{background:#b7750a}.dot.ready{background:var(--accent)}
-.columns,.job{display:grid;grid-template-columns:28px minmax(135px,1.15fr) minmax(170px,1.4fr) 55px 82px;gap:12px;align-items:center}.columns{padding:9px 16px;background:#f8f9f8;color:var(--muted);font-size:10px;letter-spacing:.7px}.job{min-height:66px;padding:10px 16px;border-top:1px solid #e7eae7;border-left:3px solid #949da3}.seq{color:#929b96;font:11px ui-monospace,monospace}.job b{font:600 12px ui-monospace,monospace}.owner{display:block;font-size:10px;color:var(--muted);margin-top:5px}.deps{font-size:10px;color:#5d6861;line-height:1.7;overflow-wrap:anywhere}.deps span{color:#8b958e}.sla{font:11px ui-monospace,monospace}.status{font-size:9px;letter-spacing:.5px;font-weight:650;text-align:center;padding:5px 3px;background:#eef0f1;color:#616b74;border:1px solid #dfe3e5}.job.failed{border-left-color:#b72e35;background:#fffafa}.failed .status{background:#fbe9e9;color:#aa2830;border-color:#efcfd1}.job.hold{border-left-color:#b7750a;background:#fffdf7}.hold .status{background:#fff2d6;color:#8b5a08;border-color:#eeddb9}.job.ready{border-left-color:var(--accent);background:#f9fcf8}.ready .status{background:#e9f3e5;color:var(--accent);border-color:#cee0c6}.panel-foot{padding:11px 16px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
-.incident{padding:13px 16px;border-bottom:1px solid var(--line)}.incident-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:7px}.service{font-weight:600;font-size:12px}.pd-status{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#8b5a08}.pd-status.triggered{color:#b72e35}.incident p{font-size:11px;line-height:1.5;color:#444d47;margin-bottom:7px}.timeline{padding:0 16px;max-height:380px;overflow:auto}.note{border-left:1px solid #d9dfda;padding:14px 0 12px 15px;margin-left:3px}.note-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:12px;margin-top:7px}.empty{padding:24px 17px;line-height:1.7;font-size:12px;color:var(--muted)}.note-heading{padding:14px 16px;border-bottom:1px solid var(--line);background:#fafbfa}.error{color:#a42a31;background:#fff3f3;border:1px solid #edced0;padding:10px 14px;margin-bottom:14px}.hidden{display:none}footer{padding:14px 0;color:#7b847e;font-size:10px;display:flex;justify-content:space-between}#feedback{font-size:11px;margin-top:8px;text-align:right;color:var(--muted)}@media(max-width:1050px){.layout{grid-template-columns:1fr}main{padding:18px}.intro{gap:15px}header{padding:0 18px}}@media(max-width:650px){.columns,.job{grid-template-columns:20px 1fr 60px 75px}.deps{display:none}.intro{align-items:start;flex-direction:column}.topline{gap:15px;flex-wrap:wrap}.legend{display:none}header small{display:none}}
+:root{--accent:#356e20;--ink:#000;--green:#33ff33;--cyan:#00ffff;--red:#ff3333;--yellow:#ffff00;--blue:#5555ff}
+*{box-sizing:border-box}body{margin:0;background:#bdbdbd;color:#000;font:13px system-ui,sans-serif}
+header{background:#24521b;color:#fff;padding:10px 18px}h1{font-size:15px;font-weight:500;margin:0}
+main{padding:24px 12px;max-width:1080px;margin:auto}.emulator{border:2px solid;border-color:#fff #606060 #606060 #fff;background:#c0c0c0;padding:3px;min-width:0}
+.window-title{background:#24521b;color:#fff;font:12px/26px system-ui,sans-serif;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-bar{padding:5px 8px;font:12px/20px system-ui,sans-serif;word-spacing:12px;border-bottom:1px solid #808080}
+.screen{background:#000;color:var(--green);padding:12px 16px 4px;font:18px/1.4 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-variant-ligatures:none;min-width:0}
+.screen-scroll{overflow-x:auto;min-width:0}.character-grid{width:80ch;min-width:80ch;margin:auto;white-space:normal}.line{min-height:1.4em;white-space:pre;margin:0;font:inherit}
+.ispf-menu,.label,.columns,.screen-title{color:var(--cyan)}.rule{color:var(--blue)}.screen-title{font-weight:400}
+.command-line{display:flex;align-items:baseline;height:1.4em;margin:0;white-space:pre}.command-line label{color:var(--cyan)}
+#command{width:30ch;padding:0;border:0;border-bottom:1px solid var(--green);border-radius:0;outline:0;color:var(--green);background:#000;caret-color:#fff;font:inherit;line-height:1.2}
+#command:focus{border-bottom-color:var(--cyan)}.messages{min-height:1.4em;color:var(--yellow)}.messages>span{display:block}.error{color:var(--red)}.hidden,[hidden]{display:none!important}
+.character-grid:has(#error:not(.hidden)) .screen-area{height:21em}.character-grid:has(#error:not(.hidden)) #default-log{height:4.2em}
+.screen-area{height:22.4em}.view{height:100%;width:80ch;overflow:auto;scrollbar-color:#5555ff #000;white-space:normal}
+.view:focus-visible,.screen-scroll:focus-visible{outline:1px solid var(--cyan);outline-offset:-1px}
+.job,.summary-job{white-space:pre}.status{color:#00ff00}.failed .status,.failed .job-name,.failed.signal,.failed.evidence{color:var(--red)}
+.hold .status,.hold.signal,.hold.evidence{color:var(--yellow)}.ready .status,.ready.signal,.ready.evidence{color:#fff}
+.source-id,.deps{color:var(--cyan)}.owner{color:var(--green)}.seq{color:var(--cyan)}
+a,.pr-badge{color:var(--cyan);text-decoration:underline}a:focus-visible,button:focus-visible{outline:1px solid var(--cyan);outline-offset:-1px}
+.log-heading{color:var(--cyan)}#default-log{height:5.6em;overflow:auto;white-space:pre;scrollbar-color:#5555ff #000}
+.incident,.note{margin:0;white-space:normal}.note-text{white-space:pre}.evidence{margin:0;font:inherit;white-space:pre}.signal{color:var(--green)}
+.pfkeys{display:flex;flex-wrap:wrap;max-width:80ch;margin:auto;align-items:start;min-height:2.8em;line-height:1.4}
+.pfkeys button{font:inherit;line-height:1.4;min-height:1.4em;padding:0 1ch 0 0;color:var(--cyan);background:#000;border:0;border-radius:0;cursor:pointer;white-space:pre;text-decoration:none}
+.pfkeys button:disabled{color:var(--blue);cursor:wait}.oia{color:var(--blue);border-top:1px solid var(--blue);white-space:pre;overflow:hidden;max-width:80ch;margin:auto}
+.scheduled .status{color:#00ff00}.empty{color:var(--green)}.screen small{font:inherit}.link-gap{white-space:pre}
+.incident-focus>.line:first-child{color:#fff;text-decoration:underline}
+@media(max-width:900px){.screen{font-size:16px}}
+@media(max-width:650px){main{padding:8px 0}.emulator{border-left:0;border-right:0}.screen{padding:10px 8px 4px}.menu-bar{word-spacing:5px;font-size:11px}header{padding:10px 12px}h1{font-size:14px}.pfkeys{min-height:0}.pfkeys button{min-height:44px;display:flex;align-items:center}.pfkeys .primary-key{order:-1}.window-title{font-size:11px}.oia{font-size:12px}}
 </style>
-<style>.pr-badge{display:inline-block;border:1px solid #d8dfd5;padding:6px 9px;color:#356e20;font-size:11px;text-decoration:none;margin:3px}.pr-badge:hover{text-decoration:underline}@media(max-width:650px){.columns,.job{grid-template-columns:20px minmax(0,1fr) 45px 65px;gap:6px;padding:10px}.columns>span:nth-child(3){display:none}.job b,.owner{overflow-wrap:anywhere}h1{font-size:16px}.topline{overflow-wrap:anywhere}}</style>
 </head>
 <body>
-<header><h1>Regions — Enterprise Batch Control</h1><small>ENTERPRISE BATCH OPERATIONS</small></header>
+<header><h1>Regions — Enterprise Batch Control</h1></header>
 <main>
-<section class="intro"><div><div class="eyebrow" style="margin-bottom:7px">Settlement operations / command center</div><h2>Overnight settlement</h2><p>Clearing intake through downstream distribution. All SLA times America/Chicago.</p></div><div><button class="quiet" id="reset">Reset local state</button><button id="fire">Run overnight settlement</button><div id="feedback" role="status">Ready to start a settlement run</div></div></section>
-<div id="error" role="alert" class="error hidden"></div>
-<section class="topline"><div><div class="eyebrow">Chain inventory</div><strong id="count">10 jobs · 3 monitored services</strong></div><div><div class="eyebrow">PagerDuty sync</div><strong id="sync">Connecting…</strong></div><div><div class="eyebrow">Run status</div><strong id="run">No local run</strong></div><div id="fix-prs"></div><div id="session"></div><div class="mode" id="mode">CONNECTING</div></section>
-<div class="layout">
-<section class="panel"><div class="panel-head"><h3>Job dependency chain</h3><div class="legend"><span><i class="dot"></i>Scheduled</span><span><i class="dot failed"></i>Failed</span><span><i class="dot hold"></i>Hold</span><span><i class="dot ready"></i>Complete</span></div></div><div class="columns"><span>#</span><span>JOB / OWNER</span><span>DEPENDENCIES</span><span>SLA</span><span>STATE</span></div><div id="jobs"><div class="empty">Loading dependency inventory…</div></div><div class="panel-foot">Inventory: COG-GTM/rg-oncall · ops/job-dependencies.yaml · Green requires an explicit job release or completion note.</div></section>
-<aside class="panel"><div class="panel-head"><h3>PagerDuty incident feed</h3><small id="incident-count">Polling every 5s</small></div><div id="incidents"><div class="empty">Waiting for PagerDuty…</div></div><div class="note-heading"><h3>Response timeline</h3><small>Incident notes · root cause, holds & remediation</small></div><div id="notes" class="timeline"><div class="empty">Notes will appear here as responders investigate.</div></div></aside>
+<section class="emulator" aria-label="Regions TN3270 emulator session">
+<div class="window-title">Session A - [24 x 80]  RGP1.REGIONS.TN3270  Regions — Enterprise Batch Control</div>
+<div class="menu-bar" aria-label="Emulator menu, reference only">File Edit View Communication Actions Window Help</div>
+<div class="screen">
+<div id="screen-scroll" class="screen-scroll" tabindex="0" role="region" aria-label="Terminal screen, scroll horizontally for all 80 columns">
+<div class="character-grid">
+<div class="line ispf-menu">Menu  Utilities  Compilers  Options  Status  Help</div>
+<div class="line rule">--------------------------------------------------------------------------------</div>
+<div id="screen-title" class="line screen-title">SDSF STATUS DISPLAY ALL CLASSES                         RGP1  LINE 1-10 (10)</div>
+<form id="command-form" class="command-line" autocomplete="off"><label for="command">COMMAND INPUT ===&gt; </label><input id="command" name="command" aria-label="3270 command line" spellcheck="false" maxlength="80"><span class="label">  SCROLL ===&gt; CSR</span></form>
+<div class="messages"><span id="error" role="alert" class="error hidden"></span><span id="feedback" role="status">READY. ENTER COMMAND OR SELECT A PF KEY.  F1=HELP</span></div>
+<div class="screen-area">
+<section id="screen-default" data-screen="default" class="view" aria-label="Split SDSF and incident log">
+<div class="line columns">NP JOBNAME  JOBID    SLA   STATUS/RC   PRED/SUCC</div>
+<div id="default-jobs"></div>
+<div class="line log-heading">-------------------- PAGERDUTY / RESPONSE LOG (UTC) -----------------------------</div>
+<div id="default-log" tabindex="0" role="region" aria-label="PagerDuty response log"></div>
+</section>
+<section id="screen-st" data-screen="st" class="view" tabindex="0" aria-label="Full SDSF status and dependencies" hidden>
+<div class="line columns">NP JOBNAME  JOBID    OWNER                     SLA   STATUS/RC</div>
+<div id="jobs"></div>
+<div class="line label">SOURCE IDS / PRED / SUCC FROM ops/job-dependencies.yaml. SLA: AMERICA/CHICAGO.</div>
+</section>
+<section id="screen-mft" data-screen="mft" class="view" tabindex="0" aria-label="Axway SecureTransport transfer log" hidden>
+<div class="line label">Axway SecureTransport — Transfer Monitor</div>
+<div class="line">TRANSFER ID : ST-261115-0042</div>
+<div class="line">PARTNER     : FEDACH-CLEARING</div>
+<div class="line">DIRECTION   : INBOUND</div>
+<div class="line">FILE        : RG.SETTLE.D261115.INPUT</div>
+<div class="line">PROTOCOL    : SFTPS / TLS 1.0 / 3DES</div>
+<div class="line">HOST        : RGW-MFTSQL-07</div>
+<div class="line label">STATUS / TRANSFER LOG</div>
+<div id="mft-status" class="line signal">WAITING</div>
+<pre id="mft-detail" class="evidence">Awaiting inbound settlement file from FEDACH-CLEARING.</pre>
+</section>
+<section id="screen-sql" data-screen="sql" class="view" tabindex="0" aria-label="SQL Server Agent job history" hidden>
+<div class="line label">SQL Server Agent — Job History                         RGW-MFTSQL-07</div>
+<div class="line">JOB        STEP                           RUN STATUS</div>
+<div class="line">SQL_STAGE  01 / Stage clearing file        <span id="sql-stage-status" class="signal">WAITING</span></div>
+<div class="line">EDW_LOAD   02 / Load warehouse             <span id="edw-load-status" class="signal">WAITING</span></div>
+<div class="line label">SQL AGENT MESSAGES</div>
+<pre id="sql-detail" class="evidence">No execution history in this session. Awaiting upstream transfer.</pre>
+</section>
+<section id="screen-spool" data-screen="spool" class="view" tabindex="0" aria-label="SETLPOST JES2 spool" hidden>
+<div class="line label">JES2 Spool — SETLPOST                       JOB04205 / RGP1</div>
+<div id="jes-status" class="line signal">AWAITING INPUT</div>
+<div class="line label">JESMSGLG  JES2 JOB LOG</div>
+<pre id="jes-detail" class="evidence">JES2 HAS NO OUTPUT FOR SETLPOST.
+AWAITING RG.SETTLE.D261115.INPUT</pre>
+</section>
+<section id="screen-pd" data-screen="pd" class="view" tabindex="0" aria-label="PagerDuty incident and response log" hidden>
+<div class="line label">PagerDuty incident feed / Response timeline                         UTC</div>
+<div id="mode" class="line">CONNECTING</div>
+<div class="line">SYNC <span id="sync">CONNECTING</span>  <span id="run">No local run</span></div>
+<div id="count" class="line">10 jobs / 3 monitored services</div>
+<div id="incident-count" class="line">Polling every 5s</div>
+<div id="session" class="line"></div>
+<div id="fix-prs" class="line"></div>
+<div id="incidents"></div>
+<div class="line label">-------------------- RESPONSE TIMELINE -----------------------------------------</div>
+<div id="notes"></div>
+</section>
+<section id="screen-help" data-screen="help" class="view" tabindex="0" aria-label="Terminal help" hidden>
+<div class="line label">ISPF COMMAND / PF KEY HELP</div>
+<pre class="evidence">
+ =0 / SPLIT    SDSF status + PagerDuty response log
+ =1 / ST       Full SDSF status, owners and visible PRED/SUCC dependencies
+ =2 / MFT      Axway SecureTransport transfer log
+ =3 / SQL      SQL Server Agent job history
+ =4 / SPOOL    JES2 spool for SETLPOST
+ =5 / PD       PagerDuty incident and response log
+
+ SUBMIT SETTLE / S SETTLE / F5   Submit overnight settlement
+ RESET / F6                    Reset local state only
+ F3=Exit to split  F9=Swap screens  F7/F8=Up/Down  F10/F11=Left/Right
+
+ Synthetic operations data only. Menu bars are reference text.
+ CC 0000 requires an explicit job RELEASED or COMPLETE response note.</pre>
+</section>
 </div>
-<footer><span>Not a Regions Bank system — internal demo only.</span><span>Batch Control / settlement operations</span></footer>
+</div>
+</div>
+<nav class="pfkeys" aria-label="Terminal program function keys">
+<button type="button" data-pf="F1" aria-label="F1 Help">F1=Help</button><button type="button" data-pf="F3" aria-label="F3 Exit to split screen">F3=Exit</button><button type="button" id="fire" class="primary-key" aria-label="F5 Submit overnight settlement">F5=Submit</button><button type="button" id="reset" class="primary-key" aria-label="F6 Reset local state">F6=Reset</button><button type="button" data-pf="F7" aria-label="F7 Scroll up">F7=Up</button><button type="button" data-pf="F8" aria-label="F8 Scroll down">F8=Down</button><button type="button" data-pf="F9" aria-label="F9 Swap terminal screen">F9=Swap</button><button type="button" data-pf="F10" aria-label="F10 Scroll left">F10=Left</button><button type="button" data-pf="F11" aria-label="F11 Scroll right">F11=Right</button>
+</nav>
+<div class="oia" aria-label="Operator information area">4B MA  *  a  SYSTEM  03/024</div>
+</div>
+</section>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -72,44 +170,169 @@ function fixPRs(incidents){
  return [...new Set(incidents.flatMap(i=>i.notes).flatMap(n=>
   n.content.match(/https?:\/\/[^\s<>"')]+\/pull\/\d+/gi)||[]))];
 }
+const legacyJobs={
+ MFT_INBOUND:['MFTINBND','JOB04201','RC 0008'],SQL_STAGE:['SQLSTAGE','JOB04202','RC 0012'],
+ EDW_LOAD:['EDWLOAD','JOB04203','RC 0012'],MF_EXTRACT:['MFEXTRCT','JOB04204','JCL ERROR'],
+ SETTLE_POST:['SETLPOST','JOB04205','ABEND S013'],GL_POST:['GLPOST','JOB04206','RC 0012'],
+ REG_REPORT:['REGRPT','JOB04207','RC 0012'],STATEMENTS:['STMTGEN','JOB04208','RC 0012'],
+ TREASURY:['TREASRY','JOB04209','RC 0012'],FRAUD_REFRESH:['FRDREFR','JOB04210','RC 0012']
+};
+function legacyJob(job,incidents){
+ const [state]=jobState(job,incidents),[name,jobId,failure]=legacyJobs[job.id]||[job.id,'--------','RC 0012'];
+ return {state,name,jobId,label:state==='failed'?failure:state==='hold'?'HELD':state==='ready'?'CC 0000':'AWAITING'};
+}
+function renderMonitors(incidents){
+ const state=id=>jobState({id},incidents)[0];
+ const mft=state('MFT_INBOUND'),sqlStage=state('SQL_STAGE'),edwLoad=state('EDW_LOAD'),jes=state('SETTLE_POST');
+ const sql=sqlStage==='failed'||edwLoad==='failed';
+ const label=state=>({scheduled:'WAITING',failed:'FAILED · 08001',hold:'HELD',ready:'COMPLETE'})[state];
+ for(const[id,text,failed]of[
+  ['mft-status',mft==='failed'?'FAILED':mft==='ready'?'TRANSFER COMPLETE':label(mft),mft==='failed'],
+  ['mft-detail',mft==='failed'?'FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure':mft==='hold'?'TRANSFER HELD — DO NOT RESUBMIT':mft==='ready'?'TRANSFER COMPLETE — CC 0000':'Awaiting inbound settlement file from FEDACH-CLEARING.',mft==='failed'],
+  ['sql-stage-status',label(sqlStage),sqlStage==='failed'],
+  ['edw-load-status',label(edwLoad),edwLoad==='failed'],
+  ['sql-detail',sql?'Login timeout expired; SSL Provider: The client and server cannot communicate, because they do not possess a common algorithm. [SQLSTATE 08001]':sqlStage==='scheduled'&&edwLoad==='scheduled'?'No execution history in this session. Awaiting upstream transfer.':'SQL_STAGE '+label(sqlStage)+' / EDW_LOAD '+label(edwLoad),sql],
+  ['jes-status',jes==='failed'?'ABEND S013':jes==='hold'?'HELD':jes==='ready'?'COMPLETE · CC 0000':'AWAITING INPUT',jes==='failed'],
+  ['jes-detail',jes==='failed'?'IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND\nIEC130I INPUT DD STATEMENT MISSING\nIEF272I SETLPOST STEP010 - STEP WAS NOT EXECUTED.\n$HASP395 SETLPOST ENDED - ABEND=S013':jes==='hold'?'SETLPOST HELD — DO NOT RESUBMIT':jes==='ready'?'$HASP395 SETLPOST ENDED - RC=0000':'JES2 HAS NO OUTPUT FOR SETLPOST.\nAWAITING RG.SETTLE.D261115.INPUT',jes==='failed']
+ ]){const el=$(id);el.textContent=wrap(text);el.classList.toggle('failed',failed);const phase=id.startsWith('mft')?mft:id.startsWith('jes')?jes:id.startsWith('edw')?edwLoad:sqlStage;el.classList.toggle('hold',phase==='hold');el.classList.toggle('ready',phase==='ready')}
+}
+function field(value,width){return String(value).slice(0,width).padEnd(width)}
+function wrap(value){return String(value).split('\n').map(line=>(line.match(/.{1,80}/g)||['']).join('\n')).join('\n')}
+function clock(value){return new Date(value).toISOString().slice(11,19)}
+function appendLinks(el,record){
+ for(const[url,label]of[[record.session_url,'View in Devin'],[record.slack_thread_url,'Open Slack thread']]){
+  if(url){el.append(node('span','  ','link-gap'));const link=node('a',label);link.href=url;link.target='_blank';link.rel='noopener noreferrer';el.append(link)}
+ }
+}
+function jobRow(job,index,incidents,compact){
+ const {state,name,jobId,label}=legacyJob(job,incidents),row=node('div',undefined,(compact?'summary-job ':'job ')+state);
+ row.dataset.jobId=job.id;
+ row.append(node('span',field(String(index+1).padStart(2,'0'),3),'seq'),node('span',field(name,9),'job-name'),node('span',field(jobId,9)));
+ if(!compact)row.append(node('span',field(job.owner_team,26),'owner'));
+ row.append(node('span',field(job.sla.slice(0,5),6),'sla'),node('span',field(label,12),'status'));
+ if(compact){
+  const names=ids=>ids.map(id=>legacyJobs[id]?.[0]||id).join('+');
+  row.append(node('span',(names(job.upstream)||'CLEARING')+'/'+(names(job.downstream)||'DIST'),'deps'));
+ }else{
+  row.append(node('div',wrap('   '+job.id+'  PRED: '+(job.upstream.join(', ')||'CLEARING FILE')+'  SUCC: '+(job.downstream.join(', ')||'DISTRIBUTION')),'deps source-id'));
+ }
+ return row;
+}
 function render(data){
  serviceJobs=data.service_jobs||serviceJobs;
  $('session').replaceChildren();
- if(data.run?.session_url){const link=node('a','View in Devin','pr-badge');link.href=data.run.session_url;link.target='_blank';link.rel='noopener noreferrer';$('session').append(link)}
+ if(data.run?.session_url)appendLinks($('session'),data.run);
  $('fix-prs').replaceChildren(...fixPRs(data.incidents).map(url=>{
-  const link=node('a','Fix PR open','pr-badge');link.href=url;link.target='_blank';link.rel='noopener noreferrer';return link;
+  const link=node('a','Fix PR open');link.href=url;link.target='_blank';link.rel='noopener noreferrer';return link;
  }));
- $('mode').textContent=data.simulated?'PAGERDUTY · INCIDENT REPLAY':data.dry_run?'DRY RUN · NO EVENTS SENT':'PAGERDUTY · LIVE EVENTS';
+ $('mode').textContent=data.simulated?'PAGERDUTY / INCIDENT REPLAY':data.dry_run?'DRY RUN / NO EVENTS SENT':'PAGERDUTY / LIVE EVENTS';
  $('sync').textContent=time(data.fetched_at);
- $('run').textContent=data.run?data.run.status.toUpperCase()+' · '+data.run.sent.length+'/3 events':'No local run';
+ $('run').textContent=data.run?data.run.status.toUpperCase()+' / '+data.run.sent.length+'/3 events':'No local run';
  $('fire').disabled=data.run?.status==='active';
- $('jobs').replaceChildren(...data.jobs.map((job,index)=>{
- const [state,label]=jobState(job,data.incidents),row=node('div',undefined,'job '+state);
- const title=node('div');title.append(node('b',job.id),node('span',job.owner_team,'owner'));title.title='On call: '+job.on_call.name+' · '+job.on_call.email;
- const deps=node('div',undefined,'deps');deps.append(node('div','← '+(job.upstream.join(', ')||'Clearing file')),node('span','→ '+(job.downstream.join(', ')||'Distribution')));
- row.append(node('span',String(index+1).padStart(2,'0'),'seq'),title,deps,node('span',job.sla.slice(0,5),'sla'),node('span',label,'status'));return row;
- }));
+ $('jobs').replaceChildren(...data.jobs.map((job,index)=>jobRow(job,index,data.incidents,false)));
+ $('default-jobs').replaceChildren(...data.jobs.map((job,index)=>jobRow(job,index,data.incidents,true)));
+ renderMonitors(data.incidents);
  $('incident-count').textContent=data.incidents.length+' active in session';
  $('incidents').replaceChildren(...data.incidents.map(i=>{
- const el=node('article',undefined,'incident'),head=node('div',undefined,'incident-top');
- el.id='incident-'+i.id;
- head.append(node('span',i.service.name,'service'),node('span',i.status,'pd-status '+i.status));
- el.append(head,node('p',i.title),node('small',(i.incident_number?'#'+i.incident_number+' · ':'')+i.id+' · '+time(i.created_at)));return el;
+  const el=node('div',undefined,'incident'+('incident-'+i.id===incidentTarget?' incident-focus':''));
+  el.id='incident-'+i.id;
+  el.append(node('div',wrap(clock(i.created_at)+' PD#'+(i.incident_number||i.id)+' '+i.status.toUpperCase()+' '+i.service.name),'line '+(i.status==='triggered'?'error':'label')),node('div',wrap(i.title),'line'),node('div',wrap(i.id+' / '+time(i.created_at)),'line'));
+  return el;
  }));
- if(!data.incidents.length)$('incidents').append(node('div','No active incidents since server start or last reset.','empty'));
+ if(!data.incidents.length)$('incidents').append(node('div','No active incidents since server start or last reset.','line empty'));
  const notes=[...data.incidents.flatMap(i=>i.notes.map(n=>({...n,service:i.service.name}))),...(data.activity||[])].sort((a,b)=>a.created_at.localeCompare(b.created_at));
- $('notes').replaceChildren(...notes.map(n=>{const el=node('article',undefined,'note');el.append(node('small',time(n.created_at)+' · '+n.service+' · '+n.author),node('div',n.content,'note-text'));for(const [url,label]of[[n.session_url,'View in Devin'],[n.slack_thread_url,'Open Slack thread']]){if(url){const link=node('a',label,'pr-badge');link.href=url;link.target='_blank';link.rel='noopener noreferrer';el.append(link)}}return el}));
- if(!notes.length)$('notes').append(node('div',data.simulated?'Awaiting incident response. Findings and the fix PR will be posted in the alert Slack thread.':'Awaiting responder notes. Root cause, hold lists and PR references will appear here.','empty'));
+ $('notes').replaceChildren(...notes.map(n=>{
+  const el=node('div',undefined,'note');
+  el.append(node('div',wrap(clock(n.created_at)+' '+n.service+' / '+n.author),'line label'),node('div',wrap(n.content),'note-text'));
+  appendLinks(el,n);return el;
+ }));
+ if(!notes.length)$('notes').append(node('div','Awaiting incident response. Findings will appear in the alert Slack thread.','line empty'));
+ const entries=[
+  ...data.incidents.map(i=>({created_at:i.created_at,text:clock(i.created_at)+' PD#'+(i.incident_number||i.id)+' '+i.status.toUpperCase()+' '+i.service.name.toUpperCase()+'  '+i.title,error:i.status==='triggered'})),
+  ...notes.map(n=>({...n,text:clock(n.created_at)+' '+n.content.toUpperCase().replace(/\s+/g,' ')}))
+ ].sort((a,b)=>a.created_at.localeCompare(b.created_at));
+ $('default-log').replaceChildren(...entries.map(entry=>{
+  const el=node('div',undefined,'line'+(entry.error?' error':''));
+  el.append(node('span',entry.text.slice(0,entry.session_url||entry.slack_thread_url?38:80)));
+  appendLinks(el,entry);return el;
+ }));
+ if(!entries.length)$('default-log').append(node('div','NO INCIDENTS. AWAITING SUBMIT SETTLE.','line'));
+ if(data.run?.session_url&&!notes.some(n=>n.session_url===data.run.session_url)){
+  const el=node('div','DEVIN SESSION STARTED','line');appendLinks(el,data.run);$('default-log').append(el);
+ }
+ revealIncident();
+}
+let activeScreen='default',incidentTarget='',pendingIncidentFocus=false;
+const screenTitles={
+ default:'SDSF STATUS DISPLAY ALL CLASSES                         RGP1  LINE 1-10 (10)',
+ st:'SDSF STATUS DISPLAY ALL CLASSES / OWNERS / PRED-SUCC      RGP1  ST',
+ mft:'AXWAY SECURETRANSPORT TRANSFER LOG                      RGP1  MFT',
+ sql:'SQL SERVER AGENT JOB HISTORY                            RGP1  SQL',
+ spool:'JES2 JOB OUTPUT / SETLPOST                              RGP1  SPOOL',
+ pd:'PAGERDUTY INCIDENT / RESPONSE LOG                       RGP1  PD',
+ help:'ISPF COMMAND / PF KEY HELP                              RGP1  HELP'
+};
+function switchScreen(screen){
+ for(const id of Object.keys(screenTitles))$('screen-'+id).hidden=id!==screen;
+ activeScreen=screen;
+ $('screen-title').textContent=screenTitles[screen];
+ if(screen==='pd')revealIncident();
+}
+function revealIncident(){
+ if(!pendingIncidentFocus||activeScreen!=='pd')return;
+ const incident=$(incidentTarget);
+ if(!incident)return;
+ incident.classList.add('incident-focus');
+ incident.scrollIntoView({block:'nearest',inline:'nearest'});
+ pendingIncidentFocus=false;
+}
+function followIncidentHash(){
+ const previous=incidentTarget&&$(incidentTarget);
+ if(previous)previous.classList.remove('incident-focus');
+ incidentTarget=/^#incident-[A-Za-z0-9_-]+$/.test(location.hash)?location.hash.slice(1):'';
+ pendingIncidentFocus=!!incidentTarget;
+ if(incidentTarget)switchScreen('pd');
+}
+function activatePF(key){
+ const actions={
+  F1:()=>switchScreen('help'),F3:()=>switchScreen('default'),
+  F5:()=>{if($('fire').disabled)$('feedback').textContent='JOB ALREADY ACTIVE';else $('fire').click()},
+  F6:()=>$('reset').click(),
+  F7:()=>$(activeScreen==='default'?'default-log':'screen-'+activeScreen).scrollBy({top:-180}),
+  F8:()=>$(activeScreen==='default'?'default-log':'screen-'+activeScreen).scrollBy({top:180}),
+  F9:()=>{const screens=['default','st','mft','sql','spool','pd'];switchScreen(screens[(screens.indexOf(activeScreen)+1)%screens.length])},
+  F10:()=>$('screen-scroll').scrollBy({left:-240}),F11:()=>$('screen-scroll').scrollBy({left:240})
+ };
+ if(!actions[key])return false;
+ actions[key]();return true;
+}
+function handleTerminalKey(event){
+ if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||!/^F(?:1|3|5|6|7|8|9|10|11)$/.test(event.key))return;
+ event.preventDefault();activatePF(event.key);
+}
+function runCommand(value){
+ const command=value.trim().replace(/\s+/g,' ').toUpperCase();
+ const screens={'=0':'default',SPLIT:'default','=1':'st',ST:'st','=2':'mft',MFT:'mft','=3':'sql',SQL:'sql','=4':'spool',SPOOL:'spool','=5':'pd',PD:'pd',HELP:'help'};
+ if(screens[command])switchScreen(screens[command]);
+ else if(command==='SUBMIT SETTLE'||command==='S SETTLE')activatePF('F5');
+ else if(command==='RESET')activatePF('F6');
+ else if(command)$('feedback').textContent='IKJ56500I COMMAND '+command+' NOT FOUND. F1=HELP';
+ $('command').value='';
 }
 async function poll(){
  try{const r=await fetch('/api/oncall/batchsettlement/state');const data=await r.json();if(!r.ok)throw Error(data.error);render(data);$('error').textContent=data.warning||'';$('error').classList.toggle('hidden',!data.warning)}
  catch(e){$('error').textContent=e.message+' — displayed state may be stale.';$('error').classList.remove('hidden')}
 }
 async function action(path){
- try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(data.error);$('feedback').textContent=path.endsWith('reset')?data.message:(data.simulated?'PagerDuty incident replay started':data.dry_run?'Dry run started — no PagerDuty events will be sent':'Settlement alerts started');await poll()}
+ try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(response.status===409?'JOB ALREADY ACTIVE':data.error);$('feedback').textContent=path.endsWith('reset')?data.message:'IKJ56250I JOB SETTLE(JOB04200) SUBMITTED'+(data.dry_run?' / DRY RUN':'');await poll()}
  catch(e){$('feedback').textContent=e.message}
 }
 $('fire').onclick=()=>action('/api/oncall/batchsettlement/runs');$('reset').onclick=()=>action('/api/oncall/batchsettlement/reset');
+$('command-form').onsubmit=event=>{event.preventDefault();runCommand($('command').value)};
+for(const button of document.querySelectorAll('[data-pf]'))button.onclick=()=>activatePF(button.dataset.pf);
+document.addEventListener('keydown',handleTerminalKey);
+window.addEventListener('hashchange',followIncidentHash);
+followIncidentHash();
 poll();setInterval(poll,5000);
 </script>
 </body></html>

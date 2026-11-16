@@ -358,12 +358,13 @@ describe('batch settlement HTTP and native page', () => {
   });
 
   test('serves native skin, anonymous slug and friendly URL with no shim interception of Run', async () => {
+    expect(getOncallSkin(SLUG).disclaimer).toBeUndefined();
     for (const route of [`/oncall/c/${SLUG}`, `/${SLUG}`, '/regions-batch-oncall']) {
       const response = await fetch(base + route);
       expect(response.status).toBe(200);
       const html = await response.text();
       expect(html).toContain('<title>Regions — Enterprise Batch Control</title>');
-      expect(html).toContain('Not a Regions Bank system — internal demo only.');
+      expect(html).not.toContain('Not a Regions Bank system — internal demo only.');
       expect(html).toContain('--accent:#356e20');
       expect(html).not.toContain('← All Demos');
       expect(html).toContain("action('/api/oncall/batchsettlement/runs')");
@@ -520,6 +521,226 @@ describe('ported tile rules', () => {
     for (const id of ['MFT_INBOUND', 'SETTLE_POST']) expect(ui.jobState({ id }, items)[0]).toBe('failed');
     for (const id of ['SQL_STAGE', 'EDW_LOAD', 'MF_EXTRACT', 'GL_POST', 'REG_REPORT', 'STATEMENTS', 'TREASURY', 'FRAUD_REFRESH']) expect(ui.jobState({ id }, items)[0]).toBe('hold');
     expect(ui.fixPRs(items)).toEqual(['https://github.com/COG-GTM/rg-oncall/pull/2']);
+  });
+});
+
+describe('TN3270 batch console presentation', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/db10f6b2.html'), 'utf8');
+  const shellIds = new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
+  const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1].split("$('fire').onclick")[0];
+  const jobs = require('../app/services/oncall-verticals/batchsettlement-jobs.json');
+  let ui, elements, data, request;
+  const incident = (service, content = '', status = 'triggered') => ({ id: 'P' + service, status,
+    service: { id: service, name: service }, title: 'Synthetic settlement incident', created_at: '2026-11-16T02:00:00Z',
+    notes: content ? [{ content, created_at: '2026-11-16T02:01:00Z', author: 'Operator' }] : [] });
+  const text = (el) => el.textContent + el.children.map(text).join('');
+  beforeEach(() => {
+    const element = (tag = 'div') => ({ tagName: tag.toUpperCase(), children: [], dataset: {}, textContent: '',
+      set id(value) { this._id = value; elements.set(value, this); }, get id() { return this._id; },
+      click: jest.fn(), scrollBy: jest.fn(), scrollIntoView: jest.fn(),
+      classList: { toggle: jest.fn(), remove: jest.fn(), add: jest.fn() }, append(...children) { this.children.push(...children); },
+      replaceChildren(...children) { this.children = children; } });
+    elements = new Map();
+    request = jest.fn(async () => ({ ok: true, status: 200, json: async () => data }));
+    ui = vm.createContext({ fetch: request, location: { hash: '' }, localStorage: { getItem: (key) => presenter[key] || '' },
+      document: { createElement: element, getElementById(id) {
+        if (!shellIds.has(id)) return elements.get(id) || null;
+        if (!elements.has(id)) elements.set(id, element());
+        return elements.get(id);
+      } } });
+    vm.runInContext(script, ui);
+    data = { jobs, incidents: [], simulated: true, fetched_at: '2026-11-16T02:00:00Z', run: null };
+  });
+  test('shell is a single emulator with five full screens, a split screen and accessible PF controls', () => {
+    for (const value of ['Session A - [24 x 80]  RGP1.REGIONS.TN3270', 'File Edit View Communication Actions Window Help',
+      'Menu  Utilities  Compilers  Options  Status  Help', 'COMMAND INPUT ===&gt;', 'SCROLL ===&gt; CSR',
+      '4B MA  *  a  SYSTEM  03/024', 'aria-label="F5 Submit overnight settlement"', 'aria-label="F6 Reset local state"',
+      'SUBMIT SETTLE / S SETTLE / F5', 'No local run']) expect(html).toContain(value);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd']) expect(html).toContain('id="screen-' + id + '"');
+    expect(html).toContain('width:80ch');
+    expect(html).toContain('white-space:pre');
+    expect(html).toContain('min-height:44px');
+    expect(html).not.toMatch(/class="panel|class="layout|class="pr-badge/);
+  });
+  test('split and full ST preserve IDs, owners, stable JES IDs and visible dependencies', () => {
+    ui.render(data);
+    const rows = elements.get('jobs').children;
+    expect(rows).toHaveLength(10);
+    expect(elements.get('default-jobs').children).toHaveLength(10);
+    expect(rows.map((row) => row.dataset.jobId)).toEqual(jobs.map((job) => job.id));
+    expect(rows.map((row) => row.children[1].textContent.trim())).toEqual([
+      'MFTINBND', 'SQLSTAGE', 'EDWLOAD', 'MFEXTRCT', 'SETLPOST', 'GLPOST', 'REGRPT', 'STMTGEN', 'TREASRY', 'FRDREFR',
+    ]);
+    for (let index = 0; index < rows.length; index++) {
+      const row = rows[index], job = jobs[index];
+      expect(row.children[2].textContent.trim()).toMatch(/^JOB0\d{4}$/);
+      expect(row.children[3].textContent.trim()).toBe(job.owner_team);
+      expect(row.children[5].textContent.trim()).toBe('AWAITING');
+      expect(text(row)).toContain(job.id);
+      expect(text(row)).toContain('PRED: ' + (job.upstream.join(', ') || 'CLEARING FILE'));
+      expect(text(row).replace(/\n/g, '')).toContain('SUCC: ' + (job.downstream.join(', ') || 'DISTRIBUTION'));
+    }
+    expect(new Set(rows.map((row) => row.children[2].textContent)).size).toBe(10);
+    expect(ui.legacyJob(jobs[0], []).jobId).toBe(ui.legacyJob([...jobs].reverse().at(-1), []).jobId);
+    expect(elements.get('mft-status').textContent).toBe('WAITING');
+    expect(elements.get('jes-status').textContent).toBe('AWAITING INPUT');
+  });
+  test('incident arrivals illuminate only failed jobs and render a textual response log with real links', () => {
+    data.incidents = [incident('PU8BL8X'), incident('PQZQKW7'), incident('PN02JGH')];
+    data.activity = [{ content: 'Devin session started', created_at: '2026-11-16T02:02:00Z',
+      service: 'PagerDuty', author: 'PagerDuty', session_url: 'https://app.devin.ai/sessions/local-test',
+      slack_thread_url: 'https://slack.com/archives/test' }];
+    ui.render(data);
+    expect(elements.get('jobs').children.filter((row) => row.className === 'job failed')
+      .map((row) => [row.dataset.jobId, row.children[5].textContent.trim()])).toEqual([
+      ['MFT_INBOUND', 'RC 0008'], ['SQL_STAGE', 'RC 0012'], ['EDW_LOAD', 'RC 0012'], ['SETTLE_POST', 'ABEND S013'],
+    ]);
+    expect(elements.get('mft-detail').textContent.replace(/\n/g, '')).toBe('FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure');
+    expect(elements.get('sql-detail').textContent.replace(/\n/g, '')).toContain('[SQLSTATE 08001]');
+    expect(elements.get('jes-detail').textContent).toContain('$HASP395 SETLPOST ENDED - ABEND=S013');
+    expect(text(elements.get('default-log'))).toContain('DEVIN SESSION STARTED');
+    const links = elements.get('default-log').children.flatMap((el) => el.children).filter((el) => el.tagName === 'A');
+    expect(links.map((link) => link.href)).toEqual([data.activity[0].session_url, data.activity[0].slack_thread_url]);
+    expect(elements.get('notes').children).toHaveLength(1);
+  });
+  test.each(['HOLD', 'COMPLETE', 'RELEASED'])('all monitors and ST follow %s rather than stale incidents', (directive) => {
+    data.incidents = [incident('PU8BL8X', directive + ' MFT_INBOUND, SQL_STAGE, EDW_LOAD, SETTLE_POST'), incident('PQZQKW7'), incident('PN02JGH')];
+    ui.render(data);
+    const expected = directive === 'HOLD' ? 'HELD' : 'COMPLETE';
+    for (const id of ['mft-status', 'sql-stage-status', 'edw-load-status', 'jes-status']) expect(elements.get(id).textContent).toContain(expected);
+    for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
+      expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
+      expect(elements.get(id).classList.toggle).toHaveBeenCalledWith('failed', false);
+    }
+    expect(elements.get('jobs').children[0].children[5].textContent.trim()).toBe(directive === 'HOLD' ? 'HELD' : 'CC 0000');
+  });
+  test('mixed SQL states, custom service mappings, acknowledged incidents and reset remain consistent', () => {
+    data.service_jobs = { CUSTOM_MFT: ['MFT_INBOUND'], CUSTOM_SQL: ['SQL_STAGE', 'EDW_LOAD'] };
+    data.incidents = [incident('CUSTOM_MFT'), incident('CUSTOM_SQL', 'SQL_STAGE COMPLETE; EDW_LOAD remains on HOLD')];
+    ui.render(data);
+    expect(elements.get('mft-status').textContent).toBe('FAILED');
+    expect(elements.get('sql-stage-status').textContent).toBe('COMPLETE');
+    expect(elements.get('edw-load-status').textContent).toBe('HELD');
+    expect(elements.get('sql-detail').textContent).not.toContain('SQLSTATE');
+    data.incidents = [incident('CUSTOM_MFT', '', 'acknowledged'), incident('OTHER')];
+    ui.render(data);
+    expect(elements.get('mft-status').textContent).toBe('WAITING');
+    data.incidents = [];
+    ui.render(data);
+    for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
+      expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
+      expect(elements.get(id).classList.toggle).toHaveBeenCalledWith('failed', false);
+    }
+  });
+  test.each([['=1', 'st'], ['MFT', 'mft'], ['=3', 'sql'], ['SPOOL', 'spool'], ['=5', 'pd'], ['SPLIT', 'default']])('command %s selects %s', (command, screen) => {
+    ui.runCommand(command);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd', 'help']) expect(elements.get('screen-' + id).hidden).toBe(id !== screen);
+    expect(elements.get('command').value).toBe('');
+    expect(request).not.toHaveBeenCalled();
+  });
+  test('SUBMIT, S SETTLE, RESET, PF keys and browser shortcut isolation', () => {
+    ui.runCommand(' submit   settle ');
+    ui.runCommand('S SETTLE');
+    expect(elements.get('fire').click).toHaveBeenCalledTimes(2);
+    ui.runCommand('RESET');
+    expect(elements.get('reset').click).toHaveBeenCalledTimes(1);
+    for (const key of ['F5', 'F6']) {
+      const event = { key, preventDefault: jest.fn() };
+      ui.handleTerminalKey(event);
+      expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    }
+    for (const event of [{ key: 'F2' }, { key: 'F12' }, { key: 'r', ctrlKey: true }, { key: 'F5', ctrlKey: true }]) {
+      event.preventDefault = jest.fn();
+      ui.handleTerminalKey(event);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    }
+    ui.activatePF('F1');
+    expect(elements.get('screen-help').hidden).toBe(false);
+    ui.activatePF('F3');
+    ui.activatePF('F8');
+    expect(elements.get('default-log').scrollBy).toHaveBeenCalledWith({ top: 180 });
+    ui.activatePF('F11');
+    expect(elements.get('screen-scroll').scrollBy).toHaveBeenCalledWith({ left: 240 });
+    for (const screen of ['st', 'mft', 'sql', 'spool', 'pd', 'default']) {
+      ui.activatePF('F9');
+      expect(elements.get('screen-' + screen).hidden).toBe(false);
+    }
+    elements.get('fire').disabled = true;
+    ui.activatePF('F5');
+    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    ui.runCommand('BADCOMMAND');
+    expect(elements.get('feedback').textContent).toContain('COMMAND BADCOMMAND NOT FOUND');
+  });
+  test('initial incident fragment selects PD before data arrives, reveals once, and survives polling', () => {
+    const id = 'incident-PPU8BL8X';
+    ui.location.hash = '#' + id;
+    ui.followIncidentHash();
+    expect(elements.get('screen-pd').hidden).toBe(false);
+    expect(request).not.toHaveBeenCalled();
+    data.incidents = [incident('PU8BL8X')];
+    ui.render(data);
+    expect(elements.get(id).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
+    expect(elements.get(id).classList.add).toHaveBeenCalledWith('incident-focus');
+    ui.render(data);
+    expect(elements.get(id).className).toContain('incident-focus');
+    expect(elements.get(id).scrollIntoView).not.toHaveBeenCalled();
+    ui.switchScreen('st');
+    ui.render(data);
+    expect(elements.get('screen-st').hidden).toBe(false);
+    expect(html).toContain("window.addEventListener('hashchange',followIncidentHash)");
+    expect(html).toContain('followIncidentHash();\npoll();');
+  });
+  test('hash changes reveal another incident, while missing and unrelated fragments are safe', () => {
+    data.incidents = [incident('PU8BL8X'), incident('PQZQKW7')];
+    ui.render(data);
+    ui.location.hash = '#incident-PPU8BL8X';
+    ui.followIncidentHash();
+    ui.location.hash = '#incident-PPQZQKW7';
+    ui.followIncidentHash();
+    expect(elements.get('incident-PPU8BL8X').classList.remove).toHaveBeenCalledWith('incident-focus');
+    expect(elements.get('incident-PPQZQKW7').scrollIntoView).toHaveBeenCalledTimes(1);
+    ui.location.hash = '#incident-NOT_IN_STATE';
+    expect(() => ui.followIncidentHash()).not.toThrow();
+    ui.switchScreen('st');
+    ui.location.hash = '#unrelated';
+    ui.followIncidentHash();
+    expect(elements.get('screen-st').hidden).toBe(false);
+    expect(request).not.toHaveBeenCalled();
+  });
+  test('persistent polling warnings keep submit, command, API-error and reset results on a separate line', async () => {
+    data.warning = 'Fixture persistent poll warning';
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toContain('IKJ56250I JOB SETTLE(JOB04200) SUBMITTED');
+    expect(elements.get('error').textContent).toBe(data.warning);
+    ui.runCommand('INVALID');
+    await ui.poll();
+    expect(elements.get('feedback').textContent).toContain('COMMAND INVALID NOT FOUND');
+    expect(elements.get('error').textContent).toBe(data.warning);
+    request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
+    await ui.action('/api/oncall/batchsettlement/reset');
+    expect(elements.get('feedback').textContent).toBe('Local state reset');
+    expect(elements.get('error').textContent).toBe(data.warning);
+    expect(html).toContain('.messages>span{display:block}');
+    expect(html).not.toContain('#error:not(.hidden)+#feedback{display:none}');
+  });
+  test('existing API identity and endpoints are preserved with submission, reset and 409 messages', async () => {
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(request.mock.calls[0][0]).toBe('/api/oncall/batchsettlement/runs');
+    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ skin: SLUG, ...presenter });
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE(JOB04200) SUBMITTED');
+    expect(request.mock.calls[1][0]).toBe('/api/oncall/batchsettlement/state');
+    request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    request.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'Fixture error' }) });
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toBe('Fixture error');
+    request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
+    await ui.action('/api/oncall/batchsettlement/reset');
+    expect(elements.get('feedback').textContent).toBe('Local state reset');
   });
 });
 

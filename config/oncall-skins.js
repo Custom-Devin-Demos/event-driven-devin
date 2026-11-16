@@ -113,7 +113,6 @@ const ONCALL_SKINS = {
       repo: { name: 'COG-GTM/rg-oncall', branch: 'main' }, promptAppendix: batchPrompt },
     page: { file: `${BATCH_SLUG}.html`, title: 'Regions — Enterprise Batch Control' },
     theme: { '--accent': '#356e20', '--ink': '#1f2430', '--surface': '#ffffff', '--chrome-bg': '#24521b', '--chrome-text': '#ffffff' },
-    disclaimer: 'Not a Regions Bank system — internal demo only.',
     alertCard: {
       title: 'Axway MFT inbound settlement file not received by SLA, TLS handshake failure',
       pagerduty: { escalationPolicy: 'Batch and File Transfer Operations' },
