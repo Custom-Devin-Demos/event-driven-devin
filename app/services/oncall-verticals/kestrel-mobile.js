@@ -87,7 +87,7 @@ async function screenAll(transactions, trace, sleep) {
 
 function validatePayment(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
-  const payee = PAYEES[body.payeeId];
+  const payee = Object.hasOwn(PAYEES, body.payeeId) ? PAYEES[body.payeeId] : null;
   if (body.fromAccount !== ACCOUNT.number || !payee) return null;
   if (!Number.isInteger(body.amountMinor) || body.amountMinor < 1 || body.amountMinor > 100000) return null;
   if (body.currency !== 'GBP') return null;
