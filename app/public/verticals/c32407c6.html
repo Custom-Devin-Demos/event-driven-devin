@@ -251,7 +251,7 @@
         <h2 id="plansHeading">5G+ plans for your own phone</h2>
         <div class="sub">Prices per line, per month, with pre-authorized bank payments.</div>
         <div class="plans" id="planTiles">
-          <button type="button" class="plan" data-plan="PLUS-24" aria-pressed="false">
+          <button type="button" class="plan" data-plan="ESSENTIAL-5G" aria-pressed="false">
             <span class="tag">&nbsp;</span>
             <div class="name">5G+ Essential</div>
             <div class="data">100 GB at 5G+ speeds</div>
@@ -262,7 +262,7 @@
               <li>5-Year Rate Plan Price Lock</li>
             </ul>
           </button>
-          <button type="button" class="plan" data-plan="ULTRA-36" aria-pressed="false">
+          <button type="button" class="plan" data-plan="COMPLETE-5G" aria-pressed="false">
             <span class="tag">Most popular</span>
             <div class="name">5G+ Complete</div>
             <div class="data">175 GB at 5G+ speeds</div>
@@ -273,7 +273,7 @@
               <li>5-Year Rate Plan Price Lock</li>
             </ul>
           </button>
-          <button type="button" class="plan" data-plan="UNLIMITED-24" aria-pressed="false">
+          <button type="button" class="plan" data-plan="EXPLORE-5G" aria-pressed="false">
             <span class="tag">Travel more</span>
             <div class="name">5G+ Complete Explore</div>
             <div class="data">250 GB at 5G+ speeds</div>
@@ -304,17 +304,17 @@
           <div class="form-group">
             <label for="currentPlan">Line</label>
             <select id="currentPlan">
-              <option value="BASIC-12" data-account="CUST-3001" data-number="604-555-0148" data-holder="Priya Sharma" data-plan="5G Basic &middot; $45/mo">604-555-0148 &mdash; Priya (5G Basic)</option>
-              <option value="PLUS-24" data-account="CUST-3002" data-number="778-555-0163" data-holder="Arjun Sharma" data-plan="5G+ Essential &middot; $55/mo">778-555-0163 &mdash; Arjun (5G+ Essential)</option>
-              <option value="ULTRA-36" data-account="CUST-3003" data-number="236-555-0127" data-holder="Maya Sharma" data-plan="5G+ Complete &middot; $70/mo">236-555-0127 &mdash; Maya (5G+ Complete)</option>
+              <option value="BASIC-5G" data-account="CUST-3001" data-number="604-555-0148" data-holder="Priya Sharma" data-plan="5G Basic &middot; $45/mo">604-555-0148 &mdash; Priya (5G Basic)</option>
+              <option value="ESSENTIAL-5G" data-account="CUST-3002" data-number="778-555-0163" data-holder="Arjun Sharma" data-plan="5G+ Essential &middot; $55/mo">778-555-0163 &mdash; Arjun (5G+ Essential)</option>
+              <option value="COMPLETE-5G" data-account="CUST-3003" data-number="236-555-0127" data-holder="Maya Sharma" data-plan="5G+ Complete &middot; $70/mo">236-555-0127 &mdash; Maya (5G+ Complete)</option>
             </select>
           </div>
           <div class="form-group">
             <label for="newPlan">Plan</label>
             <select id="newPlan">
-              <option value="PLUS-24" data-price="55">5G+ Essential &mdash; $55/mo</option>
-              <option value="ULTRA-36" data-price="70" selected>5G+ Complete &mdash; $70/mo</option>
-              <option value="UNLIMITED-24" data-price="90">5G+ Complete Explore &mdash; $90/mo</option>
+              <option value="ESSENTIAL-5G" data-price="55">5G+ Essential &mdash; $55/mo</option>
+              <option value="COMPLETE-5G" data-price="70" selected>5G+ Complete &mdash; $70/mo</option>
+              <option value="EXPLORE-5G" data-price="90">5G+ Complete Explore &mdash; $90/mo</option>
             </select>
           </div>
           <div class="form-group">
@@ -476,14 +476,14 @@
         showResult('', '', []);
         document.getElementById('result').className = 'result-box';
         try {
-          const response = await fetch('/api/telco/upgrade', {
+          const response = await fetch('/api/mobilityplans/purchase', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               accountId: selectedOption(lineSel).dataset.account,
               currentPlanCode: lineSel.value,
-              targetPlanCode: planSel.value,
-              billingDay: 15,
+              planCode: planSel.value,
+              addon: addonSel.value,
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
               devinEmail: localStorage.getItem('devinEmail') || '',
@@ -495,10 +495,14 @@
               ['Your current plan hasn\u2019t changed. Please try again in a few minutes.']);
             showErrorDialog('We couldn\u2019t complete your plan purchase. Your current plan and bill haven\u2019t changed.');
           } else {
-            const ref = String(data.upgradeId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
+            const ref = String(data.orderId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
             const starts = /^\d{4}-\d{2}-\d{2}$/.test(data.effectiveDate || '') ? ', starting ' + data.effectiveDate : '';
-            showResult('success', 'Thanks, Priya. Your new plan is confirmed.',
-              [lineNumber + ' is now on ' + planLabel + starts + '.', 'Order number ' + ref]);
+            const lines = [lineNumber + ' is now on ' + planLabel + starts + '.'];
+            if (data.priceLock && /^\d{4}-\d{2}-\d{2}$/.test(data.priceLock.lockedUntil || '')) {
+              lines.push('Your plan price is locked until ' + data.priceLock.lockedUntil + '.');
+            }
+            lines.push('Order number ' + ref);
+            showResult('success', 'Thanks, Priya. Your new plan is confirmed.', lines);
           }
         } catch (err) {
           showResult('error', 'We couldn\u2019t reach My TELUS', ['Check your connection and try again.']);

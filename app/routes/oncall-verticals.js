@@ -17,6 +17,7 @@ const { submitClaim } = require('../services/oncall-verticals/pbm');
 const { submitPriorAuth } = require('../services/oncall-verticals/priorauth');
 const { submitSampleOrder, PRESCRIBERS, PRODUCTS } = require('../services/oncall-verticals/samples');
 const { addToBag } = require('../services/oncall-verticals/apparel');
+const { purchasePlan } = require('../services/oncall-verticals/mobilityplans');
 const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
@@ -887,6 +888,30 @@ router.post('/api/oncall/apparel/bag', async (req, res) => {
       error: 'We couldn\u2019t add this item to your Bag.',
       errorClass: error.name,
       code: error.code || 'BAG_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/mobilityplans/purchase — buy a mobility plan for a line
+ */
+router.post('/api/oncall/mobilityplans/purchase', async (req, res) => {
+  try {
+    const result = await purchasePlan({
+      accountId: req.body.accountId || 'CUST-3001',
+      currentPlanCode: String(req.body.currentPlanCode || 'BASIC-5G').toUpperCase(),
+      planCode: String(req.body.planCode || 'COMPLETE-5G').toUpperCase(),
+      addon: req.body.addon || 'none',
+    });
+    res.json(result);
+  } catch (error) {
+    const status = { PLAN_NOT_FOUND: 404, SAME_PLAN: 409 }[error.code] || 500;
+    res.status(status).json({
+      success: false,
+      error: 'We couldn\u2019t complete your plan purchase.',
+      errorClass: error.name,
+      code: error.code || 'PLAN_PURCHASE_FAILED',
       requestId: req.requestId,
     });
   }
