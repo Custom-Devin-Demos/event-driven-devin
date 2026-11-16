@@ -544,6 +544,30 @@ test('the B3 skin forces Slack and serves its native B3 Investidor page', async 
   expect(html).toMatch(/<input[^>]*id="amount"[^>]*value="1.284,50"[^>]*data-amount="1284.50"[^>]*readonly/);
 });
 
+test('the Banco General skin forces Teams and serves its native Banca en Línea page', async () => {
+  const res = await fetch(`${baseUrl}/oncall/c/bcf7af3a`);
+  const html = await res.text();
+  expect(res.status).toBe(200);
+  expect(html).toContain('var skinAlertDestination = "teams";');
+  expect(html).toContain('Confirmar transferencia');
+  expect(html).toContain('María Fernanda Rodríguez');
+  expect(html).toContain('receipt.totalDebit');
+  expect(html).toContain("fetch('/api/banking/transfer'");
+  expect(html).toContain('NOT ACTUALLY A BANCO GENERAL SITE');
+  expect(html).toMatch(/<input[^>]*id="amount"[^>]*data-amount="1284.50"[^>]*readonly/);
+});
+
+test('the Banco General Chat Estrella skin forces Teams and posts chat messages to the insurance endpoint', async () => {
+  const res = await fetch(`${baseUrl}/oncall/c/9af9f631`);
+  const html = await res.text();
+  expect(res.status).toBe(200);
+  expect(html).toContain('var skinAlertDestination = "teams";');
+  expect(html).toContain('Chatea con Estrella, tu asistente virtual');
+  expect(html).toContain('id="botLauncher"');
+  expect(html).toContain("fetch('/api/insurance/claim'");
+  expect(html).toContain('NOT ACTUALLY A BANCO GENERAL SITE');
+});
+
 describe('on-call hub page contract', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'oncall.html'), 'utf8');
 
