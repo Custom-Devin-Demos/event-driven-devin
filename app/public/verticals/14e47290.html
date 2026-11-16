@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trolley - Tesco Groceries</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #00539f;
+      --blue-dark: #003d76;
+      --red: #ee1c2e;
+      --ink: #333333;
+      --muted: #666666;
+      --line: #cccccc;
+      --soft: #f6f6f6;
+      --cc-yellow: #fcd700;
+      --font: 'Tesco Modern', 'TESCO Modern', 'Figtree', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { overflow-x: hidden; }
+    body { font-family: var(--font); font-size: 16px; color: #000; background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); }
+    button, input, select { font-family: inherit; }
+
+    /* Utility bar */
+    .util { background: var(--blue); height: 28px; display: flex; justify-content: flex-end; }
+    .util a { color: #fff; font-weight: 700; font-size: 14px; text-decoration: none; padding: 0 20px; line-height: 28px; border-left: 1px solid rgba(255,255,255,.35); white-space: nowrap; }
+    .util a:last-child { padding-right: 16px; }
+
+    /* Masthead */
+    .mast { display: flex; align-items: center; height: 74px; padding: 0 16px; gap: 0; }
+    .logo { display: block; width: 121px; height: 36px; flex: 0 0 auto; }
+    .logo svg { display: block; width: 100%; height: 100%; }
+    .search { display: flex; align-items: center; margin-left: 61px; flex: 0 1 706px; gap: 25px; }
+    .search label { flex: 1; display: block; border: 1px solid var(--muted); height: 40px; }
+    .search input { width: 100%; height: 38px; border: 0; padding: 0 10px; font-size: 16px; font-style: italic; color: var(--muted); background: #fff; outline: none; }
+    .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; background: var(--blue); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; text-decoration: none; }
+    .icon-btn svg { width: 24px; height: 24px; }
+    .acct { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+    .acct-name { color: var(--ink); font-size: 14px; text-align: right; line-height: 18px; margin-right: 4px; }
+    .acct-name strong { display: block; color: var(--blue); font-size: 16px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 20px; border-radius: 24px; font-weight: 700; font-size: 16px; text-decoration: none; border: 2px solid var(--blue); white-space: nowrap; cursor: pointer; }
+    .pill.solid { background: var(--blue); color: #fff; }
+    .pill.ghost { background: #fff; color: var(--blue); }
+
+    /* Primary nav */
+    .nav1 { display: flex; align-items: stretch; height: 44px; padding: 0 8px; border-bottom: 1px solid #e5e5e5; }
+    .nav1 a, .nav1 button { display: inline-flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 500; color: var(--blue); text-decoration: none; background: none; border: 0; white-space: nowrap; }
+    .nav1 .depts { font-weight: 700; padding: 0 8px; width: 169px; justify-content: space-between; }
+    .nav1 .depts svg { width: 24px; height: 24px; }
+    .nav1 a.active { font-weight: 700; box-shadow: inset 0 -3px 0 var(--blue); }
+    .nav2 { display: flex; align-items: center; height: 45px; background: var(--soft); padding: 0 4px; border-bottom: 1px solid #e5e5e5; overflow: hidden; }
+    .nav2 a { font-size: 14px; font-weight: 700; color: var(--blue); text-decoration: none; padding: 0 12px; white-space: nowrap; line-height: 45px; }
+    .nav2 .more { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+    .nav2 .more svg { width: 20px; height: 20px; }
+
+    /* Mobile masthead */
+    .m-mast { display: none; }
+
+    /* Trolley */
+    main { padding: 24px 24px 48px; }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .crumbs a { color: var(--blue); }
+    .trolley-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    h1 { font-size: 32px; line-height: 36px; font-weight: 700; color: var(--ink); }
+    .head-meta { color: var(--muted); font-size: 14px; }
+    .slot-bar { display: flex; align-items: center; gap: 16px; border: 1px solid var(--line); background: #fff; padding: 16px; margin-bottom: 24px; }
+    .slot-bar .slot-ico { width: 40px; height: 40px; border-radius: 50%; background: #e5eef6; color: var(--blue); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .slot-bar .slot-ico svg { width: 24px; height: 24px; }
+    .slot-bar h2 { font-size: 16px; line-height: 20px; color: var(--ink); }
+    .slot-bar p { font-size: 14px; line-height: 18px; color: var(--muted); margin-top: 2px; }
+    .slot-bar a { margin-left: auto; font-weight: 700; font-size: 16px; position: relative; }
+    .slot-bar a::before { content: ''; position: absolute; left: -8px; right: -8px; top: -12px; bottom: -12px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 416px; gap: 24px; align-items: start; }
+
+    .dept { border: 1px solid var(--line); background: #fff; margin-bottom: 24px; }
+    .dept-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--line); }
+    .dept-head h2 { font-size: 20px; line-height: 24px; color: var(--ink); }
+    .dept-head span { font-size: 14px; color: var(--muted); }
+    .line { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto 96px; gap: 16px; align-items: center; padding: 16px; border-bottom: 1px solid #e5e5e5; }
+    .line:last-child { border-bottom: 0; }
+    .line img { width: 96px; height: 96px; object-fit: contain; display: block; }
+    .img-fallback { width: 96px; height: 96px; background: var(--soft); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; text-align: center; padding: 6px; }
+    .line .name { font-size: 16px; line-height: 20px; color: var(--blue); text-decoration: none; display: block; }
+    .line .unit { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 6px; }
+    .badges { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .ccp { display: inline-flex; align-items: stretch; border-radius: 6px; overflow: hidden; height: 36px; font-size: 12px; line-height: 14px; }
+    .ccp .ccp-mark { background: var(--blue); color: #fff; width: 40px; padding: 4px; font-size: 9px; line-height: 10px; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 500; }
+    .ccp .ccp-price { background: var(--cc-yellow); color: var(--ink); font-weight: 700; padding: 3px 10px; display: flex; flex-direction: column; justify-content: center; }
+    .ccp .ccp-price small { font-weight: 400; font-size: 11px; }
+    .apm { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--ink); }
+    .apm i { width: 36px; height: 36px; border-radius: 6px; background: var(--red); color: #fff; font-style: normal; font-size: 8px; line-height: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .qty { display: inline-flex; align-items: center; gap: 8px; }
+    .qty button { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--blue); background: #fff; color: var(--blue); font-size: 22px; font-weight: 700; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; position: relative; }
+    .qty button::before { content: ''; position: absolute; inset: -4px; }
+    .qty output { min-width: 44px; height: 40px; border: 1px solid var(--muted); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--ink); }
+    .line .price { text-align: right; font-weight: 700; font-size: 16px; color: var(--ink); }
+    .line .price s { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+
+    /* Summary + checkout */
+    .summary { border: 1px solid var(--line); background: #fff; padding: 24px; position: sticky; top: 16px; }
+    .summary h2 { font-size: 24px; line-height: 28px; color: var(--ink); margin-bottom: 16px; }
+    .row { display: flex; justify-content: space-between; font-size: 16px; line-height: 20px; color: var(--ink); padding: 6px 0; }
+    .row.save { color: var(--blue); font-weight: 700; }
+    .row.total { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 16px; font-size: 20px; line-height: 24px; font-weight: 700; }
+    .fields { margin-top: 16px; display: grid; gap: 16px; }
+    .field label { display: block; font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .field select, .field input { width: 100%; height: 44px; border: 1px solid var(--muted); border-radius: 0; background: #fff; font-size: 16px; color: var(--ink); padding: 0 12px; }
+    .field select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%2300539f' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 40px; }
+    .field input[readonly] { background: var(--soft); font-weight: 700; }
+    .field .hint { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 6px; }
+    .btn-checkout { margin-top: 20px; width: 100%; height: 44px; border-radius: 24px; border: 2px solid var(--blue); background: var(--blue); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .btn-checkout:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+    .btn-checkout:disabled { opacity: .7; cursor: progress; }
+    .secure { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 12px; }
+    .secure svg { width: 16px; height: 16px; flex: 0 0 auto; }
+    .result-box { display: none; margin-top: 16px; padding: 16px; border-left: 4px solid; font-size: 14px; line-height: 18px; }
+    .result-box.success { display: block; background: #eef7ee; border-color: #008a00; color: var(--ink); }
+    .result-box.error { display: block; background: #fdeeee; border-color: #cc3333; color: var(--ink); }
+    .result-box .error-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .smallprint { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 16px; }
+
+    /* Value strip */
+    .value h2 { font-size: 28px; line-height: 32px; color: var(--ink); margin: 16px 0; }
+    .value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .vcard { border: 1px solid var(--line); padding: 16px; display: flex; flex-direction: column; }
+    .vcard .vmark { width: 100px; height: 96px; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; font-weight: 700; font-size: 18px; text-align: center; margin-bottom: 12px; }
+    .vcard h3 { font-size: 16px; line-height: 20px; color: var(--ink); }
+    .vcard p { font-size: 16px; line-height: 20px; color: var(--muted); margin-top: 8px; flex: 1; }
+    .vcard a { margin-top: 12px; font-weight: 700; font-size: 16px; text-decoration: none; display: flex; justify-content: space-between; align-items: center; min-height: 24px; }
+
+    /* Footer */
+    footer { margin-top: 24px; }
+    .foot { background: var(--soft); border-radius: 24px 24px 0 0; padding: 48px 24px 32px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .foot-col h2 { font-size: 16px; line-height: 20px; color: var(--ink); margin-bottom: 16px; }
+    .foot-col h2 button { all: unset; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: default; }
+    .foot-col h2 button svg { display: none; }
+    .foot-col ul { list-style: none; }
+    .foot-col li { margin-bottom: 16px; }
+    .foot-col a { font-size: 16px; line-height: 24px; color: var(--blue); }
+    .social { display: flex; gap: 14px; margin-top: 24px; }
+    .social a { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 18px; text-decoration: none; }
+    .copy { padding: 16px 24px; font-size: 14px; line-height: 18px; color: var(--muted); border-bottom: 1px solid #e5e5e5; }
+    .pay-marks { display: flex; gap: 24px; align-items: center; padding: 16px 24px 24px; }
+    .pm-visa { background: #1a1f71; color: #fff; font-weight: 800; font-style: italic; font-size: 12px; width: 44px; height: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 12px; }
+    .pm-visa small { font-size: 6px; font-style: normal; font-weight: 700; margin-top: 4px; }
+    .pm-mc { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #333; }
+    .pm-mc i { position: relative; width: 30px; height: 18px; display: inline-block; }
+    .pm-mc i::before, .pm-mc i::after { content: ''; position: absolute; top: 0; width: 18px; height: 18px; border-radius: 50%; }
+    .pm-mc i::before { left: 0; background: #eb001b; }
+    .pm-mc i::after { left: 12px; background: rgba(247,158,27,.9); }
+    .pm-amex { font-size: 18px; color: #222c5d; font-weight: 500; line-height: 16px; }
+    .pm-amex small { display: block; font-size: 6px; letter-spacing: .5px; color: #888; }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: minmax(0, 1fr) 360px; }
+      .search { margin-left: 32px; }
+      .acct-name { display: none; }
+    }
+    @media (max-width: 767px) {
+      .util, .mast, .nav1, .nav2 { display: none; }
+      .m-mast { display: block; border-top: 4px solid var(--blue); }
+      .icon-btn { position: relative; }
+      .icon-btn::before { content: ''; position: absolute; left: -4px; right: -4px; top: -4px; bottom: -4px; }
+      .m-row1 { display: flex; align-items: center; height: 60px; padding: 0 12px; }
+      .m-row1 .menu { width: 40px; height: 40px; border: 0; background: none; color: var(--blue); display: flex; align-items: center; justify-content: center; }
+      .m-row1 .menu svg { width: 24px; height: 24px; }
+      .m-row1 .logo { width: 68px; height: 20px; margin-left: 8px; }
+      .m-row1 .m-icons { margin-left: auto; display: flex; gap: 12px; }
+      .m-row2 { display: flex; align-items: center; gap: 25px; padding: 0 12px 12px; border-bottom: 1px solid #e5e5e5; }
+      .m-row2 label { flex: 1; border: 1px solid var(--muted); height: 40px; display: block; }
+      .m-row2 input { width: 100%; height: 38px; border: 0; padding: 0 10px; font-size: 16px; font-style: italic; color: var(--muted); }
+      main { padding: 16px 12px 32px; }
+      h1 { font-size: 28px; line-height: 32px; }
+      .trolley-head { flex-direction: column; gap: 4px; }
+      .slot-bar { flex-wrap: wrap; padding: 12px; gap: 12px; }
+      .slot-bar > div { flex: 1; min-width: 0; }
+      .slot-bar a { margin-left: 52px; min-height: 24px; }
+      .grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+      .summary { position: static; padding: 16px; }
+      .line { grid-template-columns: 72px minmax(0, 1fr) auto; grid-template-areas: "img info price" "img qty qty"; gap: 8px 12px; padding: 12px; }
+      .line img, .img-fallback { width: 72px; height: 72px; grid-area: img; align-self: start; }
+      .line .info { grid-area: info; }
+      .line .qty { grid-area: qty; }
+      .line .price { grid-area: price; align-self: start; }
+      .qty button { width: 44px; height: 44px; }
+      .qty button::before { display: none; }
+      .qty output { height: 44px; }
+      .dept-head { padding: 12px; }
+      .value h2 { font-size: 24px; line-height: 28px; }
+      .value-grid { grid-template-columns: 1fr; gap: 16px; }
+      .vcard a { min-height: 44px; }
+      .foot { padding: 24px 12px 16px; }
+      .foot-cols { grid-template-columns: 1fr; gap: 0; }
+      .foot-col { border-bottom: 1px solid var(--line); }
+      .foot-col h2 { margin: 0; }
+      .foot-col h2 button { min-height: 52px; color: var(--blue); font-size: 16px; font-weight: 700; }
+      .foot-col h2 button svg { display: block; width: 24px; height: 24px; }
+      .foot-col ul { display: none; }
+      .social { gap: 12px; margin-top: 16px; }
+      .social a { width: 44px; height: 44px; }
+      .copy { padding: 16px 12px; text-align: left; }
+      .pay-marks { padding: 16px 12px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="util" aria-label="Tesco services">
+      <a href="#">Tesco Insurance</a><a href="#">Tesco Bank</a><a href="#">Tesco Mobile</a><a href="#">Delivery Saver</a><a href="#">Store locator</a><a href="#">Help</a>
+    </nav>
+    <div class="mast">
+      <a class="logo" href="#" aria-label="Tesco Home page">
+        <svg viewBox="0 0 121 36" aria-hidden="true">
+          <text x="60.5" y="24" text-anchor="middle" fill="#ee1c2e" font-family="Figtree, Arial, sans-serif" font-weight="900" font-size="30" letter-spacing="0.3">TESCO</text>
+          <g fill="#00539f">
+            <path d="M3 29h18l-2 4H1z"/><path d="M27 29h18l-2 4H25z"/><path d="M51 29h18l-2 4H49z"/><path d="M75 29h18l-2 4H73z"/><path d="M99 29h20l-2 4H97z"/>
+          </g>
+        </svg>
+      </a>
+      <form class="search" onsubmit="return false" role="search">
+        <label><input type="search" placeholder="Search" aria-label="Search"></label>
+        <button class="icon-btn" type="button" aria-label="Search for products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
+      </form>
+      <div class="acct">
+        <div class="acct-name">Hello<strong>Sarah</strong></div>
+        <a class="pill solid" href="#">My account</a>
+        <a class="pill ghost" href="#">Sign out</a>
+      </div>
+    </div>
+    <nav class="nav1" aria-label="Main">
+      <button class="depts" type="button">All Departments <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 9l7 7 7-7"/></svg></button>
+      <a href="#" class="active">Groceries &amp; Essentials</a>
+      <a href="#">My Favourites</a>
+      <a href="#">Special Offers</a>
+      <a href="#">Tesco Clubcard</a>
+      <a href="#">F&amp;F Clothing</a>
+      <a href="#">Marketplace</a>
+      <a href="#">Black Friday Deals</a>
+      <a href="#">Recipes</a>
+    </nav>
+    <nav class="nav2" aria-label="Departments">
+      <a href="#">Fresh Food</a><a href="#">Bakery</a><a href="#">Frozen Food</a><a href="#">Treats &amp; Snacks</a><a href="#">Food Cupboard</a><a href="#">Drinks</a><a href="#">Household</a><a href="#">Kiosk</a><a href="#">Clothing &amp; Accessories</a><a href="#">Black Friday Deals</a><a href="#">Christmas</a><a href="#">Tesco Finest</a><a href="#">Marketplace</a><a href="#">Baby &amp; Toddler</a><a href="#">Health &amp; Beauty</a><a href="#">Pets</a>
+      <a href="#" class="more">More <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 9l7 7 7-7"/></svg></a>
+    </nav>
+    <div class="m-mast">
+      <div class="m-row1">
+        <button class="menu" type="button" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <a class="logo" href="#" aria-label="Tesco Home page">
+          <svg viewBox="0 0 121 36" aria-hidden="true">
+            <text x="60.5" y="24" text-anchor="middle" fill="#ee1c2e" font-family="Figtree, Arial, sans-serif" font-weight="900" font-size="30" letter-spacing="0.3">TESCO</text>
+            <g fill="#00539f"><path d="M3 29h18l-2 4H1z"/><path d="M27 29h18l-2 4H25z"/><path d="M51 29h18l-2 4H49z"/><path d="M75 29h18l-2 4H73z"/><path d="M99 29h20l-2 4H97z"/></g>
+          </svg>
+        </a>
+        <div class="m-icons">
+          <a class="icon-btn" href="#" aria-label="My account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-7 8-7s7 2.5 8 7"/></svg></a>
+          <a class="icon-btn" href="#" aria-label="Store locator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></a>
+        </div>
+      </div>
+      <form class="m-row2" onsubmit="return false" role="search">
+        <label><input type="search" placeholder="Search" aria-label="Search"></label>
+        <button class="icon-btn" type="button" aria-label="Search for products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
+      </form>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="crumbs"><a href="#">Groceries</a> / Trolley</div>
+    <div class="trolley-head">
+      <h1>Trolley</h1>
+      <span class="head-meta" id="itemCount">0 items</span>
+    </div>
+
+    <div class="slot-bar">
+      <div class="slot-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 6h13v10H1zM14 9h4l4 4v3h-8z"/><circle cx="5.5" cy="17.5" r="2"/><circle cx="17.5" cy="17.5" r="2"/></svg></div>
+      <div>
+        <h2>Home Delivery &middot; Tue 18 Nov, 7pm&ndash;8pm</h2>
+        <p>Delivering to 14 Elm Grove, Welwyn Garden City AL7 1AA. You can amend your order until 11.45pm the night before your slot.</p>
+      </div>
+      <a href="#">Change slot</a>
+    </div>
+
+    <div class="grid">
+      <div id="lines"></div>
+
+      <aside class="summary" aria-label="Order summary">
+        <h2>Order summary</h2>
+        <div class="row"><span>Guide price</span><span id="sumItems">&pound;0.00</span></div>
+        <div class="row save"><span>Clubcard Prices savings</span><span id="sumSave">-&pound;0.00</span></div>
+        <div class="row total"><span>Total to pay</span><span id="sumTotal">&pound;0.00</span></div>
+
+        <form id="transferForm">
+          <div class="fields">
+            <div class="field">
+              <label for="toAccount">Delivery slot</label>
+              <select id="toAccount">
+                <option value="ACCT-1002">Home Delivery &middot; Tue 18 Nov, 7pm&ndash;8pm</option>
+                <option value="ACCT-1001">Home Delivery &middot; Wed 19 Nov, 8am&ndash;9am</option>
+                <option value="ACCT-EXT-001">Click+Collect &middot; Wed 19 Nov, 5pm&ndash;6pm</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="accountTier">Delivery charge</label>
+              <select id="accountTier">
+                <option value="premium">Delivery Saver plan &middot; no charge</option>
+                <option value="standard" selected>Pay per delivery</option>
+                <option value="basic">Pay per delivery &middot; peak slot</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fromAccount">Pay with</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001">Visa Debit ending 4421</option>
+                <option value="ACCT-1002">Mastercard ending 0190</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="amount">Amount (&pound;)</label>
+              <input type="number" id="amount" value="0" min="1" step="0.01" readonly>
+              <div class="hint">Guide price after Clubcard Prices. Delivery charge is added at payment.</div>
+            </div>
+          </div>
+          <button type="submit" class="btn-checkout" id="submitBtn">Checkout and pay</button>
+          <div class="secure"><svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Secure checkout. Your Clubcard points will be added after delivery.</div>
+        </form>
+        <div id="result" class="result-box" role="status"></div>
+        <p class="smallprint">Clubcard Prices are available to Clubcard members. Prices of weighted items are a guide and may vary with the weight picked.</p>
+      </aside>
+    </div>
+
+    <section class="value">
+      <h2>Get even more value at Tesco</h2>
+      <div class="value-grid">
+        <div class="vcard">
+          <div class="vmark"><span style="background:#fcd700;color:#00539f;flex:1;display:flex;align-items:center;justify-content:center">Clubcard</span><span style="background:#0050c8;color:#fff;flex:1;display:flex;align-items:center;justify-content:center">Prices</span></div>
+          <h3>Clubcard Prices</h3><p>Unlock the power to lower prices with your Clubcard</p>
+          <a href="#">See Clubcard Prices <span aria-hidden="true">&rsaquo;</span></a>
+        </div>
+        <div class="vcard">
+          <div class="vmark" style="background:#ee1c2e;color:#fff;justify-content:center;font-size:20px;line-height:22px"><small style="font-size:13px">Everyday</small>Low<br>Price</div>
+          <h3>Everyday Low Prices</h3><p>Available in larger stores and online, not available in Express stores or with Whoosh deliveries. Prices subject to change.</p>
+          <a href="#">See our prices <span aria-hidden="true">&rsaquo;</span></a>
+        </div>
+        <div class="vcard">
+          <div class="vmark" style="background:#ee1c2e;color:#fff;justify-content:center;font-size:17px;line-height:19px">Aldi<br>Price<br>Match</div>
+          <h3>Aldi Price Match</h3><p>We&rsquo;ve price matched 100s of products</p>
+          <a href="#">Start saving <span aria-hidden="true">&rsaquo;</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot">
+      <div class="foot-cols">
+        <div class="foot-col"><h2><button type="button">Here to help<svg viewBox="0 0 24 24" fill="none" stroke="#00539f" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 10l4 4 4-4"/></svg></button></h2>
+          <ul><li><a href="#">My Account</a></li><li><a href="#">My Grocery Orders</a></li><li><a href="#">Help &amp; FAQs</a></li><li><a href="#">Product Recall</a></li><li><a href="#">Privacy centre</a></li><li><a href="#">Tesco Pharmacy</a></li><li><a href="#">Tesco Photo</a></li><li><a href="#">Tesco Magazine</a></li></ul></div>
+        <div class="foot-col"><h2><button type="button">About<svg viewBox="0 0 24 24" fill="none" stroke="#00539f" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 10l4 4 4-4"/></svg></button></h2>
+          <ul><li><a href="#">Accessibility</a></li><li><a href="#">Sitemap</a></li><li><a href="#">Privacy &amp; cookies policy</a></li><li><a href="#">Cookie settings</a></li><li><a href="#">General terms &amp; conditions</a></li><li><a href="#">Product terms &amp; conditions</a></li><li><a href="#">Coupon terms &amp; conditions</a></li><li><a href="#">Ratings &amp; reviews policy</a></li><li><a href="#">Partner directory</a></li></ul></div>
+        <div class="foot-col"><h2><button type="button">Ways to save<svg viewBox="0 0 24 24" fill="none" stroke="#00539f" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 10l4 4 4-4"/></svg></button></h2>
+          <ul><li><a href="#">Delivery Saver</a></li><li><a href="#">Clubcard</a></li><li><a href="#">Click+Collect</a></li><li><a href="#">Clubcard Prices</a></li></ul></div>
+        <div class="foot-col"><h2><button type="button">Support<svg viewBox="0 0 24 24" fill="none" stroke="#00539f" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 10l4 4 4-4"/></svg></button></h2>
+          <ul><li><a href="#">Contact us</a></li><li><a href="#">Store locator</a></li></ul></div>
+      </div>
+      <div class="social" aria-label="Follow us">
+        <a href="#" aria-label="Facebook" style="background:#1877f2">f</a>
+        <a href="#" aria-label="X" style="background:#000">X</a>
+        <a href="#" aria-label="Pinterest" style="background:#e60023">P</a>
+        <a href="#" aria-label="YouTube" style="background:#ff0000">&#9654;</a>
+        <a href="#" aria-label="Instagram" style="background:#e1306c">&#9675;</a>
+      </div>
+    </div>
+    <p class="copy">&copy; 2026 Tesco.com. All rights reserved</p>
+    <div class="pay-marks" aria-label="Payment security">
+      <span class="pm-visa">VISA<small>SECURE</small></span>
+      <span class="pm-mc"><i></i>| ID Check</span>
+      <span class="pm-amex"><small>AMERICAN EXPRESS</small>SafeKey</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var CDN = 'https://digitalcontent.api.tesco.com/v2/media/ghs/';
+      var depts = [
+        { name: 'Fresh Food', items: [
+          { n: 'Tesco British Semi Skimmed Milk 1.13L, 2 Pints', p: 1.30, u: '£1.15/litre', q: 2, img: '8bb67050-c132-4326-97f2-04be9fdce6c9/93e23843-fc27-4cb7-9448-9820e01e8281_798947363.jpeg' },
+          { n: 'Tesco Medium Free Range Eggs 12 Pack', p: 2.95, u: '£0.25/each', q: 1, img: '722c5b89-3428-4c95-897a-f7f3a004999e/9c631630-f608-4b22-a3ba-03c6b0f827cc.jpeg' },
+          { n: 'Tesco British Salted Block Butter 250G', p: 1.95, u: '£7.80/kg', q: 1, img: '56a1a385-da82-4117-bd97-45cf1d3b3b83/f347458e-e59f-47bc-bcf1-503adf640f24_1178333248.jpeg' },
+          { n: 'Tesco British Chicken Breast Fillets 650G', p: 4.95, u: '£7.62/kg', q: 2, img: '21ac90a7-9f40-4bdf-86d1-41b45e6ec2e5/f69b8c53-c86b-450c-a948-d93d219603de.jpeg' },
+          { n: 'Tesco Lean Beef Steak Mince 5% Fat 500g', p: 5.20, u: '£10.40/kg', q: 2, img: 'c74574b8-35ab-4d5d-8fa0-abe354d8f263/1863b4d8-d820-404a-9984-69ef45eeae46.jpeg' },
+          { n: 'Tesco 2 Boneless Salmon Fillets 260G', p: 4.90, cc: 4.00, ccu: '£15.38/kg', u: '£18.85/kg', q: 1, img: 'de719be9-d050-4fac-9ad7-d7ce9695aafe/5d693f61-69d3-487c-bb57-690d226b145c.jpeg' },
+          { n: 'Tesco Maris Piper Potatoes 2Kg', p: 1.85, u: '£0.92/kg', q: 1, img: '3d6e5b1e-a686-4f0d-8155-b6b6c8c8f20a/4d0e0f86-9eeb-4121-b3ee-fa28aff297a0_1520128228.jpeg' },
+          { n: 'Tesco Brown Onions 3 Pack', p: 1.05, u: '£0.35/each', q: 1, img: '923b6a50-8ade-4376-a856-671bc2750962/cd0f3a4b-5d3f-4525-be02-50ba412a5617_1235554975.jpeg' },
+          { n: 'Tesco Bunched Spring Onions 100G', p: 0.65, u: '£6.50/kg', q: 1, apm: true, img: '9ac27c57-9a0a-4652-9643-5d562716e9d3/40796177-0f92-47cb-b54f-6b96d93b7caf.jpeg' },
+          { n: 'Tesco Pink Lady Apples 5 Pack', p: 2.95, cc: 2.30, ccu: '£0.46/each', u: '£0.59/each', q: 1, img: 'c7c15f32-5870-43b2-9859-fb51abdbcab8/e30aa11c-c51f-4b6d-bdcb-a7849e1e31e9_165174249.jpeg' }
+        ] },
+        { name: 'Food Cupboard', items: [
+          { n: 'Heinz Baked Beans In Tomato Sauce 4X415g', p: 3.30, cc: 2.95, ccu: '£1.78/kg', u: '£1.99/kg', q: 1, img: '695c73a9-6f41-4f70-8e82-9ead977d683b/feee8b9d-255d-49db-83a4-ee1eaeb04e75_38777240.jpeg' },
+          { n: 'Tesco Basmati Rice 1Kg', p: 1.79, u: '£1.79/kg', q: 1, apm: true, img: '9d3e4b47-b34e-4842-8b93-9e29aee874d9/9337f789-72d4-46c9-832e-c65697d84817_2020474177.jpeg' },
+          { n: 'Tesco Fusilli Pasta Twists 1Kg', p: 1.19, u: '£1.19/kg', q: 1, apm: true, img: 'b262b57c-7e98-4ffd-b5ee-60128d4cee67/31efb9cc-ceaf-470d-bccd-9679db17f6fb_208665396.jpeg' },
+          { n: 'Tesco Italian Chopped Tomatoes 400G', p: 0.47, u: '£1.18/kg', q: 2, img: 'b0d82d66-7839-4dad-8dcc-10ac12af6d57/261c931e-d42e-4ce4-bfb8-8ecc5ef1c7dc_2129497051.jpeg' },
+          { n: 'Tesco Squeezy Clear Honey 340G', p: 1.19, u: '£3.50/kg', q: 1, img: '60cc67e3-3e0c-4dc5-8711-2e2d105534c8/89fa9e75-c8f3-44e7-a6e9-70906294cef2_1983820011.jpeg' },
+          { n: 'Ritz Original Crackers 150g', p: 1.25, cc: 1.00, ccu: '£6.67/kg', u: '£8.33/kg', q: 1, img: '1035adb3-c7f1-440c-a490-d2f6343c33e2/7e85c93f-7bc4-4a1e-9e57-fee5333a038b_461426413.jpeg' },
+          { n: 'Tesco Mayonnaise 450Ml', p: 0.86, u: '£1.91/litre', q: 1, apm: true, img: 'ac6d37af-81bb-4f41-8196-c634caa93d39/35c47a91-ff5b-49bb-9ef2-243d486b5019_394155271.jpeg' }
+        ] }
+      ];
+      function gbp(v) { return '£' + v.toFixed(2); }
+      function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+      var host = document.getElementById('lines');
+      depts.forEach(function (d, di) {
+        var sec = document.createElement('section');
+        sec.className = 'dept';
+        sec.innerHTML = '<div class="dept-head"><h2>' + esc(d.name) + '</h2><span data-dept="' + di + '"></span></div>';
+        d.items.forEach(function (it, ii) {
+          var row = document.createElement('div');
+          row.className = 'line';
+          var badge = '';
+          if (it.cc) badge = '<div class="badges"><span class="ccp"><span class="ccp-mark">Clubcard Price</span><span class="ccp-price">' + gbp(it.cc) + ' Clubcard Price<small>(' + it.ccu + ')</small></span></span></div>';
+          else if (it.apm) badge = '<div class="badges"><span class="apm"><i>Aldi Price Match</i>Aldi Price Match</span></div>';
+          row.innerHTML =
+            '<img alt="" src="' + CDN + it.img + '?h=225&w=225" onerror="this.outerHTML=\'<div class=&quot;img-fallback&quot;>' + esc(d.name) + '</div>\'">' +
+            '<div class="info"><a class="name" href="#">' + esc(it.n) + '</a><div class="unit">' + gbp(it.cc || it.p) + ' each &middot; ' + (it.cc ? it.ccu : it.u) + '</div>' + badge + '</div>' +
+            '<div class="qty"><button type="button" aria-label="Remove one" data-k="' + di + '-' + ii + '" data-d="-1">&minus;</button><output data-q="' + di + '-' + ii + '">' + it.q + '</output><button type="button" aria-label="Add one" data-k="' + di + '-' + ii + '" data-d="1">+</button></div>' +
+            '<div class="price" data-p="' + di + '-' + ii + '"></div>';
+          sec.appendChild(row);
+        });
+        host.appendChild(sec);
+      });
+      function recalc() {
+        var guide = 0, save = 0, count = 0;
+        depts.forEach(function (d, di) {
+          var dc = 0;
+          d.items.forEach(function (it, ii) {
+            var k = di + '-' + ii;
+            var unitPay = it.cc || it.p;
+            guide += it.p * it.q; save += (it.p - unitPay) * it.q; count += it.q; dc += it.q;
+            document.querySelector('[data-q="' + k + '"]').textContent = it.q;
+            document.querySelector('[data-p="' + k + '"]').innerHTML = gbp(unitPay * it.q) + (it.cc && it.q ? '<s>' + gbp(it.p * it.q) + '</s>' : '');
+          });
+          document.querySelector('[data-dept="' + di + '"]').textContent = dc + (dc === 1 ? ' item' : ' items');
+        });
+        var total = Math.round((guide - save) * 100) / 100;
+        document.getElementById('sumItems').textContent = gbp(guide);
+        document.getElementById('sumSave').textContent = '-' + gbp(save);
+        document.getElementById('sumTotal').textContent = gbp(total);
+        document.getElementById('itemCount').textContent = count + ' items';
+        document.getElementById('amount').value = total.toFixed(2);
+        var sb = document.getElementById('submitBtn');
+        sb.disabled = total <= 0;
+        sb.textContent = total > 0 ? 'Checkout and pay ' + gbp(total) : 'Your trolley is empty';
+      }
+      host.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-k]');
+        if (!b) return;
+        var parts = b.getAttribute('data-k').split('-');
+        var it = depts[+parts[0]].items[+parts[1]];
+        it.q = Math.max(0, Math.min(20, it.q + Number(b.getAttribute('data-d'))));
+        recalc();
+      });
+      recalc();
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!(parseFloat(document.getElementById('amount').value) > 0)) return;
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const label = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Placing your order...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Sorry, we couldn&rsquo;t take your payment</div><div>Your trolley has been saved. Please try again in a few minutes.</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Thanks, your order is confirmed</div><div>We&rsquo;ve taken &pound;${data.debitAmount}, including a &pound;${data.fee} delivery charge.</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Sorry, something went wrong</div><div>Please check your connection and try again.</div>';
+      } finally { btn.disabled = !(parseFloat(document.getElementById('amount').value) > 0); btn.textContent = label; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

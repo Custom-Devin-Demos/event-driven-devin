@@ -9902,6 +9902,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A STOREFORCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real StoreForce product.',
   },
+  '14e47290': {
+    slug: '14e47290',
+    company: 'Tesco',
+    vertical: 'banking',
+    page: {
+      file: '14e47290.html',
+      title: 'Trolley - Tesco Groceries',
+    },
+    disclaimer: 'NOT ACTUALLY A TESCO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tesco product.',
+  },
 };
 
 function getOncallSkin(slug) {
