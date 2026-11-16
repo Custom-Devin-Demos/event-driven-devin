@@ -19,7 +19,7 @@ const MESSAGE = "Cannot read properties of undefined (reading 'worklist')";
 const error = new TypeError(MESSAGE);
 const FAILING = 'PT-31803';
 const report = (input = {}) => runWithAlertDestination('teams', () => reportTransmissionError(error, input));
-const keys = ['NODE_ENV', 'CI', 'LATITUDE_DEMO_DRY_RUN', 'LOWES_TEAMS_WEBHOOK_URL', 'AUTOMATIONS_TEAMS_WEBHOOK_URL', 'SENTRY_ORG_SLUG', 'SENTRY_PROJECT_ID', 'SENTRY_RELEASE', 'SENTRY_ENVIRONMENT', 'APP_VERSION', 'DD_ENV'];
+const keys = ['NODE_ENV', 'CI', 'LONGITUDE_DEMO_DRY_RUN', 'LOWES_TEAMS_WEBHOOK_URL', 'AUTOMATIONS_TEAMS_WEBHOOK_URL', 'SENTRY_ORG_SLUG', 'SENTRY_PROJECT_ID', 'SENTRY_RELEASE', 'SENTRY_ENVIRONMENT', 'APP_VERSION', 'DD_ENV'];
 const original = Object.fromEntries(keys.map(k => [k, process.env[k]]));
 let testTime = Date.now();
 beforeEach(() => { jest.clearAllMocks(); Sentry.isEnabled.mockReturnValue(true); Sentry.captureException.mockReturnValue('0123456789abcdef0123456789abcdef'); keys.forEach(k => delete process.env[k]); testTime += 60_001; jest.spyOn(Date, 'now').mockReturnValue(testTime); });
@@ -37,8 +37,8 @@ const post = (base, body) => fetch(`${base}/api/acee28a2/transmissions`, { metho
 
 test('registers the customer and its friendly URLs', () => {
   const { getCustomerConfig, listAliases } = require('../config/customers');
-  expect(getCustomerConfig('acee28a2').label).toContain('LATITUDE');
-  expect(listAliases().latitude).toBe('acee28a2');
+  expect(getCustomerConfig('acee28a2').label).toContain('LONGITUDE');
+  expect(listAliases().longitude).toBe('acee28a2');
   expect(listAliases().bsci).toBe('acee28a2');
 });
 
@@ -93,7 +93,7 @@ test('rehearsal previews the Teams card without Sentry, Teams or a session', asy
   process.env.LOWES_TEAMS_WEBHOOK_URL = 'https://demo.webhook.office.com/workflows/test';
   const result = await report({ patientId: FAILING });
   expect(result).toMatchObject({ ok: true, dryRun: true, sent: false, destination: 'teams', reason: 'local-or-test-runtime' });
-  expect(result.payload.text).toContain('LATITUDE Clinic Alert Routing');
+  expect(result.payload.text).toContain('LONGITUDE Clinic Alert Routing');
   expect(result.payload.text).not.toContain('customer-a4c19e72-checkout');
   expect(Sentry.captureException).not.toHaveBeenCalled();
   expect(axios.post).not.toHaveBeenCalled();
@@ -109,7 +109,7 @@ test('hosted mode captures Sentry, then posts once to the dedicated Teams target
   expect(axios.post).toHaveBeenCalledTimes(1);
   expect(axios.post.mock.calls[0][0]).toBe(process.env.LOWES_TEAMS_WEBHOOK_URL);
   expect(Sentry.captureException).toHaveBeenCalledWith(error, {
-    tags: { route: '/api/acee28a2/transmissions', service: 'customer-acee28a2-alert-routing', scenario: 'latitude-red-alert-demo', alert_path: 'instant' },
+    tags: { route: '/api/acee28a2/transmissions', service: 'customer-acee28a2-alert-routing', scenario: 'longitude-red-alert-demo', alert_path: 'instant' },
     extra: { patientId: FAILING },
   });
   expect(Sentry.captureException.mock.invocationCallOrder[0]).toBeLessThan(axios.post.mock.invocationCallOrder[0]);

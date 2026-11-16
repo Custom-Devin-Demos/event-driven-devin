@@ -5,7 +5,7 @@ const { Sentry } = require('../../telemetry/sentry');
 const { teamsWebhookEnv } = require('../../../config/customers/acee28a2');
 
 const REPO = 'https://github.com/COG-GTM/event-driven-devin';
-const BASE_BRANCH = 'devin/latitude-alerts-acee28a2';
+const BASE_BRANCH = 'devin/longitude-alerts-acee28a2';
 const SERVICE = 'customer-acee28a2-alert-routing';
 const ROUTE = '/api/acee28a2/transmissions';
 
@@ -15,7 +15,7 @@ function sentryIssueUrl(query = `service:${SERVICE} route:${ROUTE}`) {
 
 function buildAlertData(error, input = {}) {
   return {
-    customer: 'acee28a2', verticalLabel: 'LATITUDE Clinic Alert Routing',
+    customer: 'acee28a2', verticalLabel: 'LONGITUDE Clinic Alert Routing',
     service: SERVICE, issueTitle: `${error.name}: ${error.message}`,
     issueUrl: sentryIssueUrl(),
     culprit: 'app/services/verticals/acee28a2.js — processTransmission',
@@ -27,7 +27,7 @@ function buildAlertData(error, input = {}) {
     tags: [
       { key: 'route', value: ROUTE },
       { key: 'service', value: SERVICE },
-      { key: 'scenario', value: 'latitude-red-alert-demo' },
+      { key: 'scenario', value: 'longitude-red-alert-demo' },
       { key: 'alert_path', value: 'instant' },
     ],
     // Synthetic identifiers only; never patient names.
@@ -40,7 +40,7 @@ function buildAlertData(error, input = {}) {
 function rehearsalReason() {
   if (process.env.NODE_ENV !== 'production') return 'local-or-test-runtime';
   if (process.env.CI) return 'ci-runtime';
-  if (process.env.LATITUDE_DEMO_DRY_RUN === 'true') return 'explicit-dry-run';
+  if (process.env.LONGITUDE_DEMO_DRY_RUN === 'true') return 'explicit-dry-run';
   if (!isTeamsWebhookUrl(process.env[teamsWebhookEnv])) return 'missing-teams-target';
   return null;
 }
