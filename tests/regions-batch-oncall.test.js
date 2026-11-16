@@ -523,6 +523,107 @@ describe('ported tile rules', () => {
   });
 });
 
+describe('legacy batch console presentation', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/db10f6b2.html'), 'utf8');
+  const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1].split("$('fire').onclick")[0];
+  const jobs = require('../app/services/oncall-verticals/batchsettlement-jobs.json');
+  let ui, elements, data;
+  const incident = (service, content = '', status = 'triggered') => ({ id: 'P' + service, status,
+    service: { id: service, name: service }, title: 'Synthetic settlement incident', created_at: '2026-11-16T02:00:00Z',
+    notes: content ? [{ content, created_at: '2026-11-16T02:01:00Z', author: 'Operator' }] : [] });
+  beforeEach(() => {
+    const element = (tag = 'div') => ({ tagName: tag.toUpperCase(), children: [], dataset: {}, textContent: '',
+      classList: { toggle: jest.fn() }, append(...children) { this.children.push(...children); },
+      replaceChildren(...children) { this.children = children; } });
+    elements = new Map();
+    ui = vm.createContext({ document: { createElement: element, getElementById(id) {
+      if (!elements.has(id)) elements.set(id, element());
+      return elements.get(id);
+    } } });
+    vm.runInContext(script, ui);
+    data = { jobs, incidents: [], simulated: true, fetched_at: '2026-11-16T02:00:00Z', run: null };
+  });
+  test('shell provides SDSF columns, keyboard-scrollable terminals and the three evidence panels', () => {
+    for (const text of ['SDSF STATUS DISPLAY ALL CLASSES   LINE 1-10 (10)', 'COMMAND INPUT ===&gt;',
+      'SCROLL ===&gt; CSR', 'F1=HELP  F3=END  F7=UP  F8=DOWN', 'JOBNAME', 'JOBID', 'OWNER', 'SLA', 'STATUS/RC',
+      'Axway SecureTransport — Transfer Monitor', 'SQL Server Agent — Job History', 'JES2 Spool — SETLPOST',
+      'FEDACH-CLEARING', 'RG.SETTLE.D261115.INPUT', 'SFTPS / TLS 1.0 / 3DES', 'RGW-MFTSQL-07']) expect(html).toContain(text);
+    expect(html).toContain('class="terminal-scroll" tabindex="0"');
+    expect(html).toContain('<tbody id="jobs">');
+  });
+  test('idle renders all ten original IDs with stable JES IDs and no failure evidence', () => {
+    ui.render(data);
+    const rows = elements.get('jobs').children;
+    expect(rows).toHaveLength(10);
+    expect(rows.map((row) => row.dataset.jobId)).toEqual(jobs.map((job) => job.id));
+    expect(rows.map((row) => row.children[1].children[0].textContent)).toEqual([
+      'MFTINBND', 'SQLSTAGE', 'EDWLOAD', 'MFEXTRCT', 'SETLPOST', 'GLPOST', 'REGRPT', 'STMTGEN', 'TREASRY', 'FRDREFR',
+    ]);
+    for (const row of rows) {
+      expect(row.tagName).toBe('TR');
+      expect(row.children[1].children[1].textContent).toBe(row.dataset.jobId);
+      expect(row.children[2].textContent).toMatch(/^JOB0\d{4}$/);
+      expect(row.children[5].textContent).toBe('AWAITING');
+      expect(row.className).toBe('job scheduled');
+    }
+    expect(new Set(rows.map((row) => row.children[2].textContent)).size).toBe(10);
+    expect(ui.legacyJob(jobs[0], []).jobId).toBe(ui.legacyJob([...jobs].reverse().at(-1), []).jobId);
+    expect(elements.get('mft-status').textContent).toBe('WAITING');
+    expect(elements.get('sql-stage-status').textContent).toBe('WAITING');
+    expect(elements.get('edw-load-status').textContent).toBe('WAITING');
+    expect(elements.get('jes-status').textContent).toBe('AWAITING INPUT');
+  });
+  test('existing incident arrivals independently illuminate MFT, SQL and mainframe evidence', () => {
+    data.incidents = [incident('PU8BL8X')];
+    ui.render(data);
+    expect(elements.get('mft-status').textContent).toBe('FAILED');
+    expect(elements.get('mft-detail').textContent).toBe('FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure');
+    expect(elements.get('mft-detail').classList.toggle).toHaveBeenLastCalledWith('failed', true);
+    expect(elements.get('sql-stage-status').textContent).toBe('WAITING');
+    expect(elements.get('jes-status').textContent).toBe('AWAITING INPUT');
+    data.incidents.push(incident('PQZQKW7'), incident('PN02JGH'));
+    ui.render(data);
+    expect(elements.get('jobs').children.filter((row) => row.className === 'job failed')
+      .map((row) => [row.dataset.jobId, row.children[5].textContent])).toEqual([
+      ['MFT_INBOUND', 'RC 0008'], ['SQL_STAGE', 'RC 0012'], ['EDW_LOAD', 'RC 0012'], ['SETTLE_POST', 'ABEND S013'],
+    ]);
+    expect(elements.get('sql-stage-status').textContent).toBe('FAILED · 08001');
+    expect(elements.get('edw-load-status').textContent).toBe('FAILED · 08001');
+    expect(elements.get('sql-detail').textContent).toBe('Login timeout expired; SSL Provider: The client and server cannot communicate, because they do not possess a common algorithm. [SQLSTATE 08001]');
+    expect(elements.get('jes-status').textContent).toBe('ABEND S013');
+    for (const line of ['IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND', 'IEC130I INPUT DD STATEMENT MISSING', '$HASP395 SETLPOST ENDED - ABEND=S013']) expect(elements.get('jes-detail').textContent).toContain(line);
+    expect(elements.get('jes-detail').classList.toggle).toHaveBeenLastCalledWith('failed', true);
+  });
+  test('display codes preserve HOLD, explicit completion and dependency/on-call context', () => {
+    data.incidents = [incident('PU8BL8X', 'GL_POST COMPLETE; TREASURY remains on HOLD')];
+    ui.render(data);
+    for (const [id, state, code] of [['GL_POST', 'ready', 'CC 0000'], ['TREASURY', 'hold', 'HELD']]) {
+      const row = elements.get('jobs').children.find((row) => row.dataset.jobId === id);
+      expect(row.className).toBe('job ' + state);
+      expect(row.children[5].textContent).toBe(code);
+      const job = jobs.find((job) => job.id === id);
+      expect(row.children[1].title).toContain(job.upstream.join(', '));
+      expect(row.children[3].textContent).toBe(job.owner_team);
+      expect(row.children[3].title).toContain(job.on_call.email);
+    }
+  });
+  test('configured service IDs work; resolved/unrelated incidents do not light evidence; reset clears it', () => {
+    data.service_jobs = { CUSTOM_MFT: ['MFT_INBOUND'] };
+    data.incidents = [incident('CUSTOM_MFT', '', 'acknowledged')];
+    ui.render(data);
+    expect(elements.get('mft-status').textContent).toBe('FAILED');
+    data.incidents = [incident('CUSTOM_MFT', '', 'resolved'), incident('OTHER')];
+    ui.render(data);
+    expect(elements.get('mft-status').textContent).toBe('WAITING');
+    data.incidents = [];
+    ui.render(data);
+    for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
+      expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
+      expect(elements.get(id).classList.toggle).toHaveBeenLastCalledWith('failed', false);
+    }
+  });
+});
+
 test('deployment accepts only the specified five secret formats and stages all five Actions secrets', () => {
   const script = fs.readFileSync(path.join(__dirname, '../scripts/deploy-ec2.sh'), 'utf8');
   const workflow = fs.readFileSync(path.join(__dirname, '../.github/workflows/deploy.yml'), 'utf8');
