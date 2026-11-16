@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bring your own phone plans | TELUS</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #4b286d;
+      --purple-mid: #7c53a5;
+      --purple-soft: #f2eff4;
+      --green: #2b8000;
+      --green-hover: #246b00;
+      --green-soft: #f4f9f2;
+      --ink: #2a2c2e;
+      --body: #414547;
+      --muted: #676e73;
+      --line: #d8d8d8;
+      --line-soft: #e3e6e8;
+      --wash: #f4f4f7;
+      --white: #ffffff;
+      --red: #c12335;
+      --red-soft: #fff6f8;
+      --sans: 'Helvetica Neue', Arimo, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--white); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    ul { list-style: none; }
+    .wrap { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* utility bar */
+    .util { border-bottom: 1px solid var(--line-soft); font-size: 14px; color: var(--body); }
+    .util .wrap { display: flex; align-items: stretch; justify-content: space-between; gap: 16px; }
+    .util ul { display: flex; align-items: stretch; gap: 8px; }
+    .util a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 10px; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .util a.on { color: var(--ink); border-bottom-color: var(--purple); }
+
+    /* main nav */
+    .mainnav { border-bottom: 1px solid var(--line-soft); background: var(--white); }
+    .mainnav .wrap { display: flex; align-items: center; gap: 28px; min-height: 80px; }
+    .brand { display: inline-flex; align-items: center; min-height: 44px; flex: 0 0 auto; }
+    .mainnav nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .mainnav nav::-webkit-scrollbar { display: none; }
+    .mainnav nav ul { display: flex; gap: 22px; }
+    .mainnav nav a { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; min-width: 44px; font-size: 16px; color: var(--ink); white-space: nowrap; }
+    .mainnav nav a.on { color: var(--purple); font-weight: 500; }
+    .mainnav nav a svg { flex: 0 0 auto; }
+    .icons { display: flex; gap: 8px; flex: 0 0 auto; }
+    .icons a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+
+    /* promo band + signed-in strip */
+    .band { background: var(--wash); font-size: 15px; color: var(--ink); text-align: center; padding: 12px 24px; }
+    .band a { color: var(--green); text-decoration: underline; font-weight: 500; }
+
+    /* page head */
+    .crumbs { padding-top: 16px; font-size: 13px; color: var(--muted); }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; color: var(--body); }
+    .page-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 32px; align-items: center; padding: 8px 0 32px; }
+    .page-head h1 { font-size: 44px; font-weight: 400; line-height: 1.12; color: var(--purple); letter-spacing: -0.5px; }
+    .page-head p { margin-top: 14px; font-size: 18px; color: var(--body); max-width: 640px; }
+    .page-head .hero-img { width: 100%; max-width: 360px; height: auto; justify-self: end; }
+    .perks { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .perks span { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 18px; background: var(--purple-soft); color: var(--purple); font-size: 14px; font-weight: 500; }
+
+    /* layout */
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: 32px; align-items: start; padding-bottom: 64px; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 28px; }
+    .card + .card { margin-top: 24px; }
+    .card h2 { font-size: 26px; font-weight: 400; color: var(--purple); line-height: 1.25; margin-bottom: 6px; }
+    .card .sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+    .line { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .line .ico { width: 56px; height: 56px; border-radius: 50%; background: var(--purple-soft); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .line dl { flex: 1 1 220px; display: grid; grid-template-columns: auto 1fr; gap: 8px 20px; font-size: 15px; }
+    .line dt { color: var(--muted); }
+    .line dd { font-weight: 500; }
+
+    /* plan tiles */
+    .plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .plan { position: relative; text-align: left; cursor: pointer; display: flex; flex-direction: column; align-items: stretch; background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 20px 18px; color: var(--ink); min-height: 44px; }
+    .plan:hover { border-color: var(--purple-mid); }
+    .plan:disabled { cursor: default; background: var(--wash); color: var(--muted); }
+    .plan:disabled:hover { border-color: var(--line); }
+    .plan[aria-pressed="true"] { border: 2px solid var(--green); padding: 19px 17px; }
+    .plan .tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 0.4px; min-height: 18px; }
+    .plan .name { font-size: 18px; font-weight: 500; color: var(--purple); margin-top: 4px; }
+    .plan .data { font-size: 14px; color: var(--body); margin-top: 2px; }
+    .plan .price { margin-top: 12px; font-size: 36px; font-weight: 500; line-height: 1; color: var(--ink); }
+    .plan .price sup { font-size: 16px; font-weight: 500; vertical-align: top; position: relative; top: 4px; }
+    .plan .price small { font-size: 14px; font-weight: 400; color: var(--muted); }
+    .plan ul { margin-top: 14px; border-top: 1px solid var(--line-soft); padding-top: 12px; font-size: 14px; color: var(--body); }
+    .plan li { padding: 3px 0 3px 20px; position: relative; }
+    .plan li::before { content: ''; position: absolute; left: 2px; top: 7px; width: 10px; height: 6px; border-left: 2px solid var(--green); border-bottom: 2px solid var(--green); transform: rotate(-45deg); }
+    .plans-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+    /* form */
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+    .form-group select, .form-group input[type="text"] { width: 100%; min-height: 48px; padding: 0 14px; background: var(--white); border: 1px solid #898e91; border-radius: 4px; color: var(--ink); font-size: 16px; }
+    .form-group select:focus, .form-group input:focus { outline: 2px solid var(--purple); outline-offset: 1px; }
+    .form-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .totals { background: var(--wash); border-radius: 8px; padding: 16px; margin: 4px 0 18px; font-size: 15px; }
+    .totals div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+    .totals .disc { color: var(--green); }
+    .totals .big { font-weight: 700; font-size: 18px; border-top: 1px solid var(--line); margin-top: 6px; padding-top: 10px; }
+    .terms { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--body); margin-bottom: 18px; }
+    .terms input { width: 20px; height: 20px; margin-top: 12px; accent-color: var(--green); flex: 0 0 auto; }
+    .terms label { display: flex; align-items: center; min-height: 44px; }
+    .btn-submit { width: 100%; min-height: 52px; border: 0; border-radius: 36px; background: var(--green); color: var(--white); font-size: 17px; font-weight: 700; cursor: pointer; }
+    .btn-submit:hover { background: var(--green-hover); }
+    .btn-submit:disabled { background: #9ea3a6; cursor: default; }
+    .result-box { display: none; margin-top: 20px; padding: 16px 18px; border-radius: 8px; font-size: 15px; }
+    .result-box.success { display: block; background: var(--green-soft); border-left: 4px solid var(--green); }
+    .result-box.error { display: block; background: var(--red-soft); border-left: 4px solid var(--red); }
+    .result-title { font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+    .result-detail { color: var(--body); }
+    .info-list { margin-top: 20px; border-top: 1px solid var(--line-soft); }
+    .info-list li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+    .info-list li span:first-child { color: var(--muted); }
+    .info-list li span:last-child { font-weight: 500; text-align: right; }
+
+    /* price lock strip */
+    .lock { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 24px; align-items: center; background: var(--wash); border-radius: 8px; padding: 20px 24px; margin-top: 24px; }
+    .lock img { width: 100%; height: auto; }
+    .lock h3 { font-size: 20px; font-weight: 400; color: var(--purple); }
+    .lock p { font-size: 14px; color: var(--body); margin-top: 4px; }
+
+    /* footer */
+    footer.site { border-top: 1px solid var(--line-soft); background: var(--white); color: var(--ink); }
+    .help { display: flex; gap: 28px; flex-wrap: wrap; padding: 28px 0 12px; font-size: 15px; font-weight: 500; }
+    .help a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+    .foot-cols { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 24px; padding: 12px 0 28px; }
+    .foot-cols p { font-size: 13px; color: var(--body); max-width: 420px; }
+    .foot-cols h4 { font-size: 13px; font-weight: 700; letter-spacing: 0.6px; margin-bottom: 4px; }
+    .foot-cols a { display: flex; align-items: center; min-height: 44px; font-size: 14px; color: var(--body); }
+    .legal { border-top: 1px solid var(--line-soft); padding: 18px 0 28px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    /* error dialog */
+    .err-dialog { width: min(440px, calc(100vw - 32px)); margin: auto; padding: 0; border: 0; border-radius: 8px; color: var(--ink); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3); }
+    .err-dialog::backdrop { background: rgba(42, 44, 46, 0.6); }
+    .err-dialog .err-top { height: 6px; background: var(--purple); border-radius: 8px 8px 0 0; }
+    .err-dialog .err-body { padding: 28px 28px 24px; }
+    .err-dialog h2 { font-size: 22px; font-weight: 400; color: var(--purple); line-height: 1.25; margin-bottom: 8px; }
+    .err-dialog p { font-size: 15px; color: var(--body); margin-bottom: 8px; }
+    .err-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .err-actions button { flex: 1 1 140px; min-height: 48px; border-radius: 36px; font-size: 16px; font-weight: 700; cursor: pointer; background: var(--green); color: var(--white); border: 0; }
+
+    @media (max-width: 1024px) {
+      .cols, .page-head { grid-template-columns: minmax(0, 1fr); }
+      .page-head .hero-img { display: none; }
+      .icons { display: none; }
+    }
+    @media (max-width: 720px) {
+      .util .hide-sm { display: none; }
+      .mainnav .wrap { gap: 16px; min-height: 64px; }
+      .page-head h1 { font-size: 32px; }
+      .card { padding: 20px; }
+      .plans { grid-template-columns: minmax(0, 1fr); }
+      .lock { grid-template-columns: minmax(0, 1fr); }
+      .lock img { max-width: 160px; }
+      .foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .foot-cols > div:first-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <div class="wrap">
+      <ul>
+        <li><a class="on" href="#">Personal</a></li>
+        <li><a href="#">Business</a></li>
+        <li class="hide-sm"><a href="#">Health</a></li>
+        <li class="hide-sm"><a href="#">Social Impact</a></li>
+      </ul>
+      <ul>
+        <li class="hide-sm"><a href="#">Find a Store</a></li>
+        <li class="hide-sm"><a href="#">Support</a></li>
+        <li class="hide-sm"><a href="#">BC</a></li>
+        <li><a href="#">Hi, Priya</a></li>
+      </ul>
+    </div>
+  </div>
+  <header class="mainnav">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="TELUS home">
+        <svg width="124" height="28" viewBox="0 0 124 28" aria-hidden="true">
+          <path d="M2 20c7-1 14-5 19-12" fill="none" stroke="#66cc00" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M6 9c5 1 11 5 14 11" fill="none" stroke="#4b286d" stroke-width="3.2" stroke-linecap="round"/>
+          <text x="30" y="22" font-family="Helvetica Neue, Arimo, Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="2.6" fill="#4b286d">TELUS</text>
+        </svg>
+      </a>
+      <nav aria-label="Main">
+        <ul>
+          <li><a class="on" href="#">Mobility</a></li>
+          <li><a href="#">Internet</a></li>
+          <li><a href="#">TV &amp; Entertainment</a></li>
+          <li><a href="#">SmartHome &amp; Security</a></li>
+          <li><a href="#">TELUS Rewards</a></li>
+          <li><a href="#">Deals &amp; Bundles</a></li>
+        </ul>
+      </nav>
+      <div class="icons" aria-hidden="true">
+        <a href="#"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="#2a2c2e" stroke-width="1.8"/><path d="M15.5 15.5 21 21" stroke="#2a2c2e" stroke-width="1.8"/></svg></a>
+        <a href="#"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M3 4h2.5l2.2 11h11l2-8H7" fill="none" stroke="#2a2c2e" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="19.5" r="1.5" fill="#2a2c2e"/><circle cx="17" cy="19.5" r="1.5" fill="#2a2c2e"/></svg></a>
+      </div>
+    </div>
+  </header>
+  <div class="band">You&rsquo;re signed in to My TELUS. Plans shown include your TELUS Family Discount &mdash; <a href="#">See details</a></div>
+
+  <div class="wrap">
+    <div class="crumbs"><a href="#">Home</a> &rsaquo; <a href="#">Mobility</a> &rsaquo; <a href="#">Plans</a> &rsaquo; Bring your own phone</div>
+    <div class="page-head">
+      <div>
+        <h1>Bring your own phone.<br>Pick a 5G+ plan.</h1>
+        <p>Keep the phone you love and choose a plan for your line. Your new plan starts today, and the difference for the rest of this bill period shows on your next bill.</p>
+        <div class="perks">
+          <span>5-Year Rate Plan Price Lock</span>
+          <span>Built-in Scam Protection</span>
+          <span>Easy Roam from $5/day</span>
+        </div>
+      </div>
+      <img class="hero-img" src="https://images.ctfassets.net/fltupc9ltp8m/7DJWWhQWyCfgEzGFlOAG1f/1fcf723afacdef39a560d4bf66f7d7ee/Complete_Plans.png?fm=webp&amp;w=720&amp;q=80" alt="A green chameleon standing beside a badge that reads 5-Year Plan Price Lock." onerror="this.style.display='none'">
+    </div>
+  </div>
+
+  <main class="wrap cols">
+    <div>
+      <section class="card" aria-labelledby="lineHeading">
+        <h2 id="lineHeading">Your line</h2>
+        <div class="sub">The line you&rsquo;re buying a plan for, and the plan it has today.</div>
+        <div class="line">
+          <span class="ico" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5" fill="none" stroke="#4b286d" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="#4b286d" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </span>
+          <dl>
+            <dt>Phone number</dt><dd id="sumNumber">604-555-0148</dd>
+            <dt>Line holder</dt><dd id="sumHolder">Priya Sharma</dd>
+            <dt>Current plan</dt><dd id="sumPlan">5G Basic &middot; $45/mo</dd>
+            <dt>Bill date</dt><dd>15th of each month</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="plansHeading">
+        <h2 id="plansHeading">5G+ plans for your own phone</h2>
+        <div class="sub">Prices per line, per month, with pre-authorized bank payments.</div>
+        <div class="plans" id="planTiles">
+          <button type="button" class="plan" data-plan="PLUS-24" aria-pressed="false">
+            <span class="tag">&nbsp;</span>
+            <div class="name">5G+ Essential</div>
+            <div class="data">100 GB at 5G+ speeds</div>
+            <div class="price"><sup>$</sup>55<small>/mo</small></div>
+            <ul>
+              <li>Unlimited Canada-wide talk &amp; text</li>
+              <li>Built-in Scam Protection</li>
+              <li>5-Year Rate Plan Price Lock</li>
+            </ul>
+          </button>
+          <button type="button" class="plan" data-plan="ULTRA-36" aria-pressed="false">
+            <span class="tag">Most popular</span>
+            <div class="name">5G+ Complete</div>
+            <div class="data">175 GB at 5G+ speeds</div>
+            <div class="price"><sup>$</sup>70<small>/mo</small></div>
+            <ul>
+              <li>Data, talk &amp; text in Canada and the US</li>
+              <li>Built-in Scam Protection</li>
+              <li>5-Year Rate Plan Price Lock</li>
+            </ul>
+          </button>
+          <button type="button" class="plan" data-plan="UNLIMITED-24" aria-pressed="false">
+            <span class="tag">Travel more</span>
+            <div class="name">5G+ Complete Explore</div>
+            <div class="data">250 GB at 5G+ speeds</div>
+            <div class="price"><sup>$</sup>90<small>/mo</small></div>
+            <ul>
+              <li>Roaming in 68 international destinations</li>
+              <li>Built-in Scam Protection</li>
+              <li>5-Year Rate Plan Price Lock</li>
+            </ul>
+          </button>
+        </div>
+        <div class="plans-note">Taxes extra. Data speeds are reduced after you pass your high-speed threshold.</div>
+        <div class="lock">
+          <img src="https://images.ctfassets.net/fltupc9ltp8m/6iivsjcidw9rNtJuWjNFwO/aaca412ac91e82af8c24e6c9febc4a3d/Switch_to_Internet.png?fm=webp&amp;w=400&amp;q=80" alt="A toucan on a branch next to a 5-Year Plan Price Lock badge." onerror="this.style.display='none'">
+          <div>
+            <h3>Built to protect you from surprises</h3>
+            <p>Your 5G+ plan price is locked for five years &mdash; now and five years from now.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div>
+      <section class="card" aria-labelledby="formHeading">
+        <h2 id="formHeading">Review and buy</h2>
+        <div class="sub">Choose the line and the plan, then complete your purchase.</div>
+        <form id="upgradeForm">
+          <div class="form-group">
+            <label for="currentPlan">Line</label>
+            <select id="currentPlan">
+              <option value="BASIC-12" data-account="CUST-3001" data-number="604-555-0148" data-holder="Priya Sharma" data-plan="5G Basic &middot; $45/mo">604-555-0148 &mdash; Priya (5G Basic)</option>
+              <option value="PLUS-24" data-account="CUST-3002" data-number="778-555-0163" data-holder="Arjun Sharma" data-plan="5G+ Essential &middot; $55/mo">778-555-0163 &mdash; Arjun (5G+ Essential)</option>
+              <option value="ULTRA-36" data-account="CUST-3003" data-number="236-555-0127" data-holder="Maya Sharma" data-plan="5G+ Complete &middot; $70/mo">236-555-0127 &mdash; Maya (5G+ Complete)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newPlan">Plan</label>
+            <select id="newPlan">
+              <option value="PLUS-24" data-price="55">5G+ Essential &mdash; $55/mo</option>
+              <option value="ULTRA-36" data-price="70" selected>5G+ Complete &mdash; $70/mo</option>
+              <option value="UNLIMITED-24" data-price="90">5G+ Complete Explore &mdash; $90/mo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="addon">Add-on</label>
+            <select id="addon">
+              <option value="none" data-price="0">No add-on</option>
+              <option value="international" data-price="5">Easy Roam &mdash; from $5/day</option>
+              <option value="hotspot" data-price="10">Data top-up 10 GB &mdash; $10/mo</option>
+              <option value="insurance" data-price="12">Device Care &mdash; $12/mo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="promoCode">Promo code</label>
+            <input type="text" id="promoCode" placeholder="Optional" autocomplete="off">
+            <div class="form-note">TELUS Rewards and promo codes apply to the new plan only.</div>
+          </div>
+          <div class="totals" aria-live="polite">
+            <div><span>Plan</span><span id="totPlan">$70.00/mo</span></div>
+            <div><span>Add-on</span><span id="totAddon">&mdash;</span></div>
+            <div class="big"><span>Monthly total</span><span id="totAll">$70.00/mo</span></div>
+          </div>
+          <div class="terms">
+            <input type="checkbox" id="agree" required checked>
+            <label for="agree">I agree to the TELUS Service Terms and understand my new plan starts today.</label>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">Buy this plan</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <ul class="info-list">
+          <li><span>Starts</span><span>Today</span></li>
+          <li><span>Account</span><span id="sumAccount">Ending in 3001</span></li>
+          <li><span>Need help?</span><span>Chat with us in the My TELUS app</span></li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="errorDialog" class="err-dialog" aria-labelledby="errorTitle" aria-describedby="errorText">
+    <div class="err-top"></div>
+    <div class="err-body">
+      <h2 id="errorTitle">We couldn&rsquo;t complete your purchase</h2>
+      <p id="errorText">Your current plan and bill haven&rsquo;t changed.</p>
+      <div class="err-actions">
+        <button type="button" id="errorClose">OK</button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="help">
+        <a href="#">My TELUS</a>
+        <a href="#">Support</a>
+        <a href="#">Find a store</a>
+        <a href="#">Contact us</a>
+      </div>
+      <div class="foot-cols">
+        <div><p>The TELUS team acknowledges that our work spans many Territories and Treaty areas and we are grateful for the traditional Knowledge Keepers and Elders who are with us today.</p></div>
+        <div><h4>COMPANY</h4><a href="#">About Us</a><a href="#">Careers</a><a href="#">Newsroom</a></div>
+        <div><h4>LEGAL</h4><a href="#">Data Trust &amp; Privacy</a><a href="#">Wireless Code</a><a href="#">Service Terms</a></div>
+        <div><h4>HELP</h4><a href="#">Accessibility</a><a href="#">Service Status</a><a href="#">Order Status</a></div>
+      </div>
+      <div class="legal"><span>Manage Cookies</span><span>&copy;2026 TELUS</span></div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('upgradeForm');
+      const lineSel = document.getElementById('currentPlan');
+      const planSel = document.getElementById('newPlan');
+      const addonSel = document.getElementById('addon');
+      const tiles = Array.prototype.slice.call(document.querySelectorAll('#planTiles .plan'));
+      const money = (n) => '$' + n.toFixed(2);
+
+      function selectedOption(sel) { return sel.options[sel.selectedIndex]; }
+
+      function renderSummary() {
+        const line = selectedOption(lineSel);
+        document.getElementById('sumNumber').textContent = line.dataset.number;
+        document.getElementById('sumHolder').textContent = line.dataset.holder;
+        document.getElementById('sumPlan').textContent = line.dataset.plan;
+        document.getElementById('sumAccount').textContent = 'Ending in ' + line.dataset.account.slice(-4);
+
+        Array.prototype.forEach.call(planSel.options, (o) => { o.disabled = o.value === lineSel.value; });
+        if (selectedOption(planSel).disabled) {
+          const options = Array.prototype.slice.call(planSel.options);
+          const nextTier = options.slice(planSel.selectedIndex + 1).find((o) => !o.disabled);
+          planSel.value = (nextTier || options.find((o) => !o.disabled)).value;
+        }
+        tiles.forEach((t) => {
+          const isCurrent = t.dataset.plan === lineSel.value;
+          t.disabled = isCurrent;
+          t.querySelector('.tag').textContent = isCurrent ? 'Your plan' : t.dataset.tag;
+        });
+
+        const plan = Number(selectedOption(planSel).dataset.price);
+        const addon = selectedOption(addonSel);
+        const addonPrice = Number(addon.dataset.price);
+        const perDay = addon.value === 'international';
+        document.getElementById('totPlan').textContent = money(plan) + '/mo';
+        document.getElementById('totAddon').textContent = addonPrice ? money(addonPrice) + (perDay ? '/day' : '/mo') : '\u2014';
+        document.getElementById('totAll').textContent = money(plan + (perDay ? 0 : addonPrice)) + '/mo';
+
+        tiles.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.plan === planSel.value)));
+      }
+
+      tiles.forEach((t) => { t.dataset.tag = t.querySelector('.tag').textContent; });
+      tiles.forEach((t) => t.addEventListener('click', () => {
+        planSel.value = t.dataset.plan;
+        renderSummary();
+      }));
+      [lineSel, planSel, addonSel].forEach((el) => el.addEventListener('change', renderSummary));
+      form.addEventListener('reset', () => setTimeout(renderSummary, 0));
+      renderSummary();
+
+      function showResult(kind, title, lines) {
+        const result = document.getElementById('result');
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        const head = document.createElement('div');
+        head.className = 'result-title';
+        head.textContent = title;
+        result.appendChild(head);
+        lines.forEach((text) => {
+          const line = document.createElement('div');
+          line.className = 'result-detail';
+          line.textContent = text;
+          result.appendChild(line);
+        });
+      }
+
+      const errorDialog = document.getElementById('errorDialog');
+      function showErrorDialog(message) {
+        document.getElementById('errorText').textContent = message;
+        if (typeof errorDialog.showModal === 'function' && !errorDialog.open) errorDialog.showModal();
+      }
+      document.getElementById('errorClose').addEventListener('click', () => errorDialog.close());
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const planLabel = selectedOption(planSel).textContent.split(' \u2014 ')[0];
+        const lineNumber = selectedOption(lineSel).dataset.number;
+        btn.disabled = true;
+        btn.textContent = 'Completing your purchase\u2026';
+        showResult('', '', []);
+        document.getElementById('result').className = 'result-box';
+        try {
+          const response = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              accountId: selectedOption(lineSel).dataset.account,
+              currentPlanCode: lineSel.value,
+              targetPlanCode: planSel.value,
+              billingDay: 15,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+            showResult('error', 'We couldn\u2019t complete your purchase',
+              ['Your current plan hasn\u2019t changed. Please try again in a few minutes.']);
+            showErrorDialog('We couldn\u2019t complete your plan purchase. Your current plan and bill haven\u2019t changed.');
+          } else {
+            const ref = String(data.upgradeId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
+            const starts = /^\d{4}-\d{2}-\d{2}$/.test(data.effectiveDate || '') ? ', starting ' + data.effectiveDate : '';
+            showResult('success', 'Thanks, Priya. Your new plan is confirmed.',
+              [lineNumber + ' is now on ' + planLabel + starts + '.', 'Order number ' + ref]);
+          }
+        } catch (err) {
+          showResult('error', 'We couldn\u2019t reach My TELUS', ['Check your connection and try again.']);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Buy this plan';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
