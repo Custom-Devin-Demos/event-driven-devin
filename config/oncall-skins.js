@@ -4333,6 +4333,8 @@ const ONCALL_SKINS = {
     company: 'OpenSea',
     vertical: 'banking',
     oncallOnly: true,
+    // The mobile buy bar puts Buy Now bottom-right, so dock the demo ribbon on the left.
+    ribbonSide: 'left',
     page: { file: '45a78d97.html', title: 'Pudgy Penguin #591 - Pudgy Penguins | OpenSea' },
     alertCard: {
       title: 'p95 latency \u2014 NFT checkout Complete purchase',
