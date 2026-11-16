@@ -106,7 +106,7 @@ function createBatchSettlement({ http = axios, postAlert, getSkin, env = process
       const incidentUrl = `https://humza-cog.pagerduty.com/incidents/${incident.id}`;
       const result = await postAlert('batchsettlement', {
         skin: { ...skin, devinSession: { ...skin.devinSession,
-          promptAppendix: `${skin.devinSession.promptAppendix}\nTriggered by PagerDuty: ${incidentUrl}` },
+          promptAppendix: `${skin.devinSession.promptAppendix}\nTriggered by PagerDuty: ${incidentUrl}\nMFT service: ${services[0][1]} (use this configured service ID instead of the default MFT service for this run).` },
         alertCard: { ...skin.alertCard, endpointLabel: `Triggered by PagerDuty: ${incidentUrl}`,
           symptom: `${skin.alertCard.symptom} Triggered by PagerDuty: ${incidentUrl}` } },
         ...run.presenter, destination: 'slack', unique: true, runRef: runId,

@@ -142,6 +142,14 @@ describe('batch settlement service', () => {
     expect(alert).toHaveBeenCalledTimes(1);
   });
 
+  test.each(['PU8BL8X', 'PCUSTOM'])('dispatch tells the session the configured MFT service %s', async (mftService) => {
+    env.BATCH_PD_MFT_SERVICE_ID = mftService;
+    service = createBatchSettlement({ env, http, postAlert: alert, getSkin: getOncallSkin, now: () => clock });
+    const id = start(service);
+    expect((await service.webhook(eventFor(id, mftService))).status).toBe(200);
+    expect(alert.mock.calls[0][1].skin.devinSession.promptAppendix).toContain(`MFT service: ${mftService} (use this configured service ID instead of the default MFT service for this run).`);
+  });
+
   test('failed lookup can be retried; missing alert run id is ignored', async () => {
     const id = start(service);
     const body = eventFor(id);
