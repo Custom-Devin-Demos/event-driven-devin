@@ -598,10 +598,44 @@ describe('TN3270 batch console presentation', () => {
     expect(elements.get('mft-detail').textContent.replace(/\n/g, '')).toBe('FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure');
     expect(elements.get('sql-detail').textContent.replace(/\n/g, '')).toContain('[SQLSTATE 08001]');
     expect(elements.get('jes-detail').textContent).toContain('$HASP395 SETLPOST ENDED - ABEND=S013');
-    expect(text(elements.get('default-log'))).toContain('DEVIN SESSION STARTED');
-    const links = elements.get('default-log').children.flatMap((el) => el.children).filter((el) => el.tagName === 'A');
-    expect(links.map((link) => link.href)).toEqual([data.activity[0].session_url, data.activity[0].slack_thread_url]);
+    expect(text(elements.get('default-log'))).toContain('02:02:00 NOTIFIED ON-CALL: BATCH AND FILE TRANSFER OPERATIONS (ESCALATION LVL 1)');
+    const anchors = (el) => [...(el.tagName === 'A' ? [el] : []), ...el.children.flatMap(anchors)];
+    expect(anchors(elements.get('default-log')).map((link) => [link.textContent, link.href])).toEqual([['War room (Slack)', data.activity[0].slack_thread_url]]);
+    for (const el of elements.values()) {
+      expect(text(el)).not.toMatch(/devin/i);
+      expect(anchors(el).some((link) => link.href === data.activity[0].session_url)).toBe(false);
+    }
     expect(elements.get('notes').children).toHaveLength(1);
+  });
+  test('real-mode fallback is timestamped in both logs, with Slack only and no session branding', () => {
+    data.run = { created_at: '2026-11-16T02:03:00Z', status: 'complete', sent: ['mft', 'sql', 'mf'],
+      session_url: 'https://app.devin.ai/sessions/real-mode', slack_thread_url: 'https://slack.com/archives/real-mode' };
+    ui.render(data);
+    for (const id of ['notes', 'default-log']) {
+      expect(text(elements.get(id))).toContain('02:03:00');
+      expect(text(elements.get(id))).toContain('NOTIFIED ON-CALL: BATCH AND FILE TRANSFER OPERATIONS (ESCALATION LVL 1)');
+      expect(text(elements.get(id))).toContain('War room (Slack)');
+      expect(text(elements.get(id))).not.toMatch(/devin/i);
+    }
+    data.run.slack_thread_url = null;
+    ui.render(data);
+    expect(text(elements.get('notes'))).not.toContain('War room');
+    data.run = null;
+    ui.render(data);
+    expect(text(elements.get('default-log'))).toBe('NO INCIDENTS. AWAITING SUBMIT SETTLE.');
+  });
+  test('responder authors, findings and warning copy use operator language without changing directive parsing', () => {
+    data.incidents = [incident('PU8BL8X', 'Devin: HOLD TREASURY; GL_POST COMPLETE')];
+    data.incidents[0].notes[0].author = 'Devin';
+    ui.render(data);
+    expect(text(elements.get('notes'))).toContain('on-call responder');
+    expect(text(elements.get('notes'))).toContain('HOLD TREASURY; GL_POST COMPLETE');
+    for (const el of elements.values()) expect(text(el)).not.toMatch(/devin/i);
+    expect(ui.jobState({ id: 'TREASURY' }, data.incidents)[0]).toBe('hold');
+    expect(ui.jobState({ id: 'GL_POST' }, data.incidents)[0]).toBe('ready');
+    expect(ui.opsText('Slack/Devin dispatch unavailable')).toBe('Slack/on-call responder dispatch unavailable');
+    expect(ui.opsText('')).toBe('');
+    expect(html.replace(/<script>[\s\S]*?<\/script>/g, '')).not.toMatch(/devin/i);
   });
   test.each(['HOLD', 'COMPLETE', 'RELEASED'])('all monitors and ST follow %s rather than stale incidents', (directive) => {
     data.incidents = [incident('PU8BL8X', directive + ' MFT_INBOUND, SQL_STAGE, EDW_LOAD, SETTLE_POST'), incident('PQZQKW7'), incident('PN02JGH')];

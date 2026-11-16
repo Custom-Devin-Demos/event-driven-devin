@@ -129,7 +129,9 @@ AWAITING RG.SETTLE.D261115.INPUT</pre>
 <script>
 const $=id=>document.getElementById(id);
 let serviceJobs={PU8BL8X:['MFT_INBOUND'],PQZQKW7:['SQL_STAGE','EDW_LOAD'],PN02JGH:['SETTLE_POST']};
-function node(tag,text,cls){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(cls)el.className=cls;return el}
+const onCallNotification='NOTIFIED ON-CALL: BATCH AND FILE TRANSFER OPERATIONS (ESCALATION LVL 1)';
+function opsText(value){return String(value).replace(/Devin session started/gi,onCallNotification).replace(/\bDevin\b/gi,'on-call responder')}
+function node(tag,text,cls){const el=document.createElement(tag);if(text!==undefined)el.textContent=opsText(text);if(cls)el.className=cls;return el}
 function time(value){return new Date(value).toLocaleString(undefined,{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}
 function jobState(job,incidents){
  const notes=incidents.flatMap(i=>i.notes).sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||''));
@@ -200,7 +202,7 @@ function field(value,width){return String(value).slice(0,width).padEnd(width)}
 function wrap(value){return String(value).split('\n').map(line=>(line.match(/.{1,80}/g)||['']).join('\n')).join('\n')}
 function clock(value){return new Date(value).toISOString().slice(11,19)}
 function appendLinks(el,record){
- for(const[url,label]of[[record.session_url,'View in Devin'],[record.slack_thread_url,'Open Slack thread']]){
+ for(const[url,label]of[[record.slack_thread_url,'War room (Slack)']]){
   if(url){el.append(node('span','  ','link-gap'));const link=node('a',label);link.href=url;link.target='_blank';link.rel='noopener noreferrer';el.append(link)}
  }
 }
@@ -221,7 +223,7 @@ function jobRow(job,index,incidents,compact){
 function render(data){
  serviceJobs=data.service_jobs||serviceJobs;
  $('session').replaceChildren();
- if(data.run?.session_url)appendLinks($('session'),data.run);
+ if(data.run)appendLinks($('session'),data.run);
  $('fix-prs').replaceChildren(...fixPRs(data.incidents).map(url=>{
   const link=node('a','Fix PR open');link.href=url;link.target='_blank';link.rel='noopener noreferrer';return link;
  }));
@@ -240,7 +242,9 @@ function render(data){
   return el;
  }));
  if(!data.incidents.length)$('incidents').append(node('div','No active incidents since server start or last reset.','line empty'));
- const notes=[...data.incidents.flatMap(i=>i.notes.map(n=>({...n,service:i.service.name}))),...(data.activity||[])].sort((a,b)=>a.created_at.localeCompare(b.created_at));
+ const notes=[...data.incidents.flatMap(i=>i.notes.map(n=>({...n,service:i.service.name}))),...(data.activity||[])];
+ if(data.run?.session_url&&!notes.some(n=>n.session_url===data.run.session_url))notes.push({created_at:data.run.created_at||data.fetched_at,service:'PagerDuty',author:'On-call responder',content:onCallNotification,slack_thread_url:data.run.slack_thread_url});
+ notes.sort((a,b)=>a.created_at.localeCompare(b.created_at));
  $('notes').replaceChildren(...notes.map(n=>{
   const el=node('div',undefined,'note');
   el.append(node('div',wrap(clock(n.created_at)+' '+n.service+' / '+n.author),'line label'),node('div',wrap(n.content),'note-text'));
@@ -253,13 +257,11 @@ function render(data){
  ].sort((a,b)=>a.created_at.localeCompare(b.created_at));
  $('default-log').replaceChildren(...entries.map(entry=>{
   const el=node('div',undefined,'line'+(entry.error?' error':''));
-  el.append(node('span',entry.text.slice(0,entry.session_url||entry.slack_thread_url?38:80)));
-  appendLinks(el,entry);return el;
+  el.append(node('span',wrap(opsText(entry.text))));
+  if(entry.slack_thread_url){const links=node('div',undefined,'line');appendLinks(links,entry);el.append(links)}
+  return el;
  }));
  if(!entries.length)$('default-log').append(node('div','NO INCIDENTS. AWAITING SUBMIT SETTLE.','line'));
- if(data.run?.session_url&&!notes.some(n=>n.session_url===data.run.session_url)){
-  const el=node('div','DEVIN SESSION STARTED','line');appendLinks(el,data.run);$('default-log').append(el);
- }
  revealIncident();
 }
 let activeScreen='default',incidentTarget='',pendingIncidentFocus=false;
@@ -328,6 +330,10 @@ async function action(path){
  catch(e){$('feedback').textContent=e.message}
 }
 $('fire').onclick=()=>action('/api/oncall/batchsettlement/runs');$('reset').onclick=()=>action('/api/oncall/batchsettlement/reset');
+const messageObserver=new MutationObserver(()=>{
+ for(const id of ['error','feedback']){const el=$(id),text=opsText(el.textContent);if(text!==el.textContent)el.textContent=text}
+});
+for(const id of ['error','feedback'])messageObserver.observe($(id),{childList:true,subtree:true,characterData:true});
 $('command-form').onsubmit=event=>{event.preventDefault();runCommand($('command').value)};
 for(const button of document.querySelectorAll('[data-pf]'))button.onclick=()=>activatePF(button.dataset.pf);
 document.addEventListener('keydown',handleTerminalKey);
