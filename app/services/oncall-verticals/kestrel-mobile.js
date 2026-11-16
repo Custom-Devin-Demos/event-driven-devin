@@ -261,9 +261,13 @@ function resolveSessionIdentity() {
   };
 }
 
+// The demo's OnCall Bot. KESTREL_ONCALL_BOT_ID / DEVIN_ONCALL_BOT_ID override it;
+// any value that is not a bot id (e.g. `off`) starts a plain Devin session instead.
+const DEFAULT_ONCALL_BOT_ID = 'bot-e6009d3547b7409da6ab72c02a823939';
+
 function oncallBotId() {
-  const id = (process.env.KESTREL_ONCALL_BOT_ID || process.env.DEVIN_ONCALL_BOT_ID || '').trim();
-  if (!id) return null;
+  const configured = (process.env.KESTREL_ONCALL_BOT_ID || process.env.DEVIN_ONCALL_BOT_ID || '').trim();
+  const id = configured || DEFAULT_ONCALL_BOT_ID;
   return /^bot-[0-9a-f]{32}$/.test(id) ? id : null;
 }
 
@@ -384,6 +388,7 @@ function resetIncidentsForTests() {
 
 module.exports = {
   KESTREL,
+  DEFAULT_ONCALL_BOT_ID,
   PAYMENT_CONFIG,
   CALM_ERROR,
   amlWindow,

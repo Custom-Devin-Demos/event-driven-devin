@@ -32,7 +32,7 @@ describe('Kestrel mobile payments API (2e790636)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     kestrel.resetIncidentsForTests();
-    delete process.env.KESTREL_ONCALL_BOT_ID;
+    process.env.KESTREL_ONCALL_BOT_ID = 'off';
     delete process.env.DEVIN_ONCALL_BOT_ID;
   });
 
@@ -159,6 +159,26 @@ describe('Kestrel mobile payments API (2e790636)', () => {
     await kestrel.raiseIncident(result, { platform: 'ios', release: 'kestrel-mobile@1.0', nowMs: 1000 }).outcome;
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
     expect(createDevinSession).toHaveBeenCalledTimes(1);
+  });
+
+  test('pages the default OnCall Bot when no bot id is configured, and a configured id wins', async () => {
+    const result = { durationMs: 9342, screeningConcurrency: 1, spans: [] };
+    const raise = () => kestrel.raiseIncident(result, { platform: 'android', release: 'kestrel-mobile@1.0', nowMs: 1000 }).outcome;
+
+    delete process.env.KESTREL_ONCALL_BOT_ID;
+    const incident = await raise();
+    expect(kestrel.DEFAULT_ONCALL_BOT_ID).toBe('bot-e6009d3547b7409da6ab72c02a823939');
+    expect(sendDevinSessionMessage.mock.calls[0][0]).toBe(kestrel.DEFAULT_ONCALL_BOT_ID);
+    expect(createDevinSession).not.toHaveBeenCalled();
+    expect(incident.bot).toMatchObject({ id: kestrel.DEFAULT_ONCALL_BOT_ID });
+
+    for (const [key, id] of [['DEVIN_ONCALL_BOT_ID', `bot-${'b'.repeat(32)}`], ['KESTREL_ONCALL_BOT_ID', `bot-${'c'.repeat(32)}`]]) {
+      kestrel.resetIncidentsForTests();
+      jest.clearAllMocks();
+      process.env[key] = id;
+      await raise();
+      expect(sendDevinSessionMessage.mock.calls[0][0]).toBe(id);
+    }
   });
 
   describe('route', () => {
