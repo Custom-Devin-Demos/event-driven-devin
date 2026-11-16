@@ -523,114 +523,165 @@ describe('ported tile rules', () => {
   });
 });
 
-describe('legacy batch console presentation', () => {
+describe('TN3270 batch console presentation', () => {
   const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/db10f6b2.html'), 'utf8');
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1].split("$('fire').onclick")[0];
   const jobs = require('../app/services/oncall-verticals/batchsettlement-jobs.json');
-  let ui, elements, data;
+  let ui, elements, data, request;
   const incident = (service, content = '', status = 'triggered') => ({ id: 'P' + service, status,
     service: { id: service, name: service }, title: 'Synthetic settlement incident', created_at: '2026-11-16T02:00:00Z',
     notes: content ? [{ content, created_at: '2026-11-16T02:01:00Z', author: 'Operator' }] : [] });
+  const text = (el) => el.textContent + el.children.map(text).join('');
   beforeEach(() => {
     const element = (tag = 'div') => ({ tagName: tag.toUpperCase(), children: [], dataset: {}, textContent: '',
-      classList: { toggle: jest.fn() }, append(...children) { this.children.push(...children); },
+      click: jest.fn(), scrollBy: jest.fn(),
+      classList: { toggle: jest.fn(), remove: jest.fn() }, append(...children) { this.children.push(...children); },
       replaceChildren(...children) { this.children = children; } });
     elements = new Map();
-    ui = vm.createContext({ document: { createElement: element, getElementById(id) {
-      if (!elements.has(id)) elements.set(id, element());
-      return elements.get(id);
-    } } });
+    request = jest.fn(async () => ({ ok: true, status: 200, json: async () => data }));
+    ui = vm.createContext({ fetch: request, localStorage: { getItem: (key) => presenter[key] || '' },
+      document: { createElement: element, getElementById(id) {
+        if (!elements.has(id)) elements.set(id, element());
+        return elements.get(id);
+      } } });
     vm.runInContext(script, ui);
     data = { jobs, incidents: [], simulated: true, fetched_at: '2026-11-16T02:00:00Z', run: null };
   });
-  test('shell provides SDSF columns, keyboard-scrollable terminals and the three evidence panels', () => {
-    for (const text of ['SDSF STATUS DISPLAY ALL CLASSES   LINE 1-10 (10)', 'COMMAND INPUT ===&gt;',
-      'SCROLL ===&gt; CSR', 'F1=HELP  F3=END  F7=UP  F8=DOWN', 'JOBNAME', 'JOBID', 'OWNER', 'SLA', 'STATUS/RC',
-      'Axway SecureTransport — Transfer Monitor', 'SQL Server Agent — Job History', 'JES2 Spool — SETLPOST',
-      'FEDACH-CLEARING', 'RG.SETTLE.D261115.INPUT', 'SFTPS / TLS 1.0 / 3DES', 'RGW-MFTSQL-07']) expect(html).toContain(text);
-    expect(html).toContain('class="terminal-scroll" tabindex="0"');
-    expect(html).toContain('<tbody id="jobs">');
+  test('shell is a single emulator with five full screens, a split screen and accessible PF controls', () => {
+    for (const value of ['Session A - [24 x 80]  RGP1.REGIONS.TN3270', 'File Edit View Communication Actions Window Help',
+      'Menu  Utilities  Compilers  Options  Status  Help', 'COMMAND INPUT ===&gt;', 'SCROLL ===&gt; CSR',
+      '4B MA  *  a  SYSTEM  03/024', 'aria-label="F5 Submit overnight settlement"', 'aria-label="F6 Reset local state"',
+      'SUBMIT SETTLE / S SETTLE / F5', 'No local run']) expect(html).toContain(value);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd']) expect(html).toContain('id="screen-' + id + '"');
+    expect(html).toContain('width:80ch');
+    expect(html).toContain('white-space:pre');
+    expect(html).toContain('min-height:44px');
+    expect(html).not.toMatch(/class="panel|class="layout|class="pr-badge/);
   });
-  test('idle renders all ten original IDs with stable JES IDs and no failure evidence', () => {
+  test('split and full ST preserve IDs, owners, stable JES IDs and visible dependencies', () => {
     ui.render(data);
     const rows = elements.get('jobs').children;
     expect(rows).toHaveLength(10);
+    expect(elements.get('default-jobs').children).toHaveLength(10);
     expect(rows.map((row) => row.dataset.jobId)).toEqual(jobs.map((job) => job.id));
-    expect(rows.map((row) => row.children[1].children[0].textContent)).toEqual([
+    expect(rows.map((row) => row.children[1].textContent.trim())).toEqual([
       'MFTINBND', 'SQLSTAGE', 'EDWLOAD', 'MFEXTRCT', 'SETLPOST', 'GLPOST', 'REGRPT', 'STMTGEN', 'TREASRY', 'FRDREFR',
     ]);
-    for (const row of rows) {
-      expect(row.tagName).toBe('TR');
-      expect(row.children[1].children[1].textContent).toBe(row.dataset.jobId);
-      expect(row.children[2].textContent).toMatch(/^JOB0\d{4}$/);
-      expect(row.children[5].textContent).toBe('AWAITING');
-      expect(row.className).toBe('job scheduled');
+    for (let index = 0; index < rows.length; index++) {
+      const row = rows[index], job = jobs[index];
+      expect(row.children[2].textContent.trim()).toMatch(/^JOB0\d{4}$/);
+      expect(row.children[3].textContent.trim()).toBe(job.owner_team);
+      expect(row.children[5].textContent.trim()).toBe('AWAITING');
+      expect(text(row)).toContain(job.id);
+      expect(text(row)).toContain('PRED: ' + (job.upstream.join(', ') || 'CLEARING FILE'));
+      expect(text(row).replace(/\n/g, '')).toContain('SUCC: ' + (job.downstream.join(', ') || 'DISTRIBUTION'));
     }
     expect(new Set(rows.map((row) => row.children[2].textContent)).size).toBe(10);
     expect(ui.legacyJob(jobs[0], []).jobId).toBe(ui.legacyJob([...jobs].reverse().at(-1), []).jobId);
     expect(elements.get('mft-status').textContent).toBe('WAITING');
-    expect(elements.get('sql-stage-status').textContent).toBe('WAITING');
-    expect(elements.get('edw-load-status').textContent).toBe('WAITING');
     expect(elements.get('jes-status').textContent).toBe('AWAITING INPUT');
   });
-  test('existing incident arrivals independently illuminate MFT, SQL and mainframe evidence', () => {
-    data.incidents = [incident('PU8BL8X')];
-    ui.render(data);
-    expect(elements.get('mft-status').textContent).toBe('FAILED');
-    expect(elements.get('mft-detail').textContent).toBe('FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure');
-    expect(elements.get('mft-detail').classList.toggle).toHaveBeenLastCalledWith('failed', true);
-    expect(elements.get('sql-stage-status').textContent).toBe('WAITING');
-    expect(elements.get('jes-status').textContent).toBe('AWAITING INPUT');
-    data.incidents.push(incident('PQZQKW7'), incident('PN02JGH'));
+  test('incident arrivals illuminate only failed jobs and render a textual response log with real links', () => {
+    data.incidents = [incident('PU8BL8X'), incident('PQZQKW7'), incident('PN02JGH')];
+    data.activity = [{ content: 'Devin session started', created_at: '2026-11-16T02:02:00Z',
+      service: 'PagerDuty', author: 'PagerDuty', session_url: 'https://app.devin.ai/sessions/local-test',
+      slack_thread_url: 'https://slack.com/archives/test' }];
     ui.render(data);
     expect(elements.get('jobs').children.filter((row) => row.className === 'job failed')
-      .map((row) => [row.dataset.jobId, row.children[5].textContent])).toEqual([
+      .map((row) => [row.dataset.jobId, row.children[5].textContent.trim()])).toEqual([
       ['MFT_INBOUND', 'RC 0008'], ['SQL_STAGE', 'RC 0012'], ['EDW_LOAD', 'RC 0012'], ['SETTLE_POST', 'ABEND S013'],
     ]);
-    expect(elements.get('sql-stage-status').textContent).toBe('FAILED · 08001');
-    expect(elements.get('edw-load-status').textContent).toBe('FAILED · 08001');
-    expect(elements.get('sql-detail').textContent).toBe('Login timeout expired; SSL Provider: The client and server cannot communicate, because they do not possess a common algorithm. [SQLSTATE 08001]');
-    expect(elements.get('jes-status').textContent).toBe('ABEND S013');
-    for (const line of ['IEF212I SETLPOST STEP010 INPUT - DATA SET NOT FOUND', 'IEC130I INPUT DD STATEMENT MISSING', '$HASP395 SETLPOST ENDED - ABEND=S013']) expect(elements.get('jes-detail').textContent).toContain(line);
-    expect(elements.get('jes-detail').classList.toggle).toHaveBeenLastCalledWith('failed', true);
+    expect(elements.get('mft-detail').textContent.replace(/\n/g, '')).toBe('FAILED — javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure');
+    expect(elements.get('sql-detail').textContent.replace(/\n/g, '')).toContain('[SQLSTATE 08001]');
+    expect(elements.get('jes-detail').textContent).toContain('$HASP395 SETLPOST ENDED - ABEND=S013');
+    expect(text(elements.get('default-log'))).toContain('DEVIN SESSION STARTED');
+    const links = elements.get('default-log').children.flatMap((el) => el.children).filter((el) => el.tagName === 'A');
+    expect(links.map((link) => link.href)).toEqual([data.activity[0].session_url, data.activity[0].slack_thread_url]);
+    expect(elements.get('notes').children).toHaveLength(1);
   });
-  test('display codes preserve HOLD, explicit completion and dependency/on-call context', () => {
-    data.incidents = [incident('PU8BL8X', 'GL_POST COMPLETE; TREASURY remains on HOLD')];
+  test.each(['HOLD', 'COMPLETE', 'RELEASED'])('all monitors and ST follow %s rather than stale incidents', (directive) => {
+    data.incidents = [incident('PU8BL8X', directive + ' MFT_INBOUND, SQL_STAGE, EDW_LOAD, SETTLE_POST'), incident('PQZQKW7'), incident('PN02JGH')];
     ui.render(data);
-    for (const [id, state, code] of [['GL_POST', 'ready', 'CC 0000'], ['TREASURY', 'hold', 'HELD']]) {
-      const row = elements.get('jobs').children.find((row) => row.dataset.jobId === id);
-      expect(row.className).toBe('job ' + state);
-      expect(row.children[5].textContent).toBe(code);
-      const job = jobs.find((job) => job.id === id);
-      expect(row.children[1].title).toContain(job.upstream.join(', '));
-      expect(row.children[3].textContent).toBe(job.owner_team);
-      expect(row.children[3].title).toContain(job.on_call.email);
+    const expected = directive === 'HOLD' ? 'HELD' : 'COMPLETE';
+    for (const id of ['mft-status', 'sql-stage-status', 'edw-load-status', 'jes-status']) expect(elements.get(id).textContent).toContain(expected);
+    for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
+      expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
+      expect(elements.get(id).classList.toggle).toHaveBeenCalledWith('failed', false);
     }
+    expect(elements.get('jobs').children[0].children[5].textContent.trim()).toBe(directive === 'HOLD' ? 'HELD' : 'CC 0000');
   });
-  test('configured service IDs work; resolved/unrelated incidents do not light evidence; reset clears it', () => {
-    data.service_jobs = { CUSTOM_MFT: ['MFT_INBOUND'] };
-    data.incidents = [incident('CUSTOM_MFT')];
+  test('mixed SQL states, custom service mappings, acknowledged incidents and reset remain consistent', () => {
+    data.service_jobs = { CUSTOM_MFT: ['MFT_INBOUND'], CUSTOM_SQL: ['SQL_STAGE', 'EDW_LOAD'] };
+    data.incidents = [incident('CUSTOM_MFT'), incident('CUSTOM_SQL', 'SQL_STAGE COMPLETE; EDW_LOAD remains on HOLD')];
     ui.render(data);
     expect(elements.get('mft-status').textContent).toBe('FAILED');
-    data.incidents = [incident('CUSTOM_MFT', '', 'acknowledged'), incident('CUSTOM_MFT', '', 'resolved'), incident('OTHER')];
+    expect(elements.get('sql-stage-status').textContent).toBe('COMPLETE');
+    expect(elements.get('edw-load-status').textContent).toBe('HELD');
+    expect(elements.get('sql-detail').textContent).not.toContain('SQLSTATE');
+    data.incidents = [incident('CUSTOM_MFT', '', 'acknowledged'), incident('OTHER')];
     ui.render(data);
     expect(elements.get('mft-status').textContent).toBe('WAITING');
     data.incidents = [];
     ui.render(data);
     for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
       expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
-      expect(elements.get(id).classList.toggle).toHaveBeenLastCalledWith('failed', false);
+      expect(elements.get(id).classList.toggle).toHaveBeenCalledWith('failed', false);
     }
   });
-  test.each(['HOLD', 'COMPLETE', 'RELEASED'])('monitors follow %s directives instead of incident presence', (directive) => {
-    data.incidents = [incident('PU8BL8X', `${directive} MFT_INBOUND, SQL_STAGE, EDW_LOAD, SETTLE_POST`), incident('PQZQKW7'), incident('PN02JGH')];
-    ui.render(data);
-    const expected = directive === 'HOLD' ? 'HELD' : 'COMPLETE';
-    for (const id of ['mft-status', 'sql-stage-status', 'edw-load-status', 'jes-status']) expect(elements.get(id).textContent).toContain(expected);
-    for (const id of ['mft-detail', 'sql-detail', 'jes-detail']) {
-      expect(elements.get(id).textContent).not.toMatch(/FAILED|SQLSTATE|ABEND/);
-      expect(elements.get(id).classList.toggle).toHaveBeenLastCalledWith('failed', false);
+  test.each([['=1', 'st'], ['MFT', 'mft'], ['=3', 'sql'], ['SPOOL', 'spool'], ['=5', 'pd'], ['SPLIT', 'default']])('command %s selects %s', (command, screen) => {
+    ui.runCommand(command);
+    for (const id of ['default', 'st', 'mft', 'sql', 'spool', 'pd', 'help']) expect(elements.get('screen-' + id).hidden).toBe(id !== screen);
+    expect(elements.get('command').value).toBe('');
+    expect(request).not.toHaveBeenCalled();
+  });
+  test('SUBMIT, S SETTLE, RESET, PF keys and browser shortcut isolation', () => {
+    ui.runCommand(' submit   settle ');
+    ui.runCommand('S SETTLE');
+    expect(elements.get('fire').click).toHaveBeenCalledTimes(2);
+    ui.runCommand('RESET');
+    expect(elements.get('reset').click).toHaveBeenCalledTimes(1);
+    for (const key of ['F5', 'F6']) {
+      const event = { key, preventDefault: jest.fn() };
+      ui.handleTerminalKey(event);
+      expect(event.preventDefault).toHaveBeenCalledTimes(1);
     }
+    for (const event of [{ key: 'F2' }, { key: 'F12' }, { key: 'r', ctrlKey: true }, { key: 'F5', ctrlKey: true }]) {
+      event.preventDefault = jest.fn();
+      ui.handleTerminalKey(event);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    }
+    ui.activatePF('F1');
+    expect(elements.get('screen-help').hidden).toBe(false);
+    ui.activatePF('F3');
+    ui.activatePF('F8');
+    expect(elements.get('default-log').scrollBy).toHaveBeenCalledWith({ top: 180 });
+    ui.activatePF('F11');
+    expect(elements.get('screen-scroll').scrollBy).toHaveBeenCalledWith({ left: 240 });
+    for (const screen of ['st', 'mft', 'sql', 'spool', 'pd', 'default']) {
+      ui.activatePF('F9');
+      expect(elements.get('screen-' + screen).hidden).toBe(false);
+    }
+    elements.get('fire').disabled = true;
+    ui.activatePF('F5');
+    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    ui.runCommand('BADCOMMAND');
+    expect(elements.get('feedback').textContent).toContain('COMMAND BADCOMMAND NOT FOUND');
+  });
+  test('existing API identity and endpoints are preserved with submission, reset and 409 messages', async () => {
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(request.mock.calls[0][0]).toBe('/api/oncall/batchsettlement/runs');
+    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ skin: SLUG, ...presenter });
+    expect(elements.get('feedback').textContent).toBe('IKJ56250I JOB SETTLE(JOB04200) SUBMITTED');
+    expect(request.mock.calls[1][0]).toBe('/api/oncall/batchsettlement/state');
+    request.mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ error: 'A run is already active' }) });
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toBe('JOB ALREADY ACTIVE');
+    request.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'Fixture error' }) });
+    await ui.action('/api/oncall/batchsettlement/runs');
+    expect(elements.get('feedback').textContent).toBe('Fixture error');
+    request.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Local state reset' }) });
+    await ui.action('/api/oncall/batchsettlement/reset');
+    expect(elements.get('feedback').textContent).toBe('Local state reset');
   });
 });
 
