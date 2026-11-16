@@ -268,7 +268,8 @@ function triggerBrowserEvents(data){
 }
 async function resolveBrowserEvents(runId){
  if(runId)browserResetRuns.add(runId);
- const records=Object.entries(readBrowserStore(browserSentStore)).filter(([,record])=>!runId||record?.runId===runId);
+ const records=Object.entries(readBrowserStore(browserSentStore)).filter(([,record])=>record?.runId);
+ for(const [,record] of records)browserResetRuns.add(record.runId);
  await Promise.all(records.map(async([dedup,record])=>{
   await browserPending.get(dedup);
   if(!readBrowserStore(browserSentStore)[dedup])return;

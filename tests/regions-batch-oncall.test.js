@@ -866,6 +866,24 @@ describe('TN3270 batch console presentation', () => {
     expect(events()[3]).toMatchObject({ event_action: 'trigger', dedup_key: 'rg-batch-run-one-mft' });
     expect(Object.keys(JSON.parse(storage.get('rgBatchPdSent')))).toHaveLength(3);
   });
+  test('reset resolves both earlier and latest runs and stale polls cannot retrigger either', async () => {
+    browserRun();
+    storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
+    const firstRun = { ...data };
+    ui.triggerBrowserEvents(data);
+    data.run = { ...data.run, run_id: 'run-two' };
+    data.incidents = data.incidents.map((i) => ({ ...i, custom_details: { run_id: 'run-two' } }));
+    ui.triggerBrowserEvents(data);
+    await ui.action('/api/oncall/batchsettlement/reset');
+    await new Promise(setImmediate);
+    expect(events()).toHaveLength(12);
+    expect(events().slice(6).map((e) => [e.event_action, e.dedup_key])).toEqual(
+      ['run-one', 'run-two'].flatMap((run) => ['mft', 'sql', 'mf'].map((service) => ['resolve', 'rg-batch-' + run + '-' + service])));
+    expect(JSON.parse(storage.get('rgBatchPdSent'))).toEqual({});
+    ui.triggerBrowserEvents(firstRun);
+    ui.triggerBrowserEvents(data);
+    expect(events()).toHaveLength(12);
+  });
   test('failed resolve keeps its record and a later reset retries it even after the run is cleared', async () => {
     browserRun();
     storage.set('rgBatchPdRoutingKeys', JSON.stringify(keys));
