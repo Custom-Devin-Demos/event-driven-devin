@@ -1586,6 +1586,12 @@ const ONCALL_STRINGS = {
 };
 
 const TELEMETRY_BRAND_STRINGS = {
+  pagerduty: {
+    en: {
+      triggered: 'Triggered', viewDatadog: null, monitor: 'PagerDuty incident', query: 'Settlement signal',
+      promptIntro: (service) => `A PagerDuty incident is triggered on ${service}. Investigate it and open a PR with the fix.`,
+    },
+  },
   'splunk-dynatrace': {
     en: {
       triggered: 'OPEN Problem',
@@ -1801,9 +1807,24 @@ function teamsOnlyNotes(skin) {
   return config.promptAppendix.trim() || null;
 }
 
+function pagerdutyCardFields(skin, onCall) {
+  const incident = skin && skin.alertCard && skin.alertCard.pagerduty;
+  if (!skin || skin.telemetryBrand !== 'pagerduty' || !isPlainObject(incident)) return null;
+  return [
+    ['Service', incident.service],
+    ['Urgency', 'High'],
+    ['Escalation policy', incident.escalationPolicy],
+    ['Assigned to', onCall ? `on-call (${onCall})` : null],
+    ['Incident', `<${incident.incidentUrl}|#${incident.number}>`],
+  ].filter(([, value]) => value);
+}
+
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin }) {
 
   const card = resolveAlertCard(scenario, skin);
+  const pagerdutyFields = pagerdutyCardFields(skin, onCall);
+  if (pagerdutyFields) return [card.monitor, ...pagerdutyFields.map(([label, value]) => `*${label}:* ${value}`),
+    `Repo: ${skinRepoUrl(skin)}`].join('\n');
   const brand = skin ? skin.company : scenario.brand;
   const t = oncallStrings(skin, scenario);
   const lines = [
@@ -2181,7 +2202,12 @@ async function postOncallAlert(scenarioId, options = {}) {
   const brand = skin ? skin.company : scenario.brand;
   // alertCard.compact keeps only the fields a reader acts on; the fallback text keeps every fact.
   const compact = Boolean(skin && isPlainObject(skin.alertCard) && skin.alertCard.compact);
-  const blocks = [
+  const pagerdutyFields = pagerdutyCardFields(skin, onCall);
+  const blocks = pagerdutyFields ? [
+    headerBlock(card.monitor),
+    ...fieldPairs(pagerdutyFields),
+    mrkdwnSection(`Repo: ${skinRepoUrl(skin)}`),
+  ] : [
     headerBlock(`:rotating_light: [${t.triggered}] ${card.monitor}`),
     ...fieldPairs([
       [t.service, `${card.service} (${brand})`],
