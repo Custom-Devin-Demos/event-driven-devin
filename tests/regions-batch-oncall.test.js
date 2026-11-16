@@ -364,6 +364,17 @@ describe('ported tile rules', () => {
     expect(ui.jobState({ id: 'TREASURY' }, items)[0]).toBe('hold');
     expect(ui.jobState({ id: 'TREASURY' }, [incident('GL_POST COMPLETE; TREASURY remains scheduled')])[0]).toBe('scheduled');
   });
+  test.each(['COMPLETE', 'RELEASED', 'HOLD'])('a trailing %s applies to comma/and job groups only', (instruction) => {
+    const expected = instruction === 'HOLD' ? 'hold' : 'ready';
+    for (const separator of [', ', ' and ']) {
+      const items = [incident(`GL_POST${separator}TREASURY ${instruction}`)];
+      for (const id of ['GL_POST', 'TREASURY']) expect(ui.jobState({ id }, items)[0]).toBe(expected);
+    }
+    const group = [incident(`GL_POST, REG_REPORT and TREASURY ${instruction}; STATEMENTS remains scheduled`)];
+    for (const id of ['GL_POST', 'REG_REPORT', 'TREASURY']) expect(ui.jobState({ id }, group)[0]).toBe(expected);
+    expect(ui.jobState({ id: 'STATEMENTS' }, group)[0]).toBe('scheduled');
+    expect(ui.jobState({ id: 'GL_POST' }, [incident(`GL_POST; TREASURY ${instruction}`)])[0]).toBe('scheduled');
+  });
   test('job-owner bullets preserve the HOLD section until the next heading', () => {
     const items = [incident('HOLD:\n- TREASURY: Treasury Technology, SLA 04:00\n- GL_POST: Finance Technology, SLA 03:30\nRERUN ORDER:\n- REG_REPORT: Regulatory Technology')];
     for (const id of ['TREASURY', 'GL_POST']) expect(ui.jobState({ id }, items)[0]).toBe('hold');

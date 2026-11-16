@@ -43,8 +43,9 @@ function jobState(job,incidents){
    const jobBullet=/^\s*[-*]\s*[A-Z][A-Z0-9_]*\s*:/.test(raw);
    if(!jobBullet&&/^[A-Z][A-Z ]+:/.test(line))holdSection=/^HOLD\b/.test(line);
    let listDirective=null;
+   let pendingJobs=[];
    for(const clause of line.split(/(;|,|\s+and\s+)/i)){
-    if(clause===';'){listDirective=null;continue}
+    if(clause===';'){listDirective=null;pendingJobs=[];continue}
     const text=clause.trim();
     if(!text||text===','||/^and$/i.test(text))continue;
     const jobFirst=/^[A-Z_]+\s*[:—-]?\s+(?:RELEASED|COMPLETE)\b/.test(text);
@@ -52,11 +53,13 @@ function jobState(job,incidents){
     if(/^(?:RELEASED|COMPLETE)\b/i.test(text)||jobFirst)adjacent='ready';
     else if(/\b(?:do not resubmit|not resubmit|hold|holds|held)\b/i.test(text))adjacent='hold';
     const inherited=/^[A-Z_]+(?:\s*[:—-].*)?$/.test(text)?listDirective:null;
+    if(/^[A-Z_]+\s*[:—-]?\s+(?:RELEASED|COMPLETE|HOLD)\b/.test(text)&&pendingJobs.includes(job.id))directive=adjacent;
     if(new RegExp('\\b'+job.id+'\\b','i').test(text)){
      const next=adjacent||inherited||(holdSection?'hold':null);
      if(next)directive=next;
     }
     listDirective=adjacent||inherited;
+    pendingJobs=/^[A-Z_]+$/.test(text)?[...pendingJobs,text]:[];
    }
   }
  }
