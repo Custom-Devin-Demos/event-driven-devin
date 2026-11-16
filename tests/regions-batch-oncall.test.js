@@ -350,6 +350,12 @@ describe('ported tile rules', () => {
     expect(ui.jobState({ id: 'GL_POST' }, [incident('COMPLETE GL_POST')])[0]).toBe('ready');
     expect(ui.jobState({ id: 'TREASURY' }, [incident('COMPLETE GL_POST')])[0]).toBe('scheduled');
   });
+  test.each([';', ',', ' and'])('directives bind to adjacent jobs across %s clauses', (separator) => {
+    const items = [incident(`GL_POST COMPLETE${separator} TREASURY remains on HOLD`)];
+    expect(ui.jobState({ id: 'GL_POST' }, items)[0]).toBe('ready');
+    expect(ui.jobState({ id: 'TREASURY' }, items)[0]).toBe('hold');
+    expect(ui.jobState({ id: 'TREASURY' }, [incident('GL_POST COMPLETE; TREASURY remains scheduled')])[0]).toBe('scheduled');
+  });
 });
 
 test('deployment accepts only the specified five secret formats and stages all five Actions secrets', () => {

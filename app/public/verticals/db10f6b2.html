@@ -41,10 +41,22 @@ function jobState(job,incidents){
   for(const raw of note.content.split('\n')){
    const line=raw.replace(/^\s*[-*]\s*/, '').trim().split(/\b(?:until|once|before)\b/i)[0];
    if(/^[A-Z][A-Z ]+:/.test(line))holdSection=/^HOLD\b/.test(line);
-   if(!new RegExp('\\b'+job.id+'\\b','i').test(line))continue;
-   const jobFirst=/^[A-Z_]+(?:\s*(?:,|and)\s*[A-Z_]+)*\s*[:—-]?\s+(?:RELEASED|COMPLETE)\b/.test(line);
-   if(/^(?:RELEASED|COMPLETE)\b/i.test(line)||jobFirst)directive='ready';
-   else if(/\b(?:do not resubmit|not resubmit)\b/i.test(line)||/^HOLD\b/i.test(line)||/\b(?:hold|holds|held)\b/i.test(line)||holdSection)directive='hold';
+   let listDirective=null;
+   for(const clause of line.split(/(;|,|\s+and\s+)/i)){
+    if(clause===';'){listDirective=null;continue}
+    const text=clause.trim();
+    if(!text||text===','||/^and$/i.test(text))continue;
+    const jobFirst=/^[A-Z_]+\s*[:—-]?\s+(?:RELEASED|COMPLETE)\b/.test(text);
+    let adjacent=null;
+    if(/^(?:RELEASED|COMPLETE)\b/i.test(text)||jobFirst)adjacent='ready';
+    else if(/\b(?:do not resubmit|not resubmit|hold|holds|held)\b/i.test(text))adjacent='hold';
+    const inherited=/^[A-Z_]+(?:\s*[:—-].*)?$/.test(text)?listDirective:null;
+    if(new RegExp('\\b'+job.id+'\\b','i').test(text)){
+     const next=adjacent||inherited||(holdSection?'hold':null);
+     if(next)directive=next;
+    }
+    listDirective=adjacent||inherited;
+   }
   }
  }
  if(directive==='ready')return ['ready','COMPLETE'];
