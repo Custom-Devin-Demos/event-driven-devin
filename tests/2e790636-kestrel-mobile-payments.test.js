@@ -54,8 +54,17 @@ describe('Kestrel mobile payments API (2e790636)', () => {
     const clock = virtualClock();
     const result = await kestrel.makePayment(kestrel.validatePayment(PAYMENT), clock);
     expect(result.screeningCount).toBe(36);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('HOLD_EXPIRED');
+    expect(result.durationMs).toBeGreaterThan(kestrel.PAYMENT_CONFIG.authHoldTtlMs);
     expect(result.spans.find((s) => s.name === 'payments.aml_screen').count).toBe(36);
     expect(kestrel.PAYMENT_CONFIG.authHoldTtlMs).toBe(5000);
+  });
+
+  test('rejects inherited object keys as payees', () => {
+    ['__proto__', 'constructor', 'toString'].forEach((payeeId) => {
+      expect(kestrel.validatePayment({ ...PAYMENT, payeeId })).toBeNull();
+    });
   });
 
   test('stays separate from the shared banking vertical config', () => {
