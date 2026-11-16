@@ -9902,6 +9902,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A STOREFORCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real StoreForce product.',
   },
+  '14e47290': {
+    slug: '14e47290',
+    company: 'Tesco Mobile',
+    vertical: 'telco',
+    page: {
+      file: '14e47290.html',
+      title: 'Flexible plans/Anytime Upgrade Flex | Why Tesco Mobile | Tesco Mobile',
+    },
+    disclaimer: 'NOT ACTUALLY A TESCO MOBILE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tesco Mobile product.',
+  },
 };
 
 function getOncallSkin(slug) {
