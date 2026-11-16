@@ -39,6 +39,8 @@ tr:last-child td{border-bottom:0}td small{display:block;color:var(--muted);font-
 .ops h2{margin:0 0 6px;font-size:13px}.ops button{background:#fff;border:1px solid var(--line);border-radius:3px;padding:5px 10px;margin-right:8px}
 .ops pre{background:#f3f5f8;padding:10px;overflow:auto;max-height:260px;white-space:pre-wrap}
 .card{border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin:8px 0}.card h3{margin:0 0 4px;font-size:13px}.card p{margin:2px 0}.card dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:6px 0}.card dt{color:var(--muted)}.card dd{margin:0;word-break:break-word}.card a{margin-right:12px}
+main>*{min-width:0}.notice,.ops{overflow-wrap:anywhere}
+@media(max-width:600px){.masthead{gap:14px;flex-wrap:wrap}.nav{overflow-x:auto;white-space:nowrap}thead{display:none}table,tbody,tr,td{display:block}tr{padding:10px 16px;border-bottom:1px solid #e8ecf1}tr:last-child{border-bottom:0}td{padding:2px 0;border:0}td:last-child{padding-top:8px}.send{width:100%}.ops{min-width:0}}
 @media(max-width:900px){main{grid-template-columns:1fr;padding:16px}.masthead,.nav{padding-left:16px;padding-right:16px}.coverage,.ops{margin-left:16px;margin-right:16px}th:nth-child(3),td:nth-child(3){display:none}}
 </style>
 </head>
@@ -96,6 +98,7 @@ tr:last-child td{border-bottom:0}td small{display:block;color:var(--muted);font-
     } catch (_) {}
   })();
   $('demoToolbar').classList.toggle('hidden', new URLSearchParams(location.search).get('ops') !== '1');
+  const START_HINT = $('incidentState').textContent;
   let patients = [], models = [], busy = false;
   const status = {}, worklist = { red: [], yellow: [] };
   const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
@@ -163,7 +166,7 @@ tr:last-child td{border-bottom:0}td small{display:block;color:var(--muted);font-
     } finally { busy = false; renderPatients(); renderWorklist(); }
   }
   $('patients').addEventListener('click', event => { const id = event.target.dataset && event.target.dataset.patient; if (id && !busy) send(id); });
-  $('reset').onclick = () => { if (busy) return; for (const key of Object.keys(status)) delete status[key]; worklist.red = []; worklist.yellow = []; $('notice').classList.add('hidden'); $('teamsCard').textContent = 'Trigger the failing transmission to generate the alert preview.'; $('payload').textContent = 'No alert generated yet.'; renderPatients(); renderWorklist(); };
+  $('reset').onclick = () => { if (busy) return; for (const key of Object.keys(status)) delete status[key]; worklist.red = []; worklist.yellow = []; $('notice').classList.add('hidden'); $('teamsCard').textContent = 'Trigger the failing transmission to generate the alert preview.'; $('payload').textContent = 'No alert generated yet.'; $('incidentState').textContent = START_HINT; renderPatients(); renderWorklist(); };
   fetch('/api/acee28a2/patients').then(r => { if (!r.ok) throw new Error('Patient list unavailable'); return r.json(); }).then(data => {
     patients = data.patients; models = data.models; $('clinicName').textContent = data.clinic; $('revision').textContent = `· ${data.revision}`; $('sourceLink').href = data.sourceUrl;
     if (data.liveTeams) $('deliveryStatus').textContent = 'LIVE mode: choose Teams on the demo hub. A failing transmission posts to the eashan-demo Teams channel; no Slack fallback.';
