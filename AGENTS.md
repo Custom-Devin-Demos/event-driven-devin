@@ -254,6 +254,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
 | Marketplace | `POST /api/oncall/marketplace/cart` | `app/services/oncall-verticals/marketplace.js` |
 | Apparel | `POST /api/oncall/apparel/bag` | `app/services/oncall-verticals/apparel.js` |
+| Mobility plans | `POST /api/oncall/mobilityplans/purchase` | `app/services/oncall-verticals/mobilityplans.js` |
 | Grocery | `POST /api/oncall/grocery/checkout` | `app/services/oncall-verticals/grocery.js` |
 | Vaccines (GSK skin `fe4f39ba`) | `POST /api/oncall/vaccines/order` | `app/services/oncall-verticals/vaccines.js` |
 | PBM claims (Fernway Rx) | `POST /api/oncall/pbm/claim` | `app/services/oncall-verticals/pbm.js` |

@@ -10007,7 +10007,7 @@ const ONCALL_SKINS = {
     slug: 'c32407c6',
     company: 'TELUS',
     brandMark: 'T',
-    vertical: 'telco',
+    vertical: 'mobilityplans',
     page: { file: 'c32407c6.html', title: 'Bring your own phone plans | TELUS' },
     theme: {
       '--accent': '#2B8000',
@@ -10018,7 +10018,7 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'TELUS Support',
     alertCard: {
-      impact: 'Plan purchases in My TELUS wait ~8 seconds before confirming; subscribers retry or abandon checkout.',
+      impact: 'Buy this plan in My TELUS fails immediately for 5G+ Complete; subscribers cannot buy the most popular plan and see a "We couldn\u2019t complete your purchase" error.',
     },
     disclaimer: 'NOT ACTUALLY A TELUS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TELUS product.',
   },

@@ -477,6 +477,27 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  mobilityplans: {
+    vertical: 'mobilityplans',
+    page: 'c32407c6.html',
+    apiPath: '/api/mobilityplans/purchase',
+    oncallApiPath: '/api/oncall/mobilityplans/purchase',
+    owner: 'Jordan Tremblay (mobility-selfserve-oncall)',
+    brand: 'Mobility Self-Serve (Plan Purchase)',
+    service: 'plans-api',
+    endpoint: 'POST /api/oncall/mobilityplans/purchase',
+    monitor: '5xx rate \u2014 POST /api/oncall/mobilityplans/purchase',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/mobilityplans/purchase,http.status_code:500}',
+    metricValue: '500 on ~60% of plan purchases',
+    threshold: '> 2% error rate',
+    baseline: '<0.2% (7-day)',
+    release: 'mobility-selfserve@3.9.0',
+    symptom: 'Buy this plan fails immediately with HTTP 500 (TypeError in plans-api) for some 5G+ plans. Latency is normal. Onset coincides with the mobility-selfserve 3.9.0 plan catalog release.',
+    impact: 'Subscribers cannot buy the most popular 5G+ plan online; every attempt errors at checkout.',
+    alertOnStatus: [500],
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   grocery: {
     vertical: 'grocery',
     page: 'e2d82a44.html',
