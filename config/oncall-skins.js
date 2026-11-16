@@ -106,7 +106,7 @@ const { SLUG: BATCH_SLUG, promptAppendix: batchPrompt } = require('./regions-bat
 const ONCALL_SKINS = {
   [BATCH_SLUG]: {
     slug: BATCH_SLUG, company: 'Regions Bank', vertical: 'batchsettlement', oncallOnly: true,
-    paths: ['/regions-batch-oncall'], hideRibbon: true, alertDestination: 'slack',
+    paths: ['/regions-batch-oncall'], hideRibbon: true, alertDestination: 'slack', telemetryBrand: 'pagerduty',
     slackChannelId: 'C0BNWUGCWBS', slackChannelName: '#oncall-alerts',
     onCallSlackMemberId: 'U0BQZBHCNMA', incidentInviteUserIds: ['U0BQZBHCNMA'],
     devinSession: { auto: true, onCallIsTriggerer: true,

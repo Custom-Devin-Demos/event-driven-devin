@@ -30,6 +30,7 @@ const { createDevinSession } = require('../app/services/devin-api');
 const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 const logger = require('../app/telemetry/logger');
 const presenter = { devinUserId: 'user_batch_presenter', devinOrgId: 'org_batch_presenter', devinEmail: 'presenter@example.com' };
+const routingKeys = { BATCH_PD_ROUTING_KEY_MFT: 'a'.repeat(32), BATCH_PD_ROUTING_KEY_SQL: 'b'.repeat(32), BATCH_PD_ROUTING_KEY_MF: 'c'.repeat(32) };
 const eventFor = (runId, service = 'PU8BL8X', type = 'incident.triggered') => ({ event: {
   event_type: type, data: { id: 'PINC123', type: 'incident', service: { id: service }, custom_details: { run_id: runId } },
 } });
@@ -41,7 +42,7 @@ describe('batch settlement service', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     clock = Date.parse('2026-11-16T01:00:00Z');
-    env = { BATCH_PD_DRY_RUN: '1', BATCH_PD_API_TOKEN: 'test-only-token' };
+    env = { ...routingKeys, BATCH_PD_DRY_RUN: '1', BATCH_PD_API_TOKEN: 'test-only-token' };
     http = { get: jest.fn().mockResolvedValue({ data: { incidents: [], notes: [] } }), post: jest.fn().mockResolvedValue({ status: 202, data: { status: 'success' } }) };
     alert = jest.fn().mockResolvedValue({ ok: true, sessionUrl: 'https://app.devin.ai/sessions/batch-test' });
     service = createBatchSettlement({ env, http, postAlert: alert, getSkin: getOncallSkin, now: () => clock });
@@ -61,15 +62,6 @@ describe('batch settlement service', () => {
       ['Batch settlement dry run', { component: 'MAINFRAME' }],
     ]);
     expect((await service.state()).run).toMatchObject({ run_id: id, status: 'complete', sent: ['MFT', 'SQL', 'MAINFRAME'] });
-  });
-
-  test('missing keys force dry run even without the dry-run flag', async () => {
-    delete env.BATCH_PD_DRY_RUN;
-    service = createBatchSettlement({ env, http, now: () => clock });
-    start(service);
-    await jest.advanceTimersByTimeAsync(60000);
-    expect(http.post).not.toHaveBeenCalled();
-    expect((await service.state()).dry_run).toBe(true);
   });
 
   test('live dispatch preserves payloads, run correlation and 30s event ordering', async () => {
@@ -220,12 +212,99 @@ describe('batch settlement service', () => {
   });
 });
 
+describe('in-app PagerDuty simulation', () => {
+  let service, http, alert;
+  beforeEach(() => {
+    jest.useFakeTimers({ now: Date.parse('2026-11-16T01:00:00Z') });
+    jest.clearAllMocks();
+    http = { get: jest.fn(), post: jest.fn() };
+    alert = jest.fn().mockResolvedValue({ ok: true, sessionUrl: 'https://app.devin.ai/sessions/simulated', channel: 'C0BNWUGCWBS', ts: '1700000000.000100' });
+    service = createBatchSettlement({ env: {}, http, postAlert: alert, getSkin: getOncallSkin });
+  });
+  afterEach(() => { service.reset(); jest.useRealTimers(); });
+
+  test('three timed incidents, one direct dispatch per run, and a distinct session dispatch on the next run', async () => {
+    expect(await service.state()).toMatchObject({ simulated: true, dry_run: false, incidents: [], activity: [], run: null });
+    const first = service.start({ skin: SLUG, ...presenter });
+    expect(first.body).toMatchObject({ simulated: true, dry_run: false });
+    expect(service.start({ skin: SLUG }).status).toBe(409);
+    await jest.advanceTimersByTimeAsync(0);
+    expect((await service.state()).incidents).toHaveLength(1);
+    await jest.advanceTimersByTimeAsync(29999);
+    expect((await service.state()).incidents).toHaveLength(1);
+    await jest.advanceTimersByTimeAsync(1);
+    expect((await service.state()).incidents).toHaveLength(2);
+    await jest.advanceTimersByTimeAsync(30000);
+    const state = await service.state();
+    expect(state.run.status).toBe('complete');
+    expect(state.incidents.map((i) => i.service.name)).toEqual(['Axway MFT Gateway', 'EDW SQL Load', 'Mainframe Batch zOS']);
+    expect(state.incidents.map((i) => i.incident_number)).toEqual([1001, 1002, 1003]);
+    expect(state.incidents.map((i) => i.created_at)).toEqual(['2026-11-16T01:00:00.000Z', '2026-11-16T01:00:30.000Z', '2026-11-16T01:01:00.000Z']);
+    for (const i of state.incidents) {
+      expect(i.id).toMatch(/^P[A-F0-9]{6}$/);
+      expect(i).toMatchObject({ status: 'triggered', notes: [], custom_details: { run_id: first.body.run_id, evidence: 'logs/2026-11-15', profile: 'config/shared-tls-profile.json' } });
+    }
+    expect(state.activity).toEqual([expect.objectContaining({ content: 'Devin session started', session_url: 'https://app.devin.ai/sessions/simulated', slack_thread_url: 'https://app.slack.com/archives/C0BNWUGCWBS/p1700000000000100' })]);
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(alert).toHaveBeenCalledWith('batchsettlement', expect.objectContaining({ ...presenter, destination: 'slack', unique: true, runRef: first.body.run_id }));
+    expect((await service.webhook(eventFor(first.body.run_id))).status).toBe(202);
+    const second = service.start({ skin: SLUG, ...presenter });
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(alert).toHaveBeenCalledTimes(2);
+    expect(alert.mock.calls.map(([, options]) => options.runRef)).toEqual([first.body.run_id, second.body.run_id]);
+    expect((await service.state()).incidents.map((i) => i.incident_number)).toEqual([1001, 1002, 1003, 1004, 1005, 1006]);
+    expect(http.get).not.toHaveBeenCalled();
+    expect(http.post).not.toHaveBeenCalled();
+  });
+
+  test('inline prompt includes all incidents before SQL/mainframe arrive and forbids PagerDuty API/notes', async () => {
+    service.start({ skin: SLUG, ...presenter });
+    const prompt = alert.mock.calls[0][1].skin.devinSession.promptAppendix;
+    expect(prompt).toContain('Do NOT call the PagerDuty API');
+    expect(prompt).toContain('or post PagerDuty notes');
+    expect(prompt).not.toContain('$PAGERDUTY_API_TOKEN');
+    for (const number of [1001, 1002, 1003]) expect(prompt).toContain(`"incident_number": ${number}`);
+    for (const name of ['Axway MFT Gateway', 'EDW SQL Load', 'Mainframe Batch zOS']) expect(prompt).toContain(name);
+    for (const text of ['custom_details', 'created_at', 'run_id', 'HOLD table', 'rerun order', 'fix PR', 'rerun result', 'Awaiting human approval to merge and release holds']) expect(prompt).toContain(text);
+    expect(prompt).toContain('THIS alert Slack thread, never a new top-level message');
+    await jest.advanceTimersByTimeAsync(0);
+    expect((await service.state()).incidents).toHaveLength(1);
+  });
+
+  test('reset clears incidents and session activity and cancels pending arrivals', async () => {
+    service.start({ skin: SLUG });
+    await jest.advanceTimersByTimeAsync(0);
+    service.reset();
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(await service.state()).toMatchObject({ incidents: [], activity: [], run: null });
+    expect(alert).toHaveBeenCalledTimes(1);
+  });
+
+  test('missing/invalid routing keys select simulation even with a REST token or legacy dry-run flag', async () => {
+    service = createBatchSettlement({ env: { ...routingKeys, BATCH_PD_ROUTING_KEY_SQL: 'invalid', BATCH_PD_API_TOKEN: 'unused', BATCH_PD_DRY_RUN: '1' }, http, postAlert: alert, getSkin: getOncallSkin });
+    service.start({ skin: SLUG });
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(await service.state()).toMatchObject({ simulated: true, dry_run: false, incidents: expect.any(Array) });
+    expect(http.get).not.toHaveBeenCalled();
+    expect(http.post).not.toHaveBeenCalled();
+  });
+
+  test('dispatch errors are visible without stopping incident arrivals or repeatedly starting sessions', async () => {
+    alert.mockRejectedValue(new Error('unavailable'));
+    service.start({ skin: SLUG });
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(await service.state()).toMatchObject({ incidents: expect.any(Array), warning: 'Slack/Devin dispatch unavailable; start a new run to retry' });
+    expect((await service.state()).incidents).toHaveLength(3);
+    expect(alert).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('batch settlement HTTP and native page', () => {
   let server, base, service, postAlert;
   const oldSecret = process.env.BATCH_PD_WEBHOOK_SECRET;
   beforeAll((done) => {
     postAlert = jest.fn().mockResolvedValue({ ok: true, sessionUrl: 'https://app.devin.ai/sessions/http-test' });
-    service = createBatchSettlement({ env: { BATCH_PD_DRY_RUN: '1' }, postAlert, getSkin: getOncallSkin });
+    service = createBatchSettlement({ env: { ...routingKeys, BATCH_PD_DRY_RUN: '1' }, postAlert, getSkin: getOncallSkin });
     const app = express();
     app.use(express.json());
     app.use('/api/oncall/batchsettlement', createRouter(service, (_req, _res, next) => next()));
@@ -312,7 +391,7 @@ test('real native alert scopes the repository, honors presenter identity and thr
   resetSkinAlertMemory();
   process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
   process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'COTHER';
-  const service = createBatchSettlement({ env: { BATCH_PD_DRY_RUN: '1' }, postAlert: postOncallAlert, getSkin: getOncallSkin });
+  const service = createBatchSettlement({ env: { ...routingKeys, BATCH_PD_DRY_RUN: '1' }, postAlert: postOncallAlert, getSkin: getOncallSkin });
   const { run_id } = service.start({ skin: SLUG, ...presenter }).body;
   let result;
   try { result = await service.webhook(eventFor(run_id)); }
@@ -323,8 +402,37 @@ test('real native alert scopes the repository, honors presenter identity and thr
   }));
   expect(createDevinSession.mock.calls[0][0]).toContain('Awaiting human approval to merge and release holds');
   expect(postMessage.mock.calls[0][1]).toBe('C0BNWUGCWBS');
-  expect(JSON.stringify(postMessage.mock.calls[0])).toContain('Triggered by PagerDuty: https://humza-cog.pagerduty.com/incidents/PINC123');
+  expect(JSON.stringify(postMessage.mock.calls[0])).toContain('https://humza-cog.pagerduty.com/incidents/PINC123');
   expect(postThreadReply.mock.calls[0].slice(1, 3)).toEqual(['C0BNWUGCWBS', '1700000000.000100']);
+});
+
+test('simulated native dispatch renders the exact PagerDuty Slack blocks and passes inline context to Devin', async () => {
+  jest.clearAllMocks();
+  resetSkinAlertMemory();
+  process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
+  const service = createBatchSettlement({ env: {}, postAlert: postOncallAlert, getSkin: getOncallSkin });
+  try {
+    const first = service.start({ skin: SLUG, ...presenter });
+    await new Promise((resolve) => setImmediate(resolve));
+    const state = await service.state();
+    expect(state.run.session_url).toContain('batch-test');
+    const incident = state.incidents[0];
+    const blocks = postMessage.mock.calls[0][3];
+    const incidentUrl = `https://devindemos.com/oncall/c/${SLUG}#incident-${incident.id}`;
+    expect(blocks).toEqual([
+      { type: 'header', text: { type: 'plain_text', emoji: true, text: '[PagerDuty] Triggered #1001: Axway MFT Gateway — Inbound settlement file not received by SLA (TLS handshake failure)' } },
+      { type: 'section', fields: [{ type: 'mrkdwn', text: '*Service:*\nAxway MFT Gateway' }, { type: 'mrkdwn', text: '*Urgency:*\nHigh' }] },
+      { type: 'section', fields: [{ type: 'mrkdwn', text: '*Escalation policy:*\nBatch and File Transfer Operations' }, { type: 'mrkdwn', text: '*Assigned to:*\non-call (<@U0BQZBHCNMA>)' }] },
+      { type: 'section', fields: [{ type: 'mrkdwn', text: `*Incident:*\n<${incidentUrl}|#1001>` }] },
+      { type: 'section', text: { type: 'mrkdwn', text: 'Repo: https://github.com/COG-GTM/rg-oncall/tree/main' } },
+    ]);
+    expect(JSON.stringify(blocks)).not.toMatch(/datadog/i);
+    const prompt = createDevinSession.mock.calls[0][0];
+    expect(prompt).toContain('Do NOT call the PagerDuty API');
+    expect(prompt).not.toMatch(/datadog/i);
+    expect(prompt).toContain(first.body.run_id);
+    console.log('SIMULATED_PAGERDUTY_SLACK_BLOCKS ' + JSON.stringify(blocks));
+  } finally { service.reset(); }
 });
 
 describe('ported tile rules', () => {
@@ -364,8 +472,8 @@ describe('ported tile rules', () => {
     expect(ui.jobState({ id: 'TREASURY' }, items)[0]).toBe('hold');
     expect(ui.jobState({ id: 'TREASURY' }, [incident('GL_POST COMPLETE; TREASURY remains scheduled')])[0]).toBe('scheduled');
   });
-  test.each(['COMPLETE', 'RELEASED', 'HOLD'])('a trailing %s applies to comma/and job groups only', (instruction) => {
-    const expected = instruction === 'HOLD' ? 'hold' : 'ready';
+  test.each(['COMPLETE', 'RELEASED', 'HOLD', 'on HOLD'])('a trailing %s applies to comma/and job groups only', (instruction) => {
+    const expected = instruction.endsWith('HOLD') ? 'hold' : 'ready';
     for (const separator of [', ', ' and ']) {
       const items = [incident(`GL_POST${separator}TREASURY ${instruction}`)];
       for (const id of ['GL_POST', 'TREASURY']) expect(ui.jobState({ id }, items)[0]).toBe(expected);

@@ -53,7 +53,7 @@ function jobState(job,incidents){
     if(/^(?:RELEASED|COMPLETE)\b/i.test(text)||jobFirst)adjacent='ready';
     else if(/\b(?:do not resubmit|not resubmit|hold|holds|held)\b/i.test(text))adjacent='hold';
     const inherited=/^[A-Z_]+(?:\s*[:—-].*)?$/.test(text)?listDirective:null;
-    if(/^[A-Z_]+\s*[:—-]?\s+(?:RELEASED|COMPLETE|HOLD)\b/.test(text)&&pendingJobs.includes(job.id))directive=adjacent;
+    if(/^[A-Z_]+\s*[:—-]?\s+(?:RELEASED|COMPLETE|(?:on\s+)?HOLD)\b/.test(text)&&pendingJobs.includes(job.id))directive=adjacent;
     if(new RegExp('\\b'+job.id+'\\b','i').test(text)){
      const next=adjacent||inherited||(holdSection?'hold':null);
      if(next)directive=next;
@@ -79,7 +79,7 @@ function render(data){
  $('fix-prs').replaceChildren(...fixPRs(data.incidents).map(url=>{
   const link=node('a','Fix PR open','pr-badge');link.href=url;link.target='_blank';link.rel='noopener noreferrer';return link;
  }));
- $('mode').textContent=data.dry_run?'DRY RUN · NO EVENTS SENT':'LIVE EVENTS';
+ $('mode').textContent=data.simulated?'PAGERDUTY · INCIDENT REPLAY':data.dry_run?'DRY RUN · NO EVENTS SENT':'PAGERDUTY · LIVE EVENTS';
  $('sync').textContent=time(data.fetched_at);
  $('run').textContent=data.run?data.run.status.toUpperCase()+' · '+data.run.sent.length+'/3 events':'No local run';
  $('fire').disabled=data.run?.status==='active';
@@ -92,20 +92,21 @@ function render(data){
  $('incident-count').textContent=data.incidents.length+' active in session';
  $('incidents').replaceChildren(...data.incidents.map(i=>{
  const el=node('article',undefined,'incident'),head=node('div',undefined,'incident-top');
+ el.id='incident-'+i.id;
  head.append(node('span',i.service.name,'service'),node('span',i.status,'pd-status '+i.status));
- el.append(head,node('p',i.title),node('small',i.id+' · '+time(i.created_at)));return el;
+ el.append(head,node('p',i.title),node('small',(i.incident_number?'#'+i.incident_number+' · ':'')+i.id+' · '+time(i.created_at)));return el;
  }));
  if(!data.incidents.length)$('incidents').append(node('div','No active incidents since server start or last reset.','empty'));
- const notes=data.incidents.flatMap(i=>i.notes.map(n=>({...n,service:i.service.name}))).sort((a,b)=>a.created_at.localeCompare(b.created_at));
- $('notes').replaceChildren(...notes.map(n=>{const el=node('article',undefined,'note');el.append(node('small',time(n.created_at)+' · '+n.service+' · '+n.author),node('div',n.content,'note-text'));return el}));
- if(!notes.length)$('notes').append(node('div','Awaiting responder notes. Root cause, hold lists and PR references will appear here.','empty'));
+ const notes=[...data.incidents.flatMap(i=>i.notes.map(n=>({...n,service:i.service.name}))),...(data.activity||[])].sort((a,b)=>a.created_at.localeCompare(b.created_at));
+ $('notes').replaceChildren(...notes.map(n=>{const el=node('article',undefined,'note');el.append(node('small',time(n.created_at)+' · '+n.service+' · '+n.author),node('div',n.content,'note-text'));for(const [url,label]of[[n.session_url,'View in Devin'],[n.slack_thread_url,'Open Slack thread']]){if(url){const link=node('a',label,'pr-badge');link.href=url;link.target='_blank';link.rel='noopener noreferrer';el.append(link)}}return el}));
+ if(!notes.length)$('notes').append(node('div',data.simulated?'Awaiting incident response. Findings and the fix PR will be posted in the alert Slack thread.':'Awaiting responder notes. Root cause, hold lists and PR references will appear here.','empty'));
 }
 async function poll(){
  try{const r=await fetch('/api/oncall/batchsettlement/state');const data=await r.json();if(!r.ok)throw Error(data.error);render(data);$('error').textContent=data.warning||'';$('error').classList.toggle('hidden',!data.warning)}
  catch(e){$('error').textContent=e.message+' — displayed state may be stale.';$('error').classList.remove('hidden')}
 }
 async function action(path){
- try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(data.error);$('feedback').textContent=path.endsWith('reset')?data.message:(data.dry_run?'Dry run started — no PagerDuty events will be sent':'Settlement alerts started');await poll()}
+ try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({skin:'db10f6b2',devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});const data=await response.json();if(!response.ok)throw Error(data.error);$('feedback').textContent=path.endsWith('reset')?data.message:(data.simulated?'PagerDuty incident replay started':data.dry_run?'Dry run started — no PagerDuty events will be sent':'Settlement alerts started');await poll()}
  catch(e){$('feedback').textContent=e.message}
 }
 $('fire').onclick=()=>action('/api/oncall/batchsettlement/runs');$('reset').onclick=()=>action('/api/oncall/batchsettlement/reset');

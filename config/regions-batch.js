@@ -10,4 +10,16 @@ const promptAppendix = [
   'Never merge, never resolve incidents, never release operational holds. Reproduce locally only; never fire live PagerDuty events or submit the live console again.',
 ].join('\n');
 
-module.exports = { SLUG, promptAppendix };
+function simulatedPrompt(incidents) {
+  return [
+    'Investigate this overnight settlement run in COG-GTM/rg-oncall on main, not event-driven-devin. The Incident Ref is the run_id.',
+    'This is in-app PagerDuty simulation. All three correlated incidents are supplied inline below, including scheduled arrival timestamps. Do NOT call the PagerDuty API, require a PagerDuty token, or post PagerDuty notes. Do not follow the PagerDuty API or note-posting steps in the repository skill; the inline records replace those steps.',
+    'Follow .agents/skills/batch-incident-response/SKILL.md for the investigation. Read MFT, Windows patch/SCHANNEL, ETL and JES2 evidence and walk ops/job-dependencies.yaml for dependencies, owners and SLAs.',
+    'Post everything in THIS alert Slack thread, never a new top-level message: root cause, evidence, blast radius, a HOLD table (job, owner, SLA), rerun order, fix PR and rerun result. Tag <@U0BQZBHCNMA>; fictional owners remain plain text.',
+    'Open a fix PR with a regression test and run scripts/run-nightly.sh. End the final Slack-thread reply exactly: Awaiting human approval to merge and release holds',
+    'Never merge, resolve incidents, release operational holds, fire live events or submit the live console again. Reproduce only in the local rg-oncall checkout.',
+    `Correlated incidents:\n${JSON.stringify(incidents, null, 2)}`,
+  ].join('\n');
+}
+
+module.exports = { SLUG, promptAppendix, simulatedPrompt };
