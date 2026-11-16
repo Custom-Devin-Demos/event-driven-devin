@@ -9988,6 +9988,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A KESTREL BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Kestrel Bank product. Kestrel Bank is a fictional bank.',
   },
+  'a1f7fa19': {
+    slug: 'a1f7fa19',
+    company: 'Storefront',
+    vertical: 'telco',
+    page: {
+      file: 'a1f7fa19.html',
+      title: 'Storefront | 10,000+ pop-up shops & event venues for rent',
+    },
+    disclaimer: 'NOT ACTUALLY A STOREFRONT SITE — internal demo only, not affiliated with, endorsed by, or a real Storefront product.',
+  },
 };
 
 function getOncallSkin(slug) {
