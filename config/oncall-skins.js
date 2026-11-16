@@ -10000,6 +10000,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A YELP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Yelp product.',
   },
+  '0a42c36d': {
+    slug: '0a42c36d',
+    company: 'Banco Almenara',
+    vertical: 'banking',
+    page: {
+      file: '0a42c36d.html',
+      title: 'Transferencias | Banco Almenara',
+    },
+    disclaimer: 'NOT ACTUALLY A BANCO ALMENARA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco Almenara product. Banco Almenara is a fictional bank.',
+  },
 };
 
 function getOncallSkin(slug) {
