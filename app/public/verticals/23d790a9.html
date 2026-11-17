@@ -165,7 +165,7 @@ table.figs td.v{color:var(--g);font-size:15px}
 .gate .err{color:var(--red);font-size:12.5px;min-height:20px}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--g);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-1px;margin-inline-end:8px}@keyframes sp{to{transform:rotate(360deg)}}
 @media print{body *{visibility:hidden}.overlay.on,.overlay.on *{visibility:visible}.overlay.on{position:absolute;inset:0;background:#fff;padding:0}.modal .tools,.modal .x{display:none}}
-@media (max-width:900px){.hero .wrap,.cols,.cols.r,.cols.r.rm,.esc{grid-template-columns:1fr}.eco{grid-template-columns:40px 1fr;gap:10px 16px}.eco>*:nth-child(n+3){grid-column:2}.trend{grid-template-columns:50px 1fr}.trend>*:nth-child(n+3){grid-column:2}
+@media (max-width:900px){.hero .wrap,.cols,.cols.r,.cols.r.rm,.esc{grid-template-columns:1fr}.eco{grid-template-columns:40px 1fr;gap:10px 16px}.eco>*:nth-child(n+3){grid-column:2}.trend{grid-template-columns:50px 1fr}.trend>*:nth-child(n+3){grid-column:1/-1}
   header .wrap{flex-wrap:wrap;height:auto;gap:10px 16px;padding-top:12px}header img{height:36px}.lang{margin-inline-start:auto}
   nav{order:3;flex:1 0 100%;min-width:0;overflow-x:auto;gap:22px;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav a{padding:10px 0 12px}}
 </style>
@@ -535,7 +535,7 @@ function renderScan(sc){const t=sc.at?new Date(sc.at).toLocaleTimeString(AR_()?'
   $('#scanLine').innerHTML=!sc.enabled?T_('Live scan is off in this environment · showing curated developments','الفحص المباشر غير مفعّل · تُعرض التطورات المنتقاة')
     :!sc.at?`<span class="spin"></span>${T_(`Scanning ${sc.sources} trusted sources…`,`جارٍ فحص ${sc.sources} مصدراً موثوقاً…`)}`
     :sc.ok?T_(`Last scanned ${t} · ${sc.sources} trusted sources · ${sc.live} new ${sc.live===1?'development':'developments'} added`,`آخر فحص ${t} · ${sc.sources} مصدراً موثوقاً · أُضيف ${sc.live} تطورات جديدة`)
-    :`<span class="st-amb">${T_(`Trusted sources could not be reached at ${t} · showing curated developments`,`تعذّر الوصول إلى المصادر الموثوقة عند ${t} · تُعرض التطورات المنتقاة`)}</span>`;
+    :`<span class="st-amb">${(sc.live?T_(`Trusted sources could not be reached at ${t} · showing ${sc.live} earlier live-scan items and curated developments`,`تعذّر الوصول إلى المصادر الموثوقة عند ${t} · تُعرض ${sc.live} تطورات سابقة من الفحص المباشر والتطورات المنتقاة`):T_(`Trusted sources could not be reached at ${t} · showing curated developments`,`تعذّر الوصول إلى المصادر الموثوقة عند ${t} · تُعرض التطورات المنتقاة`))}</span>`;
   $('#scanBtn').style.display=sc.enabled?'':'none'}
 $('#scanBtn').onclick=async()=>{const b=$('#scanBtn');b.disabled=true;$('#scanLine').innerHTML=`<span class="spin"></span>${T_('Scanning trusted sources and assessing new items…','جارٍ فحص المصادر الموثوقة وتقييم العناصر الجديدة…')}`;
   try{const r=await api('/trends/scan',{method:'POST'});if(LIB)TRS=r.trends;await loadTrends();
@@ -552,7 +552,7 @@ async function loadTrSummary(seq){const scope=trEco?(AR_()?ECO.find(e=>e.id===tr
     <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap"><button class="btn" id="trBriefBtn" type="button">${T_('Management brief','موجز الإدارة')}</button><button class="btn-o" id="trBriefAr" type="button">${AR_()?'English brief':'موجز بالعربية'}</button></div></div>`;
   $('#trSum').innerHTML=head+`<div><p><span class="spin"></span>${T_('Writing the summary…','جارٍ إعداد الملخص…')}</p></div>`;wireBrief();
   try{const r=await api(`/trends/summary?lang=${LANG}${trEco?'&ecosystem='+trEco:''}`);if(seq!==trSeq)return;
-    $('#trSum').innerHTML=head+`<div dir="${r.dir}"><ol>${r.takeaways.map(t=>`<li>${esc(t)}</li>`).join('')}</ol><div class="md">${r.mode==='ai'?T_('Written by AI from the developments below','كتبه الذكاء الاصطناعي من التطورات أدناه'):T_(`Generated from the developments below${r.aiOffline?' — AI synthesis unavailable':''}`,'مُولّد من التطورات أدناه')}</div></div>`;wireBrief();
+    $('#trSum').innerHTML=head+`<div dir="${r.dir}"><ol>${r.takeaways.map(t=>`<li>${esc(t)}</li>`).join('')}</ol><div class="md">${r.mode==='ai'?T_('Written by AI from the developments below','كتبه الذكاء الاصطناعي من التطورات أدناه'):T_(`Generated from the developments below${r.aiOffline?' — AI synthesis unavailable':''}`,`مُولّد من التطورات أدناه${r.aiOffline?' — توليف الذكاء الاصطناعي غير متاح':''}`)}</div></div>`;wireBrief();
   }catch(e){if(seq===trSeq&&e.message!=='locked')$('#trSum').lastElementChild.innerHTML=`<p>${esc(e.message)}</p>`}}
 function wireBrief(){$('#trBriefBtn').onclick=()=>trendBrief(LANG);$('#trBriefAr').onclick=()=>trendBrief(AR_()?'en':'ar')}
 const trVis=t=>(!trPri||t.priority===trPri)&&(!trCo||t.companies.includes(trCo));

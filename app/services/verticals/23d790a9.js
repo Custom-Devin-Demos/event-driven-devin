@@ -314,7 +314,7 @@ const SCAN_QUERIES = [
   '(HUMAIN OR "Riyadh Air" OR NEOM OR Oxagon OR "ACWA Power" OR Qiddiya OR "Red Sea Global" OR ROSHN) (AI OR "artificial intelligence") when:14d',
   '("Ma\'aden" OR Alat OR Ceer OR KAFD OR Bahri OR "New Murabba" OR Lifera OR "Public Investment Fund") (AI OR "artificial intelligence") when:14d',
 ];
-const SCAN_MIN_INTERVAL_MS = 2 * 60 * 1000;
+const SCAN_MIN_INTERVAL_MS = 10 * 60 * 1000;
 const SCAN_AUTO_MS = 6 * 60 * 60 * 1000;
 const LIVE_MAX = 8;
 const liveScan = { items: [], at: null, ok: null, found: 0, added: 0, error: null, running: null };
@@ -408,11 +408,22 @@ async function enrichLive(items, known = []) {
 }
 
 async function fetchCandidates() {
-  const feeds = await Promise.all(SCAN_QUERIES.map((q) => axios.get('https://news.google.com/rss/search', {
-    params: { q, hl: 'en-US', gl: 'US', ceid: 'US:en' }, timeout: 12000, responseType: 'text',
-    headers: { 'User-Agent': 'Mozilla/5.0 (PIF Ecosystem Outlook PoC; trusted-source monitor)' },
-  }).then((r) => parseRss(r.data))));
-  return feeds.flat();
+  const feeds = [];
+  let failures = 0;
+  for (const q of SCAN_QUERIES) {
+    try {
+      const r = await axios.get('https://news.google.com/rss/search', {
+        params: { q, hl: 'en-US', gl: 'US', ceid: 'US:en' }, timeout: 12000, responseType: 'text',
+        headers: { 'User-Agent': 'Mozilla/5.0 (PIF Ecosystem Outlook PoC; trusted-source monitor)' },
+      });
+      feeds.push(...parseRss(r.data));
+    } catch (error) {
+      failures += 1;
+      logger.warn('PIF PoC: trend feed query failed', { error: error.message });
+    }
+  }
+  if (failures === SCAN_QUERIES.length) throw new Error('All trusted-source feeds failed');
+  return feeds;
 }
 
 async function runScan(fetcher = fetchCandidates) {
