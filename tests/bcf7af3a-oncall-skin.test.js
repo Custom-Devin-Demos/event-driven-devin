@@ -59,6 +59,11 @@ const SKINS = [
   { slug: '9af9f631', vertical: 'insurance', title: 'Chat Estrella | Banco General Panamá', form: 'id="claimForm"', endpoint: '/api/oncall/insurance/claim', card: 'Chat Estrella messages (504)' },
 ];
 
+test('Yappy page shows the Yappy logo', async () => {
+  const html = await (await fetch(`${baseUrl}/oncall/c/42356c70`)).text();
+  expect(html).toContain('src="/verticals/assets/bcf7af3a/yappy-logo.png" alt="Yappy"');
+});
+
 test('Banca en Línea opens the transfer form when entered via #transferir from the Yappy and card pages', async () => {
   const banking = await (await fetch(`${baseUrl}/oncall/c/bcf7af3a`)).text();
   expect(banking).toContain("location.hash === '#transferir'");
