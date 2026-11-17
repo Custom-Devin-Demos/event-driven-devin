@@ -2731,6 +2731,22 @@ const ONCALL_SKINS = {
     slug: 'e63edc26',
     company: 'Harvey',
     vertical: 'hightech',
+    alertDestination: 'slack',
+    slackChannelId: 'C0BNWUGCWBS',
+    slackChannelName: '#oncall-alerts',
+    // Shahmir is On-Call on the card and owns the session, so it lands in his recents.
+    onCallSlackMemberId: 'U0B0ZNWTQ8G',
+    devinSession: {
+      auto: true,
+      pinIdentity: true,
+      orgId: 'org_69IXJFLrljx8zSAw',
+      userId: 'email|69efcc3741b62dd9be352f7c',
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Harvey "Add seats" page linked above. Add Seats posts to POST /api/oncall/licenses/provision, so that endpoint is the backend of this incident; seat provisioning gets slower with every request.',
+        'Reproduce only locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Do not submit the live page, and give testing agents the same restriction.',
+        'Keep seat limits and provisioning results unchanged; do not hide the issue by caching responses or skipping work. Add a regression test, post findings and the PR link in this alert thread, and do not merge or deploy.',
+      ].join('\n'),
+    },
     page: {
       file: 'e63edc26.html',
       title: 'Harvey | AI software for legal and professional services',
