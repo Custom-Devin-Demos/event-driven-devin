@@ -104,7 +104,6 @@ function details(flag) {
     kind: flag.kind,
     environments: flag.environments,
     history: flag.history,
-    rollbackAvailable: Object.fromEntries(ENVIRONMENTS.map((env) => [env, Boolean(flag.environments[env].previous)])),
   };
 }
 
@@ -143,7 +142,7 @@ const TOOLS = [
   },
   {
     name: 'get_flag',
-    description: 'Get one feature flag with its per-environment state, change history and whether a rollback is available.',
+    description: 'Get one feature flag with its per-environment state (current and previous) and change history.',
     inputSchema: {
       type: 'object',
       properties: { flagKey: { type: 'string', description: `Flag key such as ${LANE_SCHEMA_FLAG}` } },
@@ -204,29 +203,6 @@ const TOOLS = [
       return applyChange(flag, environment, { enabled: false, rolloutPercent: 0 }, 'devin (approved by on-call)', reason, now);
     },
   },
-  {
-    name: 'rollback_flag',
-    description: 'Roll a feature flag back to its previous state in an environment (the state before its last change). Changes production traffic immediately.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        flagKey: { type: 'string' },
-        environment: { type: 'string', enum: ENVIRONMENTS, default: 'prod' },
-        reason: { type: 'string', description: 'Why the flag is rolled back (incident reference, ticket, approver)' },
-      },
-      required: ['flagKey', 'reason'],
-      additionalProperties: false,
-    },
-    readOnly: false,
-    handler: ({ flagKey, environment = 'prod', reason }, now) => {
-      const flag = findFlag(flagKey);
-      if (!flag) return unknownFlag(flagKey);
-      if (!ENVIRONMENTS.includes(environment)) return unknownEnvironment(environment);
-      const { previous } = flag.environments[environment];
-      if (!previous) return { error: `Flag ${flagKey} has no previous state in ${environment} to roll back to.` };
-      return applyChange(flag, environment, { ...previous }, 'devin (approved by on-call)', reason, now);
-    },
-  },
 ];
 
 const TOOLS_BY_NAME = new Map(TOOLS.map((tool) => [tool.name, tool]));
@@ -248,7 +224,7 @@ function handleMessage(message, now) {
       protocolVersion: SUPPORTED_PROTOCOL_VERSIONS.includes(requested) ? requested : SUPPORTED_PROTOCOL_VERSIONS[0],
       capabilities: { tools: { listChanged: false } },
       serverInfo: SERVER_INFO,
-      instructions: `Dell feature flag service for the Dell.com storefront (${STOREFRONT_SERVICE}). list_flags and get_flag are read-only; set_flag, disable_flag and rollback_flag change live traffic and need an approved reason.`,
+      instructions: `Dell feature flag service for the Dell.com storefront (${STOREFRONT_SERVICE}). list_flags and get_flag are read-only; set_flag and disable_flag change live traffic and need an approved reason.`,
     });
   }
   if (isNotification) return null;
