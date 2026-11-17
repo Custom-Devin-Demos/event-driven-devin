@@ -55,12 +55,14 @@ describe('Dell feature flag demo MCP', () => {
   test('read tools are annotated read-only and write tools are not', async () => {
     const body = await (await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list' })).json();
     const byName = Object.fromEntries(body.result.tools.map((tool) => [tool.name, tool]));
-    expect(Object.keys(byName)).toEqual(['list_flags', 'get_flag', 'set_flag', 'rollback_flag']);
+    expect(Object.keys(byName)).toEqual(['list_flags', 'get_flag', 'set_flag', 'disable_flag', 'rollback_flag']);
     expect(byName.list_flags.annotations.readOnlyHint).toBe(true);
     expect(byName.get_flag.annotations.readOnlyHint).toBe(true);
     expect(byName.set_flag.annotations.readOnlyHint).toBe(false);
+    expect(byName.disable_flag.annotations.readOnlyHint).toBe(false);
     expect(byName.rollback_flag.annotations.readOnlyHint).toBe(false);
     expect(byName.set_flag.inputSchema.required).toEqual(['flagKey', 'enabled', 'reason']);
+    expect(byName.disable_flag.inputSchema.required).toEqual(['flagKey', 'reason']);
     expect(byName.rollback_flag.inputSchema.required).toEqual(['flagKey', 'reason']);
     body.result.tools.forEach((tool) => expect(tool.description).not.toMatch(/stand-in|synthetic|fake/i));
   });
@@ -111,6 +113,30 @@ describe('Dell feature flag demo MCP', () => {
 
     const staging = await callTool(11, 'set_flag', { flagKey: LANE_SCHEMA_FLAG, enabled: false, environment: 'qa', reason: 'x' });
     expect(staging.isError).toBe(true);
+  });
+
+  test('disable_flag turns the lane-schema flag off, needs a reason, and is a no-op when already off', async () => {
+    const missing = await (await rpc({ jsonrpc: '2.0', id: 14, method: 'tools/call', params: { name: 'disable_flag', arguments: { flagKey: LANE_SCHEMA_FLAG } } })).json();
+    expect(missing.result.isError).toBe(true);
+    expect(missing.result.content[0].text).toMatch(/reason/);
+
+    const { isError, payload } = await callTool(15, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, reason: 'Sentry NODE-EXPRESS-EX: kill switch while the lane fix ships' });
+    expect(isError).toBe(false);
+    expect(payload.status).toBe('applied');
+    expect(payload.change.from).toEqual({ enabled: true, rolloutPercent: 100 });
+    expect(payload.change.to).toEqual({ enabled: false, rolloutPercent: 0 });
+    expect(payload.flag).toMatchObject({ key: LANE_SCHEMA_FLAG, environment: 'prod', enabled: false, rolloutPercent: 0 });
+
+    const again = await callTool(16, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, reason: 'repeat' });
+    expect(again.payload.status).toBe('unchanged');
+    const after = await callTool(17, 'get_flag', { flagKey: LANE_SCHEMA_FLAG });
+    expect(after.payload.history).toHaveLength(3);
+    expect(after.payload.environments.prod.enabled).toBe(false);
+
+    const unknown = await callTool(18, 'disable_flag', { flagKey: 'nope', reason: 'x' });
+    expect(unknown.isError).toBe(true);
+    const badEnv = await callTool(19, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, environment: 'qa', reason: 'x' });
+    expect(badEnv.isError).toBe(true);
   });
 
   test('flag state is in-process only: reset restores the seeded state', async () => {

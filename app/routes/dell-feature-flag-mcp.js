@@ -181,6 +181,30 @@ const TOOLS = [
     },
   },
   {
+    name: 'disable_flag',
+    description: 'Turn a feature flag off in an environment (kill switch). Changes production traffic immediately; record a reason.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        flagKey: { type: 'string' },
+        environment: { type: 'string', enum: ENVIRONMENTS, default: 'prod' },
+        reason: { type: 'string', description: 'Why the flag is being disabled (incident reference, ticket, approver)' },
+      },
+      required: ['flagKey', 'reason'],
+      additionalProperties: false,
+    },
+    readOnly: false,
+    handler: ({ flagKey, environment = 'prod', reason }, now) => {
+      const flag = findFlag(flagKey);
+      if (!flag) return unknownFlag(flagKey);
+      if (!ENVIRONMENTS.includes(environment)) return unknownEnvironment(environment);
+      if (!flag.environments[environment].enabled) {
+        return { status: 'unchanged', flag: summarize(flag, environment), note: `${flagKey} is already disabled in ${environment}.` };
+      }
+      return applyChange(flag, environment, { enabled: false, rolloutPercent: 0 }, 'devin (approved by on-call)', reason, now);
+    },
+  },
+  {
     name: 'rollback_flag',
     description: 'Roll a feature flag back to its previous state in an environment (the state before its last change). Changes production traffic immediately.',
     inputSchema: {
@@ -224,7 +248,7 @@ function handleMessage(message, now) {
       protocolVersion: SUPPORTED_PROTOCOL_VERSIONS.includes(requested) ? requested : SUPPORTED_PROTOCOL_VERSIONS[0],
       capabilities: { tools: { listChanged: false } },
       serverInfo: SERVER_INFO,
-      instructions: `Dell feature flag service for the Dell.com storefront (${STOREFRONT_SERVICE}). list_flags and get_flag are read-only; set_flag and rollback_flag change live traffic and need an approved reason.`,
+      instructions: `Dell feature flag service for the Dell.com storefront (${STOREFRONT_SERVICE}). list_flags and get_flag are read-only; set_flag, disable_flag and rollback_flag change live traffic and need an approved reason.`,
     });
   }
   if (isNotification) return null;
