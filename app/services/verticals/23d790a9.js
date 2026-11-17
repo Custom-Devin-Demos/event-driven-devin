@@ -383,6 +383,8 @@ function fallbackAssessment(t) {
   return {
     implication: `New ${t.companies.join(', ') || 'PIF'} AI development reported by ${t.source}. AI assessment unavailable — review before use.`,
     action: `Review with the ${eco.name} team.`,
+    implicationAr: `تطور جديد في الذكاء الاصطناعي يخص ${t.companies.join('، ') || 'صندوق الاستثمارات العامة'} نشره ${t.source}. التقييم بالذكاء الاصطناعي غير متاح — يُراجع قبل الاستخدام.`,
+    actionAr: `مراجعة التطور مع فريق ${eco.nameAr}.`,
     impact: null,
     ai: false,
   };
