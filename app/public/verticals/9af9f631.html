@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es-PA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat Estrella | Banco General Panamá</title>
+  <link rel="icon" href="/verticals/assets/bcf7af3a/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #004C97;
+      --ink: #292E38;
+      --surface: #FFFFFF;
+      --chrome-bg: #004C97;
+      --chrome-text: #FFFFFF;
+      --blue2: #0055C2;
+      --sky: #00A3E1;
+      --muted: #6F7583;
+      --line: #E0E4EC;
+      --paper: #F7F9FC;
+      --danger: #B3261E;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: "Open Sans", Arial, sans-serif; color: var(--ink); background: var(--paper); font-size: 15px; line-height: 1.45; }
+    button { font: inherit; }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    header.site { background: #fff; border-bottom: 1px solid var(--line); }
+    header.site .top { display: flex; align-items: center; gap: 18px; min-height: 72px; }
+    .brand img { height: 36px; display: block; }
+    .top .links { margin-left: auto; display: flex; gap: 18px; font-size: 14px; font-weight: 600; }
+    .top .links a { color: var(--accent); text-decoration: none; }
+    .top .bel { background: var(--accent); color: #fff !important; border-radius: 8px; padding: 10px 16px; }
+    nav.tabs { background: var(--chrome-bg); }
+    nav.tabs .container { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+    nav.tabs a { flex: 0 0 auto; color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 13px 14px; border-bottom: 3px solid transparent; opacity: .88; }
+    nav.tabs a.on { border-color: var(--sky); opacity: 1; }
+    .hero { background: linear-gradient(120deg, #004C97 0%, #0055C2 55%, #00A3E1 100%); color: #fff; }
+    .hero .container { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: center; padding-top: 44px; padding-bottom: 44px; }
+    .hero h1 { font-size: 34px; line-height: 1.15; margin: 0 0 10px; }
+    .hero p { margin: 0 0 20px; font-size: 16px; opacity: .93; max-width: 520px; }
+    .hero .star { justify-self: center; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center; }
+    .hero .star img { width: 96px; height: 96px; filter: brightness(0) invert(1); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 26px; border-radius: 8px; border: 0; background: #fff; color: var(--accent); font-weight: 700; font-size: 15px; cursor: pointer; }
+    main { padding: 26px 0 40px; }
+    h2 { color: var(--accent); font-size: 20px; margin: 0 0 14px; }
+    .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .quick a { background: #fff; border-radius: 12px; padding: 16px; text-decoration: none; font-size: 13px; color: var(--muted); box-shadow: 0 2px 10px rgba(0, 76, 151, .07); }
+    .quick b { display: block; color: var(--accent); font-size: 15px; margin-bottom: 2px; }
+    footer.site { background: var(--accent); color: #DCE8F5; margin-top: 28px; padding: 26px 0 22px; font-size: 13px; }
+    .foot-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .foot-top img { height: 32px; }
+    .foot-legal { margin: 14px 0 0; opacity: .85; }
+    .bot-launcher { position: fixed; right: 22px; bottom: 22px; z-index: 900; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 20px 0 10px; border-radius: 30px; border: 0; background: var(--accent); color: #fff; font-weight: 700; box-shadow: 0 6px 20px rgba(0,76,151,.35); cursor: pointer; }
+    .bot-launcher img { width: 36px; height: 36px; border-radius: 50%; background: #fff; padding: 6px; }
+    .bot-launcher[aria-expanded="true"] { display: none; }
+    .chat { position: fixed; right: 22px; bottom: 22px; z-index: 950; width: 380px; max-width: calc(100vw - 24px); height: 580px; max-height: calc(100vh - 44px); background: #fff; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.22); display: flex; flex-direction: column; overflow: hidden; }
+    .chat[hidden] { display: none; }
+    .chat-head { background: var(--accent); color: #fff; display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+    .chat-head img { width: 36px; height: 36px; border-radius: 50%; background: #fff; padding: 6px; }
+    .chat-head b { display: block; font-size: 16px; }
+    .chat-head small { opacity: .85; font-size: 12px; }
+    .chat-head button { margin-left: auto; background: none; border: 0; color: #fff; font-size: 24px; width: 44px; height: 44px; cursor: pointer; }
+    .chat-log { flex: 1; overflow-y: auto; background: var(--paper); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .msg { max-width: 84%; padding: 10px 13px; border-radius: 14px; font-size: 15px; white-space: pre-wrap; word-wrap: break-word; }
+    .msg.bot { align-self: flex-start; background: #fff; border-top-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-top-right-radius: 4px; }
+    .msg.error { align-self: flex-start; background: #FDECEC; color: var(--danger); border: 1px solid #F5C2C2; border-top-left-radius: 4px; }
+    .msg.error .retry { display: inline-block; margin-top: 6px; background: none; border: 0; padding: 10px 4px; color: var(--accent); font-weight: 700; text-decoration: underline; cursor: pointer; min-height: 44px; min-width: 44px; }
+    .msg time { display: block; font-size: 11px; opacity: .6; margin-top: 4px; }
+    .typing { align-self: flex-start; background: #fff; border-radius: 14px; padding: 12px 14px; display: flex; gap: 5px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .typing span { width: 7px; height: 7px; border-radius: 50%; background: #9aa6c3; animation: blink 1.2s infinite ease-in-out; }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 10px; background: var(--paper); }
+    .chips[hidden] { display: none; }
+    .chips button { border: 1px solid var(--accent); background: #fff; color: var(--accent); border-radius: 18px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 36px; }
+    .chat form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+    .chat textarea { flex: 1; resize: none; border: 1px solid #C9D1DD; border-radius: 10px; padding: 10px 12px; font: inherit; min-height: 44px; max-height: 110px; }
+    .chat form button { min-width: 72px; min-height: 44px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+    .chat form button:disabled { opacity: .6; cursor: progress; }
+    @media (max-width: 900px) {
+      .hero .container { grid-template-columns: 1fr; }
+      .hero .star { display: none; }
+      .quick { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .container { padding: 0 16px; }
+      .top .links a:not(.bel) { display: none; }
+      .brand img { height: 28px; }
+      .hero h1 { font-size: 27px; }
+      .chat { left: 12px; right: 12px; bottom: 12px; width: auto; height: calc(100vh - 24px); }
+      .bot-launcher { right: 14px; bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="container top">
+      <a class="brand" href="#" aria-label="Banco General"><img src="/verticals/assets/bcf7af3a/logo-bg-landscape.png" alt="Banco General"></a>
+      <div class="links"><a href="#">Sucursales</a><a href="#">Contáctanos</a><a href="#" class="bel">Banca en Línea</a></div>
+    </div>
+  </header>
+  <nav class="tabs" aria-label="Menú principal"><div class="container">
+    <a href="#" class="on">Personas</a><a href="#">Empresas</a><a href="#">Banca Privada</a><a href="#">Yappy</a><a href="#">Tarjetas</a><a href="#">Préstamos</a>
+  </div></nav>
+  <section class="hero">
+    <div class="container">
+      <div>
+        <h1>Chatea con Estrella, tu asistente virtual</h1>
+        <p>Consulta tus saldos, bloquea tu tarjeta, conoce los requisitos de un préstamo o encuentra la sucursal más cercana. Disponible 24/7.</p>
+        <button type="button" class="btn" data-open-chat>Chatear con Estrella</button>
+      </div>
+      <div class="star" aria-hidden="true"><img src="/verticals/assets/bcf7af3a/estrella.svg" alt=""></div>
+    </div>
+  </section>
+  <main>
+    <div class="container">
+      <h2>¿Qué necesitas hoy?</h2>
+      <div class="quick">
+        <a href="#"><b>Yappy</b>Envía dinero al instante</a>
+        <a href="#"><b>Tarjetas de crédito</b>Visa, Mastercard y más</a>
+        <a href="#"><b>Préstamo hipotecario</b>Haz realidad tu casa propia</a>
+        <a href="#"><b>Cuentas de ahorro</b>Ahorra desde $0.00</a>
+      </div>
+    </div>
+  </main>
+  <footer class="site">
+    <div class="container">
+      <div class="foot-top"><img src="/verticals/assets/bcf7af3a/logo-bg-white.png" alt="Banco General"><span>Atención al Cliente 800-5000 / 300-5000 · Ciudad de Panamá</span></div>
+      <p class="foot-legal">Experiencia de demostración. Cliente, mensajes y datos son ficticios.</p>
+    </div>
+  </footer>
+
+  <button type="button" class="bot-launcher" id="botLauncher" aria-controls="chat" aria-expanded="false"><img src="/verticals/assets/bcf7af3a/estrella.svg" alt="">Chatea con Estrella</button>
+  <section class="chat" id="chat" hidden role="dialog" aria-modal="false" aria-labelledby="chatTitle">
+    <div class="chat-head">
+      <img src="/verticals/assets/bcf7af3a/estrella.svg" alt="">
+      <div><b id="chatTitle">Estrella</b><small>Asistente virtual de Banco General</small></div>
+      <button type="button" id="chatClose" aria-label="Cerrar chat">&times;</button>
+    </div>
+    <div class="chat-log" id="chatLog" aria-live="polite"></div>
+    <div class="chips" id="chips"><button type="button">¿Cuál es mi saldo?</button><button type="button">Bloquear mi tarjeta</button><button type="button">Requisitos de préstamo</button></div>
+    <form id="claimForm" novalidate>
+      <select id="policyId" hidden aria-hidden="true" tabindex="-1"><option value="POL-5001" selected>POL-5001</option></select>
+      <select id="claimType" hidden aria-hidden="true" tabindex="-1"><option value="collision" selected>collision</option></select>
+      <input type="number" id="amount" value="1" hidden aria-hidden="true" tabindex="-1">
+      <label for="chatInput" hidden>Escribe tu mensaje</label>
+      <textarea id="chatInput" rows="1" placeholder="Escribe tu mensaje…"></textarea>
+      <button type="submit" id="submitBtn">Enviar</button>
+    </form>
+  </section>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const chat = document.getElementById('chat');
+    const launcher = document.getElementById('botLauncher');
+    const log = document.getElementById('chatLog');
+    const form = document.getElementById('claimForm');
+    const input = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('submitBtn');
+    const chips = document.getElementById('chips');
+    const clock = new Intl.DateTimeFormat('es-PA', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Panama' });
+    let busy = false;
+    let greeted = false;
+
+    function addMessage(kind, text) {
+      const el = document.createElement('div');
+      el.className = 'msg ' + kind;
+      el.textContent = text;
+      const time = document.createElement('time');
+      time.textContent = clock.format(new Date());
+      el.appendChild(time);
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
+    function openChat() {
+      chat.hidden = false;
+      launcher.setAttribute('aria-expanded', 'true');
+      if (!greeted) { greeted = true; addMessage('bot', '¡Hola! Soy Estrella, tu asistente virtual de Banco General. ¿En qué te puedo ayudar hoy?'); }
+      input.focus();
+    }
+    function closeChat() {
+      chat.hidden = true;
+      launcher.setAttribute('aria-expanded', 'false');
+      launcher.focus();
+    }
+    launcher.addEventListener('click', openChat);
+    document.querySelectorAll('[data-open-chat]').forEach((b) => b.addEventListener('click', openChat));
+    document.getElementById('chatClose').addEventListener('click', closeChat);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !chat.hidden) closeChat(); });
+
+    function autoGrow() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 110) + 'px'; }
+    input.addEventListener('input', autoGrow);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); }
+    });
+    chips.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b || busy) return;
+      input.value = b.textContent;
+      form.requestSubmit();
+    });
+
+    function cannedReply(text) {
+      const s = text.toLowerCase();
+      if (/saldo|balance/.test(s)) return 'Tu Cuenta de Ahorros terminada en 81-7 tiene un saldo disponible de $8,420.55.';
+      if (/tarjeta|bloque|card/.test(s)) return 'Listo. Bloqueé temporalmente tu tarjeta Visa terminada en 4417. Puedes desbloquearla desde Banca en Línea cuando quieras.';
+      if (/préstamo|prestamo|hipotec/.test(s)) return 'Para un préstamo hipotecario necesitas cédula, carta de trabajo, ficha del Seguro Social y los últimos dos talonarios. ¿Quieres que un ejecutivo te contacte?';
+      return 'Con gusto te ayudo. Puedo consultar saldos, bloquear tarjetas, darte requisitos de productos o ubicar sucursales.';
+    }
+
+    async function sendMessage(text) {
+      busy = true;
+      sendBtn.disabled = true;
+      input.disabled = true;
+      chips.hidden = true;
+      const typing = document.createElement('div');
+      typing.className = 'typing';
+      typing.setAttribute('aria-label', 'Estrella está escribiendo');
+      typing.innerHTML = '<span></span><span></span><span></span>';
+      log.appendChild(typing);
+      log.scrollTop = log.scrollHeight;
+      try {
+        const response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: text,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) throw new Error('chat failed');
+        typing.remove();
+        addMessage('bot', cannedReply(text));
+      } catch (_error) {
+        typing.remove();
+        const err = addMessage('error', 'Lo sentimos, no pudimos procesar tu mensaje. Intenta de nuevo en unos minutos o llama al 800-5000.');
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'retry';
+        retry.textContent = 'Reintentar';
+        retry.addEventListener('click', () => { if (!busy) { retry.remove(); sendMessage(text); } });
+        err.insertBefore(retry, err.querySelector('time'));
+      } finally {
+        busy = false;
+        sendBtn.disabled = false;
+        input.disabled = false;
+        input.focus();
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text || busy) return;
+      addMessage('user', text);
+      input.value = '';
+      autoGrow();
+      sendMessage(text);
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
