@@ -98,6 +98,7 @@ describe('Sentry customer identity mapping', () => {
     'reportLatencyBreach(app/services/verticals/5d0fd49b)',
     'reportLatencyBreach(app/services/verticals/53cfb2d5)',
     'reportLatencyBreach(app/services/verticals/f3e617ec)',
+    'reportLatencyBreach(app/services/verticals/4ea2d7f6)',
     'loadPortfolioSummary(app/services/verticals/0166f378)',
   ])('recognizes a tagless latency-breach issue webhook by culprit %p', (culprit) => {
     expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
@@ -131,6 +132,7 @@ describe('Sentry customer identity mapping', () => {
     'LatencyBudgetExceeded: POST /api/98cd161c/source-order took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/85bedc75/ar-assessment took 7030ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/53cfb2d5/coverage-check took 7040ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/4ea2d7f6/surveillance-sweep took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/b62bfb77/rate-check took 7050ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/a6fe3aeb/compression-preview took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/5d0fd49b/sweep-quote took 7020ms (budget 3000ms)',
