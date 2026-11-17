@@ -52,10 +52,10 @@ const REQUEST = {
 const submit = (overrides) => post('/api/oncall/aogrequest/requests', { ...REQUEST, ...overrides });
 
 describe('82f029ca Boeing Global Services AOG request on-call skin', () => {
-  test('is a native, unlisted aogrequest skin alerting to Slack only on a failed submit', () => {
+  test('is a native, unlisted aogrequest skin alerting to Teams only on a failed submit', () => {
     const skin = getOncallSkin('82f029ca');
     expect(skin).toMatchObject({
-      company: 'Boeing Global Services', vertical: 'aogrequest', oncallOnly: true, alertDestination: 'slack', paths: ['/boeing-aog', '/aog-request'],
+      company: 'Boeing Global Services', vertical: 'aogrequest', oncallOnly: true, teamsAlerts: true, alertDestination: 'teams', paths: ['/boeing-aog', '/aog-request'],
       page: { file: '82f029ca.html', title: TITLE },
     });
     expect(skin.bugPortal).toBeUndefined();
