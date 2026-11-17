@@ -167,6 +167,32 @@ describe('PIF Ecosystem Outlook PoC', () => {
     expect(live[0].action).toMatch(/Tourism/);
   });
 
+  test('live scan keeps distinct same-year stories and never re-adds stories it has seen', async () => {
+    const rss = (items) => `<rss><channel>${items.map(([title, date]) => `<item><title>${title} - Arab News</title><link>https://news.example/${encodeURIComponent(title)}</link><pubDate>${date}</pubDate><source url="https://www.arabnews.com">Arab News</source></item>`).join('')}</channel></rss>`;
+    const d = 'Mon, 16 Nov 2026 08:00:00 GMT';
+    const year = await pif.scanTrends({ force: true, fetcher: async () => pif.parseRss(rss([
+      ['HUMAIN launches 2026 AI graduate training programme', d],
+      ['HUMAIN secures chip export approval for 2026', d],
+    ])) });
+    expect(year.added).toBe(2);
+    const cos = ['ACWA Power', 'Riyadh Air', 'Qiddiya', 'ROSHN', 'Red Sea Global', 'NEOM', 'Alat', 'Ceer', 'Lifera', 'Bahri'];
+    const verbs = ['pilots', 'unveils', 'tests', 'rolls out', 'trials', 'debuts', 'adopts', 'licenses', 'acquires', 'builds'];
+    const nouns = ['grid forecasting', 'cabin assistants', 'ride analytics', 'housing permits', 'reef monitoring', 'port robotics', 'factory vision', 'battery diagnostics', 'blood screening', 'tanker routing'];
+    const feed = pif.parseRss(rss(cos.map((c, i) => [`${c} ${verbs[i]} ${nouns[i]} AI`, d])));
+    const added = [];
+    for (let i = 0; i < 5; i += 1) added.push((await pif.scanTrends({ force: true, fetcher: async () => feed })).added);
+    expect(added.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(cos.length);
+    expect(added[added.length - 1]).toBe(0);
+    expect(added[added.length - 2]).toBe(0);
+  });
+
+  test('unknown ecosystem filters fall back to all ecosystems', async () => {
+    expect(() => pif.trendsStats('unknown')).not.toThrow();
+    await expect(pif.trendsSummary('unknown')).resolves.toHaveProperty('takeaways');
+    const res = await call('GET', '/api/23d790a9/trends?ecosystem=unknown', { cookie: (await unlock()).cookie });
+    expect(res.status).toBe(200);
+  });
+
   test('feature requests are capped per day', async () => {
     process.env.PIF_FEATURE_REQUESTS_PER_DAY = '1';
     const { cookie } = await unlock();
