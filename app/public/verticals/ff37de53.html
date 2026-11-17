@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transferencias | Banco BICE</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1976D2;
+      --ink: #333840;
+      --surface: #FFFFFF;
+      --chrome-bg: #125BB4;
+      --chrome-text: #FFFFFF;
+      --navy: #0C4497;
+      --deep: #042164;
+      --muted: #58606E;
+      --soft: #F5F7FA;
+      --line: #DDE3ED;
+      --sky: #D0EFFC;
+      --pill: #EBEFF5;
+      --ok: #198754;
+      --danger: #DC3545;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--soft); color: var(--ink); font: 14px/1.5 'Poppins', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid #86B7FE; outline-offset: 2px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .ico { width: 16px; height: 16px; flex: none; }
+
+    /* Top bar (segments + filiales) */
+    .topbar { background: linear-gradient(90deg, #1976D2 0%, #125BB4 30%); color: #FFFFFF; }
+    .topbar .container { display: flex; align-items: stretch; height: 40px; }
+    .topbar a { display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .topbar a.active { background: #FFFFFF; color: var(--accent); }
+    .topbar .brands b { font-weight: 700; letter-spacing: .5px; }
+    .topbar .brands span { font-weight: 300; letter-spacing: .5px; }
+    .topbar .right { margin-left: auto; display: flex; }
+
+    /* Header */
+    .header { background: #FFFFFF; border-bottom: 1px solid var(--line); }
+    .header .container { display: flex; align-items: center; height: 64px; gap: 16px; }
+    .logo img { display: block; width: 228px; height: 25px; }
+    .logo .logo-text { display: none; font: 400 24px/1 'Poppins', sans-serif; color: #326295; letter-spacing: 1px; }
+    .logo .logo-text b { font-weight: 700; }
+    .hdr-cta { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 24px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 2px solid transparent; white-space: nowrap; }
+    .btn.outline { border-color: var(--navy); color: var(--navy); background: #FFFFFF; }
+    .btn.solid { background: var(--accent); color: #FFFFFF; }
+    .user { display: inline-flex; align-items: center; gap: 10px; padding-left: 20px; margin-left: 4px; border-left: 1px solid var(--line); height: 64px; color: var(--deep); font-weight: 500; }
+    .avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #FDE3C8; color: #9A5B1F; font-weight: 600; font-size: 13px; }
+    .subnav { background: #FFFFFF; border-bottom: 1px solid var(--line); }
+    .subnav .container { display: flex; align-items: center; gap: 4px; height: 48px; overflow-x: auto; }
+    .subnav a { display: inline-flex; align-items: center; gap: 4px; padding: 0 14px; height: 48px; font-size: 14px; color: var(--ink); white-space: nowrap; border-bottom: 3px solid transparent; }
+    .subnav a.active { color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); }
+    .subnav .benef { margin-left: 8px; height: 30px; padding: 0 12px; border-radius: 9999px; background: var(--sky); color: var(--navy); font-weight: 600; border: 0; }
+
+    /* Notice */
+    .notice { background: var(--sky); }
+    .notice .container { display: flex; align-items: center; gap: 14px; padding-top: 12px; padding-bottom: 12px; color: var(--ink); font-size: 14px; }
+    .notice svg { flex: none; color: var(--navy); }
+
+    /* Page */
+    main { padding: 28px 0 64px; }
+    .crumbs { display: flex; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .crumbs a { color: var(--accent); }
+    h1 { margin: 0 0 4px; font-size: 32px; line-height: 1.25; font-weight: 600; color: var(--muted); }
+    .lead { margin: 0 0 24px; font-size: 16px; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+    .card { background: #FFFFFF; border-radius: 12px; box-shadow: 0 2px 12px rgba(4, 33, 100, .08); padding: 28px 32px 32px; }
+    .card h2 { margin: 0 0 4px; font-size: 20px; font-weight: 600; color: var(--deep); }
+    .card-intro { margin: 0 0 20px; color: var(--muted); font-size: 13px; }
+    .steps { display: flex; list-style: none; padding: 0; margin: 0 0 28px; }
+    .steps li { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #8A93A3; }
+    .steps li b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--pill); color: var(--muted); font-size: 12px; font-weight: 600; }
+    .steps li + li::before { content: ''; width: 48px; height: 2px; background: var(--line); margin: 0 12px; }
+    .steps li.on { color: var(--deep); }
+    .steps li.on b { background: var(--accent); color: #FFFFFF; }
+    .form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 24px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field label { font-size: 12px; font-weight: 500; color: var(--accent); }
+    .field select, .field input { width: 100%; min-height: 48px; border: 0; border-bottom: 1px solid #ADB5BD; border-radius: 0; background: transparent; padding: 0 2px; color: var(--ink); font-size: 15px; }
+    .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231976D2' stroke-width='2.4'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; padding-right: 28px; }
+    .field select:focus, .field input:focus { outline: 0; border-bottom: 2px solid var(--accent); }
+    .field small { font-size: 12px; color: var(--muted); }
+    .money { position: relative; }
+    .money span { position: absolute; left: 2px; top: 50%; transform: translateY(-50%); font-weight: 600; }
+    .money input { padding-left: 16px; font-weight: 600; }
+    .dest { display: flex; gap: 12px; align-items: center; margin-top: 2px; padding: 12px 14px; border-radius: 8px; background: var(--soft); font-size: 12px; color: var(--muted); }
+    .dest > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+    .dest .ini { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #D7E8FA; color: var(--navy); font-weight: 600; flex: none; }
+    .summary { margin: 24px 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .summary .amt { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+    .summary .amt small { display: block; font-size: 12px; color: var(--muted); }
+    .summary .amt strong { font-size: 22px; font-weight: 600; color: var(--deep); }
+    .summary dl { margin: 0; padding: 6px 18px 10px; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 13px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+    .submit-btn { min-height: 48px; min-width: 200px; padding: 0 32px; border: 0; border-radius: 9999px; background: var(--accent); color: #FFFFFF; font-weight: 600; font-size: 15px; }
+    .submit-btn:hover { background: #125BB4; }
+    .submit-btn:disabled { opacity: .75; cursor: progress; }
+    .status { margin: 0; font-size: 13px; color: var(--muted); }
+    .pass-note { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+    .pass-note img { width: 18px; height: 18px; }
+    .result-box { display: none; margin-top: 20px; padding: 16px 18px; border-radius: 10px; font-size: 14px; white-space: pre-line; }
+    .result-box.success { display: block; background: #D1E7DD; color: #0F5132; border: 1px solid #BADBCC; }
+    .result-box.notice { display: block; background: #F8D7DA; color: #842029; border: 1px solid #F5C2C7; }
+    .reset-link { display: none; margin-top: 12px; background: none; border: 0; padding: 0; min-height: 44px; color: var(--accent); font-weight: 600; font-size: 14px; text-decoration: underline; }
+    .reset-link.on { display: inline-flex; align-items: center; }
+
+    /* Side */
+    .side { display: flex; flex-direction: column; gap: 20px; }
+    .acct { background: #FFFFFF; border-radius: 12px; box-shadow: 0 2px 12px rgba(4, 33, 100, .08); padding: 20px 22px; position: relative; overflow: hidden; }
+    .acct::before { content: ''; position: absolute; left: -6px; top: 58px; width: 22px; height: 34px; background: repeating-linear-gradient(160deg, #3DDBD9 0 5px, transparent 5px 9px); }
+    .acct h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--ink); }
+    .acct .bal { margin: 10px 0 0; font-size: 28px; font-weight: 700; color: var(--ink); letter-spacing: -.5px; }
+    .acct .bal small { font-size: 18px; font-weight: 600; margin-right: 4px; }
+    .acct .od { font-size: 12px; color: var(--muted); }
+    .moves { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); font-size: 12px; }
+    .moves li { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+    .moves .dot { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #F2A93B; color: #F2A93B; font-size: 11px; font-weight: 700; flex: none; }
+    .moves .dot.in { border-color: #5BC69B; color: #5BC69B; }
+    .moves span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .moves b { font-weight: 600; }
+    .tile { border-radius: 12px; background: #FFFFFF; box-shadow: 0 2px 12px rgba(4, 33, 100, .08); padding: 20px 22px; }
+    .tile.blue { background: var(--accent); color: #FFFFFF; }
+    .tile h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+    .tile p { margin: 0 0 12px; font-size: 13px; }
+    .tile ul { margin: 0 0 12px; padding-left: 18px; font-size: 13px; color: var(--muted); }
+    .tile .go { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; text-decoration: underline; }
+    .tile .pass-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 18px; }
+    .tile .pass-logo b { font-weight: 700; letter-spacing: .5px; }
+
+    /* BICE Pass sheet */
+    .sheet-bg { position: fixed; inset: 0; background: rgba(4, 33, 100, .45); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+    .sheet-bg.on { display: flex; }
+    .sheet { width: 380px; max-width: 100%; background: #F5F7FA; border-radius: 24px; padding: 20px 22px 18px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+    .sheet .bar { text-align: center; color: var(--accent); font-size: 17px; margin-bottom: 14px; }
+    .sheet .bar b { font-weight: 700; letter-spacing: .5px; }
+    .sheet h3 { margin: 0; font-size: 18px; font-weight: 600; color: var(--ink); }
+    .sheet p { margin: 4px 0 14px; font-size: 12px; color: var(--muted); }
+    .sheet .box { background: #FFFFFF; border-radius: 10px; padding: 12px 14px; }
+    .sheet .box .m small { font-size: 11px; color: var(--muted); display: block; }
+    .sheet .box .m strong { font-size: 16px; }
+    .sheet .box dl { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; font-size: 12px; }
+    .sheet .box dt { color: var(--muted); }
+    .sheet .box dd { margin: 0; text-align: right; font-weight: 600; }
+    .sheet .fine { text-align: center; font-size: 11px; color: var(--muted); margin: 12px 0; }
+    .sheet .auth { width: 100%; min-height: 46px; border: 0; border-radius: 9999px; background: var(--accent); color: #FFFFFF; font-weight: 600; }
+    .sheet .cancel { width: 100%; min-height: 44px; margin-top: 4px; border: 0; background: none; color: var(--accent); font-weight: 600; }
+
+    /* Footer */
+    footer { background: #FFFFFF; border-top: 1px solid var(--line); }
+    .foot-top { display: grid; grid-template-columns: 200px repeat(3, minmax(0, 1fr)) 1.2fr; gap: 24px; padding: 40px 0 28px; }
+    .foot-top h4 { margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--deep); }
+    .foot-top a { display: block; padding: 3px 0; font-size: 13px; color: var(--muted); }
+    .foot-top a:hover { color: var(--accent); }
+    .contact a { display: flex; justify-content: space-between; gap: 12px; }
+    .contact a b { color: var(--accent); font-weight: 600; }
+    .social { display: flex; gap: 12px; margin-top: 10px; }
+    .social a { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--pill); color: var(--navy); padding: 0; }
+    .foot-legal { border-top: 1px solid var(--line); padding: 18px 0 28px; font-size: 11px; color: var(--muted); }
+    .foot-legal p { margin: 0 0 6px; }
+
+    @media (max-width: 1080px) {
+      .topbar .brands, .topbar .hide-md { display: none; }
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .foot-top { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      .container { padding: 0 16px; }
+      .topbar { display: none; }
+      .logo img { width: 170px; height: 19px; }
+      .hdr-cta .btn, .user span.name { display: none; }
+      .user { border-left: 0; padding-left: 0; }
+      .notice { font-size: 13px; }
+      h1 { font-size: 24px; }
+      .card { padding: 22px 18px 26px; }
+      .form-grid, .side, .foot-top { grid-template-columns: minmax(0, 1fr); }
+      .steps li { font-size: 12px; gap: 6px; }
+      .steps li + li::before { width: 10px; margin: 0 6px; }
+      .submit-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="topbar" aria-label="Segmentos">
+      <div class="container">
+        <a class="active" href="#top" aria-current="page">Personas</a>
+        <a href="https://banco.bice.cl/empresas" target="_blank" rel="noopener noreferrer">Empresas</a>
+        <a class="hide-md" href="https://banco.bice.cl/banca-privada" target="_blank" rel="noopener noreferrer">Banca Privada</a>
+        <a class="hide-md" href="https://banco.bice.cl/investor-relations" target="_blank" rel="noopener noreferrer">Investor Relations</a>
+        <a class="brands" href="https://www.biceinversiones.cl" target="_blank" rel="noopener noreferrer"><b>&#8801;BICE</b><span>INVERSIONES</span></a>
+        <a class="brands" href="https://www.bicevida.cl" target="_blank" rel="noopener noreferrer"><b>&#8801;BICE</b><span>VIDA</span></a>
+        <div class="right">
+          <a class="hide-md" href="https://banco.bice.cl/personas/sucursales" target="_blank" rel="noopener noreferrer"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Sucursales</a>
+          <a href="https://banco.bice.cl/personas/ayuda" target="_blank" rel="noopener noreferrer"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14M12 17h.01"/></svg>Centro de ayuda</a>
+        </div>
+      </div>
+    </nav>
+    <div class="header">
+      <div class="container">
+        <a class="logo" href="#top" aria-label="Banco BICE - Inicio"><img src="https://bice.modyocdn.com/uploads/d70af71e-08c4-4931-bd15-44afe0db6bd5/original/banco_bice_logo_color.svg" alt="Banco BICE" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="logo-text">BANCO <b>&#8801; BICE</b></span></a>
+        <div class="hdr-cta">
+          <a class="btn outline" href="#transferir">Mis productos</a>
+          <a class="btn solid" href="#transferir">Transferir</a>
+          <span class="user"><span class="avatar" aria-hidden="true">JA</span><span class="name">Javiera Alfaro</span></span>
+        </div>
+      </div>
+    </div>
+    <nav class="subnav" aria-label="Banca en línea">
+      <div class="container">
+        <a href="#top">Inicio</a>
+        <a href="#top">Cuentas</a>
+        <a class="active" href="#transferir" aria-current="page">Transferencias</a>
+        <a href="#top">Pagos</a>
+        <a href="#top">Tarjetas</a>
+        <a href="#top">Inversiones</a>
+        <a href="#top">Créditos</a>
+        <a class="benef" href="https://banco.bice.cl/personas/beneficios" target="_blank" rel="noopener noreferrer">Beneficios BICE</a>
+      </div>
+    </nav>
+  </header>
+
+  <div class="notice" role="note">
+    <div class="container">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21l4-4 4 4M12 8v4M12 14.5v.01"/></svg>
+      <span><b>Recuerda:</b> BICE nunca te pedirá tus claves ni códigos de BICE Pass por teléfono, correo o WhatsApp. Autoriza solo operaciones que tú hayas iniciado.</span>
+    </div>
+  </div>
+
+  <main id="top">
+    <div class="container">
+      <nav class="crumbs" aria-label="Estás en"><a href="#top">Inicio</a><span aria-hidden="true">›</span><a href="#top">Transferencias</a><span aria-hidden="true">›</span><span>Transferir a terceros</span></nav>
+      <h1>Transferir a terceros</h1>
+      <p class="lead">Envía dinero a tus contactos en cualquier banco de Chile y autorízalo con BICE Pass.</p>
+
+      <section class="layout" id="transferir" aria-labelledby="transfer-heading">
+        <div class="card">
+          <h2 id="transfer-heading">Nueva transferencia</h2>
+          <p class="card-intro">Cuentas y contactos de ejemplo. No se mueve dinero desde esta página.</p>
+          <ol class="steps" aria-label="Pasos"><li class="on"><b>1</b>Datos</li><li id="stepReview"><b>2</b>Autorización</li><li id="stepDone"><b>3</b>Comprobante</li></ol>
+          <form id="transferForm">
+            <div class="form-grid">
+              <div class="field"><label for="fromAccount">Cuenta de origen</label><select id="fromAccount"><option value="ACCT-1001" data-balance="24590000">Cuenta corriente Nº 01-94760-5</option><option value="ACCT-1002" data-balance="3120450">Cuenta vista Nº 03-21877-2</option></select><small id="fromBalance">Saldo disponible: $24.590.000</small></div>
+              <div class="field"><label for="toAccount">Destinatario</label><select id="toAccount"><option value="ACCT-2001" data-rut="13.874.198-5" data-bank="Banco BICE" data-acct="0000000006617435" data-email="mnavarro@mail.com">Martín Navarro</option><option value="ACCT-2002" data-rut="16.402.551-K" data-bank="Banco de Chile" data-acct="00-210-48817-03" data-email="crojas@mail.com">Camila Rojas Muñoz</option><option value="ACCT-2003" data-rut="12.019.774-3" data-bank="Banco Santander" data-acct="0-000-71-55290-4" data-email="fgonzalez@mail.com">Felipe González Araya</option></select><div class="dest" id="toDetail"></div></div>
+              <div class="field"><label for="amount">Monto</label><div class="money"><span aria-hidden="true">$</span><input type="number" id="amount" min="1" step="1" value="100000" inputmode="numeric" required></div><small>Monto en pesos chilenos (CLP).</small></div>
+              <div class="field"><label for="description">Descripción (opcional)</label><input type="text" id="description" maxlength="40" value="Compra guitarra"></div>
+              <div class="field"><label for="accountTier">Plan de cuenta</label><select id="accountTier"><option value="standard">Plan Cuenta Corriente BICE</option><option value="premium">Banca Preferente</option><option value="basic">Cuenta Vista BICE</option></select><small>Según el plan asociado a tu cuenta.</small></div>
+            </div>
+            <div class="summary" aria-label="Resumen de la transferencia">
+              <div class="amt"><small>Monto a transferir</small><strong id="summaryAmount">—</strong></div>
+              <dl><dt>Destinatario</dt><dd id="summaryTo">—</dd><dt>Rut destino</dt><dd id="summaryRut">—</dd><dt>Banco</dt><dd id="summaryBank">—</dd><dt>Cta destino</dt><dd id="summaryAcct">—</dd><dt>Desde</dt><dd id="summaryFrom">—</dd></dl>
+            </div>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Transferir</button>
+              <p class="status" id="transferStatus" role="status" aria-live="polite">Revisa los datos antes de continuar.</p>
+            </div>
+            <p class="pass-note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1976D2" stroke-width="2" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M8 14h8M8 17h8"/></svg>Te pediremos autorizar la operación en tu app BICE Pass.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <button type="reset" id="newTransfer" class="reset-link">Hacer otra transferencia</button>
+          </form>
+        </div>
+
+        <aside class="side" aria-label="Tu cuenta">
+          <div class="acct">
+            <h3>Cuenta corriente Nº 01-94760-5</h3>
+            <p class="bal"><small>$</small>24.590.000</p>
+            <div class="od">Sobregiro disponible: $5.000.000</div>
+            <ul class="moves" aria-label="Últimos movimientos">
+              <li><span class="dot in" aria-hidden="true">$</span><span>Transferencia de Juan Pérez</span><b>+$25.000</b></li>
+              <li><span class="dot" aria-hidden="true">$</span><span>Compra en Teclados Chile</span><b>-$25.000</b></li>
+              <li><span class="dot" aria-hidden="true">$</span><span>Compra en Jumbo Providencia</span><b>-$25.000</b></li>
+            </ul>
+          </div>
+          <div class="tile blue">
+            <div class="pass-logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M8 14h8M8 17h8"/></svg><span><b>BICE</b> Pass</span></div>
+            <p>Autoriza tus transferencias y pagos de forma segura desde tu celular. Un nuevo diseño y la misma seguridad.</p>
+            <a class="go" href="https://apps.apple.com/cl/app/bice-pass/id1053449190" target="_blank" rel="noopener noreferrer">Descarga BICE Pass</a>
+          </div>
+          <div class="tile">
+            <h3 style="color:var(--deep)">Montos máximos</h3>
+            <ul><li>Hasta $5.000.000 diarios a terceros</li><li>Contactos nuevos se activan con BICE Pass</li><li>Puedes modificar tus montos en Seguridad</li></ul>
+            <a class="go" style="color:var(--accent)" href="https://banco.bice.cl/personas/seguridad" target="_blank" rel="noopener noreferrer">Seguridad y prevención</a>
+          </div>
+        </aside>
+      </section>
+    </div>
+  </main>
+
+  <div class="sheet-bg" id="passSheet" role="dialog" aria-modal="true" aria-labelledby="passTitle">
+    <div class="sheet">
+      <div class="bar"><b>BICE</b> Pass</div>
+      <h3 id="passTitle">Detalle de la operación</h3>
+      <p>Revisa los detalles de la operación antes de autorizar.</p>
+      <div class="box">
+        <div class="m"><small>Monto</small><strong id="passAmount">—</strong></div>
+        <dl><dt>Rut destino</dt><dd id="passRut">—</dd><dt>Destinatario</dt><dd id="passTo">—</dd><dt>Banco</dt><dd id="passBank">—</dd><dt>Cta destino</dt><dd id="passAcct">—</dd><dt>Email</dt><dd id="passEmail">—</dd><dt>Descripción</dt><dd id="passDesc">—</dd></dl>
+      </div>
+      <div class="fine">En BICE Pass autorizas la operación, el comprobante te lo entrega la plataforma en la que operaste.</div>
+      <button type="button" class="auth" id="passAuthorize">Autorizar</button>
+      <button type="button" class="cancel" id="passCancel">Cancelar</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="foot-top">
+        <section><img src="https://bice.modyocdn.com/uploads/d70af71e-08c4-4931-bd15-44afe0db6bd5/original/banco_bice_logo_color.svg" alt="Banco BICE" style="width:170px;height:19px" onerror="this.style.display='none'"></section>
+        <section><h4>Nosotros</h4><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Nuestro banco</a><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Trabajar en BICE</a><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Filiales</a><a href="https://banco.bice.cl/investor-relations" target="_blank" rel="noopener noreferrer">Investor Relations</a><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Sostenibilidad</a></section>
+        <section><h4>Infórmate</h4><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Blog BICE</a><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Prensa</a><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Eventos</a><a href="https://banco.bice.cl/personas" target="_blank" rel="noopener noreferrer">Documentación de Interés</a></section>
+        <section><h4>Ayuda</h4><a href="https://banco.bice.cl/personas/ayuda" target="_blank" rel="noopener noreferrer">Servicio al Cliente</a><a href="https://banco.bice.cl/personas/sucursales" target="_blank" rel="noopener noreferrer">Red de Sucursales</a><a href="https://banco.bice.cl/personas/seguridad" target="_blank" rel="noopener noreferrer">Seguridad y prevención</a><a href="https://banco.bice.cl/personas/ayuda" target="_blank" rel="noopener noreferrer">Preguntas Frecuentes</a></section>
+        <section class="contact"><h4>Contáctanos</h4><a href="tel:800330911">Emergencia <b>800 33 0911</b></a><a href="tel:6004002400">Personas <b>600 400 2400</b></a><a href="tel:6004001010">Empresas <b>600 400 1010</b></a><a href="tel:6004004000">Inversiones <b>600 400 4000</b></a>
+          <div class="social">
+            <a href="https://www.facebook.com/BancoBICE" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 8h3V4h-3c-2.8 0-4 1.8-4 4.3V10H7v4h3v8h4v-8h3l1-4h-4V8.6c0-.4.3-.6.6-.6z"/></svg></a>
+            <a href="https://www.instagram.com/bancobice" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></a>
+            <a href="https://www.linkedin.com/company/banco-bice" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4z"/></svg></a>
+            <a href="https://x.com/bancobice" target="_blank" rel="noopener noreferrer" aria-label="X"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z"/></svg></a>
+          </div>
+        </section>
+      </div>
+      <div class="foot-legal">
+        <p>Experiencia de demostración de Banca en Línea. Nombres, RUT, cuentas y montos son ficticios y no corresponden a clientes reales.</p>
+        <p>© Todos los Derechos Reservados. Infórmese sobre la garantía estatal de los depósitos en su banco o en www.cmfchile.cl. Casa Matriz: Av. Apoquindo 3846.</p>
+      </div>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const newTransfer = document.getElementById('newTransfer');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const descInput = document.getElementById('description');
+    const stepReview = document.getElementById('stepReview');
+    const stepDone = document.getElementById('stepDone');
+    const sheet = document.getElementById('passSheet');
+    const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
+    const stamp = new Intl.DateTimeFormat('es-CL', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Santiago' });
+    const idleStatus = 'Revisa los datos antes de continuar.';
+    const $ = (id) => document.getElementById(id);
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function initials(name) { return name.split(' ').slice(0, 2).map((w) => w[0]).join(''); }
+    function amountValue() { const a = parseFloat(amountInput.value); return Number.isFinite(a) && a > 0 ? a : null; }
+    function renderSummary() {
+      const to = selected(toAccount);
+      const from = selected(fromAccount);
+      const amount = amountValue();
+      $('fromBalance').textContent = 'Saldo disponible: ' + clp.format(Number(from.dataset.balance));
+      $('toDetail').innerHTML = '';
+      const ini = document.createElement('span'); ini.className = 'ini'; ini.textContent = initials(to.text);
+      const txt = document.createElement('span'); txt.textContent = `${to.dataset.bank} · ${to.dataset.acct} · RUT ${to.dataset.rut}`;
+      $('toDetail').append(ini, txt);
+      $('summaryAmount').textContent = amount ? clp.format(amount) : '—';
+      $('summaryTo').textContent = to.text;
+      $('summaryRut').textContent = to.dataset.rut;
+      $('summaryBank').textContent = to.dataset.bank;
+      $('summaryAcct').textContent = to.dataset.acct;
+      $('summaryFrom').textContent = from.text;
+    }
+    function setStep(n) {
+      stepReview.className = n >= 2 ? 'on' : '';
+      stepDone.className = n >= 3 ? 'on' : '';
+    }
+    function openPass() {
+      const to = selected(toAccount);
+      $('passAmount').textContent = clp.format(amountValue());
+      $('passRut').textContent = to.dataset.rut;
+      $('passTo').textContent = to.text;
+      $('passBank').textContent = to.dataset.bank;
+      $('passAcct').textContent = to.dataset.acct;
+      $('passEmail').textContent = to.dataset.email;
+      $('passDesc').textContent = descInput.value.trim() || '—';
+      sheet.classList.add('on');
+      $('passAuthorize').focus();
+    }
+    function closePass() { sheet.classList.remove('on'); }
+    [fromAccount, toAccount, $('accountTier')].forEach((el) => el.addEventListener('change', renderSummary));
+    amountInput.addEventListener('input', renderSummary);
+    form.addEventListener('reset', () => {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = idleStatus;
+      newTransfer.className = 'reset-link';
+      setStep(1);
+      setTimeout(renderSummary, 0);
+    });
+    renderSummary();
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!amountValue()) {
+        result.className = 'result-box notice';
+        result.textContent = 'Ingresa un monto mayor a cero.';
+        return;
+      }
+      result.className = 'result-box';
+      result.textContent = '';
+      newTransfer.className = 'reset-link';
+      setStep(2);
+      status.textContent = 'Autoriza la operación en BICE Pass.';
+      openPass();
+    });
+    $('passCancel').addEventListener('click', () => {
+      closePass();
+      setStep(1);
+      status.textContent = 'Operación cancelada en BICE Pass.';
+      button.focus();
+    });
+    sheet.addEventListener('click', (e) => { if (e.target === sheet) $('passCancel').click(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheet.classList.contains('on')) $('passCancel').click(); });
+    $('passAuthorize').addEventListener('click', async () => {
+      closePass();
+      const amount = amountValue();
+      button.disabled = true;
+      button.textContent = 'Transfiriendo…';
+      status.textContent = 'Operación autorizada. Estamos procesando tu transferencia…';
+      const recipient = selected(toAccount).text;
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount,
+            accountTier: $('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('transfer-failed');
+        result.className = 'result-box success';
+        const fee = Number(data.fee) || 0;
+        const charges = fee > 0 ? ` · Comisión: ${clp.format(fee)} · Total cargado: ${clp.format(Number(data.debitAmount))}` : '';
+        result.textContent = `Transferencia exitosa a ${recipient}.\nMonto: ${clp.format(Number(data.receipt.amount))}${charges}\n${stamp.format(new Date(data.receipt.timestamp))} · Nº de operación: ${data.receipt.receiptId}`;
+        status.textContent = 'Transferencia realizada.';
+        setStep(3);
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'No pudimos completar tu transferencia en este momento. Inténtalo nuevamente en unos minutos o comunícate al 600 400 2400.';
+        status.textContent = 'Transferencia no realizada.';
+        setStep(1);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Transferir';
+        newTransfer.className = 'reset-link on';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

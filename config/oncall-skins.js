@@ -10062,6 +10062,34 @@ const ONCALL_SKINS = {
     page: { file: 'faebbf20.html', title: 'Earn Money for Used Clothing | ThredUp' },
     disclaimer: 'NOT ACTUALLY A THREDUP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real ThredUp product.',
   },
+  'ff37de53': {
+    slug: 'ff37de53',
+    company: 'Banco BICE',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
+    hideRibbon: true,
+    page: { file: 'ff37de53.html', title: 'Transferencias | Banco BICE' },
+    theme: {
+      '--accent': '#1976D2',
+      '--ink': '#333840',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#125BB4',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Centro de ayuda Banco BICE',
+    alertCard: {
+      title: 'p95 latency \u2014 Banca en L\u00ednea transferencias a terceros',
+      release: 'bice-banca-web@4.7.0',
+      team: 'canales-digitales-oncall',
+      baseline: '~300ms (7-day p95, before bice-banca-web@4.7.0)',
+      symptom: 'Transferencias a terceros hang ~9s after the BICE Pass authorization before the transfer confirms. Error rate is normal \u2014 transfers eventually go through.',
+      impact: 'Clientes authorizing third-party transfers with BICE Pass wait ~9 seconds for the comprobante; some retry the transfer or abandon it before it confirms.',
+    },
+    disclaimer: 'NOT ACTUALLY A BANCO BICE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco BICE product.',
+  },
 };
 
 function getOncallSkin(slug) {

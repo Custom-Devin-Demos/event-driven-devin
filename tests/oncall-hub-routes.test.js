@@ -519,6 +519,19 @@ test('a skin alertDestination overrides the presenter\'s saved choice', async ()
   expect(slack).toContain("localStorage.getItem('alertDestinationExplicit') !== '1' && scenarioAlertDestination");
 });
 
+test('the Banco BICE skin forces Teams and serves its native transfer page', async () => {
+  const res = await fetch(`${baseUrl}/oncall/c/ff37de53`);
+  const html = await res.text();
+  expect(res.status).toBe(200);
+  expect(html).toContain('var skinAlertDestination = "teams";');
+  expect(html).toContain('Transferir a terceros');
+  expect(html).toContain('BICE Pass');
+  expect(html).toContain('NOT ACTUALLY A BANCO BICE SITE');
+  for (const id of ['transferForm', 'submitBtn', 'fromAccount', 'toAccount', 'amount', 'accountTier', 'result']) {
+    expect(html).toContain(`id="${id}"`);
+  }
+});
+
 test('the Copa Airlines skin forces Slack and serves its native booking page', async () => {
   const res = await fetch(`${baseUrl}/oncall/c/90bf6ab8`);
   const html = await res.text();
