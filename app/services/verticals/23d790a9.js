@@ -285,43 +285,325 @@ function libraryIndex() {
   return LIBRARY.map((d) => ({ ...docMeta(d.id), short: d.short || d.title, ecosystems: d.eco, themes: d.themes, passages: d.paragraphs.length }));
 }
 
+const IMPACT_CUT = 65;
+const URGENCY_CUT = 60;
+const ecoById = (id) => ECOSYSTEMS.find((e) => e.id === id);
+const SHORT_ECO = { tte: ['Tourism', 'السياحة'], urban: ['Urban Development', 'التطوير العمراني'], ami: ['Advanced Manufacturing', 'التصنيع المتقدم'], ind: ['Industrials & Logistics', 'الصناعة والخدمات اللوجستية'], energy: ['Clean Energy & Water', 'الطاقة النظيفة والمياه'], neom: ['NEOM', 'نيوم'] };
+
+/** Impact: direct portfolio involvement and breadth; urgency: recency. Both illustrative. */
+function assess(t, now) {
+  const ageDays = Math.max(0, (now - new Date(`${t.date}T00:00:00Z`)) / DAY_MS);
+  const rule = Math.min(99, (t.direct ? 55 : 25) + Math.min(30, t.ecosystems.length * 6) + Math.min(15, t.companies.length * 5));
+  const impact = !t.live ? rule : (Number.isFinite(t.impact) ? t.impact : Math.min(rule, IMPACT_CUT - 5));
+  const urgency = Math.round(Math.max(5, 100 - ageDays * 0.7));
+  const priority = impact >= IMPACT_CUT && urgency >= URGENCY_CUT ? 'act' : (impact >= IMPACT_CUT || urgency >= URGENCY_CUT ? 'watch' : 'note');
+  return { impact, urgency, priority, ageDays };
+}
+
+// ------------------------------------------------------------------ live scan of trusted sources
+
+const TRUSTED_SOURCES = [
+  'spa.gov.sa', 'pif.gov.sa', 'arabnews.com', 'reuters.com', 'bloomberg.com', 'ft.com', 'wsj.com', 'cnbc.com',
+  'thenationalnews.com', 'aawsat.com', 'zawya.com', 'argaam.com', 'saudigazette.com.sa', 'agbi.com',
+  'datacenterdynamics.com', 'fastcompanyme.com', 'wamda.com', 'techcrunch.com', 'theverge.com',
+  'gulfnews.com', 'khaleejtimes.com', 'arabianbusiness.com', 'meed.com', 'enterpriseam.com', 'neom.com',
+  'nvidia.com', 'qualcomm.com', 'aws.amazon.com', 'cloud.google.com', 'blogs.microsoft.com', 'news.microsoft.com',
+];
+const SCAN_COMPANIES = [...new Set(ECOSYSTEMS.flatMap((e) => e.companies))];
+const SCAN_QUERIES = [
+  '(HUMAIN OR "Riyadh Air" OR NEOM OR Oxagon OR "ACWA Power" OR Qiddiya OR "Red Sea Global" OR ROSHN) (AI OR "artificial intelligence") when:14d',
+  '("Ma\'aden" OR Alat OR Ceer OR KAFD OR Bahri OR "New Murabba" OR Lifera OR "Public Investment Fund") (AI OR "artificial intelligence") when:14d',
+];
+const SCAN_MIN_INTERVAL_MS = 10 * 60 * 1000;
+const SCAN_AUTO_MS = 6 * 60 * 60 * 1000;
+const LIVE_MAX = 8;
+const SEEN_DAYS = 21;
+const liveScan = { items: [], seen: [], at: null, ok: null, found: 0, added: 0, error: null, running: null };
+
+function scanEnabled() {
+  return process.env.PIF_LIVE_SCAN !== 'off' && process.env.NODE_ENV !== 'test';
+}
+
+function decodeXml(s) {
+  return String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&').trim();
+}
+
+function parseRss(xml) {
+  return [...String(xml).matchAll(/<item>([\s\S]*?)<\/item>/g)].map(([, body]) => {
+    const tag = (name) => { const m = body.match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`)); return m ? decodeXml(m[1]) : ''; };
+    const src = body.match(/<source url="([^"]*)">([\s\S]*?)<\/source>/);
+    const source = src ? decodeXml(src[2]) : '';
+    let title = tag('title');
+    if (source && title.endsWith(` - ${source}`)) title = title.slice(0, -(source.length + 3));
+    return { title, url: tag('link'), date: tag('pubDate'), source, sourceUrl: src ? src[1] : '' };
+  });
+}
+
+function trusted(sourceUrl) {
+  let host = '';
+  try { host = new URL(sourceUrl).hostname.replace(/^www\./, ''); } catch { return false; }
+  return TRUSTED_SOURCES.some((d) => host === d || host.endsWith(`.${d}`));
+}
+
+const titleToks = (t) => new Set(tokens(String(t).replace(/(\d)\s*(?:m|bn|b|mn|million|billion)\b/gi, '$1')).map((w) => w.replace(/^\$/, '')).filter((w) => w.length > 2 || /\d/.test(w)));
+const COMPANY_TOKS = new Set(SCAN_COMPANIES.flatMap((c) => tokens(c)));
+function similar(a, b) {
+  const x = titleToks(a); const y = titleToks(b);
+  if (!x.size || !y.size) return false;
+  const shared = [...x].filter((w) => y.has(w));
+  // Same company and the same headline number (e.g. "$667m", not a year) is the same story.
+  if (shared.some((w) => COMPANY_TOKS.has(w)) && shared.some((w) => /^\d[\d.,]*$/.test(w) && w.length >= 2 && !/^(19|20)\d\d$/.test(w))) return true;
+  return shared.length / Math.min(x.size, y.size) >= 0.5;
+}
+
+function companiesIn(title) {
+  const t = title.toLowerCase();
+  const found = SCAN_COMPANIES.filter((c) => new RegExp(`(^|[^a-z])${c.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z])`).test(t));
+  if (!found.length && /\b(pif|public investment fund)\b/.test(t)) return { companies: [], all: true };
+  return { companies: found, all: false };
+}
+
+const AI_TERMS = /\bA\.?I\b|artificial intelligence|data cent(?:re|er)|\bcompute\b|\bGPUs?\b|machine learning|digital twin|generative|\bLLM|chips?\b|semiconductor/i;
+
+function liveCandidate(r) {
+  const d = new Date(r.date);
+  if (!r.title || !r.url || Number.isNaN(d.getTime()) || !trusted(r.sourceUrl) || !AI_TERMS.test(r.title)) return null;
+  const { companies, all } = companiesIn(r.title);
+  if (!companies.length && !all) return null;
+  const ecosystems = all ? ECOSYSTEMS.map((e) => e.id) : [...new Set(companies.map((c) => ECOSYSTEMS.find((e) => e.companies.includes(c)).id))];
+  return {
+    id: `live-${crypto.createHash('sha1').update(r.title).digest('hex').slice(0, 10)}`,
+    date: d.toISOString().slice(0, 10), source: r.source, url: r.url, title: r.title,
+    ecosystems, companies, direct: companies.length > 0, live: true,
+  };
+}
+
+function fallbackAssessment(t) {
+  const eco = ecoById(t.ecosystems[0]);
+  return {
+    implication: `New ${t.companies.join(', ') || 'PIF'} AI development reported by ${t.source}. AI assessment unavailable — review before use.`,
+    action: `Review with the ${eco.name} team.`,
+    implicationAr: `تطور جديد في الذكاء الاصطناعي يخص ${t.companies.join('، ') || 'صندوق الاستثمارات العامة'} نشره ${t.source}. التقييم بالذكاء الاصطناعي غير متاح — يُراجع قبل الاستخدام.`,
+    actionAr: `مراجعة التطور مع فريق ${eco.nameAr}.`,
+    impact: null,
+    ai: false,
+  };
+}
+
+async function enrichLive(items, known = []) {
+  if (!items.length) return items;
+  const seen = known.slice(0, 20).map((t) => `- ${t.title}`).join('\n');
+  const list = items.map((t, i) => `${i + 1}. ${t.title} (${t.source}, ${t.date}; companies: ${t.companies.join(', ') || 'PIF'}; ecosystems: ${t.ecosystems.map((id) => ecoById(id).name).join(', ')})`).join('\n');
+  const raw = await chat(
+    'You are an analyst in PIF\'s Strategy & Investment division. For each news headline, assess what it means for PIF (Saudi Arabia\'s sovereign wealth fund) and its portfolio companies. Reply with JSON only: an array with one object per headline, in order, with keys duplicate (true if it reports the same event as an earlier headline in the list or in "Already tracked"), impact (0-100: how much it matters to PIF\'s portfolio; routine partnerships and product launches 40-60, material financing, ownership or capacity changes 65-90), implication (max 28 words), action (one concrete recommended action, max 18 words; Recommend only actions PIF or its portfolio companies can take themselves (e.g. review, engage the company, commission a study, adjust an allocation or watch list); never actions that belong to governments, regulators or other companies.), titleAr, implicationAr, actionAr (Modern Standard Arabic). Do not invent figures that are not in the headline.',
+    `Already tracked:\n${seen}\n\nNew headlines:\n${list}`, 1100,
+  );
+  let parsed = null;
+  try { parsed = JSON.parse(String(raw || '').replace(/^[\s\S]*?(\[)/, '$1').replace(/\][^\]]*$/, ']')); } catch { parsed = null; }
+  return items.map((t, i) => {
+    const a = Array.isArray(parsed) && parsed[i] && parsed[i].implication && parsed[i].action ? parsed[i] : null;
+    if (!a) return { ...t, ...fallbackAssessment(t) };
+    const s = (v) => String(v || '').slice(0, 400);
+    const impact = Number(a.impact);
+    return { ...t, duplicate: a.duplicate === true, impact: Number.isFinite(impact) ? Math.max(0, Math.min(95, Math.round(impact))) : null, implication: s(a.implication), action: s(a.action), titleAr: s(a.titleAr) || null, implicationAr: s(a.implicationAr) || null, actionAr: s(a.actionAr) || null, ai: true };
+  });
+}
+
+async function fetchCandidates() {
+  const feeds = [];
+  let failures = 0;
+  for (const q of SCAN_QUERIES) {
+    try {
+      const r = await axios.get('https://news.google.com/rss/search', {
+        params: { q, hl: 'en-US', gl: 'US', ceid: 'US:en' }, timeout: 12000, responseType: 'text',
+        headers: { 'User-Agent': 'Mozilla/5.0 (PIF Ecosystem Outlook PoC; trusted-source monitor)' },
+      });
+      feeds.push(...parseRss(r.data));
+    } catch (error) {
+      failures += 1;
+      logger.warn('PIF PoC: trend feed query failed', { error: error.message });
+    }
+  }
+  if (failures === SCAN_QUERIES.length) throw new Error('All trusted-source feeds failed');
+  return feeds;
+}
+
+async function runScan(fetcher = fetchCandidates) {
+  const raw = await fetcher();
+  const cutoff = Date.now() - SEEN_DAYS * DAY_MS;
+  liveScan.seen = liveScan.seen.filter((t) => t.at >= cutoff);
+  const known = [...TRENDS, ...liveScan.items, ...liveScan.seen];
+  const fresh = [];
+  raw.map(liveCandidate).filter(Boolean).sort((a, b) => b.date.localeCompare(a.date)).forEach((c) => {
+    if (fresh.length >= 6) return;
+    if (known.some((k) => similar(k.title, c.title)) || fresh.some((k) => similar(k.title, c.title))) return;
+    if (c.companies.length && c.companies.every((co) => fresh.filter((k) => k.companies.includes(co)).length >= 2)) return;
+    fresh.push(c);
+  });
+  const enriched = (await enrichLive(fresh, known)).filter((t) => !t.duplicate);
+  liveScan.seen.push(...fresh.map((t) => ({ title: t.title, at: Date.now() })));
+  const scannedAt = new Date().toISOString();
+  liveScan.items = [...enriched.map((t) => ({ ...t, scannedAt })), ...liveScan.items].slice(0, LIVE_MAX);
+  Object.assign(liveScan, { at: scannedAt, ok: true, found: raw.length, added: enriched.length, error: null });
+  return scanStatus();
+}
+
+function scanStatus() {
+  return { at: liveScan.at, ok: liveScan.ok, found: liveScan.found, added: liveScan.added, live: liveScan.items.length, error: liveScan.error, enabled: scanEnabled(), sources: TRUSTED_SOURCES.length };
+}
+
+async function scanTrends({ force = false, fetcher } = {}) {
+  if (!fetcher && !scanEnabled()) return scanStatus();
+  if (liveScan.running) return liveScan.running;
+  if (!force && liveScan.at && Date.now() - new Date(liveScan.at) < SCAN_MIN_INTERVAL_MS) return { ...scanStatus(), cached: true };
+  liveScan.running = runScan(fetcher).catch((error) => {
+    Object.assign(liveScan, { at: new Date().toISOString(), ok: false, added: 0, error: 'Trusted sources could not be reached.' });
+    logger.warn('PIF PoC: live trend scan failed', { error: error.message });
+    return scanStatus();
+  }).finally(() => { liveScan.running = null; });
+  return liveScan.running;
+}
+
+/** Background refresh so the dashboard stays current without anyone pressing "Scan now". */
+function autoScan() {
+  if (!scanEnabled() || liveScan.running) return;
+  if (liveScan.at && Date.now() - new Date(liveScan.at) < SCAN_AUTO_MS) return;
+  scanTrends({ force: true });
+}
+
 // ------------------------------------------------------------------ trends
 
 function rankTrends(ecosystemId, now = new Date()) {
-  const eco = ECOSYSTEMS.find((e) => e.id === ecosystemId) || null;
-  return TRENDS.filter((t) => !eco || t.ecosystems.includes(eco.id)).map((t) => {
-    const ageDays = Math.max(0, (now - new Date(`${t.date}T00:00:00Z`)) / DAY_MS);
-    const recency = Math.max(0, 35 - ageDays / 6);
+  const eco = ecoById(ecosystemId) || null;
+  return [...liveScan.items, ...TRENDS].filter((t) => !eco || t.ecosystems.includes(eco.id)).map((t) => {
+    const a = assess(t, now);
+    const recency = Math.max(0, 35 - a.ageDays / 6);
     const exposure = eco ? (t.ecosystems[0] === eco.id ? 30 : 18) : Math.min(30, t.ecosystems.length * 8);
     const direct = t.direct ? 30 : 10;
     const score = Math.round(Math.min(99, recency + exposure + direct));
-    return { ...t, score, ecosystemNames: t.ecosystems.map((id) => ECOSYSTEMS.find((e) => e.id === id).name) };
+    const owner = t.ecosystems.length === ECOSYSTEMS.length ? 'Strategy & Investment' : ecoById(t.ecosystems[0]).name;
+    return { ...t, score, impact: a.impact, urgency: a.urgency, priority: a.priority, owner, ecosystemNames: t.ecosystems.map((id) => ecoById(id).name) };
   }).sort((a, b) => b.score - a.score);
 }
 
+const PRIORITY_AR = { act: 'إجراء فوري', watch: 'متابعة', note: 'للعلم' };
+
+function summaryFacts(ecosystemId, now) {
+  const items = rankTrends(ecosystemId, now);
+  const act = items.filter((t) => t.priority === 'act');
+  const counts = new Map();
+  items.forEach((t) => t.companies.forEach((c) => counts.set(c, (counts.get(c) || 0) + 1)));
+  const [topCompany, topCount] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] || [null, 0];
+  const cov = coverage();
+  const scope = ecoById(ecosystemId) ? [ecosystemId] : ECOSYSTEMS.map((e) => e.id);
+  const gaps = scope.map((id) => ({ eco: ecoById(id), n: items.filter((t) => t.direct && t.ecosystems.includes(id)).length }))
+    .filter((g) => g.n && !cov[g.eco.id].ai.length).sort((a, b) => b.n - a.n);
+  const quiet = SCAN_COMPANIES.filter((c) => scope.some((id) => ecoById(id).companies.includes(c)) && !counts.has(c));
+  return { items, act, topCompany, topCount, topEcos: topCompany ? new Set(items.filter((t) => t.companies.includes(topCompany)).flatMap((t) => t.ecosystems)).size : 0, gaps, quiet, companies: counts.size };
+}
+
+function plainTakeaways(f, lang) {
+  const ar = lang === 'ar';
+  const out = [];
+  if (f.act.length) {
+    out.push(ar
+      ? `${f.act.length === 1 ? 'تطور واحد يتطلب' : `${f.act.length} تطورات تتطلب`} قراراً الآن، أبرزها: ${f.act[0].titleAr || f.act[0].title}.`
+      : `${f.act.length} ${f.act.length === 1 ? 'development needs' : 'developments need'} a decision now, led by: ${f.act[0].title}.`);
+  } else {
+    out.push(ar ? 'لا توجد تطورات تتطلب إجراءً فورياً في هذه الفترة.' : 'Nothing needs an immediate decision this period; items are on watch.');
+  }
+  if (f.topCompany && f.topCount >= 2) {
+    out.push(ar
+      ? `${f.topCompany} هي محور نشاط الذكاء الاصطناعي في المحفظة: تظهر في ${f.topCount} من ${f.items.length} تطورات عبر ${f.topEcos} منظومات.`
+      : `${f.topCompany} is the portfolio's AI centre of gravity: it appears in ${f.topCount} of ${f.items.length} developments across ${f.topEcos} ${f.topEcos === 1 ? 'ecosystem' : 'ecosystems'}.`);
+  }
+  if (f.gaps.length) {
+    const nm2 = (g) => `${SHORT_ECO[g.eco.id][ar ? 1 : 0]} (${g.n})`;
+    const top = f.gaps.slice(0, 2);
+    const more = f.gaps.length - top.length;
+    out.push(ar
+      ? `فجوة بحثية: الذكاء الاصطناعي يتحرك في ${top.map(nm2).join(' و')}${more ? ` و${more} منظومات أخرى` : ''}، دون أي دراسة عن الذكاء الاصطناعي في مكتبة الأبحاث.`
+      : `Research gap: AI is moving in ${top.map(nm2).join(' and ')}${more ? ` plus ${more} more ${more === 1 ? 'ecosystem' : 'ecosystems'}` : ''}, with no AI study in the research library.`);
+  }
+  if (out.length < 3 && f.quiet.length) {
+    out.push(ar
+      ? `لا توجد إشارات ذكاء اصطناعي بعد لدى: ${f.quiet.slice(0, 4).join('، ')}.`
+      : `No AI signal yet from ${f.quiet.slice(0, 4).join(', ')} — a monitoring gap worth closing.`);
+  }
+  return out;
+}
+
+const summaryCache = new Map();
+
+function statsFrom(f, ar) {
+  return {
+    total: f.items.length, act: f.act.length, live: f.items.filter((t) => t.live).length,
+    topCompany: f.topCompany, topCount: f.topCount, companies: f.companies,
+    gaps: f.gaps.map((g) => ({ id: g.eco.id, name: SHORT_ECO[g.eco.id][ar ? 1 : 0], n: g.n })), quiet: f.quiet,
+  };
+}
+
+function trendsStats(ecosystemId, lang = 'en', now = new Date()) {
+  return statsFrom(summaryFacts(ecosystemId, now), lang === 'ar');
+}
+
+async function trendsSummary(ecosystemId, lang = 'en', now = new Date()) {
+  const ar = lang === 'ar';
+  const f = summaryFacts(ecosystemId, now);
+  const stats = statsFrom(f, ar);
+  const plain = plainTakeaways(f, lang);
+  const key = `${ecosystemId || ''}|${lang}|${f.items.map((t) => `${t.id}:${t.priority}`).join(',')}`;
+  if (!summaryCache.has(key)) {
+    summaryCache.set(key, (async () => {
+      const facts = [
+        ...f.items.slice(0, 8).map((t) => `- [${t.priority}] ${t.title} (${t.source}, ${t.date}; companies: ${t.companies.join(', ') || 'PIF-wide'}; implication: ${t.implication})`),
+        `Ecosystems with AI developments but no AI study in PIF's research library: ${f.gaps.map((g) => g.eco.name).join(', ') || 'none'}.`,
+        `Portfolio companies with no AI development this period: ${f.quiet.join(', ') || 'none'}.`,
+      ].join('\n');
+      const raw = await chat(
+        `You brief PIF leadership. Write exactly 3 takeaways for "This week in AI for PIF" from the facts given — what needs a decision, where exposure concentrates, and what is missing. Each takeaway is one sentence, max 30 words, names companies or ecosystems, and uses only the facts given. Recommend only actions PIF or its portfolio companies can take themselves (e.g. review, engage the company, commission a study, adjust an allocation or watch list); never actions that belong to governments, regulators or other companies. ${ar ? 'Write in Modern Standard Arabic.' : 'Write in English.'} Reply with a JSON array of 3 strings only.`,
+        facts, 400,
+      );
+      try {
+        const arr = JSON.parse(String(raw || '').replace(/^[\s\S]*?(\[)/, '$1').replace(/\][^\]]*$/, ']'));
+        if (Array.isArray(arr) && arr.length >= 3 && arr.every((s) => typeof s === 'string' && s.trim())) return arr.slice(0, 3).map((s) => s.trim().slice(0, 400));
+      } catch { /* fall through to the plain takeaways */ }
+      summaryCache.delete(key);
+      return null;
+    })());
+  }
+  const written = await summaryCache.get(key);
+  return { lang, dir: ar ? 'rtl' : 'ltr', mode: written ? 'ai' : 'plain', aiOffline: !written && !!llmProvider(), takeaways: written || plain, stats, scan: scanStatus() };
+}
+
 function trendsBrief(ecosystemId, lang = 'en', now = new Date()) {
-  const eco = ECOSYSTEMS.find((e) => e.id === ecosystemId) || null;
-  const items = rankTrends(ecosystemId, now).slice(0, 4);
+  const eco = ecoById(ecosystemId) || null;
+  const ranked = rankTrends(ecosystemId, now);
+  const items = [...ranked.filter((t) => t.priority === 'act'), ...ranked.filter((t) => t.priority !== 'act')].slice(0, 4);
   const ar = lang === 'ar';
   const scope = eco ? (ar ? eco.nameAr : eco.name) : (ar ? 'جميع المنظومات' : 'All ecosystems');
   const dateStr = now.toLocaleDateString(ar ? 'ar-SA-u-ca-gregory' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const lead = items[0];
   return {
     lang, dir: ar ? 'rtl' : 'ltr',
     title: ar ? `موجز اتجاهات الذكاء الاصطناعي — ${scope}` : `AI trends brief — ${scope}`,
     subtitle: ar ? `للإدارة العليا · ${dateStr}` : `For management · ${dateStr}`,
     summary: ar
-      ? `أبرز ${items.length} تطورات من مصادر موثوقة خلال الفترة، مرتبة حسب الصلة بالمنظومة والشركات التابعة.`
-      : `The ${items.length} most relevant developments from trusted sources this period, ranked by relevance to the ecosystem and its portfolio companies.`,
+      ? `أبرز ${items.length} تطورات من مصادر موثوقة خلال الفترة، مرتبة حسب الأولوية والصلة بالمنظومة والشركات التابعة.`
+      : `The ${items.length} most important developments from trusted sources this period, ordered by priority and relevance to the ecosystem and its portfolio companies.`,
     items: items.map((t) => ({
-      title: ar ? t.titleAr : t.title,
-      implication: ar ? t.implicationAr : t.implication,
-      source: t.source, date: t.date, url: t.url, score: t.score,
+      title: ar ? (t.titleAr || t.title) : t.title,
+      implication: ar ? (t.implicationAr || t.implication) : t.implication,
+      action: ar ? (t.actionAr || t.action) : t.action,
+      priority: t.priority, priorityLabel: ar ? PRIORITY_AR[t.priority] : { act: 'Act now', watch: 'Watch', note: 'Note' }[t.priority],
+      source: t.source, date: t.date, url: t.url, score: t.score, live: !!t.live,
       companies: t.companies,
     })),
-    next: ar
-      ? 'الإجراء المقترح: مراجعة أثر التمويل المشترك على نطاقات التخصيص في اجتماع لجنة الاستثمار القادم.'
-      : 'Suggested action: review the effect of co-financing on allocation bands at the next Investment Committee.',
-    note: ar ? 'المصادر عامة. درجات الصلة توضيحية لأغراض إثبات المفهوم.' : 'Public sources. Relevance scores are illustrative for this proof of concept.',
+    next: lead
+      ? (ar ? `الإجراء المقترح: ${lead.actionAr || lead.action}` : `Suggested action: ${lead.action}`)
+      : (ar ? 'لا توجد تطورات عالية الصلة في هذه الفترة.' : 'No high-relevance developments this period.'),
+    note: ar ? 'المصادر عامة. درجات الصلة والأولوية والإجراءات المقترحة توضيحية لأغراض إثبات المفهوم.' : 'Public sources. Relevance, priority and recommended actions are illustrative for this proof of concept.',
   };
 }
 
@@ -615,7 +897,7 @@ module.exports = {
   SLUG, ACCESS_COOKIE,
   accessToken, codeMatches, hasAccess, unlockAllowed,
   search, ask, libraryIndex, coverage, researchGaps, gapSuggestions, detectEcosystem, detectThemes,
-  rankTrends, trendsBrief, outlook, escalation,
+  rankTrends, trendsBrief, trendsSummary, trendsStats, scanTrends, autoScan, scanStatus, parseRss, outlook, escalation,
   checkCommunication, PUBLIC_FIGURES, THEMES,
   createFeatureRequest, getFeatureRequest, listFeatureRequests, buildFeaturePrompt, dailyCap,
   status, _featureRequests: featureRequests,

@@ -3,6 +3,7 @@
  *
  * PUBLIC: ecosystem names, portfolio companies, headline figures and trend
  * items — each carries its source and date.
+ * ILLUSTRATIVE: the recommended `action` on each trend.
  * ILLUSTRATIVE: allocation, approved bands and signals on ECOSYSTEMS — invented
  * for the PoC and labelled as such in the UI. Never present them as PIF data.
  */
@@ -90,6 +91,8 @@ const TRENDS = [
     ecosystems: ['ami', 'energy'], companies: ['HUMAIN'], direct: true,
     implication: 'Debt financing for data-centre build-out reduces the equity PIF must commit — directly relevant to bringing Advanced Manufacturing & Innovation back within band.',
     implicationAr: 'يقلّل التمويل بالدين لتوسعة مراكز البيانات من حجم رأس المال الذي يلتزم به الصندوق، وهو ما يدعم إعادة منظومة التصنيع المتقدم والابتكار إلى نطاقها المعتمد.',
+    action: 'Re-run the Advanced Manufacturing allocation path with debt-funded capex netted out before the next Investment Committee.',
+    actionAr: 'إعادة احتساب مسار تخصيص منظومة التصنيع المتقدم بعد استبعاد النفقات الممولة بالدين قبل اجتماع لجنة الاستثمار القادم.',
   },
   {
     id: 'aramco-humain', date: '2026-11-01', source: 'PIF press release', url: 'https://www.pif.gov.sa/en/news-and-insights/press-releases/2026/pif-and-aramco-close-humain-transaction-to-accelerate-humain-global-growth/',
@@ -98,6 +101,8 @@ const TRENDS = [
     ecosystems: ['ami'], companies: ['HUMAIN'], direct: true,
     implication: 'A co-shareholder now funds part of HUMAIN’s expansion; update exposure models and the ecosystem’s allocation path.',
     implicationAr: 'أصبح لهيوماين شريك مساهم يموّل جزءاً من توسعها، ما يستدعي تحديث نماذج الانكشاف ومسار التخصيص للمنظومة.',
+    action: 'Update HUMAIN exposure to the 51% stake and agree a co-funding schedule with Aramco.',
+    actionAr: 'تحديث انكشاف الصندوق على هيوماين وفق حصة 51٪ والاتفاق مع أرامكو على جدول للتمويل المشترك.',
   },
   {
     id: 'humain-nvidia-84mw', date: '2026-10-22', source: 'The National', url: 'https://www.thenationalnews.com/future/technology/2026/10/22/saudi-arabias-humain-expands-nvidia-deal-with-84mw-ai-computing-plan/',
@@ -106,6 +111,8 @@ const TRENDS = [
     ecosystems: ['ami', 'energy'], companies: ['HUMAIN'], direct: true,
     implication: 'Export-contracted capacity signals external demand for Saudi compute; chip export approvals remain the key dependency.',
     implicationAr: 'تعاقد سعة حوسبية لعميل أمريكي يؤكد وجود طلب خارجي على الحوسبة السعودية، مع بقاء موافقات تصدير الرقائق عاملاً حاسماً.',
+    action: 'Add US chip-export approvals to the watch list and model the downside if the 50 MW export contract slips.',
+    actionAr: 'إضافة موافقات تصدير الرقائق الأمريكية إلى قائمة المتابعة ونمذجة الأثر في حال تأخر عقد التصدير البالغ 50 ميغاواط.',
   },
   {
     id: 'nebius-oxagon', date: '2026-10-21', source: 'NEOM newsroom', url: 'https://www.neom.com/en-us/newsroom/International-Agreement-Strengthens-Data-Center-Capabilities',
@@ -114,6 +121,8 @@ const TRENDS = [
     ecosystems: ['neom', 'ami', 'energy'], companies: ['NEOM', 'Oxagon', 'HUMAIN'], direct: true,
     implication: 'First anchor customer for Oxagon’s AI campus links NEOM phasing to AI demand — a positive signal for the NEOM watch item.',
     implicationAr: 'أول عميل رئيسي لمجمّع أوكساجون يربط مراحل نيوم بالطلب على الذكاء الاصطناعي، وهي إشارة إيجابية لبند المتابعة الخاص بنيوم.',
+    action: 'Use the Nebius anchor to re-sequence Oxagon phasing and commission an AI-demand study for NEOM.',
+    actionAr: 'الاستفادة من العميل الرئيسي نيبيوس لإعادة ترتيب مراحل أوكساجون وتكليف دراسة للطلب على الذكاء الاصطناعي في نيوم.',
   },
   {
     id: 'acwa-ai-power', date: '2026-10-16', source: 'Asharq Al-Awsat', url: 'https://english.aawsat.com/business/5330187-acwa-asharq-al-awsat-energy-storage-key-saudi-renewable-expansion',
@@ -122,6 +131,8 @@ const TRENDS = [
     ecosystems: ['energy', 'ami'], companies: ['ACWA Power'], direct: true,
     implication: 'Pair compute commitments with renewable + storage offtake inside the portfolio to capture value across both ecosystems.',
     implicationAr: 'ربط التزامات الحوسبة بعقود شراء الطاقة المتجددة والتخزين داخل المحفظة لتحقيق القيمة عبر المنظومتين.',
+    action: 'Explore an in-portfolio offtake: ACWA Power renewable and storage supply for HUMAIN data centres.',
+    actionAr: 'دراسة عقد شراء داخل المحفظة: إمداد مراكز بيانات هيوماين بالطاقة المتجددة والتخزين من أكوا باور.',
   },
   {
     id: 'veolia-maaden-acwa', date: '2026-09-18', source: 'Arab News', url: 'https://www.arabnews.com/saudi-arabia/veolia-signs-3-agreements-on-water-waste-and-decarbonization-in-saudi-arabia-3002272',
@@ -130,6 +141,8 @@ const TRENDS = [
     ecosystems: ['ind', 'energy'], companies: ["Ma'aden", 'ACWA Power'], direct: true,
     implication: 'Digital operations partnerships are an early route to AI-driven efficiency in heavy industry.',
     implicationAr: 'شراكات التشغيل الرقمي مدخل مبكر لرفع الكفاءة بالذكاء الاصطناعي في الصناعات الثقيلة.',
+    action: 'Ask Ma\'aden for baseline AI-efficiency KPIs so the Veolia programme can be tracked.',
+    actionAr: 'طلب مؤشرات أداء أساسية لكفاءة الذكاء الاصطناعي من معادن لمتابعة برنامج فيوليا.',
   },
   {
     id: 'rsg-ntt', date: '2026-09-09', source: 'Consultancy-me', url: 'https://www.consultancy-me.com/news/14360/red-sea-global-partners-with-ntt-data-for-smart-digital-solutions-in-its-destinations',
@@ -138,6 +151,8 @@ const TRENDS = [
     ecosystems: ['tte'], companies: ['Red Sea Global'], direct: true,
     implication: 'Guest-experience AI could be shared across PIF tourism assets rather than built per destination.',
     implicationAr: 'يمكن مشاركة حلول الذكاء الاصطناعي لتجربة الضيوف عبر أصول الصندوق السياحية بدلاً من بنائها لكل وجهة.',
+    action: 'Assess sharing one guest-experience AI platform across Red Sea Global, Qiddiya and Riyadh Air.',
+    actionAr: 'تقييم مشاركة منصة واحدة لتجربة الضيوف بالذكاء الاصطناعي بين البحر الأحمر الدولية والقدية وطيران الرياض.',
   },
   {
     id: 'pif-internal-ai', date: '2026-08-17', source: 'PIF press release', url: S.results.url,
@@ -146,6 +161,8 @@ const TRENDS = [
     ecosystems: ['tte', 'urban', 'ami', 'ind', 'energy', 'neom'], companies: [], direct: false,
     implication: 'Sets an internal benchmark; portfolio companies can be measured against the same adoption bar.',
     implicationAr: 'يضع معياراً داخلياً يمكن قياس تبنّي الشركات التابعة للذكاء الاصطناعي على أساسه.',
+    action: 'Set an AI-adoption scorecard for portfolio companies, using PIF\'s 2025 figures as the baseline.',
+    actionAr: 'إعداد بطاقة أداء لتبني الذكاء الاصطناعي في الشركات التابعة باستخدام أرقام الصندوق لعام 2025 كخط أساس.',
   },
   {
     id: 'qiddiya-google', date: '2026-05-20', source: 'Gulfdays', url: 'https://gulfdays.net/qiddiya-google-cloud-partner-to-build-ai-powered-smart-entertainment-city/',
@@ -154,6 +171,8 @@ const TRENDS = [
     ecosystems: ['tte', 'urban'], companies: ['Qiddiya'], direct: true,
     implication: 'Agentic operations platforms are moving from pilots to city-scale; a model for ROSHN and New Murabba.',
     implicationAr: 'منصات التشغيل الوكيلة تنتقل من التجارب إلى نطاق المدن، ونموذج يمكن أن تستفيد منه روشن والمربع الجديد.',
+    action: 'Review Q-Brain as a reusable city-operations template for ROSHN and New Murabba.',
+    actionAr: 'مراجعة منصة Q-Brain كنموذج قابل لإعادة الاستخدام لتشغيل المدن في روشن والمربع الجديد.',
   },
   {
     id: 'riyadh-air-ai-native', date: '2026-05-07', source: 'IBM case study', url: 'https://www.ibm.com/case-studies/riyadh-air',
@@ -162,6 +181,8 @@ const TRENDS = [
     ecosystems: ['tte'], companies: ['Riyadh Air'], direct: true,
     implication: 'Digital-first operations make Riyadh Air a candidate reference case for AI adoption across the portfolio.',
     implicationAr: 'التشغيل الرقمي أولاً يجعل طيران الرياض حالة مرجعية لتبنّي الذكاء الاصطناعي عبر المحفظة.',
+    action: 'Document Riyadh Air as the portfolio\'s reference case for AI-native operations.',
+    actionAr: 'توثيق تجربة طيران الرياض كحالة مرجعية للعمليات المبنية على الذكاء الاصطناعي في المحفظة.',
   },
   {
     id: 'nbim-ai-productivity', date: '2026-03-01', source: 'SuperAI 2026 (NBIM talk)', url: 'https://www.youtube.com/watch?v=JDzJR72mevk',
@@ -170,6 +191,8 @@ const TRENDS = [
     ecosystems: ['tte', 'urban', 'ami', 'ind', 'energy', 'neom'], companies: [], direct: false,
     implication: 'Peer benchmark: sovereign investors are setting explicit AI productivity targets for their own teams.',
     implicationAr: 'معيار مقارنة: المستثمرون السياديون يضعون أهدافاً صريحة لإنتاجية الذكاء الاصطناعي لفرقهم.',
+    action: 'Consider an explicit AI productivity target for PIF\'s own investment teams.',
+    actionAr: 'النظر في وضع هدف صريح لإنتاجية الذكاء الاصطناعي لفرق الاستثمار في الصندوق.',
   },
 ];
 
