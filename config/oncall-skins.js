@@ -10163,6 +10163,32 @@ const ONCALL_SKINS = {
     alertDestination: 'slack',
     disclaimer: 'NOT ACTUALLY A THREDUP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real ThredUp product.',
   },
+  '2885e717': {
+    slug: '2885e717',
+    company: 'Barclays',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '2885e717.html', title: 'Risk runs | Core FICC Analytics | Barclays Investment Bank' },
+    theme: {
+      '--accent': '#006DE3',
+      '--ink': '#212529',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1A2142',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Barclays Investment Bank Support',
+    alertCard: {
+      title: 'p95 latency \u2014 FICC rates risk runs',
+      service: 'ficc-rates-risk-api',
+      release: 'ficc-analytics@5.2.0',
+      team: 'ficc-analytics-platform-oncall',
+      baseline: '~400ms (7-day p95)',
+      symptom: 'Risk runs submitted from the FICC risk workbench hang ~9s before completing. Error rate is normal \u2014 runs eventually publish.',
+      impact: 'Rates traders and risk managers wait ~9 seconds for each book to revalue; some resubmit the run, and desk PV01 and VaR views lag the market into the London close.',
+    },
+    disclaimer: 'NOT ACTUALLY A BARCLAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
+  },
 };
 
 function getOncallSkin(slug) {
