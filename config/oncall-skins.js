@@ -10054,6 +10054,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A TELUS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TELUS product.',
   },
+  'faebbf20': {
+    slug: 'faebbf20',
+    company: 'ThredUp',
+    vertical: 'banking',
+    page: { file: 'faebbf20.html', title: 'Earn Money for Used Clothing | ThredUp' },
+    disclaimer: 'NOT ACTUALLY A THREDUP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real ThredUp product.',
+  },
 };
 
 function getOncallSkin(slug) {

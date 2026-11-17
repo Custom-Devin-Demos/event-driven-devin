@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earn Money for Used Clothing | ThredUp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Archivo:wght@800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sans: "Season Sans", "DM Sans", sans-serif;
+      --serif: "Season Serif", "Newsreader", serif;
+      --black: rgb(0, 0, 0);
+      --white: rgb(255, 255, 255);
+      --brand-300: rgb(218, 239, 198);
+      --brand-700: rgb(42, 64, 30);
+      --burgundy-700: rgb(131, 33, 29);
+      --purple-300: rgb(190, 202, 243);
+      --gray-200: rgb(243, 242, 238);
+      --gray-400: rgb(182, 181, 178);
+      --gray-600: rgb(122, 122, 120);
+      --gray-800: rgb(61, 61, 60);
+      --gutter: 80px;
+      --section-gap: 56px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); font-size: 14px; line-height: 22.4px; color: var(--black); background: var(--white); overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+    img { display: block; max-width: 100%; }
+    .wrap { padding: 0 var(--gutter); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 11px 24px; font-size: 12px; line-height: 22px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; border-radius: 1px; cursor: pointer; white-space: nowrap; }
+    .btn-brand { background: var(--brand-300); color: var(--black); border: 0; }
+    .btn-outline { background: var(--white); color: var(--black); border: 0.5px solid var(--black); }
+    .u-link { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+    /* Announcement */
+    .promo { display: flex; justify-content: center; align-items: center; height: 48px; background: var(--brand-300); padding: 0 14px; }
+    .promo span { font-size: 12px; line-height: 21.6px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+    .promo a { font-size: 10px; line-height: 16px; font-weight: 500; margin-left: 8px; border-bottom: 1px solid var(--black); padding-bottom: 2px; }
+
+    /* Header */
+    .hdr { height: 76px; display: grid; grid-template-columns: 1fr 400px 1fr; align-items: center; padding: 0 var(--gutter); background: var(--white); }
+    .toggle { justify-self: start; display: inline-flex; height: 44px; background: var(--gray-200); border-radius: 999px; }
+    .toggle a { display: flex; align-items: center; padding: 0 24px; font-size: 12px; line-height: 21.6px; font-weight: 500; letter-spacing: 1px; border-radius: 999px; }
+    .toggle a.on { background: var(--white); border: 2px solid var(--gray-200); }
+    .logo { justify-self: center; display: flex; align-items: center; height: 33px; }
+    .logo svg { width: 184px; height: 33px; }
+    .search { justify-self: end; position: relative; width: 334px; }
+    .search input { width: 100%; height: 44px; padding: 12px 64px 12px 12px; border: 0.5px solid var(--gray-400); border-radius: 1px; font-size: 14px; color: var(--black); background: var(--white); outline: none; }
+    .search input::placeholder { color: var(--gray-600); }
+    .search svg { position: absolute; right: 12px; top: 14px; width: 16px; height: 16px; }
+    .subnav { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter); background: var(--white); }
+    .subnav nav { display: flex; gap: 48px; height: 52px; overflow: hidden; }
+    .subnav nav a { display: flex; align-items: center; height: 52px; font-size: 14px; line-height: 20px; white-space: nowrap; }
+    .subnav nav a.on { font-weight: 500; box-shadow: inset 0 -2px 0 var(--black); }
+    .icons { display: flex; gap: 24px; }
+    .icons a { display: flex; width: 20px; height: 20px; position: relative; }
+    .icons a::before { content: ""; position: absolute; inset: -12px; }
+    .icons svg { width: 20px; height: 20px; }
+
+    /* Hero */
+    .hero { position: relative; min-height: 460px; display: flex; align-items: center; justify-content: center; padding: 64px 16px; overflow: hidden; background: #3c3a36 url("https://cf-assets-clover-app.thredup.com/uploads/2026-07-14/standard-3a2b6279.jpeg") center/cover no-repeat; }
+    .hero video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    .hero video.m { display: none; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.18); }
+    .hero-in { position: relative; z-index: 1; width: 650px; max-width: 100%; text-align: center; color: var(--white); }
+    .hero h2 { font-family: var(--serif); font-weight: 400; font-size: 48px; line-height: 57.6px; }
+    .hero .lede { margin: 24px auto 0; max-width: 360px; font-size: 20px; line-height: 32px; }
+    .cashout { margin: 32px auto 0; width: 560px; max-width: 100%; background: var(--white); color: var(--black); text-align: left; padding: 24px; border-radius: 1px; }
+    .cashout h3 { font-family: var(--serif); font-weight: 400; font-size: 20px; line-height: 28px; }
+    .cashout .sub { margin-top: 4px; font-size: 12px; line-height: 21.6px; color: var(--gray-800); }
+    .cashout .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 16px; }
+    .cashout label { display: block; font-size: 10px; line-height: 18px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .cashout select, .cashout input { width: 100%; height: 44px; padding: 0 12px; border: 0.5px solid var(--gray-400); border-radius: 1px; background: var(--white); font-size: 14px; color: var(--black); appearance: none; -webkit-appearance: none; }
+    .cashout select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .cashout .btn { width: 100%; margin-top: 16px; }
+    .cashout .btn:disabled { opacity: 0.6; cursor: wait; }
+    .result-box { display: none; margin-top: 12px; padding: 12px 16px; font-size: 14px; line-height: 22.4px; border-radius: 1px; }
+    .result-box.success { display: block; background: var(--brand-300); color: var(--brand-700); }
+    .result-box.error { display: block; background: rgb(250, 232, 230); color: var(--burgundy-700); }
+    .result-box .error-title { font-weight: 500; }
+    .result-box .error-detail { font-size: 12px; line-height: 21.6px; word-break: break-word; }
+
+    /* Start selling */
+    .free { background: var(--brand-700); color: var(--brand-300); padding: 32px 16px; position: relative; }
+    .free-in { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 0 var(--gutter); }
+    .free h3 { font-family: var(--serif); font-weight: 400; font-size: 28px; line-height: 39.2px; }
+    .free p { margin-top: 8px; }
+    .free s { text-decoration: line-through; }
+    .free strong { font-weight: 500; }
+    .free .btn { background: rgba(0, 0, 0, 0.03); color: var(--brand-300); border: 0.5px solid var(--brand-300); padding: 11px 16px; }
+    .free .terms { position: absolute; right: 16px; bottom: 16px; font-size: 10px; line-height: 16px; font-weight: 500; color: var(--gray-400); border-bottom: 1px solid var(--gray-400); padding-bottom: 2px; }
+
+    /* Sections */
+    .sec { padding-top: var(--section-gap); }
+    .sec:first-of-type { padding-top: 40px; }
+    .h2 { font-family: var(--serif); font-weight: 400; font-size: 36px; line-height: 50.4px; text-align: center; }
+    .steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 40px; text-align: center; }
+    .num { width: 28px; height: 28px; margin: 0 auto; border: 1px solid var(--black); border-radius: 100%; font-size: 12px; line-height: 26px; font-weight: 500; letter-spacing: 1px; }
+    .h5 { font-family: var(--sans); font-weight: 500; font-size: 20px; line-height: 28px; }
+    .steps .h5 { margin-top: 16px; }
+    .steps p { margin-top: 12px; }
+    .center { text-align: center; margin-top: 40px; }
+    .center .btn-outline { width: 396px; padding: 16px 44px; }
+    .cards { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+    .card .ph { position: relative; height: 321px; }
+    .card img { width: 100%; height: 321px; object-fit: cover; border-radius: 1px; background: var(--gray-200); }
+    .badge { position: absolute; left: 16px; bottom: -14px; display: inline-block; padding: 4px 8px; font-size: 12px; line-height: 19.2px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; border-radius: 1px; }
+    .card h3 { font-family: var(--serif); font-weight: 400; font-size: 28px; line-height: 39.2px; margin-top: 24px; }
+    .card p { margin-top: 8px; }
+    .card .more { display: inline-block; margin-top: 18px; font-size: 12px; line-height: 22px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; text-decoration: underline; text-underline-offset: 6px; }
+    .diy { margin-top: 72px; background: var(--burgundy-700); color: var(--white); padding: 48px var(--gutter); display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+    .eyebrow { font-size: 10px; line-height: 18px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+    .diy h3 { font-family: var(--serif); font-weight: 400; font-size: 28px; line-height: 39.2px; display: flex; align-items: center; gap: 12px; }
+    .diy h3 span { font-family: var(--sans); font-size: 10px; line-height: 14px; font-weight: 500; letter-spacing: 1px; padding: 4px 8px; background: var(--brand-300); color: var(--black); border-radius: 1px; }
+    .diy .copy { max-width: 663px; }
+    .diy .copy div { margin-top: 4px; }
+    .diy .btn { width: 240px; padding: 11px 8px; }
+    .proc { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 40px; text-align: center; }
+    .proc img { width: 260px; height: 260px; border-radius: 100%; object-fit: cover; margin: 0 auto; background: var(--gray-200); }
+    .proc .h5 { margin-top: 24px; }
+    .proc p { margin-top: 12px; }
+    .faq h2 { font-family: var(--serif); font-weight: 400; font-size: 20px; line-height: 28px; text-align: center; }
+    .faq .eyebrow { text-align: center; margin-top: 24px; }
+    .faq h2 + .eyebrow { margin-top: 24px; }
+    .faq ul { list-style: none; margin-top: 8px; display: grid; gap: 4px; }
+    .faq details { background: var(--gray-200); border-radius: 1px; }
+    .faq summary { list-style: none; display: flex; justify-content: space-between; align-items: center; min-height: 54px; padding: 16px; font-weight: 500; cursor: pointer; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary svg { flex: none; width: 16px; height: 16px; margin-left: 16px; }
+    .faq details[open] summary svg .v { display: none; }
+    .faq .ans { padding: 4px 20px 20px; background: var(--white); }
+    .impact { margin-top: var(--section-gap); min-height: 320px; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--white); padding: 48px 16px; background: #4a4a48 url("https://cf-assets-clover-app.thredup.com/uploads/2025-12-18/impact-37c8175e.jpg") center/cover no-repeat; }
+    .impact h3 { font-family: var(--serif); font-weight: 400; font-size: 36px; line-height: 50.4px; margin-top: 4px; }
+    .impact p { margin: 4px auto 0; max-width: 384px; }
+    .impact .btn { margin-top: 20px; width: 240px; background: rgba(0, 0, 0, 0.03); color: var(--white); border: 0.5px solid var(--white); padding: 11px 8px; }
+    .blog { display: flex; gap: 16px; overflow-x: auto; scrollbar-width: none; margin-top: var(--section-gap); }
+    .blog::-webkit-scrollbar { display: none; }
+    .blog a { flex: 0 0 367px; }
+    .blog img { width: 100%; height: 207px; object-fit: cover; border-radius: 1px; background: var(--gray-200); }
+    .blog span { display: block; margin-top: 10px; font-family: var(--serif); font-size: 14px; line-height: 19.6px; font-weight: 500; }
+
+    /* Footer */
+    footer { margin-top: 32px; background: var(--gray-200); padding: 56px var(--gutter) 48px; }
+    .f-top { display: flex; justify-content: space-between; gap: 32px; }
+    .f-cols { display: grid; grid-template-columns: repeat(4, 233.5px); }
+    .f-cols h5, .f-side h4 { font-family: var(--serif); font-weight: 400; font-size: 20px; line-height: 28px; margin-bottom: 16px; }
+    .f-cols a { display: table; font-size: 14px; line-height: 22.4px; margin-bottom: 12.5px; }
+    .f-cols .gap { margin-top: 24px; }
+    .f-side { width: 340px; flex: none; }
+    .f-side .note { font-size: 12px; line-height: 21.6px; }
+    .f-signup { display: flex; gap: 12px; margin-top: 12px; }
+    .f-signup input { flex: 1; min-width: 0; height: 44px; padding: 12px; border: 0.5px solid var(--gray-400); border-radius: 1px; font-size: 14px; background: var(--white); }
+    .f-signup .btn { width: 108px; background: rgba(255, 255, 255, 0.03); border: 0.5px solid var(--black); }
+    .f-app { margin-top: 40px; }
+    .f-app p { font-size: 14px; line-height: 22.4px; }
+    .f-app .row { display: flex; gap: 24px; margin-top: 16px; }
+    .qr { width: 108px; height: 108px; flex: none; }
+    .stores { display: grid; gap: 12px; flex: 1; }
+    .stores a { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; background: var(--black); color: var(--white); border-radius: 1px; font-size: 13px; font-weight: 500; }
+    .stores small { display: block; font-size: 7px; line-height: 8px; letter-spacing: 0.5px; }
+    .f-social { margin-top: 40px; }
+    .f-social .row { display: flex; gap: 16px; }
+    .f-social a { width: 40px; height: 40px; border: 1px solid var(--gray-400); border-radius: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+    .f-social a::before { content: ""; position: absolute; inset: -2px; }
+    .f-social svg { width: 24px; height: 24px; }
+    .f-bot { margin-top: 40px; border-top: 1px solid var(--gray-400); padding-top: 40px; display: flex; justify-content: space-between; gap: 24px; }
+    .f-legal { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+    .f-legal a { font-size: 10px; line-height: 16px; font-weight: 500; border-bottom: 1px solid var(--black); padding-bottom: 2px; }
+    .f-legal .choices { color: var(--gray-800); border-color: var(--gray-800); display: inline-flex; align-items: center; gap: 8px; }
+    .f-legal .choices svg { width: 30px; height: 14px; }
+    .f-copy { width: 356px; text-align: right; font-size: 10px; line-height: 16px; }
+    .f-copy p + p { color: var(--gray-800); margin-top: 8px; }
+
+    @media (max-width: 767px) {
+      :root { --gutter: 40px; --section-gap: 48px; }
+      .promo { height: 56px; }
+      .promo span { font-size: 10px; line-height: 18px; letter-spacing: 0.4px; white-space: nowrap; }
+      .promo a { margin-left: 6px; }
+      .hdr { grid-template-columns: auto 1fr auto; padding: 0 40px; gap: 16px; }
+      .logo svg { display: none; }
+      .search { width: 77px; }
+      .search input { padding-right: 32px; }
+      .search input::placeholder { color: var(--gray-600); }
+      .subnav { padding: 0 40px; gap: 16px; }
+      .subnav nav { flex: 1; min-width: 0; gap: 48px; }
+      .hero { min-height: 440px; padding: 48px 16px; }
+      .hero video.d { display: none; }
+      .hero video.m { display: block; }
+      .hero h2 { font-size: 40px; line-height: 48px; max-width: 300px; margin: 0 auto; }
+      .hero .lede { margin-top: 16px; max-width: 320px; font-size: 14px; line-height: 22.4px; }
+      .cashout { margin-top: 16px; padding: 16px; }
+      .cashout .grid { grid-template-columns: 1fr; }
+      .free-in { display: block; padding: 0 40px; }
+      .free h3 { font-size: 24px; line-height: 33.6px; }
+      .free .btn { width: 100%; margin-top: 16px; }
+      .free .terms { position: static; display: table; margin: 8px 0 0 auto; }
+      .sec:first-of-type { padding-top: 40px; }
+      .h2 { font-size: 28px; line-height: 39.2px; }
+      .steps { grid-template-columns: 1fr; text-align: left; }
+      .steps li { display: grid; grid-template-columns: 28px 1fr; column-gap: 16px; }
+      .num { grid-row: 1 / span 2; margin: 0; }
+      .steps .h5 { margin-top: 0; }
+      .center .btn-outline { width: 100%; }
+      .cards { grid-template-columns: 1fr; gap: 32px; }
+      .card .ph, .card img { height: 242px; }
+      .card h3 { font-size: 24px; line-height: 33.6px; }
+      .diy { display: block; margin-top: 48px; padding: 24px; }
+      .diy h3 { font-size: 24px; line-height: 33.6px; }
+      .diy .btn { width: 100%; margin-top: 16px; }
+      .proc { grid-template-columns: 1fr; gap: 32px; }
+      .proc img { width: 180px; height: 180px; }
+      .proc .h5 { margin-top: 16px; }
+      .impact { background-image: url("https://cf-assets-clover-app.thredup.com/uploads/2025-12-18/impact-mobile-560bb34d.jpg"); }
+      .impact h3 { font-size: 28px; line-height: 39.2px; }
+      .impact .btn { width: 100%; }
+      .blog { margin-left: 16px; margin-right: 16px; }
+      .blog a { flex-basis: 198px; }
+      .blog img { height: 111px; }
+      .f-top { display: block; }
+      .f-cols { grid-template-columns: 1fr 1fr; gap: 24px 16px; }
+      .f-side { width: auto; margin-top: 24px; }
+      .f-cols a { position: relative; }
+      .f-bot { display: block; }
+      .f-copy { width: auto; text-align: left; margin-top: 24px; }
+      .f-legal a { position: relative; }
+    }
+  </style>
+</head>
+<body>
+  <div class="promo"><span>Free Clean Out Bag &amp; Zero Fees When You Sell With Us</span><a href="#">Terms</a></div>
+
+  <header>
+    <div class="hdr">
+      <div class="toggle"><a href="#">SHOP</a><a href="#" class="on">SELL</a></div>
+      <a href="#" class="logo" aria-label="ThredUp">
+        <svg viewBox="0 0 184 33" aria-hidden="true"><text x="92" y="29" text-anchor="middle" font-family="Archivo, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="34" letter-spacing="-0.4" fill="#000">THREDUP</text></svg>
+      </a>
+      <form class="search" onsubmit="return false"><input type="text" placeholder="Search" aria-label="Search"><svg viewBox="0 0 16 16" fill="none" stroke="#000" stroke-width="1"><rect x="1.5" y="4" width="13" height="9.5" rx="1"/><path d="M5.5 4l1-2h3l1 2"/><circle cx="8" cy="8.7" r="2.6"/></svg></form>
+    </div>
+    <div class="subnav">
+      <nav><a href="#" class="on">Ways to Sell</a><a href="#">Clean Out Guide</a></nav>
+      <div class="icons">
+        <a href="#" aria-label="Favorites"><svg viewBox="0 0 20 20" fill="none" stroke="#000" stroke-width="1.4"><path d="M10 17.2S2.2 12.6 2.2 7.3A4 4 0 0 1 10 5.6a4 4 0 0 1 7.8 1.7c0 5.3-7.8 9.9-7.8 9.9z"/></svg></a>
+        <a href="#" aria-label="Account"><svg viewBox="0 0 20 20" fill="none" stroke="#000" stroke-width="1.4"><circle cx="10" cy="6" r="4"/><path d="M2.5 18.5c0-3.2 3.4-5.5 7.5-5.5s7.5 2.3 7.5 5.5z"/></svg></a>
+        <a href="#" aria-label="Cart"><svg viewBox="0 0 20 20" fill="none" stroke="#000" stroke-width="1.4"><path d="M1 2h2.6l2.2 10.5h10.4L18.5 5H4.6"/><circle cx="7.2" cy="16.8" r="1.3"/><circle cx="15" cy="16.8" r="1.3"/></svg></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <video class="d" autoplay muted loop playsinline src="https://cf-assets-clover-app.thredup.com/uploads/videos/2025-12-22/hero-desktop-8b53b8c4.mp4#t=0.001" onerror="this.remove()"></video>
+      <video class="m" autoplay muted loop playsinline src="https://cf-assets-clover-app.thredup.com/uploads/videos/2025-12-22/hero-mobile-0d33ea61.mp4#t=0.001" onerror="this.remove()"></video>
+      <div class="hero-in">
+        <h2>Sell Your Clothes the Easy Way</h2>
+        <div class="lede">We handle the selling so your clothes can find their next home&mdash;and you get paid.</div>
+        <div class="cashout">
+          <h3>Cash out your earnings</h3>
+          <div class="sub">Move your seller earnings to shopping credit or your bank account.</div>
+          <form id="transferForm">
+            <div class="grid">
+              <div><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">Seller earnings &mdash; ACCT-1001</option><option value="ACCT-1002">Shopping credit &mdash; ACCT-1002</option></select></div>
+              <div><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">Shopping credit &mdash; ACCT-1002</option><option value="ACCT-1001">Seller earnings &mdash; ACCT-1001</option><option value="ACCT-EXT-001">Bank account ****4921</option></select></div>
+              <div><label for="amount">Amount</label><input type="number" id="amount" value="125" min="1" step="0.01" placeholder="$0.00"></div>
+              <div><label for="accountTier">Clean Out type</label><select id="accountTier"><option value="standard">Standard</option><option value="premium">Premium</option><option value="basic">Direct Listing</option></select></div>
+            </div>
+            <button type="submit" class="btn btn-brand" id="submitBtn">Cash out</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="free">
+      <div class="free-in">
+        <div>
+          <h3>Start Selling for Free</h3>
+          <p>Order a Standard bag and return it within 30 days for a <s>$14.99</s> <strong>$0.00</strong> service fee and no bag fees.</p>
+        </div>
+        <a href="#" class="btn">Try it now</a>
+      </div>
+      <a href="#" class="terms">Terms</a>
+    </section>
+
+    <div class="wrap">
+      <section class="sec">
+        <h2 class="h2">How it Works</h2>
+        <ul class="steps">
+          <li><div class="num">1</div><h5 class="h5">Send it In</h5><p>Fill a Clean Out bag with women&rsquo;s or kids&rsquo; clothes, handbags, shoes, or accessories.</p></li>
+          <li><div class="num">2</div><h5 class="h5">We Sell for You</h5><p>We handle everything &mdash; inspection, photography, pricing, and listings optimized to sell.</p></li>
+          <li><div class="num">3</div><h5 class="h5">Sit Back &amp; Earn</h5><p>Earn a percentage of the selling price as your items sell, then get cash or shopping credit.</p></li>
+        </ul>
+        <div class="center"><a href="#" class="btn btn-outline">See Clean Out Guide</a></div>
+      </section>
+
+      <section class="sec">
+        <h2 class="h2">Choose Your Clean Out</h2>
+        <ul class="cards">
+          <li class="card"><div class="ph"><img src="https://cf-assets-clover-app.thredup.com/uploads/2026-07-14/premium-722ce2d6.jpeg" alt="" onerror="this.style.visibility='hidden'"><span class="badge" style="background:var(--purple-300)">Premium</span></div><h3>For Your Nicer Pieces</h3><p>Get priority handling, higher earnings, and more control.</p><a href="#" class="more">Choose premium</a></li>
+          <li class="card"><div class="ph"><img src="https://cf-assets-clover-app.thredup.com/uploads/2026-07-14/standard-3a2b6279.jpeg" alt="" onerror="this.style.visibility='hidden'"><span class="badge" style="background:var(--brand-300)">Standard</span></div><h3>For Everyday Clean Outs</h3><p>Get a clean closet and a little cash in your pocket.</p><a href="#" class="more">Choose standard</a></li>
+          <li class="card"><div class="ph"><img src="https://cf-assets-clover-app.thredup.com/uploads/2026-07-14/donation-4297fb51.jpeg" alt="" onerror="this.style.visibility='hidden'"><span class="badge" style="background:var(--gray-200)">Donation</span></div><h3>Do Good While Cleaning Out</h3><p>Give your clothes a new life at no cost to you.</p><a href="#" class="more">Choose donation</a></li>
+        </ul>
+      </section>
+
+      <section class="diy">
+        <div class="copy">
+          <h4 class="eyebrow">Direct Listing</h4>
+          <h3>Sell it Yourself <span>BETA</span></h3>
+          <div>Sell items yourself using our tools to list and ship directly to buyers. Plus keep 100% of your earnings.</div>
+        </div>
+        <a href="#" class="btn btn-brand">Try Direct Listing</a>
+      </section>
+
+      <section class="sec">
+        <h2 class="h2">A Look Into Our Process</h2>
+        <ul class="proc">
+          <li><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-12-22/inspect-7bfb2284.png" alt="" onerror="this.style.visibility='hidden'"><h5 class="h5">Inspection</h5><p>Our team of experts measure, inspect, and capture every detail to give your items the best chance to sell.</p></li>
+          <li><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-12-22/photo-2efcce8a.png" alt="" onerror="this.style.visibility='hidden'"><h5 class="h5">Photography</h5><p>We take 360 degree images to make sure buyers have transparency when it comes to the quality of items.</p></li>
+          <li><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-12-22/selling-037af1d3.png" alt="" onerror="this.style.visibility='hidden'"><h5 class="h5">Selling</h5><p>We bring 16 years of expertise to price your items confidently and help them find their next closet.</p></li>
+        </ul>
+      </section>
+
+      <section class="sec faq">
+        <h2>Frequently Asked Questions</h2>
+        <p class="eyebrow">Before You Send</p>
+        <ul>
+          <li><details><summary>What items should I send?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">We accept all brands, though a small number with very low resale value are ineligible for a payout. All items must be clean and in good condition.</div></details></li>
+          <li><details><summary>Which brands don&rsquo;t earn a payout?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">Some brands are ineligible for a payout. Less than 5% of our 60,000+ brand catalog is ineligible.</div></details></li>
+          <li><details><summary>Should I order a bag or a label?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">It depends on how quickly you want to send. Ready to ship now and have a large box? Order a label. Willing to wait and don&rsquo;t have a box? Order a bag.</div></details></li>
+          <li><details><summary>How does selling with returns work?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">It&rsquo;s easy, just opt in to selling when you start a return. You can send up to 30 items when selling with returns.</div></details></li>
+        </ul>
+        <p class="eyebrow">Fees &amp; Earnings</p>
+        <ul>
+          <li><details><summary>What fees are deducted from my earnings?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">There are no upfront fees. A service fee of <s>$14.99</s> $0.00 (Standard) or $34.99 (Premium) is deducted from your earnings.</div></details></li>
+          <li><details><summary>How are my items priced?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">We price your items. Our algorithms set prices based on past sales of similar items. You can edit the price, and we reduce prices over time to help your items sell.</div></details></li>
+          <li><details><summary>How can I use my earnings?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">If an item sells, you earn ThredUp shopping credit, or you can cash out. Earnings are issued at different times depending on the item.</div></details></li>
+        </ul>
+        <p class="eyebrow">After You Send</p>
+        <ul>
+          <li><details><summary>How long does the whole process take?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">It depends on which service you choose. Processing takes 21&ndash;28 days for Standard, and most items go live within a day of processing.</div></details></li>
+          <li><details><summary>What happens to items that aren&rsquo;t listed?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">We accept an average of 60&ndash;80% of items. Unlisted items from Standard Clean Outs are reused or responsibly recycled; unlisted items from Premium Clean Outs are returned to you.</div></details></li>
+          <li><details><summary>What happens to items that don&rsquo;t sell?<svg viewBox="0 0 16 16" stroke="#000" stroke-width="1.2"><path d="M1 8h14"/><path class="v" d="M8 1v14"/></svg></summary><div class="ans">You can reclaim your item for a fee in the final 7 days of its consignment window. Otherwise we give everything else a second life.</div></details></li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="impact">
+      <div>
+        <h4 class="eyebrow">Our Impact This Year</h4>
+        <h3>20 million items. Zero landfills.</h3>
+        <p>Even if it doesn&rsquo;t sell, everything you send gets a new lease on life.</p>
+        <a href="#" class="btn">Learn More</a>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="blog">
+        <a href="#"><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-10-06/cleanout-blog-1-13820cf9.jpg" alt="" onerror="this.style.visibility='hidden'"><span>How To Sell Your Clothes Online: 5 Best Places</span></a>
+        <a href="#"><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-10-06/cleanout-blog-2-00d0d11e.jpg" alt="" onerror="this.style.visibility='hidden'"><span>From Chaos to Clarity: How to Declutter Your Wardrobe</span></a>
+        <a href="#"><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-10-06/cleanout-blog-3-5d1a5ad9.jpg" alt="" onerror="this.style.visibility='hidden'"><span>Skip Landfill: 7 Ways to Repurpose Your Totally Worn-Out Clothes</span></a>
+        <a href="#"><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-10-06/cleanout-blog-4-cc2d4ebf.jpg" alt="" onerror="this.style.visibility='hidden'"><span>Our Secrets to Making Your Clothes Last Longer</span></a>
+        <a href="#"><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-10-06/cleanout-blog-5jpg-d79a8995.jpg" alt="" onerror="this.style.visibility='hidden'"><span>It&rsquo;s SEW Easy: How to Make You &amp; Your Clothes Feel Brand New</span></a>
+        <a href="#"><img src="https://cf-assets-clover-app.thredup.com/uploads/2025-10-06/cleanout-blog-6-6d65a295.jpg" alt="" onerror="this.style.visibility='hidden'"><span>12 Conscious Closet Habits to Try</span></a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="f-top">
+      <div class="f-cols">
+        <div><h5>The Company</h5><a href="#">About Us</a><a href="#">Blog</a><a href="#">Resale Report</a><a href="#">Our Impact</a><a href="#">Careers</a><a href="#">Resale-as-a-Service</a><a href="#">Newsroom</a><a href="#">Investors</a><a href="#">FAQ</a><a href="#">Return Policy</a><a href="#">Reviews</a></div>
+        <div><h5>Shop Departments</h5><a href="#">Women</a><a href="#">Kids</a><a href="#">Juniors</a><a href="#">Designer</a><a href="#">Maternity</a><a href="#">Plus</a><a href="#">Shoes</a><a href="#">Handbags</a><a href="#">Accessories</a></div>
+        <div><h5>Top Brands</h5><a href="#">J.Crew</a><a href="#">Ann Taylor LOFT</a><a href="#">Banana Republic</a><a href="#">BCBGMAXAZRIA</a><a href="#">Lululemon Athletica</a><a href="#">Talbots</a><a href="#">Free People</a><a href="#">Lilly Pulitzer</a><a href="#">Madewell</a><a href="#">Shop All Brands</a></div>
+        <div><h5>Discover</h5><a href="#">Wholesale</a><a href="#">Rescues</a><a href="#">Size Guide</a><a href="#">ThredUp Insider</a><a href="#">Gift Cards</a><a href="#">Discount Codes</a><a href="#">Sitemap</a><h5 class="gap">Sell</h5><a href="#">Order a Bag</a><a href="#">Selling Guide</a><a href="#">All About Earnings</a></div>
+      </div>
+      <div class="f-side">
+        <h4>Sign Up, Save More</h4>
+        <p class="note">New here? Sign up to receive our emails and get extra deals on your first order. <a href="#">Read terms</a></p>
+        <form class="f-signup" onsubmit="return false"><input type="email" placeholder="Enter your email" aria-label="Enter your email"><button type="button" class="btn">Sign up</button></form>
+        <div class="f-app">
+          <h4>It&rsquo;s easier to shop on mobile</h4>
+          <p>Download the app and get notified when your order ships and get personalized recommendations</p>
+          <div class="row">
+            <svg class="qr" viewBox="0 0 27 27" shape-rendering="crispEdges" aria-hidden="true"><rect width="27" height="27" fill="#fff"/><g fill="#000"><path d="M1 1h7v7H1zM19 1h7v7h-7zM1 19h7v7H1z"/></g><g fill="#fff"><path d="M2 2h5v5H2zM20 2h5v5h-5zM2 20h5v5H2z"/></g><g fill="#000"><path d="M3 3h3v3H3zM21 3h3v3h-3zM3 21h3v3H3zM10 1h2v2h-2zM13 2h2v3h-2zM10 5h3v2h-3zM15 6h2v2h-2zM9 9h3v2H9zM13 9h2v4h-2zM16 10h3v2h-3zM20 9h2v2h-2zM23 10h3v3h-3zM1 10h2v2H1zM4 11h3v2H4zM10 13h2v3h-2zM17 13h2v2h-2zM20 14h4v2h-4zM2 14h3v2H2zM6 15h3v2H6zM12 17h3v2h-3zM16 17h2v3h-2zM19 18h3v2h-3zM23 18h3v4h-3zM10 20h2v3h-2zM13 21h2v2h-2zM18 22h4v2h-4zM10 24h4v2h-4zM16 24h2v2h-2zM24 24h2v2h-2z"/></g></svg>
+            <div class="stores">
+              <a href="#"><svg width="14" height="17" viewBox="0 0 14 17" fill="#fff" aria-hidden="true"><path d="M11.6 9c0-2 1.6-2.9 1.7-3a3.7 3.7 0 0 0-2.9-1.6c-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7A3.9 3.9 0 0 0 1.5 6.4c-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.5 2s1.4-.6 2.6-.6 1.5.6 2.6.6 1.7-1 2.4-2a8 8 0 0 0 1.1-2.3A3.4 3.4 0 0 1 11.6 9zM9.6 3A3.4 3.4 0 0 0 10.4.5 3.5 3.5 0 0 0 8.1 1.7a3.3 3.3 0 0 0-.8 2.4A2.9 2.9 0 0 0 9.6 3z"/></svg><span><small>Download on the</small>App Store</span></a>
+              <a href="#"><svg width="15" height="16" viewBox="0 0 15 16" aria-hidden="true"><path d="M1 .5l8 7.5-8 7.5z" fill="#00d7fe"/><path d="M1 .5l10.5 6-2.5 2z" fill="#00f076"/><path d="M1 15.5l10.5-6-2.5-2z" fill="#ff3a44"/><path d="M11.5 6.5L14 8l-2.5 1.5L9 8z" fill="#ffd400"/></svg><span><small>GET IT ON</small>Google Play</span></a>
+            </div>
+          </div>
+        </div>
+        <div class="f-social">
+          <h4>Connect with Us</h4>
+          <div class="row">
+            <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.6" cy="7.4" r=".6" fill="#000"/></svg></a>
+            <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#000"/><path d="M13.2 21v-6.6h2.2l.3-2.6h-2.5v-1.6c0-.7.2-1.3 1.3-1.3h1.3V6.6a17 17 0 0 0-2-.1c-2 0-3.3 1.2-3.3 3.4v1.9H8.3v2.6h2.2V21z" fill="#fff"/></svg></a>
+            <a href="#" aria-label="Pinterest"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#000"/><path d="M12.3 6.5c-3.4 0-5.1 2.4-5.1 4.4 0 1.2.5 2.3 1.4 2.7.2.1.3 0 .4-.2l.1-.6c.1-.2 0-.3-.1-.5a2.4 2.4 0 0 1-.6-1.6 4 4 0 0 1 4.2-4c2.3 0 3.6 1.4 3.6 3.3 0 2.5-1.1 4.6-2.7 4.6a1.3 1.3 0 0 1-1.4-1.7c.3-1.1.8-2.3.8-3.1a1.2 1.2 0 0 0-1.2-1.4c-1 0-1.8 1-1.8 2.4a3.5 3.5 0 0 0 .3 1.4l-1.2 5a10 10 0 0 0 0 3.4h.2a10 10 0 0 0 1.6-3l.6-2.4a2.6 2.6 0 0 0 2.2 1.1c2.9 0 4.8-2.6 4.8-6.1 0-2.7-2.3-5.2-5.8-5.2z" fill="#fff"/></svg></a>
+            <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.4"><path d="M5 5l14 14M19 5L5 19"/><path d="M5 5h3.5L19 19h-3.5z" fill="none"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="f-bot">
+      <div class="f-legal"><a href="#">Terms of Use</a><a href="#">Privacy Policy</a><a href="#">Accessibility</a><a href="#">Do Not Sell My Personal Information</a><a href="#" class="choices">Your Privacy Choices <svg viewBox="0 0 30 14" aria-hidden="true"><rect x=".5" y=".5" width="29" height="13" rx="6.5" fill="#fff" stroke="#06f"/><path d="M15 .5h8a6.5 6.5 0 0 1 0 13h-12z" fill="#06f"/><path d="M5 7l2 2 4-4" stroke="#06f" fill="none" stroke-width="1.4"/><path d="M19 4.5l5 5M24 4.5l-5 5" stroke="#fff" stroke-width="1.4"/></svg></a></div>
+      <div class="f-copy"><p>&copy; ThredUp Inc. All Rights Reserved</p><p>Having problems using a screen reader on this website? Text (415) 422-9559 for help.</p></div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Cash out failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Cash out complete</div><div class="error-detail">$${data.debitAmount} withdrawn from your earnings (includes $${data.fee} processing fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Cash out'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
