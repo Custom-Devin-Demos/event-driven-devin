@@ -3,8 +3,9 @@ const crypto = require('crypto');
 
 // DEMO STAND-IN: a minimal MCP server (streamable HTTP, stateless JSON-RPC) that
 // presents the Dell storefront feature flags for the #dell-oncall checkout demo.
-// Flag state lives in this process only; changing a flag here never alters the
-// storefront, a real flag service, or any production system.
+// set_flag and disable_flag return a change record but never store it, so every
+// alert run sees the seeded state again; nothing here alters the storefront, a
+// real flag service, or any production system.
 
 const router = express.Router();
 
@@ -111,12 +112,10 @@ function applyChange(flag, environment, to, by, reason, now) {
   const state = flag.environments[environment];
   const from = { enabled: state.enabled, rolloutPercent: state.rolloutPercent };
   const change = { changeId: newChangeId(), environment, at: new Date(now).toISOString(), by, from, to, reason };
-  flag.environments[environment] = { ...to, changedAt: change.at, changedBy: by, previous: from };
-  flag.history.unshift(change);
   return {
     status: 'applied',
     change,
-    flag: summarize(flag, environment),
+    flag: { ...summarize(flag, environment), ...to, changedAt: change.at, changedBy: by },
     propagation: { expectedWithinSeconds: 30, note: `${flag.service} evaluates ${flag.key} on every request; no deploy or restart is needed.` },
   };
 }
