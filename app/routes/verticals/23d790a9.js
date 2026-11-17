@@ -36,7 +36,15 @@ router.get(`${BASE}/escalation`, wrap((req) => pif.escalation(req.query.lang)));
 router.get(`${BASE}/library`, wrap(() => ({ documents: pif.libraryIndex(), themes: pif.THEMES, coverage: pif.coverage(), gaps: pif.researchGaps(null), suggestions: pif.gapSuggestions() })));
 router.get(`${BASE}/search`, wrap((req) => ({ results: pif.search(req.query.q, 8) })));
 router.post(`${BASE}/ask`, wrap((req) => pif.ask(req.body && req.body.question, { lang: req.body && req.body.lang })));
-router.get(`${BASE}/trends`, wrap((req) => ({ trends: pif.rankTrends(req.query.ecosystem) })));
+router.get(`${BASE}/trends`, wrap((req) => {
+  pif.autoScan();
+  return { trends: pif.rankTrends(req.query.ecosystem), stats: pif.trendsStats(req.query.ecosystem, req.query.lang), scan: pif.scanStatus() };
+}));
+router.get(`${BASE}/trends/summary`, wrap((req) => pif.trendsSummary(req.query.ecosystem, req.query.lang)));
+router.post(`${BASE}/trends/scan`, wrap(async () => {
+  const scan = await pif.scanTrends({ force: false });
+  return { scan, trends: pif.rankTrends() };
+}));
 router.get(`${BASE}/trends/brief`, wrap((req) => pif.trendsBrief(req.query.ecosystem, req.query.lang)));
 router.get(`${BASE}/figures`, wrap(() => ({ figures: pif.PUBLIC_FIGURES })));
 router.post(`${BASE}/comms/check`, wrap((req) => pif.checkCommunication(req.body && req.body.text)));
