@@ -48,12 +48,5 @@ router.post(`${BASE}/trends/scan`, wrap(async () => {
 router.get(`${BASE}/trends/brief`, wrap((req) => pif.trendsBrief(req.query.ecosystem, req.query.lang)));
 router.get(`${BASE}/figures`, wrap(() => ({ figures: pif.PUBLIC_FIGURES })));
 router.post(`${BASE}/comms/check`, wrap((req) => pif.checkCommunication(req.body && req.body.text)));
-router.get(`${BASE}/feature-requests`, wrap(() => pif.listFeatureRequests()));
-router.post(`${BASE}/feature-requests`, wrap((req) => pif.createFeatureRequest(req.body || {})));
-router.get(`${BASE}/feature-requests/:id`, wrap(async (req) => {
-  const r = await pif.getFeatureRequest(req.params.id);
-  if (!r) { const err = new Error('Request not found'); err.status = 404; throw err; }
-  return r;
-}));
 
 module.exports = router;

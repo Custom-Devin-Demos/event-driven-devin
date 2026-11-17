@@ -151,8 +151,6 @@ textarea:focus,input:focus{outline:2px solid rgba(0,92,77,.25);border-color:var(
 .trend h3{font-size:16px;line-height:1.4}.trend .imp{font-size:13px;color:#4a4a4a;margin-top:6px}.trend .meta{font-size:12px;color:var(--grey)}
 table.figs{width:100%;border-collapse:collapse;font-size:13px}table.figs td,table.figs th{padding:12px 8px;border-top:1px solid var(--line);text-align:start;vertical-align:top}table.figs th{font-weight:500;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--grey)}
 table.figs td.v{color:var(--g);font-size:15px}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin:8px 0 36px}.steps div{border-top:2px solid var(--g);padding-top:14px;font-size:13px;color:#3c3c3c}.steps b{display:block;font-weight:500;font-size:15px;color:var(--ink);margin-bottom:4px}
-.req{border-top:1px solid var(--line);padding:16px 0}.req .s{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
 .overlay{position:fixed;inset:0;background:rgba(15,46,41,.55);z-index:20;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:50px 20px}
 .overlay.on{display:flex}
 .modal{background:#fff;max-width:820px;width:100%;border-radius:10px;padding:44px 52px;position:relative}
@@ -188,7 +186,6 @@ table.figs td.v{color:var(--g);font-size:15px}
     <a data-v="research" data-i="nav_research">Research Navigator</a>
     <a data-v="trends" data-i="nav_trends">AI Trends</a>
     <a data-v="comms" data-i="nav_comms">Leadership Communication</a>
-    <a data-v="devin" data-i="nav_devin">Request a Feature</a>
   </nav>
   <div class="lang"><button id="langBtn" aria-label="Switch language"><b id="lEn">EN</b>&nbsp;&nbsp;|&nbsp;&nbsp;<span id="lAr">العربية</span></button></div>
 </div></header>
@@ -281,31 +278,6 @@ table.figs td.v{color:var(--g);font-size:15px}
   </div></section>
 </div>
 
-<!-- DEVIN -->
-<div class="view" id="v-devin">
-  <div class="hero sm"><div class="wrap">
-    <div class="eyebrow">Request a feature</div><h1 data-i="dv_h">Ask for a change. Devin builds it.</h1>
-    <p class="lead" data-i="dv_lead">Describe what you would like this console to do. Devin, Cognition's AI software engineer, writes the code, tests it and prepares it for release — usually within the hour.</p>
-  </div></div>
-  <section class="blk" style="padding-top:40px"><div class="wrap">
-    <div class="steps"><div><b>1 · You describe it</b>In plain language, as you would to an analyst or engineer.</div><div><b>2 · Devin builds it</b>On a separate copy, so this console is never affected while work is in progress.</div><div><b>3 · Reviewed, then live</b>Cognition reviews the change with you and publishes it to this console.</div></div>
-    <div class="cols r">
-      <div>
-        <form id="reqForm">
-          <div class="lab">Your request</div>
-          <textarea id="reqText" style="min-height:150px" maxlength="800" placeholder="e.g. Add a watchlist for Riyadh Air that tracks announcements and flags anything relevant for leadership."></textarea>
-          <div class="chips" id="reqChips"></div>
-          <div class="lab" style="margin-top:20px">Your name (optional)</div>
-          <input type="text" id="reqName" maxlength="80">
-          <div style="display:flex;gap:14px;align-items:center;margin-top:18px"><button class="btn" id="reqBtn">Send to Devin</button><span class="muted" id="cap"></span></div>
-          <div id="reqMsg" style="margin-top:14px;font-size:13px"></div>
-        </form>
-      </div>
-      <div><div class="lab">Requests</div><div id="reqList" class="muted">No requests yet.</div></div>
-    </div>
-  </div></section>
-</div>
-
 <div class="foot"><div class="wrap"><img src="/verticals/23d790a9/pif-logo-color.svg" alt="PIF"><span>Proof of concept prepared by Cognition for the PIF AI Frontier Program. Not an official PIF system.</span></div></div>
 
 <div class="overlay" id="ov"><div class="modal" id="modal"></div></div>
@@ -321,12 +293,11 @@ async function api(path,opts={}){const r=await fetch(API+path,{credentials:'same
   const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||'Request failed'),{status:r.status});return j}
 
 /* ---------- i18n (navigation and headings; generated briefs follow LANG) ---------- */
-const AR={nav_home:'آفاق المنظومات',nav_research:'مستكشف الأبحاث',nav_trends:'اتجاهات الذكاء الاصطناعي',nav_comms:'اتصال القيادة',nav_devin:'طلب ميزة',
+const AR={nav_home:'آفاق المنظومات',nav_research:'مستكشف الأبحاث',nav_trends:'اتجاهات الذكاء الاصطناعي',nav_comms:'اتصال القيادة',
 home_h:'آفاق المنظومات',home_lead:'قراءة يومية لمنظومات الصندوق الست: مدى التوافق مع الاستراتيجية والضوابط المعتمدة، والانحرافات الجوهرية، والفرص والمخاطر الناشئة — مع توصيات جاهزة للتصعيد.',
 res_h:'ماذا درسنا من قبل؟',res_lead:'اسأل مكتبة أبحاث القسم. كل إجابة مدعومة بمصدرها، ويقترح المستكشف ما لم تتم دراسته بعد.',
 tr_h:'ما الذي يتغيّر ولماذا يهم الصندوق',tr_lead:'تطورات الذكاء الاصطناعي من مصادر موثوقة، مرتبة حسب أثرها على الصندوق ومدى إلحاحها، ومرتبطة بالشركات التابعة المتأثرة، مع إجراء مقترح لكل منها.',tr_scan:'افحص الآن',tr_mx:'الأثر على الصندوق × الإلحاح',tr_ex:'الشركات التابعة المتأثرة',
-co_h:'رسالة متسقة',co_lead:'راجع مسودات الكلمات مقابل ما نشره الصندوق قبل إلقائها. كل ملاحظة مرتبطة بمصدر عام مؤرخ.',
-dv_h:'اطلب تغييراً، وDevin ينفّذه',dv_lead:'صف ما تريد أن تقوم به هذه المنصة. يكتب Devin، مهندس البرمجيات من Cognition، الشيفرة ويختبرها ويجهزها للإطلاق.'};
+co_h:'رسالة متسقة',co_lead:'راجع مسودات الكلمات مقابل ما نشره الصندوق قبل إلقائها. كل ملاحظة مرتبطة بمصدر عام مؤرخ.'};
 const EN={};$$('[data-i]').forEach(el=>EN[el.dataset.i]=el.textContent);
 function applyLang(){document.documentElement.lang=LANG;document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
   $$('[data-i]').forEach(el=>el.textContent=(LANG==='ar'?AR:EN)[el.dataset.i]||EN[el.dataset.i]);
@@ -624,21 +595,7 @@ let figs=null;async function loadFigures(){if(!figs)figs=(await api('/figures'))
       return `<div class="find"><div class="f">${esc(line)}</div><div class="src">${esc(f.source.label)} · ${fmt(f.source.date)}</div></div>`}).join('')}</div>
     <div><div class="lab">Avoid</div>${figs.filter(f=>f.superseded).map(f=>`<div class="find"><div class="k st-red">Superseded</div><div class="f">“${esc(f.superseded.value)}” — ${esc(f.label.toLowerCase())}</div><div class="src">Replaced by ${esc(f.value)} (${esc(f.source.label)})</div></div>`).join('')}<div class="find"><div class="k st-red">Outdated framing</div><div class="f">“13 strategic sectors” — use “six ecosystems”.</div><div class="src">2026–2030 strategy release · 15 Apr 2026</div></div></div></div>`}
 
-/* ---------- Devin feature requests ---------- */
-const RQ=['Add a Riyadh Air watchlist that tracks announcements and flags anything relevant for leadership.','Translate the whole console into Arabic, right to left.','Add a chart of each ecosystem’s allocation against its band over the last four quarters.','Let me upload a speech as a Word document for the consistency check.'];
-$('#reqChips').innerHTML=RQ.map(q=>`<button type="button">${esc(q)}</button>`).join('');
-$$('#reqChips button').forEach(b=>b.onclick=()=>{$('#reqText').value=b.textContent});
-const RS={queued:['st-amb','Received'],working:['st-amb','Devin is building it'],'pr-opened':['st-ok','Built — ready for review'],finished:['st-ok','Devin has finished'],'not-configured':['st-red','Received — Devin connection not configured'],failed:['st-red','Could not start — Cognition has been notified']};
-let poll=null;
-async function loadDevin(){try{const d=await api('/feature-requests');$('#cap').textContent=`${Math.max(0,d.cap-d.usedToday)} of ${d.cap} requests left today`;$('#reqBtn').disabled=d.usedToday>=d.cap;
-  $('#reqList').innerHTML=d.requests.length?d.requests.map(r=>{const [c,l]=RS[r.state]||['muted',r.state];return `<div class="req"><div class="s ${c}">${r.state==='working'?'<span class="spin"></span>':''}${esc(l)}</div><div style="margin-top:6px;color:var(--ink)">${esc(r.request)}</div><div class="muted" style="margin-top:4px">${r.name?esc(r.name)+' · ':''}${new Date(r.createdAt).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.prUrl?` · <a class="ul" href="${esc(r.prUrl)}" target="_blank" rel="noopener">Change</a>`:''}${r.sessionUrl?` · <a class="ul" href="${esc(r.sessionUrl)}" target="_blank" rel="noopener">Devin session</a>`:''}</div></div>`}).join(''):'No requests yet.';
-  clearTimeout(poll);if(d.requests.some(r=>r.state==='working')&&$('#v-devin').classList.contains('on'))poll=setTimeout(async()=>{await Promise.all(d.requests.filter(r=>r.state==='working').map(r=>api('/feature-requests/'+r.id).catch(()=>{})));loadDevin()},15000);}catch(e){}}
-$('#reqForm').onsubmit=async e=>{e.preventDefault();const m=$('#reqMsg');$('#reqBtn').disabled=true;m.innerHTML='<span class="spin"></span>Sending to Devin…';
-  try{const r=await api('/feature-requests',{method:'POST',body:JSON.stringify({request:$('#reqText').value,name:$('#reqName').value})});
-    m.innerHTML=r.state==='working'?'<span class="st-ok">Devin has started. Progress appears on the right; you can keep using the console.</span>':`<span class="st-amb">${esc((RS[r.state]||[])[1]||r.state)}</span>`;$('#reqText').value='';}
-  catch(err){if(err.message!=='locked')m.innerHTML=`<span class="st-red">${esc(err.message)}</span>`}finally{loadDevin()}};
-
-const loaders={home:loadHome,research:loadResearch,trends:loadTrends,comms:()=>{},devin:loadDevin};
+const loaders={home:loadHome,research:loadResearch,trends:loadTrends,comms:()=>{}};
 let booted=false;
 async function boot(){if(booted)return;booted=true;LANG=localStorage.getItem('pifLang')||'en';applyLang();const v=(location.hash||'#home').slice(1);go(loaders[v]?v:'home')}
 (async()=>{const qs=new URLSearchParams(location.search);const c=qs.get('code');
