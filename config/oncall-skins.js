@@ -5728,7 +5728,8 @@ const ONCALL_SKINS = {
     brandMark: 'B',
     vertical: 'aogrequest',
     oncallOnly: true,
-    alertDestination: 'slack',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     paths: ['/boeing-aog', '/aog-request'],
     devinSession: {
       auto: true,
