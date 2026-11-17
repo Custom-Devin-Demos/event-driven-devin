@@ -4367,6 +4367,22 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN OPENSEA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OpenSea product.',
   },
+  '8b430e26': {
+    slug: '8b430e26',
+    company: 'AKASA',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '8b430e26.html', title: 'Encounter List | AKASA' },
+    alertCard: {
+      title: '5xx rate \u2014 Encounter List Send to Billing',
+      release: 'coding-workbench@1.0.3',
+      team: 'coding-platform-oncall',
+      baseline: '<0.5% (7-day, before coding-workbench@1.0.3)',
+      symptom: 'Send to Billing hangs ~8s and then fails with 504 Gateway Timeout. Upstream claim submission latency is elevated.',
+      impact: 'Coders cannot release reviewed encounters to billing; every Send to Billing times out after a long hang and the encounter stays on hold.',
+    },
+    disclaimer: 'NOT ACTUALLY AN AKASA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real AKASA product.',
+  },
   '53715b85': {
     slug: '53715b85',
     company: 'Vertican Technologies',

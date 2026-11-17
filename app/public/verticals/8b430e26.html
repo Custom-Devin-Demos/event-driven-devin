@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encounter List | AKASA</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: 'Montserrat', -apple-system, 'Segoe UI', sans-serif;
+      --navy: #1d334d;
+      --navy-ink: #0b1f38;
+      --red: #e7314e;
+      --cyan: #86d9e9;
+      --tab: #4e6d9a;
+      --page-bg: #f5f5f5;
+      --head-bg: #fafafa;
+      --sorted-bg: #f0f0f0;
+      --line: #f2f2f2;
+      --border: #e3e3e3;
+      --text: #414141;
+      --text-2: #585858;
+      --text-3: #737373;
+      --prio-hi: #485feb;
+      --prio: #fd0b0f;
+      --nav-h: 64px;
+      --row-h: 60px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--page-bg); }
+    body { font-family: var(--font); color: var(--text); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    button, input, select, textarea { font-family: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* Top brand rule + nav */
+    .brand-rule { height: 7px; background: linear-gradient(90deg, #c54659 0%, #c44558 40%, #823f51 64%, #52364c 82%, #28344a 100%); }
+    .topnav { height: var(--nav-h); background: #fff; display: flex; align-items: stretch; padding: 0 21px; }
+    .logo { display: flex; align-items: center; gap: 6px; margin-right: 52px; color: var(--navy-ink); }
+    .logo svg { width: 31px; height: 31px; flex: none; }
+    .logo-word { font-size: 28px; font-weight: 800; letter-spacing: 0.02em; line-height: 1; position: relative; }
+    .logo-word sup { position: absolute; top: -1px; right: -7px; font-size: 5px; font-weight: 600; letter-spacing: 0; }
+    .tabs { display: flex; align-items: stretch; gap: 34px; }
+    .tab { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: #545454; position: relative; }
+    .tab.active { color: var(--tab); }
+    .tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: 9px; height: 2px; background: var(--tab); }
+    .tab svg { width: 15px; height: 15px; }
+    .nav-spacer { flex: 1; }
+    .nav-divider { width: 1px; background: #f6f6f6; margin-right: auto; }
+    .tabs + .nav-divider { margin-left: 450px; }
+    .user { display: flex; align-items: center; gap: 9px; padding-right: 14px; }
+    .user-av { width: 38px; height: 38px; border-radius: 50%; background: #ea0e82; color: #fff; display: grid; place-items: center; font-size: 11.5px; font-weight: 500; letter-spacing: 0.04em; }
+    .user-name { font-size: 13.5px; font-weight: 600; color: #040404; line-height: 1.25; }
+    .user-org { font-size: 11.5px; color: var(--text-2); line-height: 1.6; }
+
+    /* Page */
+    .page { padding: 23px 21px 0; }
+    .page h1 { font-size: 24px; font-weight: 600; color: #000; line-height: 1.2; margin-bottom: 23px; letter-spacing: -0.005em; }
+    .card { background: #fff; padding: 16px 17px 24px; min-height: calc(100vh - 160px); }
+
+    /* Filters */
+    .filters { display: flex; align-items: center; flex-wrap: nowrap; gap: 0; margin-bottom: 17px; }
+    .filter { display: flex; align-items: center; gap: 9px; margin-right: 16px; }
+    .filter label { font-size: 14px; color: var(--text-2); white-space: nowrap; }
+    .fselect { height: 31px; border: 1px solid #e6e6e6; border-radius: 3px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 9px; font-size: 14px; color: #464646; cursor: pointer; }
+    .fselect svg { width: 12px; height: 12px; color: #8a8a8a; }
+    .w-sort { width: 175px; } .w-status { width: 175px; } .w-fac { width: 175px; } .w-svc { width: 271px; } .w-asg { width: 199px; }
+    .fdate { width: 215px; height: 31px; border: 1px solid #e6e6e6; border-radius: 3px; display: flex; align-items: center; padding: 0 10px 0 13px; gap: 9px; font-size: 14px; color: #464646; }
+    .fdate .arrow { color: #9a9a9a; }
+    .fdate svg { width: 13px; height: 13px; color: #9a9a9a; margin-left: auto; }
+    .btn-clear { height: 31px; width: 66px; margin-left: auto; border: 1px solid #ececec; background: #f5f5f5; color: #cacaca; border-radius: 3px; font-size: 14px; cursor: not-allowed; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table.enc { width: 100%; min-width: 1280px; border-collapse: collapse; table-layout: fixed; }
+    .enc th { height: 38px; background: var(--head-bg); text-align: left; font-size: 13.5px; font-weight: 600; color: #1a1a1a; white-space: nowrap; padding: 0 6px; }
+    .enc th .th { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .enc th.sorted { background: var(--sorted-bg); }
+    .sort { display: inline-flex; flex-direction: column; gap: 1px; color: #c3c3c3; }
+    .sort i { width: 0; height: 0; border-left: 3.5px solid transparent; border-right: 3.5px solid transparent; }
+    .sort i:first-child { border-bottom: 4px solid currentColor; }
+    .sort i:last-child { border-top: 4px solid currentColor; }
+    .sort.desc i:last-child { border-top-color: #4a78e0; }
+    .enc td { height: var(--row-h); border-bottom: 1px solid var(--line); padding: 0 6px; font-size: 14px; color: var(--text); vertical-align: middle; }
+    .enc td.prio { background: var(--head-bg); text-align: center; font-weight: 600; color: var(--prio); }
+    .enc td.prio.hi { color: var(--prio-hi); }
+    .enc th.prio-h { padding-left: 13px; }
+    .chk { width: 15px; height: 15px; border: 1px solid #dcdcdc; border-radius: 2px; background: #fff; display: inline-block; vertical-align: middle; }
+    .enc th:first-child, .enc td:first-child { text-align: center; padding: 0; }
+    .enc td.muted { color: #6d6d6d; }
+    .eid { display: inline-flex; align-items: center; gap: 7px; }
+    .eid-link { color: var(--text); cursor: pointer; background: none; border: 0; font-size: 14px; padding: 0; }
+    .eye { width: 30px; height: 30px; border: 1px solid #e6e6e6; border-radius: 3px; background: #fff; display: inline-grid; place-items: center; color: var(--text-3); cursor: pointer; position: relative; }
+    .eye svg { width: 14px; height: 14px; }
+    .eye:hover, .eye:focus-visible { border-color: var(--tab); color: var(--tab); outline: none; }
+    .chg s { color: #4a4a4a; text-decoration-thickness: 1px; }
+    .chg .gt { color: #6d6d6d; margin: 0 5px; }
+    .chg b { font-weight: 400; color: #4a4a4a; background: #fefde5; padding: 1px 2px; }
+    .chg.soi b { background: #eef5fd; }
+    .apr-ok { color: #4d5a26; background: #f6fbe9; padding: 1px 2px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { height: 24px; display: inline-flex; align-items: center; padding: 0 7px; border-radius: 3px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+    .t-mcc { background: #e9f1ff; color: #3459c9; }
+    .t-hcc { background: #e5f9f7; color: #4c9fa1; }
+    .t-cc { background: #e6f2ff; color: #5d8fdb; }
+    .t-psi { background: #fef4e2; color: #cb803c; }
+    .t-sdoh { background: #f4edfb; color: #7360b2; }
+    .t-hac { background: #fbfde6; color: #7ea23a; }
+    .t-g { background: #f5f5f5; color: #454545; }
+    .dt { line-height: 1.55; }
+    .asg { display: flex; align-items: center; gap: 6px; }
+    .av { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 500; flex: none; }
+    .asg-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 76px; }
+    .asg svg { width: 12px; height: 12px; color: #6d6d6d; margin-left: auto; flex: none; }
+    .stat { display: flex; align-items: center; gap: 9px; }
+    .ibox { width: 30px; height: 30px; border: 1px solid #e6e6e6; border-radius: 3px; background: #fff; display: inline-grid; place-items: center; color: var(--text-3); position: relative; flex: none; }
+    .ibox svg { width: 14px; height: 14px; }
+    .ibox .dot { position: absolute; top: 3px; right: 2px; width: 11px; height: 11px; border-radius: 50%; background: #f72945; color: #fff; font-size: 6px; line-height: 9px; text-align: center; font-weight: 700; }
+    .pill { height: 24px; display: inline-flex; align-items: center; padding: 0 9px; border-radius: 3px; font-size: 12px; white-space: nowrap; }
+    .p-nr { background: #fffbe6; color: #bb8d39; }
+    .p-pr { background: #e4f2ff; color: #4f84d4; }
+    .p-ok { background: #f1fde8; color: #3d9526; }
+    .p-sent { background: #f1fde8; color: #3d9526; }
+    .p-fail { background: #fff0f0; color: #cc2a35; }
+
+    /* Encounter review drawer (primary action) */
+    .scrim { position: fixed; inset: 0; background: rgba(16, 30, 45, 0.28); opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 40; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100%; background: #fff; box-shadow: -8px 0 28px rgba(16, 30, 45, 0.14); transform: translateX(100%); transition: transform .22s ease; z-index: 41; display: flex; flex-direction: column; }
+    body.drawer-open .scrim { opacity: 1; pointer-events: auto; }
+    body.drawer-open .drawer { transform: none; }
+    .dr-head { padding: 22px 24px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .dr-kicker { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--tab); margin-bottom: 4px; }
+    .dr-title { font-size: 20px; font-weight: 600; color: #000; line-height: 1.25; }
+    .dr-sub { font-size: 12.5px; color: var(--text-2); margin-top: 4px; }
+    .dr-close { width: 44px; height: 44px; margin: -8px -10px 0 0; border: 0; background: none; color: var(--text-3); cursor: pointer; display: grid; place-items: center; border-radius: 4px; flex: none; }
+    .dr-close:hover { background: #f5f5f5; }
+    .dr-close svg { width: 18px; height: 18px; }
+    .dr-body { padding: 20px 24px 28px; overflow-y: auto; flex: 1; }
+    .codes { border: 1px solid #ececec; border-radius: 4px; margin-bottom: 22px; }
+    .codes-row { display: grid; grid-template-columns: 128px 1fr; align-items: center; min-height: 42px; padding: 0 14px; border-bottom: 1px solid var(--line); }
+    .codes-row:last-child { border-bottom: 0; }
+    .codes-row dt { font-size: 12px; font-weight: 600; color: #1a1a1a; }
+    .codes-row dd { font-size: 12.5px; color: var(--text); padding: 8px 0; }
+    .fsection { font-size: 13.5px; font-weight: 600; color: #000; margin-bottom: 12px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; height: 44px; border: 1px solid #e0e0e0; border-radius: 3px; background: #fff; padding: 0 12px; font-size: 13px; color: #2b2b2b; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%238a8a8a' stroke-width='1.3'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 34px; }
+    .field select:focus, .field input:focus { outline: none; border-color: var(--tab); box-shadow: 0 0 0 3px rgba(78, 109, 154, 0.14); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dr-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .btn { height: 44px; border-radius: 3px; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0 18px; }
+    .btn-primary { flex: 1; border: 1px solid var(--navy); background: var(--navy); color: #fff; }
+    .btn-primary:hover { background: #26405f; }
+    .btn-primary:disabled { opacity: .62; cursor: progress; }
+    .btn-secondary { border: 1px solid #e0e0e0; background: #fff; color: #464646; }
+    .result-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 3px; font-size: 12.5px; line-height: 1.5; }
+    .result-box.success { display: block; background: #f1fde8; color: #2f7a1c; border: 1px solid #d5efc4; }
+    .result-box.error { display: block; background: #fff0f0; color: #b4232e; border: 1px solid #f6cfd2; }
+
+    @media (max-width: 1500px) {
+      .tabs + .nav-divider { margin-left: 260px; }
+      .w-svc { width: 200px; } .w-sort, .w-status, .w-fac { width: 140px; } .w-asg { width: 150px; }
+      .filter { margin-right: 12px; }
+    }
+    @media (max-width: 1600px) {
+      .filters { flex-wrap: wrap; row-gap: 10px; }
+      .btn-clear { margin-left: 0; }
+    }
+    @media (max-width: 760px) {
+      .eid-link { position: relative; }
+      .eid-link::before { content: ''; position: absolute; left: -4px; right: -4px; top: 50%; height: 44px; transform: translateY(-50%); }
+      :root { --nav-h: 56px; }
+      .topnav { padding: 0 14px; }
+      .logo { margin-right: 18px; }
+      .logo svg { width: 26px; height: 26px; }
+      .logo-word { font-size: 20px; }
+      .tabs { gap: 14px; }
+      .tab { font-size: 12.5px; }
+      .tab.coding span { display: none; }
+      .tab.coding { width: 44px; justify-content: center; }
+      .nav-divider, .user-meta { display: none; }
+      .user { padding-right: 0; margin-left: auto; }
+      .user-av { width: 34px; height: 34px; }
+      .page { padding: 18px 12px 0; }
+      .page h1 { font-size: 20px; margin-bottom: 14px; }
+      .card { padding: 14px 12px 20px; }
+      .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .filter { flex-direction: column; align-items: stretch; gap: 4px; margin: 0; }
+      .filter.date { grid-column: 1 / -1; }
+      .fselect, .fdate, .btn-clear { width: 100% !important; height: 44px; }
+      .btn-clear { grid-column: 1 / -1; }
+      .eye, .ibox { width: 44px; height: 44px; }
+      .enc td { height: 64px; }
+      .drawer { width: 100%; }
+      .dr-head { padding: 18px 16px 14px; }
+      .dr-body { padding: 16px 16px 24px; }
+      .codes-row { grid-template-columns: 104px 1fr; }
+      .field-row { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="brand-rule"></div>
+  <header class="topnav">
+    <a href="#" class="logo" aria-label="AKASA">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="16" fill="#1d334d"/>
+        <rect x="8.2" y="9.6" width="4" height="2.2" rx="1.1" fill="#fff"/>
+        <rect x="14" y="9.6" width="4" height="2.2" rx="1.1" fill="#fff"/>
+        <rect x="19.8" y="9.6" width="4" height="2.2" rx="1.1" fill="#fff"/>
+        <rect x="8.2" y="14.6" width="4" height="2.2" rx="1.1" fill="#86d9e9"/>
+        <rect x="14" y="14.6" width="4" height="2.2" rx="1.1" fill="#86d9e9"/>
+        <rect x="19.8" y="14.6" width="4" height="2.2" rx="1.1" fill="#86d9e9"/>
+        <rect x="8.2" y="19.8" width="15.6" height="2.2" rx="1.1" fill="#e7314e"/>
+      </svg>
+      <span class="logo-word">AKASA<sup>TM</sup></span>
+    </a>
+    <nav class="tabs" aria-label="Primary">
+      <a href="#" class="tab active" aria-current="page">Encounter List</a>
+      <a href="#" class="tab coding" aria-label="Coding References">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3.5 2.5h8a1 1 0 0 1 1 1v10h-8a1 1 0 0 1-1-1v-10Z"/><path d="M3.5 12.5a1 1 0 0 1 1-1h8"/><path d="M6.5 2.5v5l1.25-1 1.25 1v-5"/></svg>
+        <span>Coding References</span>
+      </a>
+    </nav>
+    <div class="nav-divider"></div>
+    <div class="user">
+      <div class="user-av" aria-hidden="true">JN</div>
+      <div class="user-meta">
+        <div class="user-name">Jana Nitzsche</div>
+        <div class="user-org">General Hospital</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Encounter List</h1>
+    <section class="card">
+      <div class="filters">
+        <div class="filter"><label>Sort by</label><div class="fselect w-sort">All<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></div></div>
+        <div class="filter date"><label>Discharge Date</label><div class="fdate">02/14/23 <span class="arrow">&rarr;</span> 02/21/23<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.1"><rect x="1.5" y="2.5" width="11" height="10" rx="1"/><path d="M1.5 5.5h11M4.5 1v3M9.5 1v3"/></svg></div></div>
+        <div class="filter"><label>Status</label><div class="fselect w-status">All<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></div></div>
+        <div class="filter"><label>Facility</label><div class="fselect w-fac">All<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></div></div>
+        <div class="filter"><label>Service Line</label><div class="fselect w-svc">All<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></div></div>
+        <div class="filter"><label>Assignee</label><div class="fselect w-asg">All<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></div></div>
+        <button type="button" class="btn-clear" disabled>Clear</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="enc" aria-label="Encounters">
+          <colgroup>
+            <col style="width:2%"><col style="width:5.4%"><col style="width:6%"><col style="width:7.9%"><col style="width:6.6%"><col style="width:6.3%"><col style="width:3.3%"><col style="width:3.3%"><col style="width:14.2%"><col style="width:7.9%"><col style="width:7.9%"><col style="width:7.9%"><col style="width:8%"><col style="width:8%"><col style="width:5.3%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th><span class="chk"></span></th>
+              <th class="sorted prio-h"><span class="th">Priority <span class="sort desc"><i></i><i></i></span></span></th>
+              <th><span class="th">Confidence <span class="sort"><i></i><i></i></span></span></th>
+              <th><span class="th">Encounter ID <span class="sort"><i></i><i></i></span></span></th>
+              <th>MS-DRG</th>
+              <th>APR-DRG</th>
+              <th>SOI</th>
+              <th>ROM</th>
+              <th><span class="th">New Indicators <span class="sort"><i></i><i></i></span></span></th>
+              <th>Patient Name</th>
+              <th><span class="th">Discharge Date <span class="sort"><i></i><i></i></span></span></th>
+              <th><span class="th">Coded Date <span class="sort"><i></i><i></i></span></span></th>
+              <th><span class="th">Assignee <span class="sort"><i></i><i></i></span></span></th>
+              <th>Status</th>
+              <th>Comments</th>
+            </tr>
+          </thead>
+          <tbody id="encRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="scrim" id="drawerScrim"></div>
+  <aside class="drawer" id="reviewDrawer" role="dialog" aria-modal="true" aria-labelledby="drTitle" aria-hidden="true">
+    <div class="dr-head">
+      <div>
+        <div class="dr-kicker">Encounter review</div>
+        <div class="dr-title" id="drTitle">Encounter 00012354</div>
+        <div class="dr-sub" id="drSub">Olivia, Novinski &middot; Discharged 06/07/2024</div>
+      </div>
+      <button type="button" class="dr-close" id="drClose" aria-label="Close">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 4 10 10M14 4 4 14"/></svg>
+      </button>
+    </div>
+    <div class="dr-body">
+      <dl class="codes">
+        <div class="codes-row"><dt>MS-DRG</dt><dd id="drMs"></dd></div>
+        <div class="codes-row"><dt>APR-DRG</dt><dd id="drApr"></dd></div>
+        <div class="codes-row"><dt>SOI / ROM</dt><dd id="drSoi"></dd></div>
+        <div class="codes-row"><dt>New Indicators</dt><dd id="drInd"></dd></div>
+        <div class="codes-row"><dt>Confidence</dt><dd id="drConf"></dd></div>
+      </dl>
+
+      <div class="fsection">Send to billing</div>
+      <form id="claimForm">
+        <div class="field">
+          <label for="policyId">Primary payer</label>
+          <select id="policyId">
+            <option value="POL-5001">Medicare Part A</option>
+            <option value="POL-5002">Commercial &mdash; Aetna</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="claimType">Type of bill</label>
+            <select id="claimType">
+              <option value="collision">111 &middot; Inpatient, admit through discharge</option>
+              <option value="comprehensive">117 &middot; Inpatient, replacement of prior claim</option>
+              <option value="liability">112 &middot; Inpatient, interim first claim</option>
+              <option value="property_damage">114 &middot; Inpatient, interim last claim</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="amount">Total charges (USD)</label>
+            <input type="number" id="amount" value="48250.00" min="1" step="0.01" inputmode="decimal" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="description">Coder note</label>
+          <input type="text" id="description" value="AKASA suggested codes reviewed and accepted" maxlength="200">
+        </div>
+        <div class="dr-actions">
+          <button type="button" class="btn btn-secondary" id="drCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Accept &amp; Send to Billing</button>
+        </div>
+      </form>
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+    </div>
+  </aside>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const IDLE_LABEL = 'Accept & Send to Billing';
+    const AV = { pink: '#e90f85', orange: '#f5a300', blue: '#1439e8', teal: '#16c1bf', green: '#37ba00' };
+    const T = { MCC: 't-mcc', HCC: 't-hcc', CC: 't-cc', 'PSI Exclusion': 't-psi', 'HAC Exclusion': 't-hac', PSI: 't-psi', SDOH: 't-sdoh' };
+    const DONE_TAGS = ['MCC', 'HCC', 'HAC', 'PSI', 'SDOH'];
+    const STATUS = { nr: ['p-nr', 'Not Reviewed'], pr: ['p-pr', 'Processing'], ok: ['p-ok', 'Complete'] };
+    const ROWS = [
+      { p: 1, conf: 97, id: '00012354', ms: ['057', '056'], apr: ['042'], soi: ['2', '3'], rom: ['2', '3'], tags: ['MCC', 'HCC', 'CC'], name: 'Olivia, Novinski', dd: ['06/07/2024,', '6:55PM EST'], cd: ['06/08/2024,', '1:33PM EST'], who: ['Jana Nitzsche', 'pink'], st: 'nr', cm: 1, charges: '48250.00' },
+      { p: 2, conf: 95, id: '00123226', ms: ['346', '345'], apr: ['788'], soi: ['2', '3'], rom: ['1', '2'], tags: ['CC', 'PSI Exclusion', 'SDOH'], name: 'Andrew, Gerlach', dd: ['02/14/2024,', '11:12PM CDT'], cd: ['02/14/2024,', '11:12PM CDT'], who: ['Vera Lowe', 'orange'], st: 'nr', cm: 1, charges: '36980.00' },
+      { p: 3, conf: 97, id: '00123494', ms: ['988', '987'], apr: ['567', '566'], soi: ['2', '3'], rom: ['1', '2'], tags: ['MCC', 'HCC', 'SDOH'], name: 'Paulette, Gaylord', dd: ['02/13/2024,', '10:43PM CDT'], cd: ['02/13/2024,', '10:43PM CDT'], who: ['Leland Daniel', 'blue'], st: 'nr', charges: '57415.00' },
+      { p: 4, conf: 95, id: '01344785', ms: ['348', '345'], apr: ['345'], soi: ['2', '3'], rom: ['1', '2'], tags: ['CC', 'HCC'], name: 'Jason, Kozey', dd: ['02/13/2024,', '8:44PM EST'], cd: ['02/13/2024,', '8:44PM EST'], who: ['Margie Price', 'teal'], st: 'pr', charges: '29640.00' },
+      { p: 5, conf: 94, id: '02344522', ms: ['875', '874'], apr: ['543'], soi: ['3', '4'], rom: ['2', '3'], tags: ['SDOH'], name: 'Stephen, Moen', dd: ['02/13/2024,', '8:44PM EST'], cd: ['02/13/2024,', '8:44PM EST'], who: ['Brandon Ortiz', 'pink'], st: 'pr', charges: '44120.00' },
+      { p: 6, conf: 94, id: '03445597', ms: ['873', '872'], apr: ['878'], soi: ['1', '2'], rom: ['1', '2'], tags: ['HCC', 'HAC Exclusion', 'PSI'], name: 'Dallas, Leffler', dd: ['02/13/2024,', '10:43PM CDT'], cd: ['02/13/2024,', '10:43PM CDT'], who: ['Hilda McKenzie', 'green'], st: 'pr', charges: '52780.00' },
+      { p: 7, conf: 88, id: '03556657', ms: ['342', '340'], apr: ['662', '661'], soi: ['1', '2'], rom: ['1', '2'], tags: ['MCC', 'HCC', 'SDOH'], name: 'Santos, Nienow', dd: ['02/10/2024,', '1:43PM EST'], cd: ['02/10/2024,', '1:43PM EST'], who: ['Claudia Kuhn', 'teal'], st: 'pr', charges: '61305.00' },
+      { p: 8, conf: 82, id: '03777832', ms: ['543', '541'], apr: ['431', '430'], soi: ['1', '2'], rom: ['2', '3'], tags: ['SDOH'], name: 'Miss Jay, Little', dd: ['02/10/2024,', '1:43PM EST'], cd: ['02/10/2024,', '1:43PM EST'], who: ['Elsie Kozey', 'green'], st: 'pr', charges: '33870.00' },
+      { p: 9, conf: 92, id: '03455576', ms: ['763', '762'], apr: ['322', '321'], soi: ['2', '3'], rom: ['3', '4'], tags: ['PSI Exclusion', 'SDOH'], name: 'Wilbert, Runolfsson', dd: ['02/10/2024,', '10:47PM EST'], cd: ['02/10/2024,', '10:47PM EST'], who: ['Peter Kingston', 'blue'], st: 'pr', charges: '27460.00' },
+      { p: 10, conf: 89, id: '04556675', ms: ['901'], apr: ['674'], soi: ['2'], rom: ['1'], done: true, name: 'Tasha, Renner', dd: ['02/09/2024,', '1:34PM CDT'], cd: ['02/09/2024,', '1:34PM CDT'], who: ['Wilson Wisoky', 'teal'], st: 'ok', charges: '39950.00' },
+      { p: 11, conf: 91, id: '04677872', ms: ['901'], apr: ['231'], soi: ['2'], rom: ['1'], done: true, name: 'Marlon, Kohler', dd: ['02/08/2024,', '8:43AM EST'], cd: ['02/08/2024,', '8:43AM EST'], who: ['Lydia Herman', 'pink'], st: 'ok', charges: '41210.00' },
+      { p: 12, conf: 90, id: '105566789', ms: ['302'], apr: ['763'], soi: ['2'], rom: ['1'], done: true, name: 'Estelle, Ebert', dd: ['02/04/2024, 1:41', 'PM CDT'], cd: ['02/04/2024, 1:41', 'PM CDT'], who: ['Rafael Nitzsche', 'blue'], st: 'ok', charges: '22685.00' },
+      { p: 13, conf: 89, id: '112344609', ms: ['302'], apr: ['231'], soi: ['2'], rom: ['1'], done: true, name: 'Dora, Reynolds', dd: ['02/04/2024,', '10:54PM EST'], cd: ['02/04/2024,', '10:54PM EST'], who: ['Megan Dooley', 'green'], st: 'ok', charges: '24390.00' },
+    ];
+
+    const ICON_EYE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z"/><circle cx="8" cy="8" r="2"/></svg>';
+    const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12.5 5.5A5 5 0 1 0 13 8"/><path d="M13 2.5v3h-3"/><path d="M8 5.5V8l1.6 1"/></svg>';
+    const ICON_CHAT = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 3.5h10v7H7l-3 2.5v-2.5H3z"/><path d="M5.5 7h5"/></svg>';
+    const ICON_CHEV = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>';
+
+    function el(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+    function change(pair, extra) {
+      const wrap = el('span', 'chg' + (extra ? ' ' + extra : ''));
+      if (pair.length === 1) { wrap.textContent = pair[0]; return wrap; }
+      wrap.append(el('s', '', pair[0]), el('span', 'gt', '>'), el('b', '', pair[1]));
+      return wrap;
+    }
+    function tagList(row) {
+      const box = el('div', 'tags');
+      (row.done ? DONE_TAGS : row.tags).forEach(function (t) { box.append(el('span', 'tag ' + (row.done ? 't-g' : T[t]), t)); });
+      return box;
+    }
+    function td(child, cls) {
+      const c = el('td', cls);
+      if (child instanceof Node) c.append(child); else if (child != null) c.textContent = child;
+      return c;
+    }
+    function renderRows() {
+      const body = document.getElementById('encRows');
+      ROWS.forEach(function (row, i) {
+        const tr = el('tr');
+        const chk = el('span', 'chk');
+        tr.append(td(chk));
+        tr.append(td(String(row.p), 'prio' + (row.p === 1 ? ' hi' : '')));
+        tr.append(td(row.conf + '%', 'muted'));
+        const eid = el('span', 'eid');
+        const link = el('button', 'eid-link', row.id);
+        link.type = 'button';
+        const eye = el('button', 'eye');
+        eye.type = 'button';
+        eye.setAttribute('aria-label', 'Review encounter ' + row.id);
+        eye.innerHTML = ICON_EYE;
+        link.addEventListener('click', function () { openDrawer(i); });
+        eye.addEventListener('click', function () { openDrawer(i); });
+        eid.append(link, eye);
+        tr.append(td(eid));
+        tr.append(td(change(row.ms)));
+        const aprCell = row.done ? el('span', 'apr-ok', row.apr[0]) : change(row.apr);
+        tr.append(td(aprCell));
+        tr.append(td(change(row.soi, 'soi')));
+        tr.append(td(change(row.rom, 'soi')));
+        tr.append(td(tagList(row)));
+        tr.append(td(row.name));
+        const dd = el('div', 'dt'); dd.append(el('div', '', row.dd[0]), el('div', '', row.dd[1]));
+        const cd = el('div', 'dt'); cd.append(el('div', '', row.cd[0]), el('div', '', row.cd[1]));
+        tr.append(td(dd), td(cd));
+        const asg = el('div', 'asg');
+        const av = el('span', 'av', row.who[0].charAt(0));
+        av.style.background = AV[row.who[1]];
+        asg.append(av, el('span', 'asg-name', row.who[0]));
+        asg.insertAdjacentHTML('beforeend', ICON_CHEV);
+        tr.append(td(asg));
+        const stat = el('div', 'stat');
+        const reset = el('span', 'ibox'); reset.innerHTML = ICON_RESET;
+        const pill = el('span', 'pill ' + STATUS[row.st][0], STATUS[row.st][1]);
+        pill.id = 'status-' + row.id;
+        stat.append(reset, pill);
+        tr.append(td(stat));
+        const cm = el('span', 'ibox'); cm.innerHTML = ICON_CHAT;
+        if (row.cm) cm.append(el('span', 'dot', String(row.cm)));
+        tr.append(td(cm));
+        body.append(tr);
+      });
+    }
+
+    let current = 0;
+    const body = document.body;
+    const drawer = document.getElementById('reviewDrawer');
+    function fillCodes(id, pair, extra) {
+      const dd = document.getElementById(id);
+      dd.textContent = '';
+      dd.append(change(pair, extra));
+    }
+    function openDrawer(i) {
+      current = i;
+      const row = ROWS[i];
+      document.getElementById('drTitle').textContent = 'Encounter ' + row.id;
+      document.getElementById('drSub').textContent = row.name + ' \u00b7 Discharged ' + row.dd[0].replace(',', '').split(' ')[0];
+      fillCodes('drMs', row.ms);
+      fillCodes('drApr', row.apr);
+      const soi = document.getElementById('drSoi');
+      soi.textContent = '';
+      soi.append(change(row.soi, 'soi'), document.createTextNode(' \u00a0/\u00a0 '), change(row.rom, 'soi'));
+      const ind = document.getElementById('drInd');
+      ind.textContent = '';
+      ind.append(tagList(row));
+      document.getElementById('drConf').textContent = row.conf + '%';
+      document.getElementById('amount').value = row.charges;
+      const result = document.getElementById('result');
+      result.className = 'result-box';
+      result.textContent = '';
+      body.classList.add('drawer-open');
+      drawer.setAttribute('aria-hidden', 'false');
+      setTimeout(function () { document.getElementById('policyId').focus({ preventScroll: true }); }, 220);
+    }
+    function closeDrawer() {
+      body.classList.remove('drawer-open');
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+    document.getElementById('drClose').addEventListener('click', closeDrawer);
+    document.getElementById('drCancel').addEventListener('click', closeDrawer);
+    document.getElementById('drawerScrim').addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+    renderRows();
+
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const row = ROWS[current];
+      const raw = document.getElementById('amount').value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw) || Number(raw) <= 0) {
+        result.className = 'result-box error';
+        result.textContent = 'Enter total charges as a positive amount, e.g. 48250.00.';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Sending to billing\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(raw), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json().catch(function () { return {}; });
+        const pill = document.getElementById('status-' + row.id);
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.textContent = 'Encounter ' + row.id + ' was not sent to billing. ' + (data.error || 'Request failed (HTTP ' + res.status + ').');
+          if (pill) { pill.className = 'pill p-fail'; pill.textContent = 'Billing Hold'; }
+        } else {
+          result.className = 'result-box success';
+          result.textContent = 'Codes accepted. Encounter ' + row.id + ' sent to billing \u2014 claim ' + String(data.claimId || '').slice(0, 8).toUpperCase() + '.';
+          if (pill) { pill.className = 'pill p-sent'; pill.textContent = 'Complete'; }
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.textContent = 'Network error. Encounter ' + row.id + ' was not sent to billing.';
+      } finally { btn.disabled = false; btn.textContent = IDLE_LABEL; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
