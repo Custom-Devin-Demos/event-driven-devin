@@ -519,6 +519,31 @@ test('a skin alertDestination overrides the presenter\'s saved choice', async ()
   expect(slack).toContain("localStorage.getItem('alertDestinationExplicit') !== '1' && scenarioAlertDestination");
 });
 
+test('the Banco BICE skin serves its native transfer page in Spanish at /bice-oncall and pages the presenter as On Call', async () => {
+  expect(getOncallSkin('ff37de53')).toMatchObject({
+    vertical: 'banking', locale: 'es', alertDestination: 'slack', paths: ['/bice-oncall'],
+    page: { file: 'ff37de53.html' },
+    devinSession: { auto: true, onCallIsTriggerer: true },
+  });
+  const [skinned, friendly] = await Promise.all([
+    fetch(`${baseUrl}/oncall/c/ff37de53`),
+    fetch(`${baseUrl}/bice-oncall`),
+  ]);
+  expect(skinned.status).toBe(200);
+  expect(friendly.status).toBe(200);
+  const html = await skinned.text();
+  expect(await friendly.text()).toEqual(html);
+  expect(html).toContain('var skinAlertDestination = "slack";');
+  expect(html).toContain('/api/oncall/banking/transfer');
+  expect(html).toContain('Transferir a terceros');
+  expect(html).toContain('BICE Pass');
+  expect(html).toContain('ESTE NO ES UN SITIO REAL DE BANCO BICE');
+  expect(html).toContain("devinEmail: localStorage.getItem('devinEmail') || ''");
+  for (const id of ['transferForm', 'submitBtn', 'fromAccount', 'toAccount', 'amount', 'accountTier', 'result']) {
+    expect(html).toContain(`id="${id}"`);
+  }
+});
+
 test('the Copa Airlines skin forces Slack and serves its native booking page', async () => {
   const res = await fetch(`${baseUrl}/oncall/c/90bf6ab8`);
   const html = await res.text();
