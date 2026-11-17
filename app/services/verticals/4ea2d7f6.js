@@ -6,7 +6,7 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
-const SLACK_MEMBER_ID = process.env.SHIELD_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const SLACK_MEMBER_ID = process.env.SHIELD_SLACK_MEMBER_ID || '';
 
 const SERVICE = 'customer-4ea2d7f6-surveillance-sweep';
 const ROUTE = '/api/4ea2d7f6/surveillance-sweep';
