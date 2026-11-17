@@ -10060,6 +10060,7 @@ const ONCALL_SKINS = {
     company: 'ThredUp',
     vertical: 'banking',
     page: { file: 'faebbf20.html', title: 'Earn Money for Used Clothing | ThredUp' },
+    alertDestination: 'slack',
     disclaimer: 'NOT ACTUALLY A THREDUP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real ThredUp product.',
   },
 };
