@@ -54,6 +54,8 @@ afterAll((done) => {
 
 const SKINS = [
   { slug: 'bcf7af3a', vertical: 'banking', title: 'Banca en Línea | Banco General Panamá', form: 'id="transferForm"', endpoint: '/api/oncall/banking/transfer', card: 'Confirmar transferencia' },
+  { slug: '42356c70', vertical: 'banking', title: 'Yappy | Banco General Panamá', form: 'id="yappyForm"', endpoint: '/api/oncall/banking/transfer', card: 'Enviar con Yappy (504)' },
+  { slug: '1edc2abb', vertical: 'cardpayment', title: 'Pago de tarjeta | Banco General Panamá', form: 'id="cardPayForm"', endpoint: '/api/oncall/cardpayment/payment', card: 'pago de tarjeta desde Cuenta Corriente' },
   { slug: '9af9f631', vertical: 'insurance', title: 'Chat Estrella | Banco General Panamá', form: 'id="claimForm"', endpoint: '/api/oncall/insurance/claim', card: 'Chat Estrella messages (504)' },
 ];
 
