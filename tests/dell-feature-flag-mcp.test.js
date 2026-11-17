@@ -87,20 +87,20 @@ describe('Dell feature flag demo MCP', () => {
     expect(unknown.payload.error).toMatch(/not found/);
   });
 
-  test('set_flag needs a reason and re-enables a disabled flag', async () => {
+  test('set_flag needs a reason and returns the requested state', async () => {
     const missing = await (await rpc({ jsonrpc: '2.0', id: 8, method: 'tools/call', params: { name: 'set_flag', arguments: { flagKey: LANE_SCHEMA_FLAG, enabled: false } } })).json();
     expect(missing.result.isError).toBe(true);
     expect(missing.result.content[0].text).toMatch(/reason/);
 
-    await callTool(9, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, reason: 'incident' });
-    const { payload } = await callTool(10, 'set_flag', { flagKey: LANE_SCHEMA_FLAG, enabled: true, reason: 'fix PR deployed' });
-    expect(payload.flag).toMatchObject({ enabled: true, rolloutPercent: 100 });
+    const { payload } = await callTool(10, 'set_flag', { flagKey: LANE_SCHEMA_FLAG, enabled: false, reason: 'incident' });
+    expect(payload.status).toBe('applied');
+    expect(payload.flag).toMatchObject({ enabled: false, rolloutPercent: 0 });
 
     const staging = await callTool(11, 'set_flag', { flagKey: LANE_SCHEMA_FLAG, enabled: false, environment: 'qa', reason: 'x' });
     expect(staging.isError).toBe(true);
   });
 
-  test('disable_flag turns the lane-schema flag off, needs a reason, and is a no-op when already off', async () => {
+  test('disable_flag needs a reason and returns an applied change record', async () => {
     const missing = await (await rpc({ jsonrpc: '2.0', id: 14, method: 'tools/call', params: { name: 'disable_flag', arguments: { flagKey: LANE_SCHEMA_FLAG } } })).json();
     expect(missing.result.isError).toBe(true);
     expect(missing.result.content[0].text).toMatch(/reason/);
@@ -108,15 +108,10 @@ describe('Dell feature flag demo MCP', () => {
     const { isError, payload } = await callTool(15, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, reason: 'Sentry NODE-EXPRESS-EX: kill switch while the lane fix ships' });
     expect(isError).toBe(false);
     expect(payload.status).toBe('applied');
+    expect(payload.change.changeId).toMatch(/^FF-CHG-[0-9A-F]{8}$/);
     expect(payload.change.from).toEqual({ enabled: true, rolloutPercent: 100 });
     expect(payload.change.to).toEqual({ enabled: false, rolloutPercent: 0 });
     expect(payload.flag).toMatchObject({ key: LANE_SCHEMA_FLAG, environment: 'prod', enabled: false, rolloutPercent: 0 });
-
-    const again = await callTool(16, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, reason: 'repeat' });
-    expect(again.payload.status).toBe('unchanged');
-    const after = await callTool(17, 'get_flag', { flagKey: LANE_SCHEMA_FLAG });
-    expect(after.payload.history).toHaveLength(3);
-    expect(after.payload.environments.prod.enabled).toBe(false);
 
     const unknown = await callTool(18, 'disable_flag', { flagKey: 'nope', reason: 'x' });
     expect(unknown.isError).toBe(true);
@@ -124,10 +119,15 @@ describe('Dell feature flag demo MCP', () => {
     expect(badEnv.isError).toBe(true);
   });
 
-  test('flag state is in-process only: reset restores the seeded state', async () => {
+  test('writes are never stored: the next alert run sees the seeded state and can disable again', async () => {
     await callTool(12, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, reason: 'incident' });
-    dellFeatureFlagMcpRoutes.resetFlags();
+    await callTool(20, 'set_flag', { flagKey: LANE_SCHEMA_FLAG, enabled: false, reason: 'incident' });
+
     const { payload } = await callTool(13, 'get_flag', { flagKey: LANE_SCHEMA_FLAG });
-    expect(payload.environments.prod.enabled).toBe(true);
+    expect(payload.environments.prod).toMatchObject({ enabled: true, rolloutPercent: 100 });
+    expect(payload.history).toHaveLength(2);
+
+    const again = await callTool(21, 'disable_flag', { flagKey: LANE_SCHEMA_FLAG, reason: 'next alert' });
+    expect(again.payload.status).toBe('applied');
   });
 });
