@@ -5358,13 +5358,12 @@ const ONCALL_SKINS = {
     page: { file: 'f49a69dd.html', title: 'Earnings | Lyft Driver' },
     disclaimer: 'NOT ACTUALLY A LYFT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Lyft product.',
   },
-  'dc484310': {
-    slug: 'dc484310',
+  'd6101b6d': {
+    slug: 'd6101b6d',
     company: 'Wells Fargo',
     vertical: 'banking',
-    oncallOnly: true,
-    page: { file: 'dc484310.html', title: 'Wells Fargo Bank | Financial Services & Online Banking' },
-    disclaimer: 'NOT ACTUALLY A WELLS FARGO SITE — internal demo only, not affiliated with, endorsed by, or a real Wells Fargo product.',
+    page: { file: 'd6101b6d.html', title: 'Transfer Money Online - Wells Fargo' },
+    disclaimer: 'NOT ACTUALLY A WELLS FARGO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Wells Fargo product.',
   },
   '0cab09fe': {
     slug: '0cab09fe',
