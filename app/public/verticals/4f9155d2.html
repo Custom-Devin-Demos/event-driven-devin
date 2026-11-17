@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout - JD Sports UK</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #008570;
+      --ink: #1A1A19;
+      --surface: #FFFFFF;
+      --chrome-bg: #1A1A19;
+      --chrome-text: #FFFFFF;
+      --paper: #FBFBF9;
+      --panel: #F8F6F3;
+      --field: #CFCECA;
+      --rule: #F0EFEB;
+      --muted: #575754;
+      --faint: #969692;
+      --success: color-mix(in srgb, var(--accent) 90%, var(--ink));
+      --notice: #B3261E;
+      --sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+      --mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/24px var(--sans); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; color: inherit; }
+    button, select, label { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    .co-header { background: var(--chrome-bg); color: var(--chrome-text); }
+    .co-header-row { max-width: 1440px; margin: auto; height: 96px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .logo { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; text-decoration: none; color: var(--chrome-text); }
+    .logo-ff { font: italic 700 25px/1 var(--sans); letter-spacing: -0.06em; text-transform: uppercase; transform: skewX(-6deg); }
+    .logo-mark { width: 62px; height: 62px; flex: none; }
+    .secure { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; font: 500 14px/20.8px var(--sans); letter-spacing: 1.12px; text-transform: uppercase; }
+    .secure svg { width: 14px; height: 14px; }
+
+    main { background: var(--surface); }
+    .co-grid { max-width: 1440px; margin: auto; padding: 48px 52px 72px; display: grid; grid-template-columns: minmax(0, 904px) 400px; gap: 32px; justify-content: space-between; align-items: start; }
+    .express-label { margin: 0 0 8px; text-align: center; font-size: 14px; line-height: 20px; color: var(--muted); }
+    .express { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .express button { min-height: 44px; border: 0; border-radius: 0; font: 500 16px/24px var(--mono); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .x-paypal, .x-later { background: #FFC439; }
+    .x-clearpay { background: #B2FCE4; font-weight: 700 !important; letter-spacing: -0.02em; }
+    .pp-a { color: #253B80; font-style: italic; font-weight: 700; font-family: var(--sans); }
+    .pp-b { color: #179BD7; font-style: italic; font-weight: 700; font-family: var(--sans); }
+    .or { display: flex; align-items: center; gap: 16px; margin: 20px 0 12px; font-size: 14px; line-height: 20.8px; letter-spacing: 1.12px; color: #B5B4B0; text-transform: uppercase; }
+    .or::before, .or::after { content: ''; flex: 1; border-top: 1px solid var(--rule); }
+    .guest { margin: 0 0 32px; text-align: center; font-size: 14px; line-height: 20px; color: var(--muted); }
+    .guest a { color: var(--ink); text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 44px; }
+
+    .section { padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--rule); }
+    .section:last-of-type { border-bottom: 0; }
+    .section h2 { margin: 0 0 12px; font: 400 18px/28px var(--sans); color: var(--ink); }
+    .opt { display: flex; align-items: center; gap: 12px; padding: 14px 18px; margin-bottom: 12px; min-height: 64px; border: 1px solid var(--field); background: var(--surface); }
+    .opt:has(input:checked) { border: 2px solid var(--ink); padding: 13px 17px; }
+    .opt input { appearance: none; margin: 0; width: 22px; height: 22px; flex: none; border: 1.5px solid #8C8B87; border-radius: 50%; background: var(--surface); display: grid; place-items: center; }
+    .opt input:checked { border-color: var(--ink); }
+    .opt input:checked::after { content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
+    .opt-text { flex: 1; display: grid; font-size: 16px; line-height: 24px; color: #262625; }
+    .opt input:checked + .opt-text b { font-weight: 500; }
+    .opt-text b { font-weight: 400; }
+    .opt-text small { font: 500 14px/20px var(--sans); color: var(--muted); }
+    .opt-price { font: 500 16px/24px var(--sans); white-space: nowrap; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fl { position: relative; display: block; margin-bottom: 12px; }
+    .fl input, .fl select { width: 100%; height: 56px; padding: 25px 18px 7px; border: 1px solid var(--field); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 16px; line-height: 24px; }
+    .fl select { appearance: none; padding-right: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%231A1A19' stroke-width='2'%3E%3Cpath d='M5 9l7 7 7-7'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    .fl span { position: absolute; left: 18px; top: 7px; font-size: 12px; line-height: 16px; color: var(--faint); pointer-events: none; }
+    .fl input:focus, .fl select:focus { outline: none; border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .check { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 12px; margin-bottom: 12px; border: 2px solid var(--ink); font-size: 14px; line-height: 20px; }
+    .check input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); flex: none; }
+    .addr { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 16px 18px; border: 1px solid var(--field); border-radius: 4px; font-size: 14px; line-height: 20px; color: #262625; }
+    .addr b { display: block; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); }
+    .link-btn { background: none; border: 0; padding: 0 4px; min-height: 44px; min-width: 44px; font: 400 14px/20.8px var(--mono); text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+    .cards { display: flex; gap: 6px; flex-wrap: wrap; margin: -4px 0 12px; }
+    .cards span { height: 22px; padding: 0 6px; border: 1px solid var(--rule); background: var(--surface); font: 700 10px/20px var(--sans); letter-spacing: .02em; }
+    .pay-note { margin: 4px 0 16px; font-size: 14px; line-height: 20px; color: var(--muted); }
+    .pay-btn { width: 100%; min-height: 48px; border: 1px solid transparent; border-radius: 0; background: var(--accent); color: var(--chrome-text); font: 500 16px/24px var(--mono); display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px; }
+    .pay-btn:hover { background: color-mix(in srgb, var(--accent) 86%, #000); }
+    .pay-btn:disabled { cursor: progress; background: color-mix(in srgb, var(--accent) 72%, var(--surface)); }
+    .pay-btn svg { width: 16px; height: 16px; }
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .pay-btn.busy .spinner { display: inline-block; }
+    .pay-btn.busy .lock { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .terms { margin: 12px 0 0; font-size: 12px; line-height: 18px; color: var(--muted); text-align: center; }
+    .terms a, .privacy a { color: var(--ink); display: inline-flex; align-items: center; min-height: 44px; vertical-align: middle; text-underline-offset: 3px; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; font-size: 14px; line-height: 20px; border-left: 4px solid; background: var(--paper); }
+    .result-box b { display: block; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+    .result-box.pending { display: block; border-color: var(--field); color: var(--muted); }
+    .result-box.ok { display: block; border-color: var(--success); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+    .result-box.notice { display: block; border-color: var(--notice); background: color-mix(in srgb, var(--notice) 6%, var(--surface)); }
+
+    .summary { background: var(--panel); padding: 20px; position: sticky; top: 16px; }
+    .os-head { display: flex; align-items: center; gap: 8px; margin: 0; font: 500 14px/20px var(--sans); }
+    .os-head svg { width: 16px; height: 16px; }
+    .os-sub { margin: 0 0 20px 24px; font-size: 14px; line-height: 20px; color: var(--muted); }
+    .item { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: start; }
+    .thumb { width: 120px; height: 153px; background: #EFEFEF; display: grid; place-items: center; overflow: hidden; font: 500 11px/1 var(--mono); color: var(--muted); }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .item p { margin: 0; }
+    .i-brand { font-weight: 700; }
+    .i-meta { margin-top: 6px !important; font-size: 14px; line-height: 20px; color: var(--muted); }
+    .i-meta span + span { margin-left: 14px; }
+    .i-price { margin-top: 10px !important; font: 500 18px/28px var(--sans); }
+    .edit { display: flex; align-items: center; justify-content: center; min-height: 44px; margin: 20px 0; border: 1px solid var(--ink); background: var(--paper); font: 400 14px/20.8px var(--mono); text-decoration: none; }
+    .sum-block { border-top: 1px solid #DDDBD6; padding-top: 20px; }
+    .sum-block h2 { margin: 0 0 12px; font: 500 18px/28px var(--sans); }
+    .sum-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; line-height: 20px; margin-bottom: 8px; }
+    .sum-row.total { margin-top: 12px; padding-top: 12px; border-top: 1px solid #DDDBD6; font-weight: 500; }
+    .sum-row.total span:first-child small { font-weight: 400; }
+    .status-pill { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; padding: 6px 10px; background: #8BE5F7; font: 500 13px/16px var(--sans); }
+    .status-pill b { font: 700 12px/16px var(--sans); letter-spacing: .02em; }
+    .privacy { margin: 16px 0 0; font-size: 13px; line-height: 20px; }
+    .privacy a { font-weight: 500; }
+
+    .site-footer { background: #000; color: #fff; }
+    .foot { max-width: 1440px; margin: auto; padding: 48px 32px 32px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
+    .foot h3 { margin: 0 0 12px; font: 400 18px/28px var(--sans); }
+    .foot ul { list-style: none; margin: 0; padding: 0; }
+    .foot li a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; text-underline-offset: 3px; }
+    .foot-bottom { margin-top: 32px; padding-top: 24px; border-top: 1px solid #333; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #CFCECA; }
+    .pm { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pm span { height: 22px; padding: 0 6px; background: #fff; color: #1A1A19; font: 700 10px/22px var(--sans); }
+
+    @media (max-width: 1100px) {
+      .co-grid { grid-template-columns: minmax(0, 1fr); padding: 32px 24px 56px; }
+      .summary { position: static; order: -1; }
+    }
+    @media (max-width: 640px) {
+      .co-header-row { height: 64px; padding: 0 16px; }
+      .logo-ff { font-size: 15px; white-space: nowrap; }
+      .logo-mark { width: 42px; height: 42px; }
+      .secure { font-size: 12px; letter-spacing: .8px; }
+      .co-grid { padding: 20px 16px 48px; gap: 24px; }
+      .express { grid-template-columns: 1fr; gap: 8px; }
+      .row2 { grid-template-columns: 1fr; gap: 0; }
+      .item { grid-template-columns: 96px minmax(0, 1fr); }
+      .thumb { width: 96px; height: 122px; }
+      .foot { padding: 32px 16px 24px; }
+      .foot-cols { grid-template-columns: 1fr 1fr; gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="co-header">
+    <div class="co-header-row">
+      <a class="logo" href="#" aria-label="JD Sports home">
+        <span class="logo-ff">Forever Forward</span>
+        <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="#fff"/><text x="31" y="42" text-anchor="middle" font-family="Geist, Arial, sans-serif" font-size="29" font-weight="700" font-style="italic" fill="#1A1A19" letter-spacing="-2">JD</text></svg>
+      </a>
+      <span class="secure"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>Secure checkout</span>
+    </div>
+  </header>
+
+  <main>
+    <h1 class="sr-only">Checkout</h1>
+    <div class="co-grid">
+      <div>
+        <p class="express-label">Express checkout options</p>
+        <div class="express">
+          <button type="button" class="x-paypal" aria-label="PayPal"><span class="pp-a">Pay</span><span class="pp-b" style="margin-left:-6px">Pal</span></button>
+          <button type="button" class="x-later"><span class="pp-a">P</span> Pay Later</button>
+          <button type="button" class="x-clearpay">clearpay</button>
+        </div>
+        <div class="or">or</div>
+        <p class="guest">Checkout as guest below or <a href="#">sign in</a></p>
+
+        <form id="transferForm" novalidate>
+          <section class="section" aria-labelledby="delOptTitle">
+            <h2 id="delOptTitle">Delivery options</h2>
+            <label class="opt"><input type="radio" name="fulfil" value="home" checked><span class="opt-text"><b>Home delivery</b><small>(FREE)</small></span></label>
+            <label class="opt"><input type="radio" name="fulfil" value="collect"><span class="opt-text"><b>Click &amp; collect</b><small>(FREE)</small></span></label>
+          </section>
+
+          <section class="section" aria-labelledby="contactTitle">
+            <h2 id="contactTitle">Contact details</h2>
+            <div class="row2">
+              <label class="fl"><span>*First name</span><input id="firstName" autocomplete="given-name" value="Olivia" required></label>
+              <label class="fl"><span>*Last name</span><input id="lastName" autocomplete="family-name" value="Bennett" required></label>
+            </div>
+            <label class="fl"><span>*Email address</span><input type="email" id="email" autocomplete="email" value="olivia.bennett@example.co.uk" required></label>
+            <label class="check"><input type="checkbox" checked><span>Email me with news, drops and exclusive offers from JD.</span></label>
+            <label class="fl"><span>*Phone number</span><input type="tel" id="phone" autocomplete="tel" value="07700 900418" required></label>
+          </section>
+
+          <section class="section" aria-labelledby="addrTitle">
+            <h2 id="addrTitle">Delivery address</h2>
+            <label class="fl"><span>Country</span><select id="country" autocomplete="country-name"><option selected>United Kingdom</option><option>Ireland</option></select></label>
+            <div class="addr">
+              <div><b>Olivia Bennett</b>14 Hollins Road<br>Bury, Greater Manchester<br>BL9 8PB</div>
+              <button type="button" class="link-btn">Edit</button>
+            </div>
+          </section>
+
+          <section class="section" aria-labelledby="methodTitle">
+            <h2 id="methodTitle">Delivery methods</h2>
+            <label class="opt"><input type="radio" name="method" value="0" data-label="Standard Delivery" checked><span class="opt-text"><b>Standard Delivery</b><small>3&ndash;5 working days</small></span><span class="opt-price">FREE</span></label>
+            <label class="opt"><input type="radio" name="method" value="5.99" data-label="Next Day Delivery"><span class="opt-text"><b>Next Day Delivery</b><small>Order by 11pm for delivery tomorrow</small></span><span class="opt-price">&pound;5.99</span></label>
+            <label class="opt"><input type="radio" name="method" value="6.99" data-label="Nominated Day Delivery"><span class="opt-text"><b>Nominated Day Delivery</b><small>Choose a day that suits you</small></span><span class="opt-price">&pound;6.99</span></label>
+          </section>
+
+          <section class="section" aria-labelledby="payTitle">
+            <h2 id="payTitle">Payment</h2>
+            <div class="cards" aria-hidden="true"><span>VISA</span><span>Mastercard</span><span>AMEX</span><span>Apple Pay</span><span>Klarna</span></div>
+            <label class="fl"><span>Pay with</span>
+              <select id="fromAccount">
+                <option value="ACCT-1001" selected>Visa Debit ending 4417</option>
+                <option value="ACCT-1002">Mastercard ending 0932</option>
+                <option value="ACCT-1003">JD Gift Card ending 7711</option>
+              </select>
+            </label>
+            <p class="pay-note">Your card is charged when you place your order.</p>
+
+            <select id="toAccount" hidden aria-hidden="true" tabindex="-1">
+              <option value="ACCT-2001" selected>ACCT-2001</option>
+              <option value="ACCT-2002">ACCT-2002</option>
+              <option value="ACCT-2003">ACCT-2003</option>
+            </select>
+            <input id="amount" type="number" value="95.00" hidden aria-hidden="true" tabindex="-1">
+            <select id="accountTier" hidden aria-hidden="true" tabindex="-1">
+              <option value="standard" selected>standard</option>
+              <option value="premium">premium</option>
+            </select>
+
+            <button type="submit" class="pay-btn" id="submitBtn"><span class="spinner" aria-hidden="true"></span><svg class="lock" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg><span id="submitLabel">Place order &amp; pay &pound;95.00</span></button>
+            <p class="terms">By placing your order you agree to our <a href="#">Terms &amp; Conditions</a> and <a href="#">Privacy Policy</a>.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </section>
+        </form>
+      </div>
+
+      <aside class="summary" aria-labelledby="osTitle">
+        <h2 class="os-head" id="osTitle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2.5 6h11l-1 8h-9z"/><path d="M5.5 6V4.5a2.5 2.5 0 015 0V6"/></svg>Order summary</h2>
+        <p class="os-sub" id="osSub">1 item &middot; &pound;95.00</p>
+        <div class="item">
+          <div class="thumb"><img src="https://i8.amplience.net/i/jpl/jd_355399_plc?qlt=default&amp;fmt=auto&amp;w=240&amp;h=306" alt="adidas Originals Samba OG Women's" width="120" height="153" onerror="this.parentNode.textContent='SAMBA OG'"></div>
+          <div>
+            <p class="i-brand">adidas</p>
+            <p>Originals Samba OG Women&rsquo;s</p>
+            <p class="i-meta"><span>Size: 6</span><span>Quantity: 1</span><br>Product code: 355399</p>
+            <p class="i-price">&pound;95.00</p>
+          </div>
+        </div>
+        <a class="edit" href="#">Edit basket</a>
+        <div class="sum-block">
+          <h2>Summary</h2>
+          <div class="sum-row"><span>Bag Total</span><span>&pound;95.00</span></div>
+          <div class="sum-row"><span id="sumMethod">Standard Delivery</span><span id="sumDelivery">FREE</span></div>
+          <div class="sum-row total"><span>Total</span><span id="sumTotal">&pound;95.00</span></div>
+          <div class="status-pill"><b>STATUS</b>Members earn JD Cash on this order</div>
+          <p class="privacy">We&rsquo;ll use your information in accordance with our <a href="#">privacy policy.</a></p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="foot">
+      <div class="foot-cols">
+        <div><h3>Shopping With JD</h3><ul><li><a href="#">Students</a></li><li><a href="#">Size Guide</a></li><li><a href="#">Store Locator</a></li><li><a href="#">JD STATUS</a></li><li><a href="#">Download The App</a></li></ul></div>
+        <div><h3>Customer Care</h3><ul><li><a href="#">Delivery &amp; Returns</a></li><li><a href="#">Click &amp; Collect</a></li><li><a href="#">Frequently Asked Questions</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Track My Order</a></li></ul></div>
+        <div><h3>Corporate</h3><ul><li><a href="#">Careers at JD</a></li><li><a href="#">Sustainability</a></li></ul></div>
+        <div><h3>Legal</h3><ul><li><a href="#">Terms &amp; Conditions</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Cookie Policy</a></li><li><a href="#">Accessibility</a></li></ul></div>
+      </div>
+      <div class="foot-bottom">
+        <span>Copyright &copy; 2026 JD Sports All rights reserved.</span>
+        <div class="pm" aria-label="Payment methods"><span>VISA</span><span>Mastercard</span><span>AMEX</span><span>PayPal</span><span>Apple Pay</span><span>Klarna</span><span>clearpay</span></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var BAG_TOTAL = 95;
+      var form = document.getElementById('transferForm');
+      var fromAccount = document.getElementById('fromAccount');
+      var toAccount = document.getElementById('toAccount');
+      var amount = document.getElementById('amount');
+      var tier = document.getElementById('accountTier');
+      var btn = document.getElementById('submitBtn');
+      var submitLabel = document.getElementById('submitLabel');
+      var result = document.getElementById('result');
+      var methods = form.querySelectorAll('input[name="method"]');
+      var inFlight = false;
+      var done = false;
+      function gbp(n) { return '\u00a3' + n.toFixed(2); }
+      function selectedMethod() { return form.querySelector('input[name="method"]:checked'); }
+      function sync() {
+        var m = selectedMethod();
+        var fee = parseFloat(m.value) || 0;
+        var total = BAG_TOTAL + fee;
+        amount.value = total.toFixed(2);
+        toAccount.selectedIndex = Array.prototype.indexOf.call(methods, m);
+        document.getElementById('sumMethod').textContent = m.getAttribute('data-label');
+        document.getElementById('sumDelivery').textContent = fee ? gbp(fee) : 'FREE';
+        document.getElementById('sumTotal').textContent = gbp(total);
+        document.getElementById('osSub').textContent = '1 item \u00b7 ' + gbp(total);
+        if (!inFlight && !done) submitLabel.textContent = 'Place order & pay ' + gbp(total);
+      }
+      Array.prototype.forEach.call(methods, function (m) { m.addEventListener('change', sync); });
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind; result.textContent = '';
+        var b = document.createElement('b'); b.textContent = title;
+        result.appendChild(b);
+        result.appendChild(document.createTextNode(body));
+      }
+      function missingField() {
+        var ids = ['firstName', 'lastName', 'email', 'phone'];
+        for (var i = 0; i < ids.length; i++) {
+          var el = document.getElementById(ids[i]);
+          if (!el.value.trim()) return el;
+        }
+        return null;
+      }
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (inFlight || done) return;
+        var missing = missingField();
+        if (missing) {
+          show('notice', 'Please check your details', 'Fields marked with an asterisk are required.');
+          missing.focus();
+          return;
+        }
+        sync();
+        inFlight = true;
+        btn.disabled = true;
+        btn.classList.add('busy');
+        submitLabel.textContent = 'Processing payment';
+        result.className = 'result-box pending';
+        result.textContent = 'Placing your order\u2026 please don\u2019t refresh or close this page.';
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amount.value),
+              accountTier: tier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+          var data = await res.json();
+          if (!res.ok || !data.success) throw new Error('request failed');
+          var ref = String(data.transferId || '').replace(/[^A-Za-z0-9]/g, '').slice(-8).toUpperCase();
+          var first = document.getElementById('firstName').value.trim();
+          show('ok', 'Thanks' + (first ? ', ' + first : '') + ' \u2014 your order is confirmed.',
+            (ref ? 'Order number JD' + ref + '. ' : '') + 'We\u2019ve charged ' + gbp(parseFloat(amount.value)) + ' and sent a confirmation email to ' + document.getElementById('email').value.trim() + '.');
+          submitLabel.textContent = 'Order placed';
+          done = true;
+        } catch (err) {
+          show('notice', 'We couldn\u2019t place your order',
+            'You haven\u2019t been charged and your bag is saved. Please try again in a few minutes.');
+          btn.disabled = false;
+          submitLabel.textContent = 'Place order & pay ' + gbp(parseFloat(amount.value));
+        } finally {
+          btn.classList.remove('busy');
+          inFlight = false;
+        }
+      });
+      sync();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
