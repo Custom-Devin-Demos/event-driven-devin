@@ -538,7 +538,7 @@ function renderScan(sc){const t=sc.at?new Date(sc.at).toLocaleTimeString(AR_()?'
     :`<span class="st-amb">${(sc.live?T_(`Trusted sources could not be reached at ${t} · showing ${sc.live} earlier live-scan items and curated developments`,`تعذّر الوصول إلى المصادر الموثوقة عند ${t} · تُعرض ${sc.live} تطورات سابقة من الفحص المباشر والتطورات المنتقاة`):T_(`Trusted sources could not be reached at ${t} · showing curated developments`,`تعذّر الوصول إلى المصادر الموثوقة عند ${t} · تُعرض التطورات المنتقاة`))}</span>`;
   $('#scanBtn').style.display=sc.enabled?'':'none'}
 $('#scanBtn').onclick=async()=>{const b=$('#scanBtn');b.disabled=true;$('#scanLine').innerHTML=`<span class="spin"></span>${T_('Scanning trusted sources and assessing new items…','جارٍ فحص المصادر الموثوقة وتقييم العناصر الجديدة…')}`;
-  try{const r=await api('/trends/scan',{method:'POST'});if(LIB)TRS=r.trends;await loadTrends();
+  try{const r=await api('/trends/scan',{method:'POST'});if(LIB){TRS=r.trends;MAP=null;renderCoverage();}await loadTrends();
     if(r.scan.ok&&!r.scan.cached)$('#scanLine').innerHTML+=`<br><b style="color:var(--g);font-weight:600">${T_(`${r.scan.added} new from ${r.scan.found} headlines checked`,`${r.scan.added} جديدة من ${r.scan.found} عنواناً`)}</b>`;
   }catch(e){if(e.message!=='locked')$('#scanLine').innerHTML=`<span class="st-red">${esc(e.message)}</span>`}finally{b.disabled=false}};
 function renderTrStats(){const s=TST;const g=s.gaps;

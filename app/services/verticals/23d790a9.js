@@ -317,7 +317,8 @@ const SCAN_QUERIES = [
 const SCAN_MIN_INTERVAL_MS = 10 * 60 * 1000;
 const SCAN_AUTO_MS = 6 * 60 * 60 * 1000;
 const LIVE_MAX = 8;
-const liveScan = { items: [], at: null, ok: null, found: 0, added: 0, error: null, running: null };
+const SEEN_DAYS = 21;
+const liveScan = { items: [], seen: [], at: null, ok: null, found: 0, added: 0, error: null, running: null };
 
 function scanEnabled() {
   return process.env.PIF_LIVE_SCAN !== 'off' && process.env.NODE_ENV !== 'test';
@@ -351,8 +352,8 @@ function similar(a, b) {
   const x = titleToks(a); const y = titleToks(b);
   if (!x.size || !y.size) return false;
   const shared = [...x].filter((w) => y.has(w));
-  // Same company and the same headline number (e.g. "$667m") is the same story.
-  if (shared.some((w) => COMPANY_TOKS.has(w)) && shared.some((w) => /^\d[\d.,]*$/.test(w) && w.length >= 2)) return true;
+  // Same company and the same headline number (e.g. "$667m", not a year) is the same story.
+  if (shared.some((w) => COMPANY_TOKS.has(w)) && shared.some((w) => /^\d[\d.,]*$/.test(w) && w.length >= 2 && !/^(19|20)\d\d$/.test(w))) return true;
   return shared.length / Math.min(x.size, y.size) >= 0.5;
 }
 
@@ -395,7 +396,7 @@ async function enrichLive(items, known = []) {
   const seen = known.slice(0, 20).map((t) => `- ${t.title}`).join('\n');
   const list = items.map((t, i) => `${i + 1}. ${t.title} (${t.source}, ${t.date}; companies: ${t.companies.join(', ') || 'PIF'}; ecosystems: ${t.ecosystems.map((id) => ecoById(id).name).join(', ')})`).join('\n');
   const raw = await chat(
-    'You are an analyst in PIF\'s Strategy & Investment division. For each news headline, assess what it means for PIF (Saudi Arabia\'s sovereign wealth fund) and its portfolio companies. Reply with JSON only: an array with one object per headline, in order, with keys duplicate (true if it reports the same event as an earlier headline in the list or in "Already tracked"), impact (0-100: how much it matters to PIF\'s portfolio; routine partnerships and product launches 40-60, material financing, ownership or capacity changes 65-90), implication (max 28 words), action (one concrete recommended action, max 18 words), titleAr, implicationAr, actionAr (Modern Standard Arabic). Do not invent figures that are not in the headline.',
+    'You are an analyst in PIF\'s Strategy & Investment division. For each news headline, assess what it means for PIF (Saudi Arabia\'s sovereign wealth fund) and its portfolio companies. Reply with JSON only: an array with one object per headline, in order, with keys duplicate (true if it reports the same event as an earlier headline in the list or in "Already tracked"), impact (0-100: how much it matters to PIF\'s portfolio; routine partnerships and product launches 40-60, material financing, ownership or capacity changes 65-90), implication (max 28 words), action (one concrete recommended action, max 18 words; Recommend only actions PIF or its portfolio companies can take themselves (e.g. review, engage the company, commission a study, adjust an allocation or watch list); never actions that belong to governments, regulators or other companies.), titleAr, implicationAr, actionAr (Modern Standard Arabic). Do not invent figures that are not in the headline.',
     `Already tracked:\n${seen}\n\nNew headlines:\n${list}`, 1100,
   );
   let parsed = null;
@@ -430,7 +431,9 @@ async function fetchCandidates() {
 
 async function runScan(fetcher = fetchCandidates) {
   const raw = await fetcher();
-  const known = [...TRENDS, ...liveScan.items];
+  const cutoff = Date.now() - SEEN_DAYS * DAY_MS;
+  liveScan.seen = liveScan.seen.filter((t) => t.at >= cutoff);
+  const known = [...TRENDS, ...liveScan.items, ...liveScan.seen];
   const fresh = [];
   raw.map(liveCandidate).filter(Boolean).sort((a, b) => b.date.localeCompare(a.date)).forEach((c) => {
     if (fresh.length >= 6) return;
@@ -439,6 +442,7 @@ async function runScan(fetcher = fetchCandidates) {
     fresh.push(c);
   });
   const enriched = (await enrichLive(fresh, known)).filter((t) => !t.duplicate);
+  liveScan.seen.push(...fresh.map((t) => ({ title: t.title, at: Date.now() })));
   const scannedAt = new Date().toISOString();
   liveScan.items = [...enriched.map((t) => ({ ...t, scannedAt })), ...liveScan.items].slice(0, LIVE_MAX);
   Object.assign(liveScan, { at: scannedAt, ok: true, found: raw.length, added: enriched.length, error: null });
@@ -492,7 +496,7 @@ function summaryFacts(ecosystemId, now) {
   items.forEach((t) => t.companies.forEach((c) => counts.set(c, (counts.get(c) || 0) + 1)));
   const [topCompany, topCount] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] || [null, 0];
   const cov = coverage();
-  const scope = ecosystemId ? [ecosystemId] : ECOSYSTEMS.map((e) => e.id);
+  const scope = ecoById(ecosystemId) ? [ecosystemId] : ECOSYSTEMS.map((e) => e.id);
   const gaps = scope.map((id) => ({ eco: ecoById(id), n: items.filter((t) => t.direct && t.ecosystems.includes(id)).length }))
     .filter((g) => g.n && !cov[g.eco.id].ai.length).sort((a, b) => b.n - a.n);
   const quiet = SCAN_COMPANIES.filter((c) => scope.some((id) => ecoById(id).companies.includes(c)) && !counts.has(c));
@@ -558,7 +562,7 @@ async function trendsSummary(ecosystemId, lang = 'en', now = new Date()) {
         `Portfolio companies with no AI development this period: ${f.quiet.join(', ') || 'none'}.`,
       ].join('\n');
       const raw = await chat(
-        `You brief PIF leadership. Write exactly 3 takeaways for "This week in AI for PIF" from the facts given — what needs a decision, where exposure concentrates, and what is missing. Each takeaway is one sentence, max 30 words, names companies or ecosystems, and uses only the facts given. ${ar ? 'Write in Modern Standard Arabic.' : 'Write in English.'} Reply with a JSON array of 3 strings only.`,
+        `You brief PIF leadership. Write exactly 3 takeaways for "This week in AI for PIF" from the facts given — what needs a decision, where exposure concentrates, and what is missing. Each takeaway is one sentence, max 30 words, names companies or ecosystems, and uses only the facts given. Recommend only actions PIF or its portfolio companies can take themselves (e.g. review, engage the company, commission a study, adjust an allocation or watch list); never actions that belong to governments, regulators or other companies. ${ar ? 'Write in Modern Standard Arabic.' : 'Write in English.'} Reply with a JSON array of 3 strings only.`,
         facts, 400,
       );
       try {
