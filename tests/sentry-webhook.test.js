@@ -97,6 +97,7 @@ describe('Sentry customer identity mapping', () => {
     'reportLatencyBreach(app/services/verticals/a6fe3aeb)',
     'reportLatencyBreach(app/services/verticals/5d0fd49b)',
     'reportLatencyBreach(app/services/verticals/53cfb2d5)',
+    'reportLatencyBreach(app/services/verticals/f3e617ec)',
     'loadPortfolioSummary(app/services/verticals/0166f378)',
   ])('recognizes a tagless latency-breach issue webhook by culprit %p', (culprit) => {
     expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
@@ -133,6 +134,7 @@ describe('Sentry customer identity mapping', () => {
     'LatencyBudgetExceeded: POST /api/b62bfb77/rate-check took 7050ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/a6fe3aeb/compression-preview took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/5d0fd49b/sweep-quote took 7020ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/f3e617ec/availability-check took 7030ms (budget 3000ms)',
     'LatencyBudgetExceeded: GET /api/0166f378/portfolio-summary took 3421ms (budget 1500ms)',
   ])('recognizes a latency-breach issue webhook by error type regardless of culprit %p', (title) => {
     const alertData = extractAlertData({
