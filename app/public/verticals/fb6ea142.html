@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Long Lake</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --color-bg: #030a0d;
+      --color-fg: #fffefe;
+      --color-fg-muted: #a3a3ad;
+      --color-accent: #7c92ff;
+      --color-accent-contrast: #0c0c0e;
+      --font-sans: "Inter", Helvetica, sans-serif;
+      --gutter: 40px;
+      --bar: 0px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: var(--font-sans); background: var(--color-bg); color: var(--color-fg); line-height: 1.5; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    a { color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    .bg { position: fixed; inset: 0; z-index: -1; height: 100lvh; overflow: hidden; pointer-events: none; background: linear-gradient(180deg, #4d6274 0%, #43586a 44%, #2b4258 46%, #1d3449 100%); }
+    .bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+    .bg .scrim { position: absolute; inset: 0; background: #000; opacity: .4; }
+
+    .home { color: #fff; }
+    .home-header { position: fixed; top: var(--bar); left: 0; right: 0; z-index: 3; }
+    .mobile-news { display: none; }
+    .home-nav { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; padding: 30px var(--gutter); }
+    .brand { flex-shrink: 0; width: 250px; height: 25px; display: flex; align-items: center; gap: 0; text-decoration: none; color: #fff; }
+    .brand svg.mark { width: 25px; height: 25px; flex-shrink: 0; }
+    .brand .word { margin-left: 21px; font-weight: 300; font-size: 30px; line-height: 25px; letter-spacing: 4.6px; white-space: nowrap; }
+    .nav-side { display: flex; flex-direction: column; align-items: flex-end; gap: 30px; max-width: 100%; }
+    .nav-links { display: flex; align-items: center; gap: 30px; }
+    .nav-links a { color: rgba(255,255,255,.5); margin: -8px; padding: 8px; font-size: 14px; line-height: 1.4; text-decoration: none; transition: color .2s; }
+    .nav-links a:hover { color: #fff; }
+
+    .card { color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.06); border-radius: 4px; width: 400px; max-width: 100%; }
+    .card-head { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 16px 0; font-size: 14px; line-height: 1.5; }
+    .card-head .kicker { font-size: 12px; color: rgba(255,255,255,.7); }
+    form { padding: 14px 16px 16px; display: grid; gap: 12px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { display: block; font-size: 12px; line-height: 18px; color: rgba(255,255,255,.7); margin-bottom: 4px; }
+    select, input { width: 100%; height: 44px; padding: 0 12px; font: inherit; font-size: 14px; color: #fff; background: rgba(3,10,13,.35); border: 1px solid rgba(255,255,255,.14); border-radius: 4px; outline: none; -webkit-appearance: none; appearance: none; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%23fff' stroke-opacity='.6' stroke-width='1.5'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px; }
+    select option { color: #0c0c0e; }
+    select:focus, input:focus { border-color: rgba(255,255,255,.5); }
+    .btn { height: 44px; font: inherit; font-size: 14px; cursor: pointer; border-radius: .375rem; padding: .5rem 1rem; background: var(--color-accent); color: var(--color-accent-contrast); border: 1px solid var(--color-accent); }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .result-box { display: none; font-size: 13px; line-height: 1.5; border-radius: 4px; padding: 10px 12px; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { background: rgba(124,146,255,.16); border: 1px solid rgba(124,146,255,.4); }
+    .result-box.error { background: rgba(255,120,120,.14); border: 1px solid rgba(255,120,120,.4); }
+    .error-title { font-weight: 500; color: #fff; }
+    .error-detail { color: rgba(255,255,255,.75); }
+
+    .scroll-track .stop { height: 100svh; }
+    .scroll-track .stop:last-child { height: 100lvh; }
+    .home-content { position: fixed; left: 0; right: 0; bottom: 50px; z-index: 1; display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; padding: 0 var(--gutter); pointer-events: none; }
+    .home-copy { width: 650px; max-width: 100%; display: grid; }
+    .copy-slide { grid-area: 1 / 1; align-self: end; max-width: 650px; font-size: 20px; line-height: 1.8; letter-spacing: .5px; color: rgba(255,255,255,.8); visibility: hidden; opacity: 0; transform: translateY(8px); transition: opacity .35s, transform .45s cubic-bezier(.16,1,.3,1), visibility .35s; }
+    .copy-slide.active { visibility: visible; opacity: 1; transform: none; pointer-events: auto; }
+    .copy-slide.opening { letter-spacing: 0; font-size: clamp(20px, 1.75vw, 30px); line-height: 1.2; }
+    .copy-slide h1, .copy-slide p, .copy-slide h2 { font: inherit; letter-spacing: inherit; margin: 0; }
+    .copy-slide p + p, .copy-slide .block + .block { margin-top: 16px; }
+    .copy-slide h2 { color: #fff; font-size: 1.1em; font-weight: 500; }
+    .locations { flex-shrink: 0; margin: 0; padding: 0; list-style: none; text-align: right; font-size: 16px; line-height: 1.8; letter-spacing: 1px; color: rgba(255,255,255,.8); }
+    .home-footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px var(--gutter); font-size: 10px; color: rgba(255,255,255,.5); opacity: 0; visibility: hidden; transition: opacity .35s, visibility .35s; }
+    .home-footer.visible { opacity: 1; visibility: visible; }
+    .home-footer nav { display: flex; flex-wrap: wrap; gap: 12px; }
+    .home-footer a { text-decoration: none; }
+    .home-footer a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+    .scroll-cue { position: fixed; bottom: 4px; left: 50%; transform: translate(-50%); z-index: 3; width: 44px; height: 44px; padding: 12px; display: grid; place-items: center; color: rgba(255,255,255,.5); background: none; border: 0; cursor: pointer; }
+    .scroll-cue svg { width: 20px; height: 20px; transition: transform .4s cubic-bezier(.16,1,.3,1); }
+    .scroll-cue.up svg { transform: rotate(180deg); }
+
+    @media (width <= 768px) {
+      :root { --gutter: 20px; }
+      .home-header { position: relative; top: auto; }
+      .mobile-news { display: block; background: rgba(255,255,255,.1); }
+      .mobile-news a { display: flex; justify-content: center; align-items: center; min-height: 44px; padding: 12px 20px; font-size: 12px; line-height: 1.5; text-decoration: none; text-align: center; }
+      .home-nav { gap: 20px; }
+      .brand { width: 38px; height: 38px; }
+      .brand svg.mark { width: 38px; height: 38px; }
+      .brand .word { display: none; }
+      .nav-side { gap: 22px; width: min(400px, 100% - 58px); }
+      .nav-links { flex-direction: column; align-items: flex-end; gap: 8px; }
+      .nav-links a { margin: -4px -8px; padding: 4px 8px; font-size: 16px; }
+      .nav-side .card { display: none; }
+      .m-form { display: block; padding: 0 var(--gutter); }
+      .m-form .card { width: 100%; }
+      .scroll-track, .scroll-cue { display: none; }
+      .home-content { position: relative; bottom: auto; flex-direction: column; align-items: flex-start; gap: 20px; padding: 48px var(--gutter) 24px; pointer-events: auto; }
+      .home-copy { width: 100%; display: block; }
+      .copy-slide { visibility: visible; opacity: 1; transform: none; max-width: none; font-size: 16px; line-height: 1.6; padding-block: 16px; }
+      .copy-slide.opening { max-width: 360px; font-size: 18px; line-height: 1.45; }
+      .locations { text-align: left; font-size: 14px; }
+      .home-footer { position: relative; opacity: 1; visibility: visible; font-size: 9px; }
+      .home-footer nav { gap: 8px; }
+      .home-footer a { display: inline-flex; align-items: center; min-height: 24px; }
+    }
+    @media (width > 768px) { .m-form { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <img src="https://llmh.com/media/open-water-poster.jpg" width="3840" height="2160" alt="" fetchpriority="high" onerror="this.remove()">
+    <div class="scrim"></div>
+  </div>
+
+  <main class="home">
+    <header class="home-header">
+      <div class="mobile-news"><a href="#">The Next Century of Great Companies</a></div>
+      <nav class="home-nav" aria-label="Main navigation">
+        <a class="brand" href="#" aria-label="Long Lake home">
+          <svg class="mark" viewBox="0 0 25 25" fill="none" stroke="#fff" stroke-width="1.3" aria-hidden="true">
+            <rect x=".65" y=".65" width="23.7" height="23.7"/>
+            <path d="M4.6 .65V20.4h19.75"/>
+            <path d="M8.6 .65V16.4h15.75"/>
+            <path d="M12.6 .65V12.4h11.75"/>
+            <path d="M12.6 .65l5.9 11.75L24.35 .65"/>
+          </svg>
+          <span class="word">LONG LAKE</span>
+        </a>
+        <div class="nav-side">
+          <div class="nav-links">
+            <a href="#">Careers</a>
+            <a href="#">Press</a>
+            <a href="#">Blog</a>
+            <a href="#">Contact</a>
+          </div>
+          <aside class="card" id="payrollCard" aria-label="Nexus payroll">
+            <div class="card-head">
+              <span>Nexus &middot; Release payroll funding</span>
+              <span class="kicker">Business Services &mdash; client pay run, week ending Nov 20</span>
+            </div>
+            <form id="transferForm">
+              <div class="row">
+                <div><label for="fromAccount">Funding account</label><select id="fromAccount"><option value="ACCT-1001">Operating 1001</option><option value="ACCT-1002">Reserve 1002</option></select></div>
+                <div><label for="toAccount">Disburse to</label><select id="toAccount"><option value="ACCT-EXT-001">Payroll clearing 4921</option><option value="ACCT-1002">Reserve 1002</option></select></div>
+              </div>
+              <div class="row">
+                <div><label for="amount">Net pay total ($)</label><input type="number" id="amount" value="48250" min="1" step="0.01"></div>
+                <div><label for="accountTier">Pay run</label><select id="accountTier"><option value="standard">Regular pay run</option><option value="basic">Off-cycle run</option></select></div>
+              </div>
+              <button type="submit" class="btn" id="submitBtn">Release funding</button>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </aside>
+        </div>
+      </nav>
+    </header>
+
+    <div class="m-form" id="mobileFormSlot"></div>
+
+    <div class="scroll-track" aria-hidden="true"><div class="stop"></div><div class="stop"></div><div class="stop"></div></div>
+
+    <div class="home-content">
+      <div class="home-copy">
+        <section class="copy-slide opening active">
+          <h1>We are diffusing AI at scale across the services economy, collaborating directly with the businesses and leaders putting it to work every day.</h1>
+        </section>
+        <section class="copy-slide">
+          <p>We're entrepreneurs, technologists, investors, and operators who share one belief: AI can create enormous value for businesses, their customers, and their employees.</p>
+          <p>Our technology raises service standards, unlocks growth, and makes humans happier.</p>
+          <p>We think in decades. The generational businesses we partner with will define the next era of the services economy.</p>
+        </section>
+        <section class="copy-slide">
+          <div class="block"><h2>Built in-house</h2><p>We develop agents and teach AI real-world workflows. Our systems continuously improve through proprietary data, expert feedback, and verifiable outcomes.</p></div>
+          <div class="block"><h2>Built together</h2><p>Our engineers and operators work inside our companies, codesigning systems that combine technical ambition with deep industry expertise.</p></div>
+          <div class="block"><h2>Built to last</h2><p>Greatness takes time. We choose our businesses carefully and own them for the long term, so our investments in people and technology compound.</p></div>
+        </section>
+      </div>
+      <ul class="locations"><li>New York, NY</li><li>San Francisco, CA</li></ul>
+    </div>
+
+    <footer class="home-footer" id="homeFooter">
+      <nav aria-label="Legal"><a href="#">Privacy</a><a href="#">Terms</a></nav>
+      <span>&copy; 2026</span>
+    </footer>
+    <button class="scroll-cue" id="scrollCue" type="button" aria-label="Scroll"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7.5l6 6 6-6"/></svg></button>
+  </main>
+
+  <script>
+    (function () {
+      var mq = window.matchMedia('(max-width: 768px)');
+      var card = document.getElementById('payrollCard');
+      var navSide = document.querySelector('.nav-side');
+      var slot = document.getElementById('mobileFormSlot');
+      function placeCard() {
+        var target = mq.matches ? slot : navSide;
+        if (card.parentNode !== target) target.appendChild(card);
+        card.style.display = '';
+      }
+      if (mq.addEventListener) mq.addEventListener('change', placeCard); else mq.addListener(placeCard);
+      placeCard();
+
+      var slides = document.querySelectorAll('.copy-slide');
+      var footer = document.getElementById('homeFooter');
+      var cue = document.getElementById('scrollCue');
+      function onScroll() {
+        if (mq.matches) return;
+        var i = Math.min(slides.length - 1, Math.max(0, Math.round(window.scrollY / window.innerHeight)));
+        slides.forEach(function (s, k) { s.classList.toggle('active', k === i); });
+        footer.classList.toggle('visible', i === slides.length - 1);
+        cue.classList.toggle('up', i === slides.length - 1);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      cue.addEventListener('click', function () {
+        var last = cue.classList.contains('up');
+        window.scrollTo({ top: last ? 0 : window.scrollY + window.innerHeight, behavior: 'smooth' });
+      });
+      onScroll();
+
+      function pinDisclaimer() {
+        var bar = document.body.firstElementChild;
+        if (!bar || bar.classList.contains('bg') || bar.tagName === 'MAIN') return;
+        if (!mq.matches) {
+          bar.style.position = 'fixed'; bar.style.top = '0'; bar.style.left = '0'; bar.style.right = '0'; bar.style.zIndex = '10';
+          document.documentElement.style.setProperty('--bar', bar.offsetHeight + 'px');
+        } else {
+          bar.style.position = ''; document.documentElement.style.setProperty('--bar', '0px');
+        }
+      }
+      window.addEventListener('load', pinDisclaimer);
+      window.addEventListener('resize', pinDisclaimer);
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Releasing\u2026';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Funding release failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Payroll funding released</div><div class="error-detail">$${data.debitAmount} debited from the funding account (includes $${data.fee} processing fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Release funding'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
