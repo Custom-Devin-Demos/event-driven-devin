@@ -8,6 +8,9 @@ router.post('/api/188f0cf2/claims', async (req, res) => {
   if (!/^NH-\d{3}$/.test(data.siteId || '') || !['Front-load 8 yd', 'Recycling 6 yd', 'Compactor 30 yd'].includes(data.service) || !/^\d{4}-\d{2}-\d{2}$/.test(data.date || '')) {
     return res.status(400).json({ success: false, error: 'Choose a site, a service and a valid date.' });
   }
+  if (data.notes !== undefined && (typeof data.notes !== 'string' || data.notes.length > 500)) {
+    return res.status(400).json({ success: false, error: 'Keep the description under 500 characters.' });
+  }
   try {
     res.json(await processClaim(data));
   } catch (error) {
