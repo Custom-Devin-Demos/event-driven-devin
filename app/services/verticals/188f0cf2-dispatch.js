@@ -1,21 +1,24 @@
 const STOPS = [
-  { id: 'ST-4812', addressId: 'ADDR-1048', date: '2026-11-17', container: 'Recycling', status: 'EXCEPTION', exception: { type: 'NOT_OUT', reason: null }, source: 'driver-tablet', route: 'R-214' },
-  { id: 'ST-4811', addressId: 'ADDR-1048', date: '2026-11-17', container: 'Trash', status: 'COMPLETED', exception: null, source: 'driver-tablet', route: 'R-214' },
-  { id: 'ST-4704', addressId: 'ADDR-1048', date: '2026-11-16', container: 'Yard waste', status: 'COMPLETED', exception: null, source: 'driver-tablet', route: 'R-208' },
+  { id: 'ST-77412', siteId: 'NH-001', date: '2026-11-17', service: 'Front-load 8 yd', status: 'EXCEPTION', exception: { type: 'BLOCKED', reason: null }, source: 'driver-tablet', route: 'C-118' },
+  { id: 'ST-77413', siteId: 'NH-001', date: '2026-11-17', service: 'Recycling 6 yd', status: 'COMPLETED', exception: null, source: 'driver-tablet', route: 'C-118' },
+  { id: 'ST-77420', siteId: 'NH-004', date: '2026-11-17', service: 'Front-load 8 yd', status: 'COMPLETED', exception: null, source: 'driver-tablet', route: 'C-121' },
+  { id: 'ST-77391', siteId: 'NH-002', date: '2026-11-16', service: 'Compactor 30 yd', status: 'COMPLETED', exception: null, source: 'driver-tablet', route: 'RO-07' },
 ];
 
-async function lookupStop(addressId, date, container) {
-  return STOPS.find(stop => stop.addressId === addressId && stop.date === date && stop.container === container);
+const CONTRACT_CREDIT = { 'Front-load 8 yd': 185, 'Recycling 6 yd': 120, 'Compactor 30 yd': 640 };
+
+async function lookupStop(siteId, date, service) {
+  return STOPS.find(stop => stop.siteId === siteId && stop.date === date && stop.service === service);
 }
 
 function assessEligibility(stop) {
-  if (stop.status === 'COMPLETED') return { eligible: true, credit: 6.25, evidence: stop.id };
+  if (stop.status === 'COMPLETED') return { eligible: true, credit: CONTRACT_CREDIT[stop.service], evidence: stop.id };
   const code = stop.exception.reason.code;
-  return { eligible: code !== 'CUSTOMER_NOT_OUT', credit: code === 'ROUTE_MISSED' ? 6.25 : 0, evidence: stop.id };
+  return { eligible: code !== 'CUSTOMER_BLOCKED', credit: code === 'ROUTE_MISSED' ? CONTRACT_CREDIT[stop.service] : 0, evidence: stop.id };
 }
 
 function formatClaim(requestId, assessment) {
-  return { requestId, status: assessment.eligible ? 'Return pickup requested' : 'Not eligible for return pickup', serviceCredit: assessment.credit, stopId: assessment.evidence };
+  return { requestId, status: assessment.eligible ? 'Recovery pickup scheduled within 24 hours' : 'Not eligible for recovery pickup', serviceCredit: assessment.credit, stopId: assessment.evidence };
 }
 
 module.exports = { lookupStop, assessEligibility, formatClaim };
