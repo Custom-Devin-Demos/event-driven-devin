@@ -10389,6 +10389,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BARCLAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
   },
+  '3c0cacaa': {
+    slug: '3c0cacaa',
+    company: 'Blackboard',
+    vertical: 'hightech',
+    page: { file: '3c0cacaa.html', title: 'AI-Powered LMS for Transformational Teaching & Learning | Blackboard' },
+    disclaimer: 'NOT ACTUALLY A BLACKBOARD SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blackboard product.',
+  },
 };
 
 function getOncallSkin(slug) {

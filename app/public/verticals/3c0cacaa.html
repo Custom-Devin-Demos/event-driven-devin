@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-Powered LMS for Transformational Teaching &amp; Learning | Blackboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Wittgenstein:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --white: #fff;
+      --base-50: #f9f7f6;
+      --base-100: #eeebe8;
+      --base-200: #e3e0de;
+      --base-300: #ceccca;
+      --base-400: #918f8d;
+      --base-500: #626a68;
+      --base-800: #1f332e;
+      --base-900: #172622;
+      --green: #1d5245;
+      --green-100: #d9f2ec;
+      --green-200: #40b598;
+      --vibrant-200: #bfa4f4;
+      --fireside-100: #fdf2ed;
+      --banner: #885e56;
+      --text-strong: #172622;
+      --text-medium: #495a55;
+      --text-subtle: #626a68;
+      --border-subtle: #e3e0de;
+      --border-medium: #ceccca;
+      --display: 'ft_bureau', 'Wittgenstein', Georgia, serif;
+      --body: 'IBM Plex Sans', Helvetica, sans-serif;
+      --fs-display-m: clamp(3rem, 5.5vw, 5rem);
+      --fs-display-s: clamp(2rem, 4.5vw, 4rem);
+      --fs-headline-m: clamp(1.5rem, 2.5vw, 2rem);
+      --fs-headline-s: clamp(1.25rem, 2vw, 1.5rem);
+      --fs-label-l: clamp(1rem, 1.5vw, 1.25rem);
+      --fs-body-m: clamp(1rem, 1.5vw, 1.25rem);
+      --gutter: clamp(32px, 6vw, 96px);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--body); font-size: 16px; line-height: 1.7; color: var(--text-strong); background: var(--white); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    p, h1, h2, h3 { margin: 0; }
+    h1, h2, h3 { text-wrap: balance; font-variant-ligatures: common-ligatures; text-rendering: optimizeLegibility; }
+    img { display: block; }
+    .img-fallback { background: var(--base-100); }
+
+    /* Announcement bar */
+    .bb-announce { position: relative; height: 39px; background: var(--banner); color: #fff; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 0 48px; font-size: 14px; line-height: 32px; }
+    .bb-announce span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bb-announce a { display: inline-block; padding: 0 20px; height: 32px; line-height: 32px; border-radius: 2px; background: #fff; color: var(--green); font-size: 14px; font-weight: 700; white-space: nowrap; }
+    .bb-announce .bb-close { position: absolute; right: 0; top: 0; width: 39px; height: 39px; display: flex; align-items: center; justify-content: center; opacity: .5; }
+
+    /* Utility + primary nav */
+    .bb-util { padding: 12px clamp(28px, 6vw, 96px); background: var(--base-50); }
+    .bb-util ul { max-width: 1440px; margin: auto; display: flex; justify-content: flex-end; align-items: center; gap: 32px; list-style: none; padding: 0; }
+    .bb-util a { font-size: 16px; line-height: 27.2px; color: var(--text-strong); display: block; }
+    .bb-nav { padding: 20px clamp(28px, 6vw, 96px); background: var(--white); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+    .bb-nav-wrap { max-width: 1440px; margin: auto; display: flex; justify-content: space-between; align-items: center; }
+    .bb-mark { display: block; width: 38px; height: 40px; flex-shrink: 0; }
+    .bb-nav-center { flex: 1; min-width: 0; display: flex; justify-content: center; padding: 0 clamp(20px, 2.5vw, 40px); }
+    .bb-nav-center ul { display: flex; align-items: center; gap: clamp(8px, 1vw, 16px); list-style: none; margin: 0; padding: 0; }
+    .bb-nav-item { display: flex; align-items: center; gap: 4px; padding: 12px 16px; border-radius: 24px; font-family: var(--body); font-size: 16px; font-weight: 500; line-height: 1.3; color: var(--text-strong); background: transparent; border: 0; cursor: pointer; }
+    .bb-nav-item svg { width: 16px; height: 16px; margin-inline-start: 2px; }
+    .bb-nav-item:hover { background: var(--base-100); }
+    .bb-burger { display: none; width: 40px; height: 40px; align-items: center; justify-content: center; background: none; border: 0; color: var(--text-strong); transform: translate(7px); }
+
+    /* Buttons */
+    .bb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 4px; font-family: var(--body); font-weight: 500; font-size: 16px; line-height: 1.3; padding: 12px clamp(16px, 2vw, 24px); cursor: pointer; text-align: center; white-space: nowrap; }
+    .bb-btn-primary { background: var(--green); color: var(--base-50); border: 0; }
+    .bb-btn-primary:hover:not(:disabled) { background: var(--green-200); color: var(--text-strong); }
+    .bb-btn-primary:disabled { background: var(--base-400); opacity: .5; cursor: not-allowed; }
+    .bb-btn-secondary { background: transparent; color: var(--text-strong); border: 1px solid var(--border-medium); }
+    .bb-btn-secondary:hover { background: var(--base-50); border-color: var(--text-subtle); }
+    .bb-btn-light { background: transparent; color: var(--base-50); border: 1px solid var(--base-50); }
+    .bb-btn-small { height: 40px; padding: 8px 16px; font-size: 14px; }
+
+    /* Sections */
+    .bb-section { width: 100%; max-width: 1440px; margin: auto; padding-inline: var(--gutter); }
+    .pad-l { padding-block: 128px; }
+    .eyebrow { font-family: var(--body); font-weight: 500; font-size: var(--fs-label-l); line-height: 1.3; }
+    .center-head { display: flex; flex-direction: column; align-items: center; gap: 32px; text-align: center; margin: auto; }
+    .center-head .eyebrow { color: var(--text-subtle); }
+    .center-head h2 { font-family: var(--display); font-weight: 400; font-size: var(--fs-display-s); line-height: 1.1; letter-spacing: -.03em; color: var(--text-strong); }
+    .center-head .sub { max-width: 50rem; font-size: 16px; line-height: 1.7; color: var(--text-medium); }
+
+    /* Hero */
+    .bb-hero { position: relative; }
+    .bb-hero-copy { position: relative; z-index: 2; display: grid; gap: 32px; align-content: start; max-width: clamp(256px, 38vw, 560px); }
+    .bb-logotype { display: block; width: 170px; height: 24px; }
+    .bb-hero h1 { font-family: var(--display); font-weight: 400; font-size: var(--fs-display-m); line-height: 1.1; color: var(--green); }
+    .bb-hero-copy > p { font-size: 16px; line-height: 1.7; color: var(--text-medium); }
+    .hero-top { position: absolute; top: 12px; right: 12px; width: 100%; max-width: 53%; height: auto; }
+    .hero-bottom { position: absolute; bottom: -160px; right: clamp(32px, 27vw, 360px); width: 100%; max-width: 34%; height: auto; z-index: 1; }
+    .hero-line { position: absolute; right: 24px; bottom: -256px; width: 30%; height: auto; z-index: 1; }
+
+    /* Seat form (in place of the hero CTA row) */
+    .bb-seat-form { display: grid; gap: 16px; padding: 24px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--white); }
+    .bb-seat-form .form-title { font-size: 16px; font-weight: 500; line-height: 1.3; color: var(--text-strong); }
+    .bb-field { display: grid; gap: 6px; }
+    .bb-field label { font-size: 14px; font-weight: 500; line-height: 1.3; color: var(--text-medium); }
+    .bb-field select, .bb-field input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid var(--border-medium); border-radius: 4px; background: var(--white); font-family: var(--body); font-size: 16px; color: var(--text-strong); appearance: none; -webkit-appearance: none; }
+    .bb-field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23172622' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    .bb-field select:focus, .bb-field input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    .bb-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .bb-form-actions { display: flex; flex-wrap: wrap; gap: 16px; padding-top: 4px; }
+    .bb-form-actions .bb-btn { min-height: 45px; }
+    .result-box { display: none; padding: 12px 16px; border-radius: 4px; font-size: 14px; line-height: 1.5; }
+    .result-box .error-title { font-weight: 600; }
+    .result-box.success { display: block; background: var(--green-100); border: 1px solid #a9dccd; color: var(--green); }
+    .result-box.error { display: block; background: #ff3e001a; border: 1px solid #ffb59e; color: #c23400; }
+
+    /* Why Blackboard */
+    .bb-why { background: var(--base-800); padding-block: 256px; overflow-x: hidden; }
+    .bb-why .bb-section { position: relative; }
+    .bb-why-wrap { max-width: 45rem; display: flex; flex-direction: column; gap: 32px; }
+    .bb-why .eyebrow { color: var(--base-50); }
+    .bb-why h2 { font-family: var(--display); font-weight: 400; font-size: var(--fs-display-m); line-height: 1.1; color: var(--base-50); }
+    .bb-why-wrap > div > p { color: var(--base-200); font-size: 16px; line-height: 1.7; }
+    .bb-why .bb-btn { margin-top: 80px; }
+    .why-img { position: absolute; bottom: -268px; right: -12px; width: 100%; max-width: 32%; min-width: 192px; height: auto; }
+    .why-dash { position: absolute; left: 0; top: -168px; width: 334px; height: 2px; }
+    .why-dash-2 { position: absolute; left: 352px; bottom: -232px; width: 334px; height: 2px; }
+
+    /* Solutions */
+    .bb-grid { display: flex; flex-wrap: wrap; gap: 24px; width: 100%; margin-top: 48px; }
+    .bb-feature { flex: 1 0 0; min-width: 0; display: flex; flex-direction: column; gap: 40px; padding: clamp(28px, 4vw, 56px) clamp(28px, 4vw, 56px) 0; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--white); overflow: hidden; transition: background-color .2s; }
+    .bb-feature:hover { background: var(--base-50); }
+    .bb-feature.span2 { flex: 0 0 100%; }
+    .bb-feature .tb { display: flex; flex-direction: column; gap: 12px; }
+    .bb-feature .title { font-size: var(--fs-label-l); font-weight: 500; line-height: 1.3; margin: 0 0 32px; }
+    .bb-feature h3 { font-family: var(--display); font-weight: 400; font-size: var(--fs-headline-m); line-height: 1.3; letter-spacing: -.02em; }
+    .bb-feature .desc { font-size: 16px; line-height: 1.7; color: var(--text-subtle); }
+    .bb-media { position: relative; width: 100%; border-radius: 4px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+    .bb-media.wide { aspect-ratio: 16 / 6; }
+    .bb-media.r169 { aspect-ratio: 16 / 9; }
+    .bb-media.r11 { aspect-ratio: 1; }
+    .bb-feature .bb-media img { width: 100%; height: auto; margin-top: auto; }
+
+    /* Awards */
+    .bb-awards { position: relative; background: var(--base-900); padding: 128px 0 256px; }
+    .bb-awards .center-head .eyebrow { color: var(--base-300); }
+    .bb-awards .center-head h2 { color: var(--base-50); }
+    .bb-pinned { display: flex; justify-content: flex-end; width: 100%; }
+    .bb-pinned > div { width: 90vw; }
+    .bb-aw-wrap { margin-top: 48px; padding: 48px 0 48px clamp(28px, 3.5vw, 96px); background: var(--base-900); }
+    .bb-aw-track { display: flex; gap: 24px; overflow-x: auto; scrollbar-width: none; padding-right: clamp(28px, 3.5vw, 96px); }
+    .bb-aw-track::-webkit-scrollbar { display: none; }
+    .bb-aw-card { flex-shrink: 0; width: 340px; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; padding: 24px; background: var(--white); border-radius: 4px; }
+    .bb-aw-src { position: relative; width: 192px; height: 48px; mix-blend-mode: multiply; }
+    .bb-aw-src img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: left center; }
+    .bb-aw-detail { display: flex; flex-direction: column; gap: 12px; margin-top: 64px; }
+    .bb-aw-meta { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 500; line-height: 1.3; }
+    .bb-aw-meta .yr { color: var(--base-500); }
+    .bb-aw-desc { font-size: var(--fs-body-m); line-height: 1.4; color: #000; }
+    .bb-aw-controls { display: flex; align-items: center; gap: 24px; margin-top: 32px; padding-right: clamp(28px, 3.5vw, 96px); }
+    .bb-aw-bar { position: relative; flex: 1; height: 4px; border-radius: 24px; background: #ffffff26; overflow: hidden; }
+    .bb-aw-bar span { position: absolute; left: 0; top: 0; height: 100%; width: 31%; border-radius: inherit; background: var(--green-200); }
+    .bb-aw-all { font-size: 14px; font-weight: 500; color: var(--base-300); padding: 8px 16px; }
+    .bb-divider { position: absolute; left: 50%; bottom: -18%; transform: translate(-50%); width: 100%; max-width: 1248px; height: auto; }
+
+    /* Community */
+    .bb-community { padding-block: 256px 128px; }
+    .bb-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 24px; padding: 32px 0; margin-top: 48px; }
+    .bb-logo-btn { width: 15%; flex-shrink: 0; padding: 16px 32px; background: none; border: 0; border-bottom: 2px solid transparent; opacity: .5; cursor: pointer; }
+    .bb-logo-btn.active { opacity: 1; }
+    .bb-logo-btn img { width: 100%; height: 64px; object-fit: contain; }
+    .bb-slide { display: flex; min-height: 675px; }
+    .bb-brand-panel { flex: 1; min-width: 0; padding: 64px; background: var(--base-900); display: flex; justify-content: center; align-items: center; }
+    .bb-brand-panel img { width: 100%; max-width: 320px; height: 120px; object-fit: contain; }
+    .bb-quote-panel { flex: 1; min-width: 0; padding: 64px; background: var(--base-800); display: flex; flex-direction: column; }
+    .bb-quote-panel blockquote { margin: 0; flex: 1; }
+    .bb-quote-panel blockquote p { font-family: var(--display); font-size: var(--fs-headline-s); line-height: 1.4; color: var(--base-50); }
+    .bb-attr { margin-top: 32px; }
+    .bb-attr cite { display: block; font-style: normal; font-size: var(--fs-label-l); font-weight: 500; line-height: 1.3; color: var(--base-50); }
+    .bb-attr cite span { display: block; margin-top: 4px; font-size: 16px; font-weight: 400; line-height: 1.7; color: var(--base-300); }
+    .bb-quote-cta { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-medium); text-align: center; }
+    .bb-q-controls { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
+    .bb-dots { display: flex; gap: 8px; }
+    .bb-dots span { display: block; width: 32px; height: 4px; border-radius: 2px; background: var(--base-200); }
+    .bb-dots span.on { background: var(--green); }
+    .bb-arrows { display: flex; gap: 16px; }
+    .bb-arrows button { width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--border-medium); background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--text-strong); cursor: pointer; }
+
+    /* In motion */
+    .bb-headcta { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
+    .bb-headcta h2 { max-width: 720px; font-family: var(--display); font-weight: 400; font-size: var(--fs-display-m); line-height: 1.1; }
+    .bb-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+    .bb-card { display: flex; border: 1px solid transparent; border-radius: 4px; overflow: hidden; transition: background-color .2s, border-color .2s; }
+    .bb-card:hover { background: var(--white) !important; border-color: var(--border-subtle); }
+    .bb-card .mw { position: relative; flex-shrink: 0; border-radius: 4px; overflow: hidden; }
+    .bb-card .mw img { width: 100%; height: 100%; object-fit: cover; }
+    .kicker { font-size: 16px; font-weight: 500; line-height: 1.3; color: var(--text-medium); }
+    .h-display { font-family: var(--display); font-size: var(--fs-headline-m); font-weight: 400; line-height: 1.3; letter-spacing: -.02em; color: var(--text-strong); }
+    .h-card { font-size: var(--fs-label-l); font-weight: 500; line-height: 1.3; color: var(--text-strong); }
+    .summary { font-size: 16px; line-height: 1.7; color: var(--text-medium); }
+    .bb-card.row { grid-column: span 3; flex-direction: row; gap: 40px; padding: 24px 40px 24px 24px; background: var(--base-50); }
+    .bb-card.row .mw { flex: 1; }
+    .bb-card.row .body { flex: 1; max-width: 38.75rem; display: flex; flex-direction: column; align-items: baseline; gap: 24px; padding: 24px 0; }
+    .bb-card.cardl { flex-direction: column; max-width: 26.25rem; padding: 24px; background: var(--fireside-100); }
+    .bb-card.cardl .mw { width: 100%; }
+    .bb-card.cardl .body { display: flex; flex-direction: column; gap: 24px; padding: 24px 8px; }
+    .bb-card.feat { grid-column: span 2; flex-direction: column; padding: 24px; background: var(--base-50); }
+    .bb-card.feat .mw { width: 100%; margin-bottom: 24px; }
+    .bb-card.feat .fb { display: flex; flex-direction: row; align-items: flex-end; gap: 40px; }
+    .bb-card.feat .fl { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .bb-card.feat .fr { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+
+    /* FAQ */
+    .bb-faq { display: flex; flex-direction: column; align-items: center; gap: 64px; }
+    .bb-faq .center-head { width: 100%; max-width: 52.5rem; }
+    .bb-faq-items { width: 100%; max-width: 52.5rem; display: flex; flex-direction: column; }
+    .bb-faq-item { max-width: 45rem; width: 100%; padding: 40px 8px 44px; border-top: 1px solid var(--border-medium); }
+    .bb-faq-item:first-child { max-width: none; }
+    .bb-faq-items .bb-faq-item { max-width: none; }
+    .bb-faq-item button { all: unset; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 24px; width: 100%; }
+    .bb-faq-item .t { flex: 1 0 0; min-width: 0; font-size: var(--fs-label-l); font-weight: 500; line-height: 1.3; color: var(--text-strong); }
+    .bb-faq-item .ic { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+
+    /* Footer */
+    .bb-footer { display: flex; flex-direction: column; gap: 96px; width: 100%; padding: clamp(48px, 8vw, 128px) clamp(28px, 6vw, 96px) 64px; background: var(--base-50); }
+    .bb-cta-banner { display: flex; align-items: center; gap: 40px; padding: clamp(28px, 4vw, 48px); background: var(--white); border-radius: 4px; }
+    .bb-cta-banner p { flex: 1 0 0; font-family: var(--display); font-size: var(--fs-headline-m); line-height: 1.3; letter-spacing: -.02em; }
+    .bb-cols { display: grid; grid-template-columns: 2.4fr 1fr 1.1fr .5fr; gap: 40px; align-items: flex-start; }
+    .bb-col { display: flex; flex-direction: column; gap: 12px; }
+    .bb-col .h { font-size: 16px; font-weight: 500; line-height: 1.3; color: var(--text-subtle); }
+    .bb-col ul { list-style: none; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 8px; }
+    .bb-col ul.two { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; }
+    .bb-col li { display: flex; align-items: center; gap: 4px; }
+    .bb-col li a { font-size: 16px; line-height: 27.2px; color: var(--text-strong); }
+    .bb-col li svg { width: 12px; height: 12px; }
+    .bb-brandbar { display: flex; justify-content: space-between; align-items: center; padding-top: 64px; border-top: 1px solid var(--border-medium); }
+    .bb-legal { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: right; }
+    .bb-legal p { font-size: 16px; line-height: 1.7; color: var(--text-subtle); }
+    .bb-legal a { font-size: 16px; line-height: 1.7; color: var(--text-strong); border-bottom: 1px solid var(--text-strong); }
+
+    @media (max-width: 1100px) {
+      .bb-cols { grid-template-columns: 2fr 1fr; }
+    }
+    @media (max-width: 767px) {
+      .bb-announce span { display: none; }
+      .bb-nav-center, .bb-nav-actions { display: none; }
+      .bb-burger { display: flex; }
+      .bb-hero.pad-l { padding-block: 48px 96px; }
+      .bb-hero-copy { max-width: none; width: 100%; }
+      .hero-top { left: 4px; right: auto; top: auto; max-width: 360px; bottom: -226px; }
+      .hero-bottom, .hero-line { display: none; }
+      .why-img { min-width: 192px; }
+      .bb-feature { flex: 0 0 100%; }
+      .bb-aw-card { width: 280px; }
+      .bb-slide { flex-direction: column; min-height: 980px; }
+      .bb-awards { padding: 128px 0; }
+      .bb-community { padding-block: 96px 48px; }
+      .bb-brand-panel, .bb-quote-panel { padding: 32px; flex: auto; }
+      .bb-logos { gap: 16px; }
+      .bb-logo-btn { width: 30%; padding: 8px 24px; }
+      .bb-headcta { flex-direction: column; align-items: flex-start; }
+      .bb-cards { grid-template-columns: 1fr; }
+      .bb-card.row, .bb-card.feat { grid-column: span 1; }
+      .bb-card.row { flex-direction: column; padding-inline-end: 24px; }
+      .bb-card.row .body { padding: 0; }
+      .bb-card.cardl .body { padding-inline: 0; }
+      .bb-card .mw { aspect-ratio: 16 / 9 !important; }
+      .bb-card.feat .fb { flex-direction: column; align-items: stretch; }
+      .bb-cta-banner { flex-direction: column; text-align: center; gap: 28px; }
+      .bb-cols { grid-template-columns: 1fr; }
+      .bb-brandbar { flex-direction: column; align-items: flex-start; }
+      .bb-legal { text-align: left; align-items: flex-start; margin-top: 40px; }
+      .bb-divider { bottom: -5%; }
+    }
+    @media (max-width: 600px) {
+      .bb-col ul.two { grid-template-columns: 1fr; }
+      .bb-aw-controls { flex-direction: column; align-items: stretch; }
+      .bb-aw-bar { flex: none; }
+      .bb-aw-all { text-align: center; }
+      .bb-q-controls { flex-direction: column; gap: 32px; margin-top: 12px; }
+      .bb-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bb-announce">
+    <span>We're excited to welcome Cursive, our new writing authenticity tool for any LMS</span>
+    <a href="#">Learn More</a>
+    <a class="bb-close" href="#" aria-label="Close" style="background:none;color:#fff;padding:0;font-weight:400"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="1.6"><path d="M1 1l10 10M11 1L1 11"/></svg></a>
+  </div>
+
+  <header>
+    <nav class="bb-util" aria-label="Utility navigation">
+      <ul><li><a href="#">Students</a></li><li><a href="#">Community &amp; Support</a></li></ul>
+    </nav>
+    <nav class="bb-nav" aria-label="Primary navigation">
+      <div class="bb-nav-wrap">
+        <a href="#" aria-label="Home">
+          <svg class="bb-mark" viewBox="0 0 38 40" fill="none" aria-hidden="true">
+            <text x="1" y="29" font-family="Wittgenstein, Georgia, serif" font-style="italic" font-weight="700" font-size="30" fill="#1d5245" letter-spacing="-2">Bb</text>
+            <path d="M2 35.5c7-2.6 18-3.6 34-1.4" stroke="#1d5245" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </a>
+        <div class="bb-nav-center">
+          <ul>
+            <li><button type="button" class="bb-nav-item"><span>Solutions</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button></li>
+            <li><button type="button" class="bb-nav-item"><span>Resources</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button></li>
+            <li><button type="button" class="bb-nav-item"><span>Company</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button></li>
+          </ul>
+        </div>
+        <div class="bb-nav-actions"><a class="bb-btn bb-btn-primary" href="#">Contact Us</a></div>
+        <button type="button" class="bb-burger" aria-label="Open navigation menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="bb-section bb-hero pad-l" aria-label="Hero">
+      <div class="bb-hero-copy">
+        <svg class="bb-logotype" viewBox="0 0 170 24" aria-label="Blackboard" role="img">
+          <text x="0" y="20" font-family="ft_bureau, Wittgenstein, Georgia, serif" font-weight="700" font-size="25" fill="#1d5245" textLength="170" lengthAdjust="spacingAndGlyphs">Blackboard</text>
+        </svg>
+        <h1>Where great teaching finds its platform.</h1>
+        <p>Blackboard builds the teaching and learning environment your learners need. AI-powered, deeply accessible, and designed with educators in mind.</p>
+        <form id="provisionForm" class="bb-seat-form">
+          <p class="form-title">Add seats to your Blackboard subscription</p>
+          <div class="bb-field">
+            <label for="product">Solution</label>
+            <select id="product">
+              <option value="enterprise_suite">Blackboard LMS</option>
+              <option value="devops_platform">Blackboard LMS: Video Studio</option>
+              <option value="analytics_cloud">Blackboard Illuminate</option>
+              <option value="security_gateway">Blackboard Ally</option>
+            </select>
+          </div>
+          <div class="bb-row">
+            <div class="bb-field">
+              <label for="seats">Additional learner seats</label>
+              <input type="number" id="seats" value="25" min="1">
+            </div>
+            <div class="bb-field">
+              <label for="planTier">Institution type</label>
+              <select id="planTier">
+                <option value="enterprise">Higher Education</option>
+                <option value="business">Business &amp; Government</option>
+                <option value="starter">K-12</option>
+              </select>
+            </div>
+          </div>
+          <div class="bb-field">
+            <label for="region">Hosting region</label>
+            <select id="region">
+              <option value="us-east">North America — East</option>
+              <option value="us-west">North America — West</option>
+              <option value="eu-west">Europe</option>
+              <option value="ap-south">Asia Pacific</option>
+            </select>
+          </div>
+          <div class="bb-form-actions">
+            <button type="submit" class="bb-btn bb-btn-primary" id="submitBtn">Add Seats</button>
+            <a class="bb-btn bb-btn-secondary" href="#">Explore Solutions</a>
+          </div>
+          <div id="result" class="result-box"></div>
+        </form>
+      </div>
+      <img class="hero-top" src="https://www.blackboard.com/assets/imgs/home-hero-1.webp?w=1920&amp;q=75" width="759" height="640" alt="Stylized photo of two students on campus laughing with Blackboard LMS UI elements overlaid" onerror="this.onerror=null;this.removeAttribute('src');this.alt='';this.classList.add('img-fallback')">
+      <img class="hero-bottom" src="https://www.blackboard.com/assets/imgs/home-hero-2.webp?w=1080&amp;q=75" width="483" height="436" alt="Stylized photo of three students collaborating at a dry erase board with Blackboard LMS UI elements overlaid" onerror="this.onerror=null;this.removeAttribute('src');this.alt='';this.classList.add('img-fallback')">
+      <svg class="hero-line" viewBox="0 0 330 330" fill="none" aria-hidden="true"><path d="M300 18 C 250 70, 150 150, 60 210 C 130 180, 230 150, 300 168 C 290 230, 300 280, 312 318" stroke="#bfa4f4" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </section>
+
+    <section class="bb-why" aria-label="Why Blackboard">
+      <div class="bb-section">
+        <svg class="why-dash" viewBox="0 0 334 2" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="1" x2="334" y2="1" stroke="#40b598" stroke-width="1.5" stroke-dasharray="14 8" opacity=".6"/></svg>
+        <div class="bb-why-wrap">
+          <p class="eyebrow">Why Blackboard?</p>
+          <div style="display:flex;flex-direction:column;gap:32px">
+            <h2>Decades in and still building what’s next.</h2>
+            <p>Blackboard was founded on one conviction: technology should make teaching and learning better. We’ve built our platform on that principle, and today, we’re embracing another: AI will again improve teaching and learning. We’re not adding features to check boxes. We’re building the environment where exceptional teaching happens and where every learner gets the experience they deserve.</p>
+          </div>
+        </div>
+        <a class="bb-btn bb-btn-light" href="#">Read our story</a>
+        <img class="why-img" src="https://www.blackboard.com/assets/imgs/home-why-blackboard.webp?w=1080&amp;q=75" width="464" height="634" alt="Stylized photo of a student wearing headphones using Blackboard LMS on her laptop" onerror="this.onerror=null;this.removeAttribute('src');this.alt='';this.classList.add('img-fallback')">
+        <svg class="why-dash-2" viewBox="0 0 334 2" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="1" x2="334" y2="1" stroke="#40b598" stroke-width="1.5" stroke-dasharray="14 8" opacity=".6"/></svg>
+      </div>
+    </section>
+
+    <section class="bb-section pad-l" aria-label="Our Solutions">
+      <div class="center-head">
+        <p class="eyebrow">Our Solutions</p>
+        <h2>Each tool built around the learner.</h2>
+        <p class="sub">Different tools. One common purpose: make learning better. Blackboard’s solutions are built to work together — and to work for the people inside them.</p>
+      </div>
+      <p style="display:flex;justify-content:center;margin-top:48px"><a class="bb-btn bb-btn-primary" href="#">Discover How</a></p>
+      <div class="bb-grid">
+        <a class="bb-feature span2" href="#">
+          <div class="tb">
+            <p class="title">Learning Management</p>
+            <h3>An LMS your faculty will love to use.</h3>
+            <p class="desc">Have a complete platform for modern teaching and learning, with LMS at the core and AI-powered tools that go beyond course management.</p>
+          </div>
+          <div class="bb-media wide"><img src="https://www.blackboard.com/assets/imgs/home-lms-feature.webp?w=1920&amp;q=75" width="1136" height="360" alt="" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('img-fallback')"></div>
+        </a>
+        <a class="bb-feature" href="#">
+          <div class="tb">
+            <p class="title">Accessibility</p>
+            <h3>Accessibility tools that make learning experiences for everyone.</h3>
+            <p class="desc">Accessible learning isn’t a compliance checkbox. It’s a commitment to open up learning experiences for every student. Deliver on that commitment, at scale.</p>
+          </div>
+          <div class="bb-media r169"><img src="https://www.blackboard.com/assets/imgs/home-accessibility-feature.webp?w=1080&amp;q=75" width="500" height="281" alt="" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('img-fallback')"></div>
+        </a>
+        <a class="bb-feature" href="#">
+          <div class="tb">
+            <p class="title">Institutional Effectiveness</p>
+            <h3>Institutional tools that ensure you’re measuring and hitting goals.</h3>
+            <p class="desc">Give your institution the tools to demonstrate mission, drive improvement, and make decisions grounded in evidence.</p>
+          </div>
+          <div class="bb-media r169"><img src="https://www.blackboard.com/assets/imgs/home-institutional-effectiveness-feature.webp?w=1080&amp;q=75" width="500" height="281" alt="" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('img-fallback')"></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="bb-awards" aria-label="Awards &amp; Recognition">
+      <div class="bb-section">
+        <div class="center-head">
+          <p class="eyebrow">Awards &amp; Recognition</p>
+          <h2>Here’s what analysts and educators are recognizing.</h2>
+        </div>
+      </div>
+      <div class="bb-pinned">
+        <div class="bb-aw-wrap">
+          <div class="bb-aw-track" role="region" aria-label="Award cards" tabindex="0">
+            <div class="bb-aw-card"><div class="bb-aw-src"><img src="https://www.blackboard.com/assets/imgs/logo-etih.webp" alt="ETIH"></div><div class="bb-aw-detail"><div class="bb-aw-meta"><span>Winner</span><span class="yr">2026</span></div><p class="bb-aw-desc">Best Digital Learning Platform for Higher Education</p></div></div>
+            <div class="bb-aw-card"><div class="bb-aw-src"><img src="https://www.blackboard.com/assets/imgs/logo-campus-technology.webp" alt="Campus Technology"></div><div class="bb-aw-detail"><div class="bb-aw-meta"><span>Product of the Year</span><span class="yr">2025</span></div><p class="bb-aw-desc">Learning Management Systems &amp; E-Learning Platforms</p></div></div>
+            <div class="bb-aw-card"><div class="bb-aw-src"><img src="https://www.blackboard.com/assets/imgs/logo-campus-technology.webp" alt="Campus Technology"></div><div class="bb-aw-detail"><div class="bb-aw-meta"><span>Product of the Year</span><span class="yr">2025</span></div><p class="bb-aw-desc">Accessibility &amp; Captioning Tools</p></div></div>
+            <div class="bb-aw-card"><div class="bb-aw-src"><img src="https://www.blackboard.com/assets/imgs/logo-tech-learning.webp" alt="Tech &amp; Learning"></div><div class="bb-aw-detail"><div class="bb-aw-meta"><span>Award of Excellence</span><span class="yr">2025</span></div><p class="bb-aw-desc">Best of 2025 — Blackboard LMS</p></div></div>
+            <div class="bb-aw-card"><div class="bb-aw-src"><img src="https://www.blackboard.com/assets/imgs/logo-tech-learning.webp" alt="Tech &amp; Learning"></div><div class="bb-aw-detail"><div class="bb-aw-meta"><span>Award of Excellence</span><span class="yr">2025</span></div><p class="bb-aw-desc">Best of 2025 — Blackboard Ally</p></div></div>
+            <div class="bb-aw-card"><div class="bb-aw-src"><img src="https://www.blackboard.com/assets/imgs/logo-stevie-awards.webp" alt="Stevie Awards"></div><div class="bb-aw-detail"><div class="bb-aw-meta"><span>Gold</span><span class="yr">2025</span></div><p class="bb-aw-desc">American Business Awards — Blackboard Ally</p></div></div>
+            <div class="bb-aw-card"><div class="bb-aw-src"><img src="https://www.blackboard.com/assets/imgs/logo-idc.webp" alt="IDC"></div><div class="bb-aw-detail"><div class="bb-aw-meta"><span>Leader</span><span class="yr">2025</span></div><p class="bb-aw-desc">Cloud &amp; SaaS LMS for Higher Education, North America</p></div></div>
+          </div>
+          <div class="bb-aw-controls"><div class="bb-aw-bar"><span></span></div><a class="bb-aw-all" href="#">View all awards</a></div>
+        </div>
+      </div>
+      <img class="bb-divider" src="https://www.blackboard.com/assets/imgs/home-awards-recognition.webp?w=1920&amp;q=75" width="1248" height="466" alt="Stylized photo of two students talking and laughing" onerror="this.onerror=null;this.removeAttribute('src');this.alt='';this.classList.add('img-fallback')">
+    </section>
+
+    <section class="bb-section bb-community" aria-label="The Blackboard Community">
+      <div class="center-head">
+        <p class="eyebrow">The Blackboard Community</p>
+        <h2>Millions of learners. Thousands of institutions.</h2>
+        <p class="sub">One shared conviction: learning technology should serve learning.</p>
+      </div>
+      <div class="bb-logos" role="tablist" aria-label="Navigate testimonials by institution">
+        <button type="button" class="bb-logo-btn active" aria-label="Sacred Heart University"><img src="https://www.blackboard.com/assets/imgs/logo-sacred-heart-university.webp?w=640&amp;q=75" alt="Sacred Heart University"></button>
+        <button type="button" class="bb-logo-btn" aria-label="Bridgewater State University"><img src="https://www.blackboard.com/assets/imgs/logo-bridgewater-state-university.webp?w=640&amp;q=75" alt="Bridgewater State University"></button>
+        <button type="button" class="bb-logo-btn" aria-label="Grand Valley State University"><img src="https://www.blackboard.com/assets/imgs/logo-grand-valley-state.webp?w=640&amp;q=75" alt="Grand Valley State University"></button>
+        <button type="button" class="bb-logo-btn" aria-label="MetroHealth"><img src="https://www.blackboard.com/assets/imgs/logo-metrohealth.webp?w=640&amp;q=75" alt="MetroHealth"></button>
+        <button type="button" class="bb-logo-btn" aria-label="Wyoming Law Enforcement Academy"><img src="https://www.blackboard.com/assets/imgs/logo-wyoming-academy.webp?w=640&amp;q=75" alt="Wyoming Law Enforcement Academy"></button>
+      </div>
+      <div class="bb-slide">
+        <div class="bb-brand-panel"><img src="https://www.blackboard.com/assets/imgs/logo-sacred-heart-university-white.webp?w=640&amp;q=75" alt="Sacred Heart University"></div>
+        <div class="bb-quote-panel">
+          <blockquote><p>“The responsiveness to ideas in the Idea Exchange is an important differentiator for Blackboard. Any company can put something like that together and say they're collecting feedback from customers, but Blackboard can back it up with real numbers and real product releases that reflect the wants and needs of their users.”</p></blockquote>
+          <div class="bb-attr"><cite>Nicole Trudell<span>Director of Instructional Technology &amp; Support Services, Sacred Heart University</span></cite></div>
+          <div class="bb-quote-cta"><a class="bb-btn bb-btn-light" href="#">Read the Case Study</a></div>
+        </div>
+      </div>
+      <div class="bb-q-controls">
+        <div class="bb-dots"><span class="on"></span><span></span><span></span><span></span><span></span></div>
+        <div class="bb-arrows">
+          <button type="button" aria-label="Previous"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+          <button type="button" aria-label="Next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="bb-section pad-l" aria-label="Blackboard in motion">
+      <div class="bb-headcta">
+        <h2>Blackboard in motion</h2>
+        <a class="bb-btn bb-btn-secondary" href="#">Explore More</a>
+      </div>
+      <div class="bb-cards">
+        <article class="bb-card row">
+          <div class="mw" style="aspect-ratio:16/9"><img src="https://www.blackboard.com/assets/imgs/home-feature-our-evolution.webp?w=1200&amp;q=75" alt="" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('img-fallback')"></div>
+          <div class="body">
+            <p class="kicker">Our New Brand</p>
+            <p class="h-display">The Evolution of Blackboard</p>
+            <p class="summary">Blackboard has always been about one thing: helping educators do what they do best. Since 1997, that has meant building the infrastructure that makes teaching and learning possible, online and in person, at scale. Today, we are sharing what that evolution looks like next.</p>
+            <a class="bb-btn bb-btn-secondary bb-btn-small" href="#">Learn More</a>
+          </div>
+        </article>
+        <article class="bb-card cardl">
+          <div class="mw" style="aspect-ratio:1"><img src="https://www.blackboard.com/assets/imgs/home-security-webinar-feature.webp?w=750&amp;q=75" alt="" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('img-fallback')"></div>
+          <div class="body">
+            <p class="kicker">Why This Webinar, Why Now</p>
+            <p class="h-card">Protecting Your Institution and Students: Privacy, Security &amp; Compliance in Higher Ed</p>
+            <p class="summary">The landscape has shifted. States are passing AI legislation. Data sovereignty debates are intensifying. Cyber threats to educational institutions are top of mind. Your students, faculty, and community expect their data to be protected no matter what.</p>
+            <a class="bb-btn bb-btn-secondary bb-btn-small" href="#">Learn More</a>
+          </div>
+        </article>
+        <article class="bb-card feat">
+          <div class="mw" style="aspect-ratio:16/9"><img src="https://www.blackboard.com/assets/imgs/home-usability-starts-with-u.webp?w=1920&amp;q=75" alt="" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('img-fallback')"></div>
+          <div class="fb">
+            <div class="fl">
+              <p class="kicker">A conversation with Jo Packer, VP of Design</p>
+              <p class="h-display">Usability starts with U: How your feedback directly informs Blackboard LMS development</p>
+            </div>
+            <div class="fr">
+              <p class="summary">Usability in learning technology is often presented with a wide range of synonymous terms, acronyms, and metrics. With so many different measures and expressions of data, it can be difficult to cut through the noise and identify what really matters for users’ daily learning experience.</p>
+              <a class="bb-btn bb-btn-secondary bb-btn-small" href="#">Learn More</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="bb-section pad-l bb-faq" aria-label="FAQ">
+      <div class="center-head">
+        <p class="eyebrow">FAQ</p>
+        <h2>Questions, answered.</h2>
+      </div>
+      <div class="bb-faq-items">
+        <div class="bb-faq-item"><button type="button" aria-expanded="false"><span class="t">What does Blackboard do?</span><span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" stroke="#172622" stroke-width="1.5"><path d="M8 2v12M2 8h12"/></svg></span></button></div>
+        <div class="bb-faq-item"><button type="button" aria-expanded="false"><span class="t">What products does Blackboard offer?</span><span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" stroke="#172622" stroke-width="1.5"><path d="M8 2v12M2 8h12"/></svg></span></button></div>
+        <div class="bb-faq-item"><button type="button" aria-expanded="false"><span class="t">Who uses Blackboard?</span><span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" stroke="#172622" stroke-width="1.5"><path d="M8 2v12M2 8h12"/></svg></span></button></div>
+        <div class="bb-faq-item"><button type="button" aria-expanded="false"><span class="t">What is Blackboard LMS?</span><span class="ic"><svg width="16" height="16" viewBox="0 0 16 16" stroke="#172622" stroke-width="1.5"><path d="M8 2v12M2 8h12"/></svg></span></button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bb-footer">
+    <div class="bb-cta-banner"><p>See what’s possible.</p><a class="bb-btn bb-btn-primary" href="#">Contact Us</a></div>
+    <div class="bb-cols">
+      <div class="bb-col">
+        <p class="h">Products</p>
+        <ul class="two">
+          <li><a href="#">Blackboard LMS</a></li><li><a href="#">Blackboard LMS: AVA</a></li>
+          <li><a href="#">Blackboard LMS: Adopt</a></li><li><a href="#">Blackboard LMS: Video Studio</a></li>
+          <li><a href="#">Blackboard LMS: Catalog</a></li><li><a href="#">Blackboard LMS: Milestone</a></li>
+          <li><a href="#">Blackboard Illuminate</a></li><li><a href="#">Blackboard Ally</a></li>
+          <li><a href="#">Cursive by Blackboard</a></li><li><a href="#">Institutional Effectiveness</a></li>
+          <li><a href="#">Blackboard Accreditation</a></li><li><a href="#">Blackboard Planning</a></li>
+          <li><a href="#">Blackboard Program Review</a></li><li><a href="#">Blackboard Outcomes</a></li>
+          <li><a href="#">Blackboard Evaluate</a></li><li><a href="#">Services</a></li>
+        </ul>
+      </div>
+      <div class="bb-col">
+        <p class="h" style="line-height:27.2px">Blackboard Trust Center</p>
+        <ul>
+          <li><a href="#">Privacy Statement</a></li><li><a href="#">US State Privacy Notice</a></li><li><a href="#">Modern Slavery Act Statement</a></li><li><a href="#">Security</a></li><li><a href="#">Terms of Use</a></li><li><a href="#" style="line-height:21px;color:#000">Cookie Preferences</a></li><li><a href="#">Your Privacy Choices</a></li><li><a href="#">Our Commitment to Accessibility</a></li>
+        </ul>
+      </div>
+      <div class="bb-col">
+        <p class="h">Company</p>
+        <ul>
+          <li><a href="#">Our Story</a></li><li><a href="#">Careers</a></li><li><a href="#">Leadership</a></li><li><a href="#">Newsroom</a></li><li><a href="#">Events</a></li><li><a href="#">Partners</a></li>
+          <li><a href="#">Blackboard Community</a><svg viewBox="0 0 12 12" fill="none" stroke="#172622" stroke-width="1.3"><path d="M5 2H2v8h8V7M7 2h3v3M10 2 5.5 6.5"/></svg></li>
+          <li><a href="#">Brand Guidance</a></li>
+        </ul>
+      </div>
+      <div class="bb-col">
+        <p class="h">Connect</p>
+        <ul>
+          <li><a href="#">LinkedIn</a><svg viewBox="0 0 12 12" fill="none" stroke="#172622" stroke-width="1.3"><path d="M5 2H2v8h8V7M7 2h3v3M10 2 5.5 6.5"/></svg></li>
+          <li><a href="#">YouTube</a><svg viewBox="0 0 12 12" fill="none" stroke="#172622" stroke-width="1.3"><path d="M5 2H2v8h8V7M7 2h3v3M10 2 5.5 6.5"/></svg></li>
+          <li><a href="#">Bluesky</a><svg viewBox="0 0 12 12" fill="none" stroke="#172622" stroke-width="1.3"><path d="M5 2H2v8h8V7M7 2h3v3M10 2 5.5 6.5"/></svg></li>
+          <li><a href="#">Facebook</a><svg viewBox="0 0 12 12" fill="none" stroke="#172622" stroke-width="1.3"><path d="M5 2H2v8h8V7M7 2h3v3M10 2 5.5 6.5"/></svg></li>
+          <li><a href="#">Instagram</a><svg viewBox="0 0 12 12" fill="none" stroke="#172622" stroke-width="1.3"><path d="M5 2H2v8h8V7M7 2h3v3M10 2 5.5 6.5"/></svg></li>
+        </ul>
+      </div>
+    </div>
+    <div class="bb-brandbar">
+      <span style="display:block;width:96px;height:101px" aria-hidden="true"></span>
+      <div class="bb-legal">
+        <p>©2026 Blackboard T&amp;L, LLC and its affiliates. All rights reserved.</p>
+        <a href="#">Trademarks and Patents</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const productSelect = document.getElementById('product');
+      btn.disabled = true; btn.textContent = 'Adding seats...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: productSelect.value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Seats could not be added</div><div>${data.errorClass}: ${data.error}</div>`;
+        } else {
+          const label = productSelect.options[productSelect.selectedIndex].text;
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Seats added</div><div>${data.seatsAdded} learner seats added to ${label} &mdash; annual subscription: $${data.annualCost}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div>${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Add Seats'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
