@@ -1,5 +1,5 @@
 module.exports = {
-  label: 'Gearbox Software — Playtest Sign-up',
+  label: 'Gearbox Entertainment — 2K Buy Now',
   triggerMode: 'api',
   githubOrg: 'COG-GTM',
 };

@@ -1,14 +1,14 @@
 const express = require('express');
-const { PROGRAMS, PLATFORMS, REGIONS, submitPlaytestSignup } = require('../../services/verticals/fca13efd');
+const { PRODUCTS, PLATFORMS, REGIONS, submitBuyNow } = require('../../services/verticals/fca13efd');
 const router = express.Router();
 
-router.get('/api/fca13efd/catalog', (_req, res) => res.json({ programs: PROGRAMS, platforms: PLATFORMS, regions: REGIONS }));
+router.get('/api/fca13efd/catalog', (_req, res) => res.json({ products: PRODUCTS, platforms: PLATFORMS, regions: REGIONS }));
 
-router.post('/api/fca13efd/playtest-signups', async (req, res) => {
+router.post('/api/fca13efd/buy-now', async (req, res) => {
   const body = req.body || {};
   try {
-    res.json(await submitPlaytestSignup({
-      signup: body.signup,
+    res.json(await submitBuyNow({
+      order: body.order,
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
@@ -16,7 +16,7 @@ router.post('/api/fca13efd/playtest-signups', async (req, res) => {
   } catch (error) {
     res.status(error.status || 500).json({
       success: false, error: error.message, errorClass: error.name,
-      code: error.code || 'PLAYTEST_SIGNUP_FAILED', requestId: error.requestId || req.requestId,
+      code: error.code || 'BUY_NOW_FAILED', requestId: error.requestId || req.requestId,
     });
   }
 });

@@ -15,11 +15,7 @@ const { getCustomerConfig } = require('../config/customers');
 const svc = require('../app/services/verticals/fca13efd');
 
 const NOW = new Date('2026-11-20T16:00:00Z');
-const signup = (overrides = {}) => ({
-  displayName: 'VaultHunter_77', email: 'vaulthunter77@example.com',
-  program: 'bl4-vault-of-the-damned', platform: 'steam-deck', region: 'na',
-  ageConfirmed: true, ndaAccepted: true, ...overrides,
-});
+const order = (overrides = {}) => ({ product: 'ror2-hallowed-concepts', platform: 'steam', region: 'US', ...overrides });
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
 beforeEach(() => {
@@ -29,50 +25,52 @@ beforeEach(() => {
 });
 afterAll(() => { delete process.env.DEVIN_SERVICE_KEY_FCA13EFD; });
 
-describe('Gearbox playtest registration and page', () => {
+describe('Gearbox 2K studio page registration and page', () => {
   test('registers the hex slug only, in API mode, with no aliases', () => {
-    expect(getCustomerConfig(svc.CUSTOMER)).toMatchObject({ label: 'Gearbox Software — Playtest Sign-up', triggerMode: 'api', githubOrg: 'COG-GTM' });
+    expect(getCustomerConfig(svc.CUSTOMER)).toMatchObject({ label: 'Gearbox Entertainment — 2K Buy Now', triggerMode: 'api', githubOrg: 'COG-GTM' });
     expect(require('../config/customers/fca13efd').aliases).toBeUndefined();
   });
 
-  test('page pre-fills Steam Deck and posts presenter identity', () => {
+  test('page pre-selects Steam, posts presenter identity and ships every local image', () => {
     const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/fca13efd.html'), 'utf8');
-    expect(html).toContain("platform: 'steam-deck'");
-    expect(html).toContain("'/api/fca13efd/playtest-signups'");
+    expect(html).toContain("platform: 'steam'");
+    expect(html).toContain("'/api/fca13efd/buy-now'");
     for (const key of ['devinUserId', 'devinOrgId', 'devinEmail']) expect(html).toContain(`identity('${key}')`);
-    for (const [, file] of html.matchAll(/data-fallback="\/verticals\/(fca13efd-assets\/[^"]+)"/g)) {
-      expect(fs.statSync(path.join(__dirname, '../app/public/verticals', file)).size).toBeGreaterThan(500);
-    }
+    const files = [...html.matchAll(/\/verticals\/(fca13efd-assets\/[^"')\s]+)/g)].map(m => m[1]);
+    expect(files.length).toBeGreaterThan(20);
+    for (const file of files) expect(fs.statSync(path.join(__dirname, '../app/public/verticals', file)).size).toBeGreaterThan(100);
   });
 });
 
 describe('healthy platforms and validation', () => {
-  test.each(['pc-steam', 'pc-epic', 'ps5', 'xbox-series'])('%s signup gets a build drop', async platform => {
-    const result = await svc.submitPlaytestSignup({ signup: signup({ platform }) }, NOW);
-    expect(result).toMatchObject({ success: true, wave: 'Wave 3', ndaVersion: 'GBX-NDA-2026.2' });
-    expect(result.signupId).toMatch(/^GBX-PT-2026-\d{6}$/);
-    expect(result.depotBranch).toMatch(/^playtest_/);
+  test.each([
+    ['epic', 'Epic Games'], ['ps5', 'PlayStation'], ['xbox-series', 'Xbox'], ['switch', 'Nintendo'],
+  ])('%s routes to the %s store', async (platform, retailerName) => {
+    const result = await svc.submitBuyNow({ order: order({ platform }) }, NOW);
+    expect(result).toMatchObject({ success: true, retailerName, edition: 'Digital edition', product: 'Risk of Rain 2: Hallowed Concepts' });
+    expect(result.orderId).toMatch(/^2K-BN-2026-\d{6}$/);
+    expect(new URL(result.redirectUrl).searchParams.get('utm_source')).toBe('2k.com');
     expect(Sentry.captureException).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
   });
 
-  test('rejects an application without the NDA', async () => {
-    await expect(svc.submitPlaytestSignup({ signup: signup({ ndaAccepted: false }) }, NOW)).rejects.toMatchObject({ status: 400, code: 'INVALID_PLAYTEST_SIGNUP' });
+  test('rejects an unknown region', async () => {
+    await expect(svc.submitBuyNow({ order: order({ region: 'XX' }) }, NOW)).rejects.toMatchObject({ status: 400, code: 'INVALID_BUY_NOW' });
   });
 });
 
-describe('planted Steam Deck failure goes from Sentry straight to Devin', () => {
-  test('default signup fails downstream and opens one Devin session, never Slack', async () => {
-    const data = { signup: signup(), devinUserId: 'user-presenter', devinOrgId: 'org-presenter' };
-    await expect(svc.submitPlaytestSignup(data, NOW)).rejects.toMatchObject({
-      name: 'TypeError', status: 500, code: 'PLAYTEST_SIGNUP_FAILED',
-      message: expect.stringContaining("reading 'keyWindowHours'"),
+describe('planted Steam failure goes from Sentry straight to Devin', () => {
+  test('default BUY NOW fails downstream and opens one Devin session, never Slack', async () => {
+    const data = { order: order(), devinUserId: 'user-presenter', devinOrgId: 'org-presenter' };
+    await expect(svc.submitBuyNow(data, NOW)).rejects.toMatchObject({
+      name: 'TypeError', status: 500, code: 'BUY_NOW_FAILED',
+      message: expect.stringContaining("reading 'checkoutBaseUrl'"),
     });
     await flush();
 
     const [, sentryContext] = Sentry.captureException.mock.calls[0];
-    expect(sentryContext.tags).toMatchObject({ customer: 'fca13efd', alert_path: 'instant' });
-    expect(JSON.stringify(sentryContext.extra)).not.toMatch(/VaultHunter|example\.com/);
+    expect(sentryContext.tags).toMatchObject({ customer: 'fca13efd', service: 'gearbox-buy-now', alert_path: 'instant' });
+    expect(sentryContext.extra).toEqual({ orderId: expect.stringMatching(/^2K-BN-/), product: 'ror2-hallowed-concepts', platform: 'steam', region: 'US' });
     expect(isInstantPathEvent({ tags: [['alert_path', 'instant']] })).toBe(true);
 
     expect(createDevinSession).toHaveBeenCalledTimes(1);
@@ -86,7 +84,7 @@ describe('planted Steam Deck failure goes from Sentry straight to Devin', () => 
   });
 
   test('repeat failures inside the cooldown do not open more sessions', async () => {
-    for (let i = 0; i < 3; i += 1) await expect(svc.submitPlaytestSignup({ signup: signup() }, NOW)).rejects.toThrow(TypeError);
+    for (let i = 0; i < 3; i += 1) await expect(svc.submitBuyNow({ order: order() }, NOW)).rejects.toThrow(TypeError);
     await flush();
     expect(Sentry.captureException).toHaveBeenCalledTimes(3);
     expect(createDevinSession).toHaveBeenCalledTimes(1);
