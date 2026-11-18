@@ -66,7 +66,7 @@ async function processClaim(data) {
     HISTORY.push({ requestId, status: 'failed' });
     incrementMetric('188f0cf2.claim.failure', { route, errorClass: error.name });
     logger.error('Missed service report failed', { service, requestId, error: error.message });
-    Sentry.captureException(error, { tags: { service, route, alert_path: 'instant' }, extra: { requestId, stopId: stop.id } });
+    Sentry.captureException(error, { tags: { service, route, alert_path: 'instant' }, extra: { requestId, stopId: stop.id, notes: data.notes || '' } });
     if (alerted) throw error;
     alerted = true;
     logger.info('Invoking createSessionAndAlert', { service, route, requestId });
@@ -76,9 +76,9 @@ async function processClaim(data) {
       culprit: 'app/services/verticals/188f0cf2.js — processClaim',
       errorType: error.name, errorValue: error.message,
       devinUserId: data.devinUserId, devinOrgId: data.devinOrgId, devinEmail: data.devinEmail,
-      service, verticalLabel: 'Enterprise missed service reports', skipVulnerablePr: true,
+      service, verticalLabel: 'Enterprise missed service reports', skipVulnerablePr: true, slackMemberId: process.env.ONCALL_SLACK_MEMBER_ID_188F0CF2 || 'U0BDHHQUM24',
       tags: [{ key: 'route', value: route }, { key: 'service', value: service }, { key: 'page', value: '/188f0cf2' }],
-      extra: { requestId, siteId: data.siteId, stopId: stop.id, source: stop.source, routeId: stop.route },
+      extra: { requestId, siteId: data.siteId, notes: data.notes || '', stopId: stop.id, source: stop.source, routeId: stop.route },
       promptAppendix: 'Investigate the enterprise missed-service report failure at /188f0cf2. Trace dispatch stop data from the driver route app through eligibility and contract service-credit handling, and size the blast radius (which reports and sites are affected). Preserve raw dispatch evidence. A stop with incomplete evidence must enter manual review, not be automatically denied or awarded credit. Cover completed, exception, missing-reason, and unknown-reason records across the dispatch adapter, assessment, and response formatting. Open a pull request with a plain-English root-cause analysis and regression tests; do not merge.',
       level: 'error', platform: 'node', firstSeen: '', lastSeen: new Date().toISOString(), count: '', shortId: '',
       project: 'event-driven-devin', release: process.env.SENTRY_RELEASE || '188f0cf2@1.0.0', environment: process.env.DD_ENV || 'prod', triggeredRule: '',
