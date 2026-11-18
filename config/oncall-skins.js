@@ -10435,6 +10435,23 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A DATAHUB SITE — internal demo only, not affiliated with, endorsed by, or a real DataHub product.',
   },
+  'fb6ea142': {
+    slug: 'fb6ea142',
+    company: 'Long Lake',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: 'fb6ea142.html', title: 'Long Lake' },
+    alertCard: {
+      title: 'p95 latency \u2014 Nexus payroll funding releases',
+      release: 'nexus-payroll@2026.11.1',
+      team: 'nexus-payroll-oncall',
+      baseline: '~280ms (7-day p95, before nexus-payroll@2026.11.1)',
+      symptom: 'Payroll funding releases submitted from Nexus hang ~10s before confirming. Error rate is normal \u2014 releases eventually complete.',
+      impact: 'Payroll processors wait ~10 seconds on every client funding release; some resubmit, which risks funding the same pay run twice.',
+    },
+    disclaimer: 'NOT ACTUALLY A LONG LAKE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Long Lake product.',
+  },
 };
 
 function getOncallSkin(slug) {
