@@ -3,6 +3,7 @@ const express = require('express');
 const { processTransfer } = require('../services/oncall-verticals/banking');
 const { processCashTransfer } = require('../services/oncall-verticals/statestreet-transfers');
 const { submitOrder: submitWealthOrder } = require('../services/oncall-verticals/wealthorders');
+const { changePlan: changeInternetPlan } = require('../services/oncall-verticals/internetupgrades');
 const { ACCOUNTS: REGIONS_ACCOUNTS, processCashTransfer: processRegionsTransfer } = require('../services/oncall-verticals/regions-transfers');
 const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
@@ -104,6 +105,22 @@ router.post('/api/oncall/cibc/transfers', async (req, res) => {
   } catch (error) {
     const invalid = error.code === 'INVALID_TRANSFER';
     res.status(invalid ? 400 : 500).json({ success: false, code: error.code || 'TRANSFER_POSTING_FAILED', error: invalid ? error.message : 'Your transfer could not be completed. No money was moved.' });
+  }
+});
+
+router.post('/api/oncall/internetupgrades/orders', async (req, res) => {
+  try {
+    res.json(await changeInternetPlan(req.body || {}));
+  } catch (error) {
+    const invalid = error.code === 'INVALID_PLAN_CHANGE';
+    if (!invalid) logger.error('Internet plan change failed', { error: error.message, errorClass: error.name });
+    res.status(invalid ? 400 : 500).json({
+      success: false,
+      code: error.code || 'PLAN_CHANGE_FAILED',
+      error: invalid ? error.message : 'We couldn\u2019t update your plan.',
+      errorClass: error.name,
+      requestId: req.requestId,
+    });
   }
 });
 

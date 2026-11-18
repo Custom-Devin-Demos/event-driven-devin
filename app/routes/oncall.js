@@ -19,6 +19,7 @@ const { normalizeAlertDestination } = require('../services/alert-destination');
 const { BATCH: STATESTREET_BATCH, releaseSettlementBatch } = require('../services/oncall-verticals/statestreet');
 const { BATCH: REGIONS_BILLS, submitBillPayments } = require('../services/oncall-verticals/regions');
 const { BATCH: WEALTH_REBALANCE, submitRebalance } = require('../services/oncall-verticals/wealthrebalance');
+const { BILL: XFINITY_BILL, submitPayment: submitXfinityPayment } = require('../services/oncall-verticals/billpayments');
 const { BATCH: CIBC_PAYMENT, sendMoney } = require('../services/oncall-verticals/cibc-etransfer');
 const { BATCH: LB_REROUTE, rerouteOrders } = require('../services/oncall-verticals/logicbroker-reroute');
 const { STORE: WALMART_PICKUP_STORE, reservePickupSlot } = require('../services/oncall-verticals/walmartfulfillment');
@@ -92,6 +93,7 @@ const ONCALL_HOURLY_CAPS = {
   batchSettlement: 50,
   regionsBillPay: 50,
   wealthRebalance: 50,
+  xfinityBillPay: 50,
   cibcEtransfer: 50,
   logicbrokerReroute: 50,
   walmartPickup: 50,
@@ -693,6 +695,21 @@ router.post('/api/oncall/cibc/etransfer/send', (req, res, next) => {
 }, oncallCap('cibcEtransfer'), async (req, res) => {
   const result = await sendMoney(req.body);
   res.status(result.statusCode).json(result.body);
+});
+
+router.post('/api/oncall/billpayments/submit', (req, res, next) => {
+  if (!req.body || req.body.billId !== XFINITY_BILL.id) {
+    return res.status(400).json({ success: false, code: 'INVALID_PAYMENT', error: 'Choose the bill you want to pay.' });
+  }
+  next();
+}, oncallCap('xfinityBillPay'), async (req, res) => {
+  try {
+    const result = await submitXfinityPayment(req.body || {});
+    res.status(result.statusCode).json(result.body);
+  } catch (error) {
+    logger.error('Xfinity bill payment failed', { error: error.message });
+    res.status(500).json({ success: false, error: 'Unable to submit the payment.' });
+  }
 });
 
 router.post('/api/oncall/wealthrebalance/submit', (req, res, next) => {

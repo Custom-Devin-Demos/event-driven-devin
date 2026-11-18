@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>My Account | Xfinity</title>
+  <style>
+    :root {
+      --black: #000; --ink: #141417; --ink2: #44454a; --muted: #6b6d75; --rule: #dcdde1; --bg: #f2f2f4; --card: #fff;
+      --purple: #5a23b9; --purple2: #6138f5; --lilac: #efe9fb; --blue: #1f69ff; --green: #0d7a3e; --greenbg: #e6f4ec;
+      --red: #c8102e; --redbg: #fdecee; --amber: #8a5a00; --amberbg: #fff4dc;
+      --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.45; }
+    h1, h2, h3, p { margin: 0; }
+    button { font: inherit; cursor: pointer; }
+    a { color: var(--blue); text-decoration: none; }
+    input[type=text], select { font: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid #b8b9bf; border-radius: 8px; background: #fff; color: var(--ink); width: 100%; }
+    label.f { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 600; font-size: 12px; color: var(--muted); padding: 8px 6px; border-bottom: 1px solid var(--rule); }
+    td { padding: 12px 6px; border-bottom: 1px solid var(--rule); }
+    td.r, th.r { text-align: right; }
+
+    .hdr { background: var(--black); color: #fff; }
+    .hdr-in { max-width: 1180px; margin: 0 auto; display: flex; align-items: center; gap: 28px; padding: 0 24px; height: 64px; }
+    .wordmark { font-size: 27px; font-weight: 300; letter-spacing: -.5px; color: #fff; }
+    .nav { display: flex; gap: 22px; font-size: 14px; }
+    .nav a { color: #fff; opacity: .86; padding: 22px 0; border-bottom: 3px solid transparent; }
+    .nav a.on { opacity: 1; border-color: #fff; font-weight: 600; }
+    .hdr-r { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 14px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--purple2); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+    .sub { background: #fff; border-bottom: 1px solid var(--rule); }
+    .sub-in { max-width: 1180px; margin: 0 auto; display: flex; gap: 24px; padding: 0 24px; font-size: 14px; overflow-x: auto; }
+    .sub-in a { color: var(--ink2); padding: 14px 0; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .sub-in a.on { color: var(--ink); font-weight: 600; border-color: var(--purple); }
+
+    .outage { background: var(--red); color: #fff; }
+    .outage-in { max-width: 1180px; margin: 0 auto; padding: 12px 24px; display: flex; gap: 12px; align-items: flex-start; font-size: 14px; }
+    .outage strong { display: block; font-size: 15px; }
+    .outage[hidden] { display: none; }
+    .bang { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: var(--red); font-weight: 800; display: grid; place-items: center; font-size: 14px; }
+
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+    .greet { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    .greet h1 { font-size: 32px; font-weight: 700; letter-spacing: -.5px; }
+    .greet p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+    .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+    .card + .card { margin-top: 20px; }
+    .card h2 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .card h2 .ic { width: 34px; height: 34px; border-radius: 10px; background: var(--lilac); display: grid; place-items: center; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--purple); }
+    .big { font-size: 40px; font-weight: 700; letter-spacing: -1px; margin: 6px 0 2px; }
+    .meta { color: var(--muted); font-size: 14px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .btn { border: 0; border-radius: 999px; padding: 12px 22px; font-weight: 600; font-size: 15px; background: var(--black); color: #fff; }
+    .btn:hover { background: #2a2a2e; }
+    .btn.alt { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+    .btn.purple { background: var(--purple); } .btn.purple:hover { background: #4a1c99; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--greenbg); color: var(--green); }
+    .pill.sched { background: var(--lilac); color: var(--purple); }
+    .pill.blocked { background: var(--redbg); color: var(--red); }
+    .speed { display: flex; gap: 20px; margin: 16px 0 4px; }
+    .speed div { flex: 1; background: var(--bg); border-radius: 12px; padding: 12px 14px; }
+    .speed .l { font-size: 12px; color: var(--muted); } .speed .v { font-size: 22px; font-weight: 700; }
+    .svc { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+    .svc:last-child { border-bottom: 0; padding-bottom: 0; }
+    .svc .ic { width: 40px; height: 40px; border-radius: 12px; background: var(--lilac); color: var(--purple); font-weight: 700; font-size: 13px; display: grid; place-items: center; flex: none; }
+    .svc .n { font-weight: 600; } .svc .m { font-size: 13px; color: var(--muted); }
+    .svc a { margin-left: auto; font-size: 14px; font-weight: 600; white-space: nowrap; }
+
+    .flow { margin-top: 18px; border-top: 1px solid var(--rule); padding-top: 18px; }
+    .steps { display: flex; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .steps span.on { color: var(--purple); }
+    .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .plan { border: 1.5px solid var(--rule); border-radius: 12px; padding: 12px 14px; cursor: pointer; display: block; }
+    .plan input { margin: 0 6px 0 0; accent-color: var(--purple); }
+    .plan .n { font-weight: 700; } .plan .p { font-size: 13px; color: var(--muted); }
+    .plan.on { border-color: var(--purple); background: var(--lilac); }
+    .plan.cur { opacity: .55; cursor: default; }
+    .chk { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--ink2); margin-top: 14px; }
+    .chk input { accent-color: var(--purple); margin-top: 3px; }
+    .seg { display: flex; gap: 8px; }
+    .seg label { flex: 1; border: 1.5px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 14px; cursor: pointer; }
+    .seg label.on { border-color: var(--purple); background: var(--lilac); }
+    .seg input { accent-color: var(--purple); margin: 0 6px 0 0; }
+    .review { background: var(--bg); border-radius: 12px; padding: 16px; margin-top: 14px; }
+    .review dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 10px 0 0; font-size: 14px; }
+    .review dt { color: var(--muted); } .review dd { margin: 0; font-weight: 600; text-align: right; }
+    .review h3 { font-size: 16px; }
+
+    .result { display: none; margin-top: 16px; border-radius: 12px; padding: 14px 16px; font-size: 14px; }
+    .result.is-visible { display: block; }
+    .result strong { display: block; font-size: 15px; margin-bottom: 4px; }
+    .result code { display: block; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; }
+    .result .ref { margin-top: 6px; font-size: 12px; opacity: .8; }
+    .result--ok { background: var(--greenbg); color: var(--green); }
+    .result--warn { background: var(--amberbg); color: var(--amber); }
+    .result--error { background: var(--redbg); color: var(--red); border: 1.5px solid var(--red); }
+
+    .toast { position: fixed; right: 20px; bottom: 20px; max-width: 360px; background: var(--ink); color: #fff; border-left: 5px solid var(--red); border-radius: 12px; padding: 14px 16px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.25); z-index: 50; }
+    .toast strong { display: block; margin-bottom: 2px; }
+    .ftr { background: var(--black); color: #b8b9bf; font-size: 12px; }
+    .ftr-in { max-width: 1180px; margin: 0 auto; padding: 22px 24px; display: flex; gap: 20px; flex-wrap: wrap; }
+    .ftr .wordmark { font-size: 20px; margin-right: auto; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .nav { display: none; }
+    }
+    @media (max-width: 520px) {
+      .hdr-in { padding: 0 16px; gap: 14px; } .hdr-r .hide-sm { display: none; }
+      main { padding: 20px 16px 48px; } .card { padding: 18px; border-radius: 14px; }
+      .greet h1 { font-size: 26px; } .big { font-size: 34px; }
+      .plans { grid-template-columns: 1fr; } .seg { flex-direction: column; }
+      .btns .btn { flex: 1; padding: 12px 14px; white-space: nowrap; }
+      .speed { gap: 10px; } .speed .v { font-size: 18px; }
+      .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+      .outage-in { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <div class="hdr-in">
+      <span class="wordmark">xfinity</span>
+      <nav class="nav" aria-label="Primary">
+        <a href="#" class="on">My Account</a><a href="#">Internet</a><a href="#">TV &amp; Streaming</a><a href="#">Mobile</a><a href="#">Home Security</a><a href="#">Support</a>
+      </nav>
+      <div class="hdr-r">
+        <span class="hide-sm">Jordan</span>
+        <span class="avatar" aria-hidden="true">JR</span>
+      </div>
+    </div>
+  </header>
+  <div class="sub"><div class="sub-in">
+    <a href="#" class="on">Overview</a><a href="#">Billing</a><a href="#">Services</a><a href="#">Devices</a><a href="#">Settings</a>
+  </div></div>
+
+  <div class="outage" id="outage-banner" hidden role="alert">
+    <div class="outage-in">
+      <span class="bang" aria-hidden="true">!</span>
+      <div><strong>Online payments are temporarily unavailable</strong>We&rsquo;re working to restore bill pay. No payment has been taken, and scheduled AutoPay payments are on hold until service is restored. You won&rsquo;t be charged a late fee.</div>
+    </div>
+  </div>
+
+  <main>
+    <div class="greet">
+      <div>
+        <h1>Hi, Jordan</h1>
+        <p>Account 8495 1120 0418 &middot; 1701 JFK Blvd, Apt 2204, Philadelphia, PA</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <section class="card" aria-labelledby="bill-h">
+          <div class="row"><span class="eyebrow">Your bill</span><span class="pill sched">AutoPay on</span></div>
+          <div class="big" id="bill-h">$184.97</div>
+          <div class="meta">Due Dec 2, 2026 &middot; Statement Nov 12</div>
+          <div class="btns">
+            <button type="button" class="btn" id="open-pay">Make a payment</button>
+            <button type="button" class="btn alt">View bill</button>
+          </div>
+
+          <div class="flow" id="pay-flow" hidden>
+            <div class="steps"><span id="ps1" class="on">1 Payment details</span><span>&rsaquo;</span><span id="ps2">2 Review</span><span>&rsaquo;</span><span id="ps3">3 Confirmation</span></div>
+            <form id="pay-form" novalidate>
+              <label class="f" for="pay-amount">Payment amount</label>
+              <input type="text" id="pay-amount" inputmode="decimal" value="184.97">
+              <label class="f" for="pay-method">Pay with</label>
+              <select id="pay-method">
+                <option value="pm-visa-4421">Visa &bull;&bull;&bull;&bull; 4421 (expires 08/28)</option>
+                <option value="pm-chk-0917">PNC Checking &bull;&bull;&bull;&bull; 0917</option>
+              </select>
+              <div class="btns"><button type="submit" class="btn">Review payment</button><button type="button" class="btn alt" id="cancel-pay">Cancel</button></div>
+            </form>
+            <div class="review" id="pay-review" hidden>
+              <h3>Review your payment</h3>
+              <dl>
+                <dt>Amount</dt><dd id="pr-amount"></dd>
+                <dt>Pay with</dt><dd id="pr-method"></dd>
+                <dt>Payment date</dt><dd>Today</dd>
+                <dt>Bill</dt><dd>Nov 12 statement</dd>
+              </dl>
+              <div class="btns"><button type="button" class="btn purple" id="submit-pay">Pay now</button><button type="button" class="btn alt" id="edit-pay">Edit</button></div>
+            </div>
+          </div>
+          <div class="result" id="pay-result" role="status"></div>
+        </section>
+
+        <section class="card" aria-labelledby="sched-h">
+          <h2 id="sched-h">Scheduled payments</h2>
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th class="r">Amount</th><th class="r">Status</th></tr></thead>
+            <tbody id="sched-rows"></tbody>
+          </table>
+        </section>
+      </div>
+
+      <div>
+        <section class="card" aria-labelledby="inet-h">
+          <div class="row">
+            <h2 id="inet-h">Internet</h2>
+            <span class="pill">Connected</span>
+          </div>
+          <div class="meta" style="margin-top:8px"><strong style="color:var(--ink)">Gigabit</strong> &middot; $70/mo &middot; XB8 Gateway</div>
+          <div class="speed"><div><div class="l">Download up to</div><div class="v">1,000 Mbps</div></div><div><div class="l">Upload up to</div><div class="v">35 Mbps</div></div></div>
+          <div class="btns">
+            <button type="button" class="btn" id="open-upgrade">Upgrade internet</button>
+            <button type="button" class="btn alt">Test speed</button>
+          </div>
+
+          <div class="flow" id="up-flow" hidden>
+            <div class="steps"><span id="us1" class="on">1 Choose plan</span><span>&rsaquo;</span><span id="us2">2 Review</span><span>&rsaquo;</span><span id="us3">3 Confirmation</span></div>
+            <form id="up-form" novalidate>
+              <div class="plans" id="plans"></div>
+              <label class="f">Start my new plan</label>
+              <div class="seg" id="eff">
+                <label class="on"><input type="radio" name="eff" value="now" checked>Today</label>
+                <label><input type="radio" name="eff" value="next_bill">Next bill (Dec 12)</label>
+              </div>
+              <label class="chk"><input type="checkbox" id="up-terms" checked>I agree to the Xfinity Internet plan terms and understand my gateway will restart to apply the new speed.</label>
+              <div class="btns"><button type="submit" class="btn">Review upgrade</button><button type="button" class="btn alt" id="cancel-up">Cancel</button></div>
+            </form>
+            <div class="review" id="up-review" hidden>
+              <h3>Review your upgrade</h3>
+              <dl>
+                <dt>New plan</dt><dd id="ur-plan"></dd>
+                <dt>Monthly price</dt><dd id="ur-price"></dd>
+                <dt>Starts</dt><dd id="ur-eff"></dd>
+                <dt>Equipment</dt><dd>XB8 Gateway (no change)</dd>
+              </dl>
+              <div class="btns"><button type="button" class="btn purple" id="submit-up">Confirm upgrade</button><button type="button" class="btn alt" id="edit-up">Edit</button></div>
+            </div>
+          </div>
+          <div class="result" id="up-result" role="status"></div>
+        </section>
+
+        <section class="card" aria-labelledby="svc-h">
+          <h2 id="svc-h">Your services</h2>
+          <div class="svc"><span class="ic" aria-hidden="true">TV</span><div><div class="n">TV &amp; Streaming</div><div class="m">Popular TV &middot; 2 Xfinity Stream boxes</div></div><a href="#">Manage</a></div>
+          <div class="svc"><span class="ic" aria-hidden="true">M</span><div><div class="n">Xfinity Mobile</div><div class="m">2 lines &middot; Unlimited</div></div><a href="#">Manage</a></div>
+          <div class="svc"><span class="ic" aria-hidden="true">S</span><div><div class="n">Advanced Security</div><div class="m">Included with your gateway</div></div><a href="#">View</a></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="ftr"><div class="ftr-in">
+    <span class="wordmark">xfinity</span><span>Privacy</span><span>Terms</span><span>Accessibility</span><span>Contact us</span>
+  </div></footer>
+
+  <div class="toast" id="toast" hidden role="alert"></div>
+
+  <script>
+    (function () {
+      var UPGRADE_ENDPOINT = '/api/cf420e9d/plan-changes';
+      var PAY_ENDPOINT = '/api/oncall/billpayments/submit';
+      var ACCOUNT = '8495-1120-0418';
+      var BILL_ID = 'XF-BILL-1202';
+      var DEVIN_EMAIL = localStorage.getItem('devinEmail') || '';
+      var PLANS = [
+        { id: 'XF-INT-500', n: '500 Mbps', p: 55, up: 20 },
+        { id: 'XF-INT-GIG', n: 'Gigabit', p: 70, up: 35, current: true },
+        { id: 'XF-INT-GIGX', n: 'Gigabit Extra', p: 85, up: 35 },
+        { id: 'XF-INT-GIGX2', n: 'Gigabit x2', p: 100, up: 200 }
+      ];
+      var SCHEDULED = [
+        ['Dec 2', 'AutoPay \u00b7 Visa \u2022\u2022\u2022\u2022 4421', 184.97],
+        ['Dec 9', 'Xfinity Mobile \u00b7 AutoPay', 80.00],
+        ['Jan 2', 'AutoPay \u00b7 Visa \u2022\u2022\u2022\u2022 4421', 184.97]
+      ];
+
+      var offerId = 'XF-INT-GIGX';
+      var upInFlight = false;
+      var toastTimer = null;
+      var $ = function (id) { return document.getElementById(id); };
+
+      function esc(v) {
+        return String(v).replace(/[&<>"']/g, function (ch) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+      }
+      function money(v) { return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function showResult(el, kind, title, detail, ref) {
+        el.className = 'result is-visible result--' + kind;
+        el.innerHTML = '<strong>' + esc(title) + '</strong>' + (detail ? '<code>' + esc(detail) + '</code>' : '') + (ref ? '<div class="ref">' + esc(ref) + '</div>' : '');
+      }
+      function toast(title, body) {
+        var t = $('toast');
+        t.innerHTML = '<strong>' + esc(title) + '</strong>' + esc(body);
+        t.hidden = false;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.hidden = true; }, 6000);
+      }
+      function step(prefix, n) {
+        for (var i = 1; i <= 3; i++) $(prefix + i).className = i === n ? 'on' : '';
+      }
+      function plan(id) { return PLANS.filter(function (p) { return p.id === id; })[0]; }
+
+      function renderPlans() {
+        $('plans').innerHTML = PLANS.map(function (p) {
+          var cls = 'plan' + (p.id === offerId ? ' on' : '') + (p.current ? ' cur' : '');
+          return '<label class="' + cls + '"><input type="radio" name="offer" value="' + p.id + '"' + (p.id === offerId ? ' checked' : '') + (p.current ? ' disabled' : '') + '>'
+            + '<span class="n">' + esc(p.n) + '</span><div class="p">' + (p.current ? 'Your current plan' : '$' + p.p + '/mo \u00b7 up to ' + p.up + ' Mbps upload') + '</div></label>';
+        }).join('');
+      }
+      function renderScheduled(status) {
+        $('sched-rows').innerHTML = SCHEDULED.map(function (s) {
+          var blocked = status === 'blocked';
+          return '<tr><td>' + esc(s[0]) + '</td><td>' + esc(s[1]) + '</td><td class="r">' + money(s[2]) + '</td><td class="r"><span class="pill ' + (blocked ? 'blocked' : 'sched') + '">' + (blocked ? 'Blocked' : 'Scheduled') + '</span></td></tr>';
+        }).join('');
+      }
+      function effective() {
+        var el = document.querySelector('input[name=eff]:checked');
+        return el ? el.value : 'now';
+      }
+
+      function reviewUpgrade(event) {
+        event.preventDefault();
+        var p = plan(offerId);
+        $('up-result').className = 'result';
+        if (!p || p.current || !$('up-terms').checked) {
+          showResult($('up-result'), 'warn', 'Check your selection', 'Choose a new plan and accept the plan terms.');
+          return;
+        }
+        $('ur-plan').textContent = p.n;
+        $('ur-price').textContent = '$' + p.p + '/mo (+$' + (p.p - 70) + ')';
+        $('ur-eff').textContent = effective() === 'now' ? 'Today' : 'Next bill (Dec 12)';
+        $('up-form').hidden = true;
+        $('up-review').hidden = false;
+        step('us', 2);
+      }
+      function submitUpgrade() {
+        if (upInFlight) return;
+        upInFlight = true;
+        var btn = $('submit-up');
+        btn.disabled = true;
+        btn.textContent = 'Updating your plan\u2026';
+        var body = { accountNumber: ACCOUNT, offerId: offerId, effective: effective(), termsAccepted: $('up-terms').checked, devinEmail: DEVIN_EMAIL };
+        fetch(UPGRADE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, status: r.status, payload: p }; }); })
+          .then(function (res) {
+            var p = res.payload || {};
+            step('us', 3);
+            if (res.ok && p.success) {
+              $('up-flow').hidden = true;
+              showResult($('up-result'), 'ok', 'You\u2019re all set \u2014 ' + p.confirmation, p.plan + ' starts ' + (p.effective === 'now' ? 'today' : 'on your next bill') + '. Your gateway will restart to apply ' + p.downstreamMbps + ' Mbps.');
+              return;
+            }
+            var kind = res.status === 400 ? 'warn' : 'error';
+            showResult($('up-result'), kind, res.status === 400 ? 'Plan not changed' : 'We couldn\u2019t update your plan',
+              (p.errorClass || 'Error') + ': ' + (p.error || 'Unknown error'),
+              (p.code || 'PLAN_CHANGE_FAILED') + (p.requestId ? ' \u00b7 Request ' + p.requestId : ''));
+            if (kind === 'error') toast('Something went wrong', 'Your plan wasn\u2019t changed and you haven\u2019t been charged. Please try again later.');
+          })
+          .catch(function (error) {
+            showResult($('up-result'), 'error', 'We couldn\u2019t update your plan', (error.name || 'Error') + ': ' + error.message, 'NETWORK_ERROR');
+          })
+          .then(function () {
+            upInFlight = false;
+            btn.disabled = false;
+            btn.textContent = 'Confirm upgrade';
+          });
+      }
+
+      function reviewPayment(event) {
+        event.preventDefault();
+        var amount = Number($('pay-amount').value.replace(/[$,]/g, ''));
+        $('pay-result').className = 'result';
+        if (!(amount >= 1)) {
+          showResult($('pay-result'), 'warn', 'Check the amount', 'Enter at least $1.00.');
+          return;
+        }
+        $('pr-amount').textContent = money(amount);
+        $('pr-method').textContent = $('pay-method').selectedOptions[0].textContent;
+        $('pay-form').hidden = true;
+        $('pay-review').hidden = false;
+        step('ps', 2);
+      }
+      async function submitPayment() {
+        var btn = $('submit-pay');
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.textContent = 'Processing\u2026';
+        var result = $('pay-result');
+        result.className = 'result';
+        try {
+          var response = await fetch(PAY_ENDPOINT, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ billId: BILL_ID, methodId: $('pay-method').value, amount: Number($('pay-amount').value.replace(/[$,]/g, '')), devinEmail: DEVIN_EMAIL })
+          });
+          var data = await response.json();
+          var incident = data.incident || {};
+          step('ps', 3);
+          if (data.code === 'PAYMENTS_UNAVAILABLE') {
+            $('outage-banner').hidden = false;
+            renderScheduled('blocked');
+            var note = incident.status === 'declared'
+              ? 'SEV-1 incident #' + incident.publicId + (incident.reused ? ' is already open.' : ' declared.') + ' Follow the sev-1-incident channel in Slack.'
+              : 'Incident was not declared. Check the Datadog incident configuration and retry.';
+            showResult(result, 'error', 'Payment not processed \u2014 HTTP ' + response.status, data.error, note + (incident.runRef ? ' \u00b7 ' + incident.runRef : ''));
+          } else if (response.ok) {
+            $('pay-flow').hidden = true;
+            showResult(result, 'ok', 'Payment received \u2014 ' + data.confirmation, money(data.amount) + ' from ' + data.method + '.');
+          } else {
+            showResult(result, 'warn', 'Payment not processed', data.error || 'The payment could not be submitted.');
+          }
+        } catch (_error) {
+          showResult(result, 'error', 'We couldn\u2019t reach billing', 'No confirmation was received; check your bill before retrying.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Pay now';
+        }
+      }
+
+      $('plans').addEventListener('change', function (e) {
+        if (e.target.name !== 'offer') return;
+        offerId = e.target.value;
+        renderPlans();
+      });
+      $('eff').addEventListener('change', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('#eff label'), function (l) { l.classList.toggle('on', l.querySelector('input').checked); });
+      });
+      $('open-upgrade').addEventListener('click', function () {
+        $('up-flow').hidden = false; $('up-form').hidden = false; $('up-review').hidden = true; $('up-result').className = 'result'; step('us', 1);
+      });
+      $('cancel-up').addEventListener('click', function () { $('up-flow').hidden = true; });
+      $('up-form').addEventListener('submit', reviewUpgrade);
+      $('edit-up').addEventListener('click', function () { $('up-review').hidden = true; $('up-form').hidden = false; step('us', 1); });
+      $('submit-up').addEventListener('click', submitUpgrade);
+      $('open-pay').addEventListener('click', function () {
+        $('pay-flow').hidden = false; $('pay-form').hidden = false; $('pay-review').hidden = true; $('pay-result').className = 'result'; step('ps', 1);
+      });
+      $('cancel-pay').addEventListener('click', function () { $('pay-flow').hidden = true; });
+      $('pay-form').addEventListener('submit', reviewPayment);
+      $('edit-pay').addEventListener('click', function () { $('pay-review').hidden = true; $('pay-form').hidden = false; step('ps', 1); });
+      $('submit-pay').addEventListener('click', submitPayment);
+
+      renderPlans();
+      renderScheduled('scheduled');
+    })();
+  </script>
+</body>
+</html>
