@@ -11,20 +11,32 @@ const HISTORY = [];
 let alerted = false;
 const ACCOUNT = { name: 'Northfield Health', contact: 'Dana Ruiz', title: 'Director of Facilities', account: 'BPE-30417', sites: 42, contract: 'Enterprise service agreement · renews Jun 2027', guarantee: 'Missed pickups recovered within 24 hours or credited' };
 const KPIS = [
-  { label: 'Active sites', value: '42', note: 'IL · WI · IN' },
-  { label: 'On-time service (30 days)', value: '98.7%', note: 'Contract target 99.0%' },
-  { label: 'Open service issues', value: '3', note: '1 hospital loading dock' },
-  { label: 'Pickups this month', value: '2,318', note: 'Front-load, roll-off, recycling' },
+  { label: 'Collected this month', value: '1,284 t', note: '2,318 pickups', icon: 'scale', meter: 64 },
+  { label: 'Diversion rate', value: '38%', note: 'Goal 40% recycled or composted', icon: 'recycle', meter: 95 },
+  { label: 'On-time service (30 days)', value: '98.7%', note: 'Contract target 99.0%', icon: 'clock', meter: 98.7 },
+  { label: 'Open service issues', value: '3', note: '1 hospital loading dock', icon: 'alert', meter: 0 },
 ];
+const TODAY = { serviced: 37, scheduled: 42, tons: '61.4 t', trucks: 5, missed: 1, routes: 'C-118 · C-121 · C-140 · C-152 · RO-07' };
 const SITES = [
-  { id: 'NH-001', name: 'Northfield Medical Center', area: 'Main campus · Evanston, IL', service: 'Front-load 8 yd', next: 'Daily · 5:00 AM', status: 'Missed service' },
-  { id: 'NH-002', name: 'Lakeview Surgical Pavilion', area: 'Chicago, IL', service: 'Compactor 30 yd', next: 'Thu, Nov 19', status: 'On schedule' },
-  { id: 'NH-004', name: 'Northfield Children\u2019s Hospital', area: 'Skokie, IL', service: 'Front-load 8 yd', next: 'Daily · 5:30 AM', status: 'On schedule' },
-  { id: 'NH-011', name: 'Kenosha Outpatient Center', area: 'Kenosha, WI', service: 'Recycling 6 yd', next: 'Wed, Nov 18', status: 'On schedule' },
-  { id: 'NH-019', name: 'Gary Regional Clinic', area: 'Gary, IN', service: 'Front-load 8 yd', next: 'Wed, Nov 18', status: 'On schedule' },
+  { id: 'NH-001', name: 'Northfield Medical Center', area: 'Main campus · Evanston, IL', service: 'Front-load 8 yd', route: 'C-118', last: 'Missed · 5:00 AM', tons: 46.2, status: 'Missed pickup' },
+  { id: 'NH-002', name: 'Lakeview Surgical Pavilion', area: 'Chicago, IL', service: 'Compactor 30 yd', route: 'RO-07', last: 'Yesterday · 2:40 PM', tons: 31.8, fill: 82, status: 'Haul scheduled' },
+  { id: 'NH-004', name: 'Northfield Children\u2019s Hospital', area: 'Skokie, IL', service: 'Front-load 8 yd', route: 'C-121', last: 'Today · 5:34 AM', tons: 28.4, status: 'Serviced' },
+  { id: 'NH-011', name: 'Kenosha Outpatient Center', area: 'Kenosha, WI', service: 'Recycling 6 yd', route: 'C-140', last: 'Mon · 7:12 AM', tons: 9.6, status: 'On schedule' },
+  { id: 'NH-019', name: 'Gary Regional Clinic', area: 'Gary, IN', service: 'Front-load 8 yd', route: 'C-152', last: 'Mon · 6:05 AM', tons: 12.1, status: 'On schedule' },
+];
+const PICKUPS = [
+  { time: '5:00 AM', route: 'C-118', site: 'Northfield Medical Center', detail: 'Front-load 8 yd · loading dock', state: 'missed', note: 'Not serviced' },
+  { time: '5:34 AM', route: 'C-121', site: 'Northfield Children\u2019s Hospital', detail: 'Front-load 8 yd', state: 'done', note: '2.1 t' },
+  { time: '6:10 AM', route: 'C-118', site: 'Northfield Medical Center', detail: 'Recycling 6 yd', state: 'done', note: '0.6 t' },
+  { time: '9:30 AM', route: 'RO-07', site: 'Lakeview Surgical Pavilion', detail: 'Compactor haul · 82% full', state: 'next', note: 'Scheduled' },
+];
+const STREAMS = [
+  { label: 'Landfill', tons: 796, share: 62 },
+  { label: 'Single-stream recycling', tons: 347, share: 27 },
+  { label: 'Cardboard (OCC)', tons: 141, share: 11 },
 ];
 function overview() {
-  return { account: ACCOUNT, kpis: KPIS, sites: SITES, claims: HISTORY, failed: HISTORY.some(item => item.status === 'failed') };
+  return { account: ACCOUNT, kpis: KPIS, today: TODAY, sites: SITES, pickups: PICKUPS, streams: STREAMS, claims: HISTORY, failed: HISTORY.some(item => item.status === 'failed') };
 }
 function resetClaims() {
   const cleared = HISTORY.length;
