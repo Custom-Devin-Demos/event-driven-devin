@@ -160,6 +160,25 @@ if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
   fi
   rm -f "$ENV_SYNC_FILE"
 fi
+# Release version: the deploy workflow passes RELEASE_VERSION (short git SHA)
+# and it is written to .env as DD_VERSION / APP_VERSION / SENTRY_RELEASE, so
+# Datadog metrics/APM and Sentry events are tagged with the release that
+# produced them (the product loop's release monitor compares versions).
+# Kept in .env so a deploy from the other source repo keeps the last version,
+# and restored with .env on rollback. Unset or malformed: .env left as-is.
+if [ -n "${RELEASE_VERSION:-}" ]; then
+  if [[ "$RELEASE_VERSION" =~ ^[0-9a-f]{7,40}$ ]]; then
+    tmp_env=$(mktemp "$APP_DIR/.env.release.XXXXXX")
+    grep -v -e '^DD_VERSION=' -e '^APP_VERSION=' -e '^SENTRY_RELEASE=' "$APP_DIR/.env" > "$tmp_env" || true
+    printf 'DD_VERSION=%s\nAPP_VERSION=%s\nSENTRY_RELEASE=acme-checkout@%s\n' \
+      "$RELEASE_VERSION" "$RELEASE_VERSION" "$RELEASE_VERSION" >> "$tmp_env"
+    cat "$tmp_env" > "$APP_DIR/.env"
+    rm -f "$tmp_env"
+    log "release version: $RELEASE_VERSION"
+  else
+    log "release version: WARNING RELEASE_VERSION has an unexpected format; .env left unchanged"
+  fi
+fi
 # Staged files abandoned by interrupted runs (never applied) are pruned here,
 # under the lock, so a waiting run's freshly staged file is never touched.
 find "$(dirname "${ENV_SYNC_FILE:-/var/tmp/devindemos-deploy/x}")" -maxdepth 1 -name 'env-sync-*' -mmin +60 -delete 2>/dev/null || true

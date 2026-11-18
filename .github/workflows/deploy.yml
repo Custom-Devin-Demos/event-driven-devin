@@ -13,6 +13,10 @@ concurrency:
   group: deploy-ec2
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   deploy:
     name: Deploy to EC2
@@ -195,8 +199,55 @@ jobs:
           rm -f "$INCOMING/release-$SHA.tar.gz"
           ENV_SYNC="$INCOMING/env-sync-$SHA-${{ github.run_id }}-${{ github.run_attempt }}"
           trap 'rm -rf "$STAGING" "$ENV_SYNC"' EXIT
-          ENV_SYNC_FILE="$ENV_SYNC" bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
+          RELEASE_VERSION="${SHA:0:7}" ENV_SYNC_FILE="$ENV_SYNC" bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
           EOF
+
+      # Release signal for the product loop's release monitor (a Devin
+      # automation with a webhook trigger). Sends the deployed version, the
+      # previously deployed SHA and the PRs merged in between. Skipped when
+      # RELEASE_MONITOR_WEBHOOK_URL is not set; never fails the deploy.
+      - name: Notify release monitor
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEBHOOK_URL: ${{ secrets.RELEASE_MONITOR_WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.RELEASE_MONITOR_WEBHOOK_SECRET }}
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: ${{ vars.DD_SITE || 'us5.datadoghq.com' }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          VERSION=${SHA:0:7}
+          PREV=$(gh api "repos/$REPO/actions/workflows/deploy.yml/runs?branch=main&status=success&per_page=10" \
+            --jq "[.workflow_runs[] | select(.id != $RUN_ID) | .head_sha][0] // empty" || true)
+          PRS='[]'
+          if [ -n "$PREV" ] && [ "$PREV" != "$SHA" ]; then
+            # Merge commits ("Merge pull request #N ...") and squash merges ("Title (#N)").
+            PRS=$(gh api "repos/$REPO/compare/$PREV...$SHA" --jq '[.commits[].commit.message | split("\n")[0]
+              | scan("^Merge pull request #([0-9]+)|\\(#([0-9]+)\\)$") | map(select(. != null))[0] | tonumber] | unique' || echo '[]')
+          fi
+          BODY=$(jq -n --arg repo "$REPO" --arg sha "$SHA" --arg version "$VERSION" --arg prev "$PREV" \
+            --argjson prs "$PRS" --arg run "https://github.com/$REPO/actions/runs/$RUN_ID" '{
+              event: "release", service: "checkout-api", env: "prod", repository: $repo,
+              sha: $sha, version: $version, dd_version_tag: ("version:" + $version),
+              sentry_release: ("acme-checkout@" + $version), previous_sha: $prev,
+              compare_url: (if $prev == "" then null else "https://github.com/\($repo)/compare/\($prev)...\($sha)" end),
+              merged_prs: $prs, deploy_run_url: $run, deployed_at: (now | todate) }')
+          echo "$BODY"
+          if [ -n "$DD_API_KEY" ]; then
+            jq -n --argjson b "$BODY" '{title: "Deployed checkout-api \($b.version)", text: ($b | tostring),
+              tags: ["service:checkout-api", "env:prod", "version:\($b.version)", "event:release"],
+              source_type_name: "github", alert_type: "info"}' |
+              curl -sS -o /dev/null -w 'datadog event: %{http_code}\n' -X POST "https://api.$DD_SITE/api/v1/events" \
+                -H "DD-API-KEY: $DD_API_KEY" -H 'Content-Type: application/json' -d @- || true
+          fi
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "RELEASE_MONITOR_WEBHOOK_URL not set; release monitor not notified"; exit 0
+          fi
+          curl -sS --fail-with-body -X POST "$WEBHOOK_URL" -H 'Content-Type: application/json' \
+            ${WEBHOOK_SECRET:+-H "X-Webhook-Secret: $WEBHOOK_SECRET"} -d "$BODY"
 
       - name: Clean up SSH key
         if: always()
