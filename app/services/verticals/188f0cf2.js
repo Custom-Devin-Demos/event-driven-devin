@@ -57,7 +57,7 @@ async function processClaim(data) {
       culprit: 'app/services/verticals/188f0cf2.js — processClaim',
       errorType: error.name, errorValue: error.message,
       devinUserId: data.devinUserId, devinOrgId: data.devinOrgId, devinEmail: data.devinEmail,
-      service, verticalLabel: 'Missed pickup claims',
+      service, verticalLabel: 'Missed pickup claims', skipVulnerablePr: true,
       tags: [{ key: 'route', value: route }, { key: 'service', value: service }, { key: 'page', value: '/188f0cf2' }],
       extra: { requestId, stopId: stop.id, source: stop.source, routeId: stop.route },
       promptAppendix: 'Investigate the pickup claim failure at /188f0cf2. Trace dispatch stop data from the driver route app through eligibility and service-credit handling. Preserve raw dispatch evidence. A stop with incomplete evidence must enter manual review, not be automatically denied or awarded credit. Cover completed, exception, missing-reason, and unknown-reason records across the dispatch adapter, assessment, and response formatting. Open a pull request with a plain-English root-cause analysis and regression tests; do not merge.',
