@@ -10418,6 +10418,23 @@ const ONCALL_SKINS = {
     page: { file: '3c0cacaa.html', title: 'AI-Powered LMS for Transformational Teaching & Learning | Blackboard' },
     disclaimer: 'NOT ACTUALLY A BLACKBOARD SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blackboard product.',
   },
+  '45588e9e': {
+    slug: '45588e9e',
+    company: 'DataHub',
+    vertical: 'hightech',
+    oncallOnly: true,
+    ribbonSide: 'left',
+    page: { file: '45588e9e.html', title: 'Dataset Health | DataHub' },
+    alertCard: {
+      title: 'p95 latency trending up — Smart Assertion creation submissions',
+      release: 'monitors-service@2.8.1',
+      team: 'data-quality-oncall',
+      baseline: '~350ms (7-day p95, before monitors-service@2.8.1)',
+      symptom: 'After monitors-service@2.8.1, bulk Smart Assertion creation takes several seconds and gets slower with every request. Process RSS trends up alongside it. Error rate is normal.',
+      impact: 'Every data team adding assertions across their tables waits longer with each submission, and the wait keeps growing under sustained traffic.',
+    },
+    disclaimer: 'NOT ACTUALLY A DATAHUB SITE — internal demo only, not affiliated with, endorsed by, or a real DataHub product.',
+  },
 };
 
 function getOncallSkin(slug) {

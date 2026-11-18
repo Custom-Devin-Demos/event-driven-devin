@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dataset Health | DataHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: 'Mulish', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --page-bg: #F5F6FA;
+      --card-bg: #FFFFFF;
+      --violet: #533FD1;
+      --violet-dark: #4532B8;
+      --violet-0: #F1F3FC;
+      --violet-tab: #F5F4FB;
+      --violet-nav: #EFEFF8;
+      --ink: #374066;
+      --ink-2: #5F6685;
+      --ink-3: #8088A3;
+      --icon: #8188A1;
+      --border: #EBECF0;
+      --border-input: #CFD1D9;
+      --thead: #F9FAFC;
+      --warn-bg: #FEFAEC; --warn-fg: #A88C44;
+      --ok-bg: #F2F8EF; --ok-fg: #5E8142;
+      --err-bg: #FAF3EF; --err-fg: #975957;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font); font-size: 14px; font-weight: 500; color: var(--ink);
+      background: var(--page-bg); display: flex; flex-direction: column; overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font-family: inherit; }
+    a { color: inherit; text-decoration: none; }
+    svg { display: block; flex-shrink: 0; }
+    .app { flex: 1; min-height: 0; display: flex; }
+
+    /* Collapsed navigation rail */
+    .rail { width: 67px; flex-shrink: 0; position: relative; }
+    .rail .logo { position: absolute; left: 21px; top: 29px; width: 24px; height: 24px; }
+    .rail .nav-item { position: absolute; left: 15px; width: 37px; height: 37px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--icon); }
+    .rail .nav-item.active { background: var(--violet-nav); color: var(--violet); }
+    .rail .nav-item .dot { position: absolute; right: 8px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--violet); }
+
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 20px; padding-bottom: 15px; }
+    .topbar { height: 78px; flex-shrink: 0; position: relative; }
+    .topbar .toggle { position: absolute; left: 4px; top: 31px; color: var(--icon); }
+    .topbar .center { position: absolute; left: 317px; top: 20px; display: flex; align-items: center; }
+    .search {
+      width: 661px; height: 42px; background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(33,23,95,0.07); display: flex; align-items: center; padding: 0 6px 0 14px; gap: 8px;
+    }
+    .search .ph { flex: 1; color: var(--ink-3); font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .search .kbd { height: 27px; padding: 0 8px; border: 1px solid #70758F; border-radius: 6px; font-size: 12px; color: #70758F; display: flex; align-items: center; gap: 4px; }
+    .search .expert { height: 30px; padding: 0 9px 0 6px; border-radius: 6px; background: var(--violet-0); color: var(--violet); font-size: 14px; display: flex; align-items: center; gap: 4px; }
+    .viewall { margin-left: 25px; font-size: 13px; font-weight: 600; color: var(--ink-2); display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+
+    .card {
+      flex: 1; min-height: 0; background: var(--card-bg); border-radius: 12px; padding: 20px 20px 17px;
+      display: flex; flex-direction: column; box-shadow: 0 0 6px rgba(33,23,95,0.04);
+    }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    h1 { font-size: 22px; line-height: 26px; font-weight: 700; color: var(--ink); }
+    .sub { margin-top: 8px; font-size: 16px; line-height: 24px; font-weight: 400; color: var(--ink-2); }
+    .btn-primary {
+      height: 36px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--violet); color: #fff;
+      font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--violet-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .btn-secondary {
+      height: 36px; padding: 0 14px; border: 1px solid var(--border-input); border-radius: 8px; background: #fff; color: var(--ink);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .tabs { margin-top: 28px; display: flex; gap: 17px; border-bottom: 1px solid var(--border); }
+    .tab { font-size: 14px; line-height: 22px; padding-bottom: 7px; color: var(--ink); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab.active { color: var(--violet); border-bottom-color: var(--violet); }
+    .subtabs { margin-top: 11px; display: flex; gap: 7px; }
+    .subtab { font-size: 14px; line-height: 21px; padding: 8px; border-radius: 6px; color: var(--ink); }
+    .subtab.active { background: var(--violet-tab); color: var(--violet); }
+
+    .toolbar { margin-top: 15px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .tsearch { width: 225px; height: 40px; border: 1px solid var(--border-input); border-radius: 8px; display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--ink-3); font-weight: 400; flex-shrink: 0; }
+    .filters { display: flex; align-items: center; gap: 12px; }
+    .filter { height: 40px; border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 9px; color: var(--ink); font-size: 14px; white-space: nowrap; }
+    .filter .count { min-width: 24px; height: 24px; border-radius: 12px; background: var(--border); color: #303655; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+    .filter .chip { height: 24px; padding: 0 9px; border-radius: 12px; background: var(--border); color: var(--ink); font-size: 12px; display: flex; align-items: center; }
+    .filter svg { color: var(--ink-2); }
+    .vdiv { width: 1px; height: 36px; background: var(--border); }
+
+    .tablewrap { margin-top: 10px; flex: 1; min-height: 0; border: 1px solid var(--border); border-radius: 12px; overflow: auto; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; min-width: 1000px; }
+    thead th {
+      position: sticky; top: 0; z-index: 1; background: var(--thead); height: 43px; text-align: left; padding: 0 16px;
+      font-size: 12px; font-weight: 700; color: var(--ink-2); border-bottom: 1px solid var(--border);
+    }
+    thead th + th { border-left: 1px solid var(--border); }
+    thead th .sort { display: inline-flex; vertical-align: middle; margin-left: 6px; color: var(--ink-2); }
+    tbody td { height: 81px; padding: 0 16px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--ink-2); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    td.name { color: #1F2541; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .type { display: flex; align-items: center; gap: 6px; }
+    .type svg { color: #68A8C7; }
+    .ds { display: flex; align-items: center; gap: 11px; color: #5C627F; }
+    .ds .pi { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .pi.bq { background: #E7EEFA; } .pi.sf { background: #EAF6FC; } .pi.pg { background: #F1ECFC; }
+    .pills { display: flex; gap: 6px; }
+    .pill { height: 25px; padding: 0 9px; border-radius: 13px; display: inline-flex; align-items: center; gap: 5px; font-size: 14px; }
+    .pill.warn { background: var(--warn-bg); color: var(--warn-fg); }
+    .pill.ok { background: var(--ok-bg); color: var(--ok-fg); }
+    .pill.err { background: var(--err-bg); color: var(--err-fg); }
+    .run1 { color: var(--ink-2); line-height: 22px; }
+    .run2 { color: var(--ink-3); line-height: 22px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 310px; }
+
+    .pager { margin-top: 16px; display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .pg { position: relative; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink-3); }
+    .pg.nav { border: 1px solid var(--border); color: var(--ink-2); }
+    .pg.nav.disabled { color: #C1C4D0; }
+    .pg.active { background: var(--violet-0); color: var(--violet); font-weight: 700; border-radius: 50%; }
+
+    /* Create Smart Assertions drawer */
+    .mask { position: fixed; inset: 0; background: rgba(15,17,38,0.35); z-index: 50; display: none; }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 480px; max-width: 100%; background: #fff; z-index: 51;
+      box-shadow: -6px 0 24px rgba(33,23,95,0.12); display: flex; flex-direction: column;
+      transform: translateX(100%); transition: transform .2s ease;
+    }
+    body.drawer-open .mask { display: block; }
+    body.drawer-open .drawer { transform: none; }
+    .dr-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .dr-title { font-size: 18px; line-height: 24px; font-weight: 700; color: var(--ink); }
+    .dr-sub { margin-top: 4px; font-size: 14px; line-height: 20px; font-weight: 400; color: var(--ink-2); }
+    .dr-close { position: relative; width: 28px; height: 28px; border: 0; background: none; color: var(--ink-2); cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+    .dr-close::before { content: ''; position: absolute; inset: -8px; }
+    .dr-body { flex: 1; overflow: auto; padding: 20px 24px; }
+    .field + .field { margin-top: 18px; }
+    .field label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+    .field .hint { margin-top: 6px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+    .field input, .field select {
+      width: 100%; height: 40px; border: 1px solid var(--border-input); border-radius: 8px; padding: 0 12px;
+      font-size: 14px; font-weight: 500; color: var(--ink); background: #fff; outline: none;
+    }
+    .field select { appearance: none; -webkit-appearance: none; padding-right: 34px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 256 256'%3E%3Cpath fill='none' stroke='%235F6685' stroke-width='20' stroke-linecap='round' stroke-linejoin='round' d='M208 96l-80 80-80-80'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; }
+    .field input:focus, .field select:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(83,63,209,0.12); }
+    .dr-foot { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+    .result-box { margin-top: 18px; padding: 12px 14px; border-radius: 8px; font-size: 14px; display: none; }
+    .result-box.success { display: block; background: var(--ok-bg); border: 1px solid #D5E7CB; color: #44652D; }
+    .result-box.error { display: block; background: var(--err-bg); border: 1px solid #EED9CF; color: #8A3F33; }
+    .result-box .r-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .r-detail { font-weight: 400; line-height: 20px; word-break: break-word; }
+
+    @media (max-width: 760px) {
+      .rail { display: none; }
+      .main { padding: 0 8px 8px; }
+      .topbar { height: 64px; display: flex; align-items: center; gap: 10px; }
+      .topbar .mlogo { display: block !important; }
+      .topbar .toggle { position: static; }
+      .topbar .center { position: static; flex: 1; min-width: 0; }
+      .search { width: 100%; height: 44px; }
+      .search .kbd, .search .expert, .viewall { display: none; }
+      .card { padding: 16px 16px 12px; }
+      .head { flex-direction: column; gap: 12px; }
+      .head .btn-primary { width: 100%; justify-content: center; height: 44px; }
+      .tabs { margin-top: 18px; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .tsearch { width: 100%; height: 44px; }
+      .filters { overflow-x: auto; padding-bottom: 2px; }
+      .filter { flex-shrink: 0; }
+      .tablewrap { min-height: 260px; }
+      .pg::before { content: ''; position: absolute; inset: -6px; }
+      .drawer { width: 100%; }
+      .field input, .field select, .btn-primary, .btn-secondary { height: 44px; }
+      .dr-close { width: 44px; height: 44px; }
+      .dr-close::before { display: none; }
+      body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail" aria-label="Navigation">
+      <svg class="logo" viewBox="0 0 24 24" aria-label="DataHub">
+        <path d="M12 2.4a9.6 9.6 0 0 1 9.6 9.6" fill="none" stroke="#F6A623" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M21.6 12A9.6 9.6 0 0 1 6.2 19.6" fill="none" stroke="#2F6BE4" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M4.2 17.2A9.6 9.6 0 0 1 9.4 2.8" fill="none" stroke="#E5484D" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="12.4" cy="12.4" r="4.4" fill="none" stroke="#2F6BE4" stroke-width="2.2"/>
+        <circle cx="12.4" cy="12.4" r="1.6" fill="#F6A623"/>
+      </svg>
+      <a class="nav-item" href="#" style="top:79px" title="Home"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><rect x="44" y="44" width="72" height="72" rx="6"/><rect x="140" y="44" width="72" height="72" rx="6"/><rect x="44" y="140" width="72" height="72" rx="6"/><rect x="140" y="140" width="72" height="72" rx="6"/></svg></a>
+      <a class="nav-item" href="#" style="top:123px" title="Tasks"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M128 64h88M128 128h88M128 192h88M40 64l16 16 32-32M40 128l16 16 32-32M40 192l16 16 32-32"/></svg><span class="dot"></span></a>
+      <a class="nav-item" href="#" style="top:209px" title="Glossary"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><rect x="48" y="32" width="160" height="192" rx="8"/><path d="M88 32v96l24-16 24 16V32"/></svg></a>
+      <a class="nav-item" href="#" style="top:250px" title="Tags"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><path d="M42.3 138.3A8 8 0 0 1 40 132.7V40h92.7a8 8 0 0 1 5.6 2.3l99.4 99.4a8 8 0 0 1 0 11.3l-84.7 84.7a8 8 0 0 1-11.3 0Z"/><circle cx="84" cy="84" r="10" fill="currentColor"/></svg></a>
+      <a class="nav-item" href="#" style="top:290px" title="Domains"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14"><circle cx="128" cy="128" r="96"/><path d="M32 128h192M128 32c-24 26-36 58-36 96s12 70 36 96c24-26 36-58 36-96s-12-70-36-96Z"/></svg></a>
+      <a class="nav-item" href="#" style="top:330px" title="Data Products"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><path d="M141 51 51 141a28 28 0 0 0 40 40l90-90a28 28 0 0 0-40-40ZM96 96l64 64"/></svg></a>
+      <a class="nav-item" href="#" style="top:370px" title="Automations"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><path d="M160 16 144 96l64 24-112 120 16-80-64-24Z"/></svg></a>
+      <a class="nav-item" href="#" style="top:410px" title="Documents"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><path d="M200 224H56a8 8 0 0 1-8-8V40a8 8 0 0 1 8-8h96l56 56v128a8 8 0 0 1-8 8Z"/><path d="M152 32v56h56"/><rect x="96" y="148" width="40" height="36" rx="4"/><path d="M104 148v-10a12 12 0 0 1 24 0v10"/></svg></a>
+      <a class="nav-item" href="#" style="top:450px" title="Structured Properties"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"><path d="M40 64h40M40 104h40M40 144h40M40 184h40M112 64h104M112 104h104M112 144h104M112 184h104"/></svg></a>
+      <a class="nav-item active" href="#" style="top:536px" title="Dataset Health"><svg width="20" height="20" viewBox="0 0 256 256"><path fill="currentColor" d="M240 102c0 70-103.8 126.7-108.2 129a8 8 0 0 1-7.6 0C119.8 228.7 16 172 16 102a62.1 62.1 0 0 1 62-62c20.7 0 38.8 8.9 50 23.9C139.2 48.9 157.3 40 178 40a62.1 62.1 0 0 1 62 62Z"/><path d="M48 124h44l14-26 22 48 16-30h40" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="nav-item" href="#" style="top:622px" title="Ingestion"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M144 144l-24 24M112 112l-24 24M64 168l-24 24M216 40l-24 24M108 76l72 72-28 28a40 40 0 0 1-56 0l-16-16a40 40 0 0 1 0-56ZM148 108l-72-72 28-28"/><path d="M180 148l-72-72 28-28a40 40 0 0 1 56 0l16 16a40 40 0 0 1 0 56Z"/></svg></a>
+      <a class="nav-item" href="#" style="top:661px" title="Analytics"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M232 56l-96 96-40-40-72 72M232 120V56h-64"/></svg></a>
+      <a class="nav-item" href="#" style="top:729px" title="Profile"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14"><circle cx="128" cy="128" r="96"/><circle cx="128" cy="120" r="40"/><path d="M63.8 199.4a72 72 0 0 1 128.4 0"/></svg></a>
+      <a class="nav-item" href="#" style="top:772px" title="Settings"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><circle cx="128" cy="128" r="40"/><path d="M41.4 192 64 188l24 14 8 22h64l8-22 24-14 22.6 4 32-55.4L232 118v-28l14.6-18.6-32-55.4L192 20l-24 14-8-22H96l-8 22-24-14-22.6 4-32 55.4L24 90v28l-14.6 18.6Z" transform="translate(0 6) scale(1 .95)"/></svg></a>
+      <a class="nav-item" href="#" style="top:816px" title="Help"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"><circle cx="128" cy="128" r="96"/><path d="M104 100a24 24 0 1 1 36 21c-8 4-12 9-12 17v6"/><circle cx="128" cy="180" r="8" fill="currentColor" stroke="none"/></svg></a>
+      <a class="nav-item" href="#" style="top:860px" title="Sign out"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M112 40H48v176h64M112 128h112M184 88l40 40-40 40"/></svg></a>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <svg class="mlogo" style="display:none" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2.4a9.6 9.6 0 0 1 9.6 9.6" fill="none" stroke="#F6A623" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M21.6 12A9.6 9.6 0 0 1 6.2 19.6" fill="none" stroke="#2F6BE4" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M4.2 17.2A9.6 9.6 0 0 1 9.4 2.8" fill="none" stroke="#E5484D" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="12.4" cy="12.4" r="4.4" fill="none" stroke="#2F6BE4" stroke-width="2.2"/>
+          <circle cx="12.4" cy="12.4" r="1.6" fill="#F6A623"/>
+        </svg>
+        <span class="toggle"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><rect x="32" y="48" width="192" height="160" rx="8"/><path d="M88 48v160M52 84h16M52 116h16"/></svg></span>
+        <div class="center">
+          <div class="search">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="#5F6685" stroke-width="16" stroke-linecap="round"><circle cx="116" cy="116" r="80"/><path d="M172.6 172.6 224 224"/></svg>
+            <span class="ph">Find tables, dashboards, people, and more</span>
+            <span class="kbd"><span>&#8984;</span><span>K</span></span>
+            <span class="expert"><svg width="16" height="16" viewBox="0 0 256 256"><path d="M176 232H80M208 104a80 80 0 0 1-32 64v24a8 8 0 0 1-8 8H88a8 8 0 0 1-8-8v-24a80 80 0 1 1 128-64Z" fill="#FFE58F" stroke="#E8B923" stroke-width="12" stroke-linejoin="round"/></svg>Data Expert</span>
+          </div>
+          <a class="viewall" href="#">View all <svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M40 128h176M144 56l72 72-72 72"/></svg></a>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="head">
+          <div>
+            <h1>Dataset Health</h1>
+            <p class="sub">Monitor the health of your organization's datasets</p>
+          </div>
+          <button type="button" class="btn-primary" id="openCreate"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round"><path d="M40 128h176M128 40v176"/></svg>Create Smart Assertions</button>
+        </div>
+
+        <nav class="tabs"><a href="#" class="tab active">Assertions</a><a href="#" class="tab">Incidents</a></nav>
+        <div class="subtabs"><a href="#" class="subtab active">By Assertion</a><a href="#" class="subtab">By Table</a></div>
+
+        <div class="toolbar">
+          <div class="tsearch"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round"><circle cx="116" cy="116" r="80"/><path d="M172.6 172.6 224 224"/></svg>Search...</div>
+          <div class="filters">
+            <span class="filter">Results <span class="count">2</span><svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M208 96l-80 80-80-80"/></svg></span>
+            <span class="filter">In <span class="chip">Last 7 days</span><svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M208 96l-80 80-80-80"/></svg></span>
+            <span class="vdiv"></span>
+            <span class="filter">Type <span class="count">7</span><svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M208 96l-80 80-80-80"/></svg></span>
+            <span class="filter">Assertion Tag <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M208 96l-80 80-80-80"/></svg></span>
+            <span class="vdiv"></span>
+            <span class="filter">Asset <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M208 96l-80 80-80-80"/></svg></span>
+          </div>
+        </div>
+
+        <div class="tablewrap">
+          <table>
+            <colgroup><col style="width:28.3%"><col style="width:10%"><col style="width:19%"><col style="width:15.6%"><col></colgroup>
+            <thead><tr><th>Name</th><th>Type</th><th>Dataset</th><th>Results</th><th>Last Run<span class="sort"><svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M80 176l48 48 48-48M80 80l48-48 48 48"/></svg></span></th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+
+        <div class="pager">
+          <a href="#" class="pg nav disabled" aria-label="Previous page"><svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M160 208l-80-80 80-80"/></svg></a>
+          <a href="#" class="pg active">1</a>
+          <a href="#" class="pg">2</a>
+          <a href="#" class="pg nav" aria-label="Next page"><svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M96 48l80 80-80 80"/></svg></a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="mask" id="mask"></div>
+  <aside class="drawer" id="drawer" aria-label="Create Smart Assertions" aria-hidden="true">
+    <div class="dr-head">
+      <div>
+        <div class="dr-title">Create Smart Assertions</div>
+        <div class="dr-sub">AI-trained assertions that learn each table's normal patterns and flag anomalies.</div>
+      </div>
+      <button type="button" class="dr-close" id="closeCreate" aria-label="Close"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><path d="M200 56 56 200M200 200 56 56"/></svg></button>
+    </div>
+    <form id="provisionForm" style="display:contents">
+      <div class="dr-body">
+        <div class="field">
+          <label for="product">Assertion type</label>
+          <select id="product">
+            <option value="volume">Volume</option>
+            <option value="freshness">Freshness</option>
+            <option value="column">Column Metrics</option>
+            <option value="schema">Schema</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="seats">Datasets</label>
+          <input type="number" id="seats" value="25" min="1" max="250" required>
+          <div class="hint">One Smart Assertion is created on each dataset, up to 250 per request.</div>
+        </div>
+        <div class="field">
+          <label for="planTier">Sensitivity</label>
+          <select id="planTier">
+            <option value="enterprise">High</option>
+            <option value="business" selected>Medium</option>
+            <option value="starter">Low</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="region">Executor</label>
+          <select id="region">
+            <option value="us-east">DataHub Cloud executor</option>
+            <option value="us-west">Remote executor &middot; us-west-2</option>
+            <option value="eu-west">Remote executor &middot; eu-west-1</option>
+            <option value="ap-south">Remote executor &middot; ap-south-1</option>
+          </select>
+        </div>
+        <div id="result" class="result-box" role="status"></div>
+      </div>
+      <div class="dr-foot">
+        <button type="button" class="btn-secondary" id="cancelCreate">Cancel</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Create</button>
+      </div>
+    </form>
+  </aside>
+
+  <script>
+    (function () {
+      var BQ = '<svg width="16" height="16" viewBox="0 0 24 24"><path d="M6.6 2.5h10.8L22.8 12l-5.4 9.5H6.6L1.2 12Z" fill="#2E5FC9"/><circle cx="11.4" cy="11.4" r="3.6" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M14 14l2.6 2.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';
+      var SF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3BAAE0" stroke-width="2.2" stroke-linecap="round"><path d="M12 2v6.5M12 15.5V22M3.3 7l5.6 3.2M15.1 13.8l5.6 3.2M3.3 17l5.6-3.2M15.1 10.2 20.7 7"/><path d="M12 9.4 14.6 12 12 14.6 9.4 12Z"/></svg>';
+      var PG = '<svg width="16" height="16" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5" fill="#7A5AF0"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>';
+      var SPARK = '<svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><path d="M128 32l20 76 76 20-76 20-20 76-20-76-76-20 76-20Z"/><path d="M200 24v32M184 40h32"/></svg>';
+      var WARN = '<svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M128 104v40M114 40 26 192a16 16 0 0 0 14 24h176a16 16 0 0 0 14-24L142 40a16 16 0 0 0-28 0Z"/><circle cx="128" cy="180" r="8" fill="currentColor" stroke="none"/></svg>';
+      var OK = '<svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M40 144l56 56L216 80"/></svg>';
+      var ERR = '<svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><path d="M200 56 56 200M200 200 56 56"/></svg>';
+      var ICON = { bq: BQ, sf: SF, pg: PG };
+      var PILL = { warn: WARN, ok: OK, err: ERR };
+      var rows = [
+        ['This should go into a training state immediately', 'Volume', true, 'bq', 'base_table', [['warn', '20+'], ['ok', '1000+']], '11 minutes ago', 'Runs every 5 minutes, minutes 0 through 35 past the hour'],
+        ['Should run on remote executor', 'Volume', false, 'bq', 'base_table', [['err', '1000+'], ['warn', '20+']], '11 minutes ago', 'Runs every 5 minutes, minutes 0 through 35 past the hour'],
+        ['Table has between 43,517 and 43,517 rows', 'Volume', true, 'sf', 'PET_PROFILES', [['warn', '300+'], ['ok', '90+']], '11 minutes ago', 'Runs every 5 minutes, minutes 0 through 35 past the hour'],
+        ['Test Shoud be in init state', 'Volume', true, 'pg', 'best', [['warn', '0+'], ['ok', '1000+']], '11 minutes ago', 'Runs every 5 minutes, minutes 0 through 35 past the hour'],
+        ['Table has between 10,000 and 55,000 rows', 'Volume', false, 'sf', 'PET_PROFILES', [['warn', '86'], ['ok', '82']], '26 minutes ago', 'Runs at 20 minutes past the hour.'],
+        ['Table has at most 1,000 rows', 'Volume', false, 'sf', 'CUSTOMER', [['err', '82'], ['warn', '86']], '34 minutes ago', 'Runs at 12 minutes past the hour.'],
+        ['Table was updated in the last 6 hours', 'Freshness', false, 'sf', 'ORDERS', [['ok', '168']], '41 minutes ago', 'Runs every hour.'],
+        ['Column order_total has no null values', 'Column', false, 'sf', 'ORDERS', [['err', '3'], ['ok', '165']], '41 minutes ago', 'Runs every hour.'],
+        ['Schema has columns id, name, created_at', 'Schema', false, 'bq', 'customers_dim', [['ok', '7']], '2 hours ago', 'Runs daily at 3:00 AM.'],
+        ['Table has at least 1 row', 'Volume', true, 'bq', 'events_daily', [['ok', '1000+']], '3 hours ago', 'Runs every 5 minutes, minutes 0 through 35 past the hour'],
+      ];
+      function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+      var tbody = document.getElementById('rows');
+      rows.forEach(function (r) {
+        var tr = document.createElement('tr');
+        tr.appendChild(el('td', 'name', r[0]));
+        var t = el('td'); var tw = el('div', 'type'); tw.appendChild(el('span', '', r[1])); if (r[2]) tw.insertAdjacentHTML('beforeend', SPARK); t.appendChild(tw); tr.appendChild(t);
+        var d = el('td'); var dw = el('div', 'ds'); var pi = el('span', 'pi ' + r[3]); pi.innerHTML = ICON[r[3]]; dw.appendChild(pi); dw.appendChild(el('span', '', r[4])); d.appendChild(dw); tr.appendChild(d);
+        var p = el('td'); var pw = el('div', 'pills'); r[5].forEach(function (x) { var s = el('span', 'pill ' + x[0]); s.innerHTML = PILL[x[0]]; s.appendChild(document.createTextNode(x[1])); pw.appendChild(s); }); p.appendChild(pw); tr.appendChild(p);
+        var l = el('td'); l.appendChild(el('div', 'run1', r[6])); l.appendChild(el('div', 'run2', r[7])); tr.appendChild(l);
+        tbody.appendChild(tr);
+      });
+
+      var drawer = document.getElementById('drawer');
+      function openDrawer() { document.body.classList.add('drawer-open'); drawer.setAttribute('aria-hidden', 'false'); setTimeout(function () { document.getElementById('product').focus(); }, 50); }
+      function closeDrawer() { document.body.classList.remove('drawer-open'); drawer.setAttribute('aria-hidden', 'true'); }
+      document.getElementById('openCreate').addEventListener('click', openDrawer);
+      document.getElementById('closeCreate').addEventListener('click', closeDrawer);
+      document.getElementById('cancelCreate').addEventListener('click', closeDrawer);
+      document.getElementById('mask').addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showResult(kind, title, detail) {
+      var result = document.getElementById('result');
+      result.className = 'result-box ' + kind;
+      result.textContent = '';
+      var t = document.createElement('div'); t.className = 'r-title'; t.textContent = title;
+      var d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+      result.appendChild(t); result.appendChild(d);
+    }
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const product = document.getElementById('product');
+      const typeLabel = product.options[product.selectedIndex].text;
+      const region = document.getElementById('region');
+      const executorLabel = region.options[region.selectedIndex].text;
+      btn.disabled = true; btn.textContent = 'Creating...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: product.value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value, 10), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult('error', 'Smart Assertions not created', data.error || 'Something went wrong. Please try again.');
+        } else {
+          const n = data.seatsAdded;
+          showResult('success', 'Smart Assertions created', n + ' ' + typeLabel + ' Smart Assertion' + (n === 1 ? '' : 's') + ' created across ' + n + ' dataset' + (n === 1 ? '' : 's') + ' on ' + executorLabel + '. They will enter training on their first run. Request ' + data.licenseId + '.');
+        }
+      } catch (err) {
+        showResult('error', 'Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Create'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
