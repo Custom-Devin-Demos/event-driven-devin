@@ -86,6 +86,7 @@ describe('Xfinity My Account on-call skin', () => {
       expect(html).toContain('const alertOnStatus = [500]');
       expect(html).toContain('var skinAlertDestination = "slack"');
       expect(html).toContain('Make a payment');
+      expect(html).toContain('body:has(#toast:not([hidden])) #oncall-ribbon');
       expect(html).not.toContain('← All Demos');
       for (const script of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
         expect(() => new vm.Script(script[1])).not.toThrow();

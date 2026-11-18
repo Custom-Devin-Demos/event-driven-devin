@@ -254,6 +254,7 @@ const ONCALL_SKINS = {
         'Keep the business validation (account, offer, current-plan, start-date and terms checks) and the confirmation fields; do not hide the issue by removing offers from the catalog or catching the error and returning success. Add a regression test, post findings and the PR link in this alert thread, and do not merge or deploy.',
       ].join('\n'),
     },
+    ribbonYieldTo: '#toast:not([hidden])',
     page: { file: 'cf420e9d.html', title: 'My Account | Xfinity' },
     theme: {
       '--accent': '#5a23b9',
