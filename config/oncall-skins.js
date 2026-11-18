@@ -2999,6 +2999,28 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN ACCELYA SITE — internal demo only, not affiliated with, endorsed by, or a real Accelya product.',
   },
+  '1213f496': {
+    slug: '1213f496',
+    company: 'Rappi',
+    brandMark: 'R',
+    vertical: 'grocery',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '1213f496.html',
+      title: 'Tu carrito | Rappi',
+    },
+    accent: '#FF441F',
+    accentDark: '#E0391A',
+    theme: {
+      '--accent': '#FF441F',
+      '--ink': '#2E2C36',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#FF441F',
+      '--chrome-text': '#FFFFFF',
+    },
+    disclaimer: 'NOT ACTUALLY A RAPPI SITE — internal demo only, not affiliated with, endorsed by, or a real Rappi product.',
+  },
   'e2d82a44': {
     slug: 'e2d82a44',
     company: 'Loblaws',
