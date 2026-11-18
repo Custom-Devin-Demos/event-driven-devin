@@ -67,7 +67,7 @@ async function paymentsIncident(triggeredBy) {
     try {
       const incident = await declareDatadogIncident({
         title: 'Xfinity: My Account bill payment outage',
-        summary: `One-time bill payments in Xfinity My Account return HTTP 503 following ${RELEASE}. Payment for bill ${BILL.id} ($${BILL.balance}) was not authorized and no funds were taken; scheduled AutoPay runs for the same billing profile are blocked. Every residential card and bank payment is affected. Internet plan changes are a separate alert. Investigate only the bill payment gateway's processor resolution in billpay-payments-gateway (src/billpayments.js in ${REPO_URL}).`,
+        summary: `One-time bill payments in Xfinity My Account return HTTP 503 following ${RELEASE}. Payment for bill ${BILL.id} ($${BILL.balance}) was not authorized and no funds were taken; scheduled AutoPay runs for the same billing profile are blocked. Every residential card and bank payment is affected. Internet plan changes are a separate alert. Investigate only the bill payment gateway's processor resolution in billpay-payments-gateway (app/services/oncall-verticals/billpayments.js in ${REPO_URL}).`,
         runRef,
         service: SERVICE,
         triggeredBy,
