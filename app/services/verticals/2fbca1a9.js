@@ -6,13 +6,16 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
-const SLACK_MEMBER_ID = process.env.DEFINITY_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const SLACK_MEMBER_ID = process.env.DEFINITY_SLACK_MEMBER_ID || '';
 
 const SERVICE = 'customer-2fbca1a9-coverage-quote';
 const ROUTE = '/api/2fbca1a9/coverage-quote';
 
 const LATENCY_SLO = { budgetMs: 3000 };
 const RATING_ENGINE_POLICY = { latencyMs: [450, 550] };
+const parsedCooldownMs = Number.parseInt(process.env.DEFINITY_ALERT_COOLDOWN_MS, 10);
+const ALERT_POLICY = { cooldownMs: Number.isFinite(parsedCooldownMs) && parsedCooldownMs >= 0 ? parsedCooldownMs : 10 * 60 * 1000 };
+let lastAlertAt = 0;
 
 const PRODUCTS = {
   auto: { label: 'Auto', basePremium: 1680 },
@@ -248,7 +251,7 @@ async function quoteCoverage(data = {}) {
     product: String(requestData.product || 'auto').trim().toLowerCase(),
     province: String(requestData.province || 'ON').trim().toUpperCase(),
     postalCode: String(requestData.postalCode === undefined ? 'M5H 2N2' : requestData.postalCode)
-      .trim().toUpperCase().replace(/\s+/g, ' '),
+      .trim().toUpperCase().replace(/\s+/g, '').replace(/^(.{3})(.{3})$/, '$1 $2'),
     channel: String(requestData.channel || 'all').trim().toLowerCase(),
   };
 
@@ -294,13 +297,23 @@ async function quoteCoverage(data = {}) {
       channel: normalized.channel,
       service: SERVICE,
     });
-    setImmediate(() => reportLatencyBreach({
-      requestId: quoteId,
-      durationMs,
-      budgetMs: LATENCY_SLO.budgetMs,
-      programsRated: programQuotes.length,
-      data: normalized,
-    }));
+    const now = Date.now();
+    if (now - lastAlertAt >= ALERT_POLICY.cooldownMs) {
+      lastAlertAt = now;
+      setImmediate(() => reportLatencyBreach({
+        requestId: quoteId,
+        durationMs,
+        budgetMs: LATENCY_SLO.budgetMs,
+        programsRated: programQuotes.length,
+        data: normalized,
+      }));
+    } else {
+      logger.info('Definity latency alert suppressed during cooldown', {
+        quoteId,
+        cooldownMs: ALERT_POLICY.cooldownMs,
+        service: SERVICE,
+      });
+    }
   }
 
   return {
@@ -328,5 +341,7 @@ module.exports = {
   QUOTE_CHANNELS,
   RATING_ENGINE_POLICY,
   LATENCY_SLO,
+  ALERT_POLICY,
   REMEDIATION_DIRECTIVE,
+  resetAlertCooldown: () => { lastAlertAt = 0; },
 };

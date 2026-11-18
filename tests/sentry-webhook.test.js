@@ -105,6 +105,13 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
   });
 
+  test('does not treat a non-latency Definity culprit as direct-alerted', () => {
+    expect(isInstantPathEvent({
+      culprit: 'quoteCoverage(app/services/verticals/2fbca1a9)',
+      tags: [],
+    })).toBe(false);
+  });
+
   test('does not treat an unrelated culprit with another alert path as direct-alerted', () => {
     expect(isInstantPathEvent({
       culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',

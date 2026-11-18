@@ -17,10 +17,13 @@ const {
   RATING_PROGRAMS,
   RATING_ENGINE_POLICY,
   LATENCY_SLO,
+  ALERT_POLICY,
+  resetAlertCooldown,
 } = require('../app/services/verticals/2fbca1a9');
 
 const ORIGINAL_LATENCY = [...RATING_ENGINE_POLICY.latencyMs];
 const ORIGINAL_BUDGET = LATENCY_SLO.budgetMs;
+const ORIGINAL_COOLDOWN = ALERT_POLICY.cooldownMs;
 
 function request(method, path, body) {
   const app = express();
@@ -55,6 +58,8 @@ function tick() {
 afterEach(() => {
   RATING_ENGINE_POLICY.latencyMs = [...ORIGINAL_LATENCY];
   LATENCY_SLO.budgetMs = ORIGINAL_BUDGET;
+  ALERT_POLICY.cooldownMs = ORIGINAL_COOLDOWN;
+  resetAlertCooldown();
   createSessionAndAlert.mockClear();
 });
 
@@ -109,6 +114,30 @@ describe('Definity coverage quote', () => {
     expect(body.programQuotes.map((quote) => quote.code)).toEqual([code]);
     expect(body.bestQuote.code).toBe(code);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('alerts once per cooldown window for repeated breaches', async () => {
+    RATING_ENGINE_POLICY.latencyMs = [8, 10];
+    LATENCY_SLO.budgetMs = 1;
+
+    const first = await request('POST', '/api/2fbca1a9/coverage-quote', { channel: 'sonnet' });
+    const second = await request('POST', '/api/2fbca1a9/coverage-quote', { channel: 'sonnet' });
+    await tick();
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('quotes the same premium regardless of postal code spacing or case', async () => {
+    RATING_ENGINE_POLICY.latencyMs = [1, 3];
+
+    const spaced = await request('POST', '/api/2fbca1a9/coverage-quote', { channel: 'sonnet', product: 'home', postalCode: 'M5H 2N2' });
+    const compact = await request('POST', '/api/2fbca1a9/coverage-quote', { channel: 'sonnet', product: 'home', postalCode: 'm5h2n2' });
+
+    expect(compact.status).toBe(200);
+    expect(compact.body.postalCode).toBe('M5H 2N2');
+    expect(compact.body.bestQuote.annualPremium).toBe(spaced.body.bestQuote.annualPremium);
   });
 
   test('returns a successful response and schedules a latency-budget alert on breach', async () => {
