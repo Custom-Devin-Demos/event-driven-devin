@@ -81,9 +81,22 @@
     .scroll-cue svg { width: 20px; height: 20px; transition: transform .4s cubic-bezier(.16,1,.3,1); }
     .scroll-cue.up svg { transform: rotate(180deg); }
 
+    @media (width > 1024px) {
+      .home-copy { width: min(650px, 100vw - 520px); }
+      .m-form { display: none; }
+    }
+    @media (width <= 1024px) {
+      .home-header { position: relative; top: auto; }
+      .nav-side .card { display: none; }
+      .m-form { display: flex; justify-content: flex-end; padding: 0 var(--gutter); }
+      .scroll-track, .scroll-cue { display: none; }
+      .home-content { position: relative; bottom: auto; padding: 64px var(--gutter) 24px; pointer-events: auto; }
+      .home-copy { display: block; }
+      .copy-slide { visibility: visible; opacity: 1; transform: none; padding-block: 16px; }
+      .home-footer { position: relative; opacity: 1; visibility: visible; }
+    }
     @media (width <= 768px) {
       :root { --gutter: 20px; }
-      .home-header { position: relative; top: auto; }
       .mobile-news { display: block; background: rgba(255,255,255,.1); }
       .mobile-news a { display: flex; justify-content: center; align-items: center; min-height: 44px; padding: 12px 20px; font-size: 12px; line-height: 1.5; text-decoration: none; text-align: center; }
       .home-nav { gap: 20px; }
@@ -93,20 +106,17 @@
       .nav-side { gap: 22px; width: min(400px, 100% - 58px); }
       .nav-links { flex-direction: column; align-items: flex-end; gap: 8px; }
       .nav-links a { margin: -4px -8px; padding: 4px 8px; font-size: 16px; }
-      .nav-side .card { display: none; }
-      .m-form { display: block; padding: 0 var(--gutter); }
+      .m-form { display: block; }
       .m-form .card { width: 100%; }
-      .scroll-track, .scroll-cue { display: none; }
-      .home-content { position: relative; bottom: auto; flex-direction: column; align-items: flex-start; gap: 20px; padding: 48px var(--gutter) 24px; pointer-events: auto; }
-      .home-copy { width: 100%; display: block; }
-      .copy-slide { visibility: visible; opacity: 1; transform: none; max-width: none; font-size: 16px; line-height: 1.6; padding-block: 16px; }
+      .home-content { flex-direction: column; align-items: flex-start; gap: 20px; padding-top: 48px; }
+      .home-copy { width: 100%; }
+      .copy-slide { max-width: none; font-size: 16px; line-height: 1.6; }
       .copy-slide.opening { max-width: 360px; font-size: 18px; line-height: 1.45; }
       .locations { text-align: left; font-size: 14px; }
-      .home-footer { position: relative; opacity: 1; visibility: visible; font-size: 9px; }
+      .home-footer { font-size: 9px; }
       .home-footer nav { gap: 8px; }
       .home-footer a { display: inline-flex; align-items: center; min-height: 24px; }
     }
-    @media (width > 768px) { .m-form { display: none; } }
   </style>
 </head>
 <body>
@@ -144,7 +154,7 @@
             <form id="transferForm">
               <div class="row">
                 <div><label for="fromAccount">Funding account</label><select id="fromAccount"><option value="ACCT-1001">Operating 1001</option><option value="ACCT-1002">Reserve 1002</option></select></div>
-                <div><label for="toAccount">Disburse to</label><select id="toAccount"><option value="ACCT-EXT-001">Payroll clearing 4921</option><option value="ACCT-1002">Reserve 1002</option></select></div>
+                <div><label for="toAccount">Disburse to</label><select id="toAccount"><option value="ACCT-EXT-001">Clearing 4921</option><option value="ACCT-1002">Reserve 1002</option></select></div>
               </div>
               <div class="row">
                 <div><label for="amount">Net pay total ($)</label><input type="number" id="amount" value="48250" min="1" step="0.01"></div>
@@ -190,7 +200,7 @@
 
   <script>
     (function () {
-      var mq = window.matchMedia('(max-width: 768px)');
+      var mq = window.matchMedia('(max-width: 1024px)');
       var card = document.getElementById('payrollCard');
       var navSide = document.querySelector('.nav-side');
       var slot = document.getElementById('mobileFormSlot');
