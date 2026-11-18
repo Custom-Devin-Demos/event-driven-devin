@@ -99,9 +99,17 @@ describe('Sentry customer identity mapping', () => {
     'reportLatencyBreach(app/services/verticals/53cfb2d5)',
     'reportLatencyBreach(app/services/verticals/f3e617ec)',
     'reportLatencyBreach(app/services/verticals/4ea2d7f6)',
+    'reportLatencyBreach(app/services/verticals/2fbca1a9)',
     'loadPortfolioSummary(app/services/verticals/0166f378)',
   ])('recognizes a tagless latency-breach issue webhook by culprit %p', (culprit) => {
     expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
+  });
+
+  test('does not treat a non-latency Definity culprit as direct-alerted', () => {
+    expect(isInstantPathEvent({
+      culprit: 'quoteCoverage(app/services/verticals/2fbca1a9)',
+      tags: [],
+    })).toBe(false);
   });
 
   test('does not treat an unrelated culprit with another alert path as direct-alerted', () => {
@@ -115,6 +123,7 @@ describe('Sentry customer identity mapping', () => {
     'LatencyBudgetExceeded: POST /api/ef51d258/availability took 9039ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/f887d0be/enquiry took 9540ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/d708940c/order-preview took 9120ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/2fbca1a9/coverage-quote took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/04525b56/inspection-scan took 7000ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/fd043af6/program-match took 7120ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/fe97a788/query took 7040ms (budget 3000ms)',
