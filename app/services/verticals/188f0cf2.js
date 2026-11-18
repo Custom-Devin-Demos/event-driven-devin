@@ -8,6 +8,7 @@ const { lookupStop, assessEligibility, formatClaim } = require('./188f0cf2-dispa
 const service = '188f0cf2-api';
 const route = '/api/188f0cf2/claims';
 const HISTORY = [];
+let alerted = false;
 const ACCOUNT = { name: 'Northfield Health', contact: 'Dana Ruiz', title: 'Director of Facilities', account: 'BPE-30417', sites: 42, contract: 'Enterprise service agreement · renews Jun 2027', guarantee: 'Missed pickups recovered within 24 hours or credited' };
 const KPIS = [
   { label: 'Active sites', value: '42', note: 'IL · WI · IN' },
@@ -28,6 +29,7 @@ function overview() {
 function resetClaims() {
   const cleared = HISTORY.length;
   HISTORY.length = 0;
+  alerted = false;
   logger.info('Claims reset', { service, cleared });
   incrementMetric('188f0cf2.reset', { route: `${route}/reset` });
   return { success: true, cleared, status: 'ready' };
@@ -53,6 +55,8 @@ async function processClaim(data) {
     incrementMetric('188f0cf2.claim.failure', { route, errorClass: error.name });
     logger.error('Missed service report failed', { service, requestId, error: error.message });
     Sentry.captureException(error, { tags: { service, route, alert_path: 'instant' }, extra: { requestId, stopId: stop.id } });
+    if (alerted) throw error;
+    alerted = true;
     logger.info('Invoking createSessionAndAlert', { service, route, requestId });
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
