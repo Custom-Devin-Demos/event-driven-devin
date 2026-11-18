@@ -246,11 +246,10 @@ const ONCALL_SKINS = {
     devinSession: {
       auto: true,
       onCallIsTriggerer: true,
-      repo: { name: 'COG-GTM/xfinity-sev-1', branch: 'main' },
       promptAppendix: [
         'Customer-facing context: this alert comes from the Xfinity My Account overview page linked above. Its Upgrade internet plan flow (Review upgrade \u2192 Confirm upgrade) posts to the endpoint above, so that endpoint is the backend of this alert.',
-        'Investigate only the internet plan change service (broadband-plan-change-api, src/internetupgrades.js in COG-GTM/xfinity-sev-1), not event-driven-devin. It is separate from the bill payment outage (billpay-payments-gateway, src/billpayments.js), which has its own SEV-1 incident; do not combine or touch that investigation.',
-        'Reproduce only locally in the xfinity-sev-1 checkout with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Do not submit the live page, and give testing agents the same restriction.',
+        'Investigate only the internet plan change service (broadband-plan-change-api, app/services/oncall-verticals/internetupgrades.js). It is separate from the bill payment outage (billpay-payments-gateway, app/services/oncall-verticals/billpayments.js), which has its own SEV-1 incident; do not combine or touch that investigation.',
+        'Reproduce only locally with Slack, Teams, Datadog incident, Sentry and Devin outbound credentials disabled. Do not submit the live page, and give testing agents the same restriction.',
         'Keep the business validation (account, offer, current-plan, start-date and terms checks) and the confirmation fields; do not hide the issue by removing offers from the catalog or catching the error and returning success. Add a regression test, post findings and the PR link in this alert thread, and do not merge or deploy.',
       ].join('\n'),
     },

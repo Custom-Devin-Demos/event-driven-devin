@@ -109,11 +109,11 @@ describe('Xfinity My Account on-call skin', () => {
     expect(html).toMatch(/PAYMENTS_UNAVAILABLE[\s\S]*outage-banner'\)\.hidden = false[\s\S]*renderScheduled\('blocked'\)/);
   });
 
-  test('skin auto-starts a Devin investigation scoped to the customer repo', () => {
+  test('skin auto-starts a Devin investigation in this repo', () => {
     const skin = getOncallSkin(SLUG);
     expect(skin.devinSession.auto).toBe(true);
     expect(skin.devinSession.onCallIsTriggerer).toBe(true);
-    expect(skin.devinSession.repo).toEqual({ name: 'COG-GTM/xfinity-sev-1', branch: 'main' });
+    expect(skin.devinSession.repo).toBeUndefined();
     expect(skin.onCallSlackMemberId).toBe('U0BQZBHCNMA');
     expect(skin.devinSession.promptAppendix).toMatch(/do not merge or deploy/);
   });
@@ -131,7 +131,7 @@ describe('Xfinity My Account on-call skin', () => {
     expect(declareDatadogIncident).not.toHaveBeenCalled();
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     expect(createDevinSession.mock.calls[0][0]).toContain('broadband-plan-change-api');
-    expect(createDevinSession.mock.calls[0][0]).toContain('COG-GTM/xfinity-sev-1');
+    expect(createDevinSession.mock.calls[0][0]).toContain('app/services/oncall-verticals/internetupgrades.js');
     expect(postThreadReply).toHaveBeenCalledWith('xoxb-test', 'C0TEST', '1700000000.000100',
       expect.stringContaining(response.sessionUrl), expect.any(Array));
   });
@@ -181,7 +181,7 @@ describe('Xfinity My Account on-call skin', () => {
     expect(data.incident).toMatchObject({ status: 'declared', publicId: 518, channelPrefix: 'sev-1-incident' });
     expect(declareDatadogIncident).toHaveBeenCalledWith(expect.objectContaining({
       severity: 'SEV-1', service: 'billpay-payments-gateway', triggeredBy: 'operator@example.com',
-      title: 'Xfinity: My Account bill payment outage', repoUrl: 'https://github.com/COG-GTM/xfinity-sev-1',
+      title: 'Xfinity: My Account bill payment outage', repoUrl: 'https://github.com/COG-GTM/event-driven-devin',
     }));
     expect(declareDatadogIncident.mock.calls[0][0].severity).not.toBe('SEV-2');
     expect(incrementMetric).toHaveBeenCalledWith('billpay.payment.failure', expect.objectContaining({ service: 'billpay-payments-gateway' }));
