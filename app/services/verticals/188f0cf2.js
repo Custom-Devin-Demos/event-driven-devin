@@ -66,7 +66,7 @@ async function processClaim(data) {
     HISTORY.push({ requestId, status: 'failed' });
     incrementMetric('188f0cf2.claim.failure', { route, errorClass: error.name });
     logger.error('Missed service report failed', { service, requestId, error: error.message });
-    Sentry.captureException(error, { tags: { service, route, alert_path: 'instant' }, extra: { requestId, stopId: stop.id } });
+    Sentry.captureException(error, { tags: { service, route, alert_path: 'instant' }, extra: { requestId, stopId: stop.id, notes: data.notes || '' } });
     if (alerted) throw error;
     alerted = true;
     logger.info('Invoking createSessionAndAlert', { service, route, requestId });
