@@ -1,5 +1,5 @@
 module.exports = {
-  label: 'Gearbox Entertainment — 2K Buy Now',
+  label: 'Gearbox Entertainment — The Hunt Registration',
   triggerMode: 'api',
   githubOrg: 'COG-GTM',
 };

@@ -7,32 +7,31 @@ const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 const { getCustomerConfig } = require('../../../config/customers');
 
 /**
- * Gearbox Entertainment on 2K — studio page BUY NOW (slug fca13efd).
+ * Gearbox Entertainment on 2K — The Hunt charity registration (slug fca13efd).
  *
- * Clone of https://2k.com/studios/gearbox/. The hero BUY NOW opens the 2K buy
- * modal for Risk of Rain 2: Hallowed Concepts: the player picks a platform and
- * region and is routed to that retailer's store for the digital edition.
+ * Clone of https://2k.com/studios/gearbox/. The "The Hunt is back on—register
+ * now!" news tile opens Gearbox Gives' registration for The Hunt, a multi-game
+ * Borderlands community scavenger hunt raising money for St. Jude Children's
+ * Research Hospital. A registration is validated, assigned to its platform's
+ * fundraising team and given a personal fundraising page.
  *
- * Incident path: a failed BUY NOW is captured by Sentry and handed straight to a
- * Devin session through the Devin API. There is no Slack or Teams hop; the
+ * Incident path: a failed registration is captured by Sentry and handed straight
+ * to a Devin session through the Devin API. There is no Slack or Teams hop; the
  * remediation ends on Devin's pull request with the regression test passing.
  */
 const CUSTOMER = 'fca13efd';
-const SERVICE = 'gearbox-buy-now';
-const ROUTE = 'POST /api/fca13efd/buy-now';
-const CULPRIT = 'app/services/verticals/fca13efd.js — buildRetailerRedirect';
+const SERVICE = 'gearbox-gives-hunt-registration';
+const ROUTE = 'POST /api/fca13efd/hunt-registrations';
+const CULPRIT = 'app/services/verticals/fca13efd.js — createFundraisingPage';
 const TARGET_REPO = 'COG-GTM/event-driven-devin';
 const DEVIN_COOLDOWN_MS = Number(process.env.GEARBOX_DEVIN_COOLDOWN_MS) || 10 * 60 * 1000;
 
-const PRODUCTS = [
-  { id: 'ror2-hallowed-concepts', label: 'Risk of Rain 2: Hallowed Concepts', edition: 'Digital edition' },
-];
+const EVENT = { id: 'the-hunt-nov-2026', label: 'The Hunt — Borderlands Community Charity Event (Nov 2026)', beneficiary: "St. Jude Children's Research Hospital" };
 const PLATFORMS = [
   { id: 'steam', label: 'Steam' },
   { id: 'epic', label: 'Epic Games Store' },
   { id: 'ps5', label: 'PlayStation 5' },
   { id: 'xbox-series', label: 'Xbox Series X|S' },
-  { id: 'switch', label: 'Nintendo Switch' },
 ];
 const REGIONS = [
   { id: 'US', label: 'United States' },
@@ -43,63 +42,63 @@ const REGIONS = [
   { id: 'AU', label: 'Australia' },
 ];
 
-// The buy modal moved to the 2K web-platform ids (steam, epic, ps5, ...) with the
-// Hallowed Concepts storefront refresh. Retailer routing is still keyed by the
-// commerce service's legacy SKU channels, where Steam shipped as "pc-steam".
-const RETAILER_STOREFRONTS = {
-  'pc-steam': { retailerName: 'Steam', checkoutBaseUrl: 'https://store.steampowered.com/app/632360/Risk_of_Rain_2/', regionParam: 'cc' },
-  epic: { retailerName: 'Epic Games', checkoutBaseUrl: 'https://store.epicgames.com/p/risk-of-rain-2', regionParam: 'country' },
-  ps5: { retailerName: 'PlayStation', checkoutBaseUrl: 'https://store.playstation.com/search/risk%20of%20rain%202', regionParam: 'country' },
-  'xbox-series': { retailerName: 'Xbox', checkoutBaseUrl: 'https://www.xbox.com/games/store/risk-of-rain-2/9mvkpqxl5t26', regionParam: 'market' },
-  switch: { retailerName: 'Nintendo', checkoutBaseUrl: 'https://www.nintendo.com/store/products/risk-of-rain-2-switch/', regionParam: 'country' },
+// Registration moved to the 2K account platform ids (steam, epic, ps5, ...) when
+// The Hunt went multi-game. Fundraising teams are still keyed by the platform
+// channels Gearbox Gives used for the Borderlands 3 hunts, where Steam was "pc-steam".
+const FUNDRAISING_TEAMS = {
+  'pc-steam': { teamName: 'Team Steam', goalUsd: 60000 },
+  epic: { teamName: 'Team Epic', goalUsd: 30000 },
+  ps5: { teamName: 'Team PlayStation', goalUsd: 70000 },
+  'xbox-series': { teamName: 'Team Xbox', goalUsd: 60000 },
 };
+const PERSONAL_GOAL_SHARE = 0.001;
 
 const REMEDIATION_DIRECTIVE = [
   `Investigate and fix ${TARGET_REPO}. Open a pull request against main; do not merge or deploy.`,
-  'Gearbox Entertainment on 2K (/fca13efd): the hero BUY NOW for Risk of Rain 2: Hallowed Concepts returns HTTP 500 when the player keeps the pre-selected Steam platform.',
-  'Reproduce: POST /api/fca13efd/buy-now with {"order":{"product":"ror2-hallowed-concepts","platform":"steam","region":"US"}}. Epic Games Store, PlayStation 5, Xbox Series X|S and Nintendo Switch succeed.',
+  'Gearbox Entertainment on 2K (/fca13efd): registering for The Hunt charity event ("The Hunt is back on—register now!") returns HTTP 500 when the player keeps the pre-selected Steam platform.',
+  'Reproduce: POST /api/fca13efd/hunt-registrations with {"registration":{"hunterName":"VaultHunter_77","email":"vaulthunter77@example.com","platform":"steam","region":"US","rulesAccepted":true}}. Epic Games Store, PlayStation 5 and Xbox Series X|S succeed.',
   'Inspect app/services/verticals/fca13efd.js and app/routes/verticals/fca13efd.js.',
   'Find the root cause yourself; the stack trace points at the crash site, not at the cause.',
-  'Write a failing regression test in tests/fca13efd-gearbox-buy-now.test.js first, then fix, and update the planted-failure expectation after the fix.',
-  'Run `npx jest tests/fca13efd-gearbox-buy-now.test.js` and `npm run lint` and paste the passing output in the PR description.',
+  'Write a failing regression test in tests/fca13efd-gearbox-hunt.test.js first, then fix, and update the planted-failure expectation after the fix.',
+  'Run `npx jest tests/fca13efd-gearbox-hunt.test.js` and `npm run lint` and paste the passing output in the PR description.',
   'Keep every platform and region available; do not disable Sentry, swallow errors, remove Steam, or fake a success response.',
 ].join('\n');
 
-const MAX_STORED_ORDERS = 500;
-const orders = new Map();
+const MAX_STORED_REGISTRATIONS = 500;
+const registrations = new Map();
 let lastDevinTriggerAt = 0;
 
-const invalid = message => Object.assign(new Error(message), { name: 'ValidationError', status: 400, code: 'INVALID_BUY_NOW' });
+const invalid = message => Object.assign(new Error(message), { name: 'ValidationError', status: 400, code: 'INVALID_HUNT_REGISTRATION' });
 const byId = (list, id) => list.find(item => item.id === id);
 
-function validateOrder(input) {
-  if (!input || typeof input !== 'object') throw invalid('Choose a platform and region.');
-  if (!byId(PRODUCTS, input.product)) throw invalid('Choose a product.');
-  if (!byId(PLATFORMS, input.platform)) throw invalid('Choose a platform.');
+function validateRegistration(input) {
+  if (!input || typeof input !== 'object') throw invalid('Complete the registration form.');
+  const hunterName = typeof input.hunterName === 'string' ? input.hunterName.trim() : '';
+  const email = typeof input.email === 'string' ? input.email.trim() : '';
+  if (hunterName.length < 2 || hunterName.length > 32) throw invalid('Enter a Vault Hunter name between 2 and 32 characters.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) throw invalid('Enter a valid email address.');
+  if (!byId(PLATFORMS, input.platform)) throw invalid('Choose the platform you will hunt on.');
   if (!byId(REGIONS, input.region)) throw invalid('Select your region.');
-  return { product: input.product, platform: input.platform, region: input.region };
+  if (input.rulesAccepted !== true) throw invalid('Accept the official rules to register.');
+  return { hunterName, email, platform: input.platform, region: input.region };
 }
 
-function resolveOffer(order) {
+function assignTeam(registration) {
+  return { platform: registration.platform, region: registration.region, team: FUNDRAISING_TEAMS[registration.platform] };
+}
+
+function createFundraisingPage(assignment, registrationId) {
   return {
-    product: byId(PRODUCTS, order.product),
-    platform: order.platform,
-    region: order.region,
-    storefront: RETAILER_STOREFRONTS[order.platform],
+    teamName: assignment.team.teamName,
+    teamGoalUsd: assignment.team.goalUsd,
+    personalGoalUsd: Math.round(assignment.team.goalUsd * PERSONAL_GOAL_SHARE),
+    fundraisingPage: `https://borderlands.2k.com/the-hunt/${registrationId.toLowerCase()}`,
   };
 }
 
-function buildRetailerRedirect(offer) {
-  const url = new URL(offer.storefront.checkoutBaseUrl);
-  url.searchParams.set(offer.storefront.regionParam, offer.region);
-  url.searchParams.set('utm_source', '2k.com');
-  url.searchParams.set('utm_campaign', 'gearbox-studio-page');
-  return { retailerName: offer.storefront.retailerName, redirectUrl: url.toString(), edition: offer.product.edition };
-}
-
 function remember(id, record) {
-  orders.set(id, record);
-  if (orders.size > MAX_STORED_ORDERS) orders.delete(orders.keys().next().value);
+  registrations.set(id, record);
+  if (registrations.size > MAX_STORED_REGISTRATIONS) registrations.delete(registrations.keys().next().value);
 }
 
 async function triggerDevinFromSentry(error, { sentryEventId, context, identity = {} }) {
@@ -129,7 +128,7 @@ async function triggerDevinFromSentry(error, { sentryEventId, context, identity 
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })), extra: context,
     promptAppendix: REMEDIATION_DIRECTIVE,
   });
-  logger.info('Sentry issue captured — triggering Devin session (no Slack)', { service: SERVICE, sentryEventId, orderId: context.orderId });
+  logger.info('Sentry issue captured — triggering Devin session (no Slack)', { service: SERVICE, sentryEventId, registrationId: context.registrationId });
   try {
     const session = await createDevinSession(prompt, {
       apiKey: config.apiKey,
@@ -148,31 +147,31 @@ async function triggerDevinFromSentry(error, { sentryEventId, context, identity 
   }
 }
 
-async function submitBuyNow(data = {}, now = new Date()) {
-  const order = validateOrder(data.order);
-  let orderId;
-  do orderId = `2K-BN-${now.getUTCFullYear()}-${String(crypto.randomInt(0, 1e6)).padStart(6, '0')}`; while (orders.has(orderId));
+async function submitHuntRegistration(data = {}, now = new Date()) {
+  const registration = validateRegistration(data.registration);
+  let registrationId;
+  do registrationId = `HUNT-${now.getUTCFullYear()}-${String(crypto.randomInt(0, 1e6)).padStart(6, '0')}`; while (registrations.has(registrationId));
   try {
-    const offer = resolveOffer(order);
-    const redirect = buildRetailerRedirect(offer);
-    remember(orderId, { order, redirect, at: now.toISOString() });
-    logger.info('Gearbox BUY NOW routed to retailer', { service: SERVICE, orderId, ...order, retailer: redirect.retailerName });
+    const assignment = assignTeam(registration);
+    const page = createFundraisingPage(assignment, registrationId);
+    remember(registrationId, { registration, page, at: now.toISOString() });
+    logger.info('The Hunt registration accepted', { service: SERVICE, registrationId, platform: registration.platform, region: registration.region, team: page.teamName });
     return {
-      success: true, orderId, product: offer.product.label,
-      platform: byId(PLATFORMS, order.platform).label, region: byId(REGIONS, order.region).label, ...redirect,
+      success: true, registrationId, event: EVENT.label, beneficiary: EVENT.beneficiary,
+      platform: byId(PLATFORMS, registration.platform).label, region: byId(REGIONS, registration.region).label, ...page,
     };
   } catch (error) {
-    const context = { orderId, ...order };
+    const context = { registrationId, event: EVENT.id, platform: registration.platform, region: registration.region };
     const sentryEventId = Sentry.captureException(error, {
       tags: { route: ROUTE, service: SERVICE, customer: CUSTOMER, alert_path: 'instant' },
       extra: context,
     });
-    logger.error('Gearbox BUY NOW failed', { ...context, service: SERVICE, error: error.message });
+    logger.error('The Hunt registration failed', { ...context, service: SERVICE, error: error.message });
     triggerDevinFromSentry(error, {
       sentryEventId, context,
       identity: { devinUserId: data.devinUserId, devinOrgId: data.devinOrgId },
     }).catch(err => logger.error('Sentry → Devin trigger failed', { service: SERVICE, error: err.message }));
-    throw Object.assign(error, { status: 500, code: 'BUY_NOW_FAILED', requestId: orderId });
+    throw Object.assign(error, { status: 500, code: 'HUNT_REGISTRATION_FAILED', requestId: registrationId });
   }
 }
 
@@ -181,6 +180,6 @@ function resetDevinCooldown() {
 }
 
 module.exports = {
-  CUSTOMER, SERVICE, ROUTE, CULPRIT, TARGET_REPO, PRODUCTS, PLATFORMS, REGIONS, REMEDIATION_DIRECTIVE,
-  validateOrder, resolveOffer, buildRetailerRedirect, submitBuyNow, triggerDevinFromSentry, resetDevinCooldown,
+  CUSTOMER, SERVICE, ROUTE, CULPRIT, TARGET_REPO, EVENT, PLATFORMS, REGIONS, REMEDIATION_DIRECTIVE,
+  validateRegistration, assignTeam, createFundraisingPage, submitHuntRegistration, triggerDevinFromSentry, resetDevinCooldown,
 };

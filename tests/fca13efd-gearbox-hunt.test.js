@@ -15,7 +15,9 @@ const { getCustomerConfig } = require('../config/customers');
 const svc = require('../app/services/verticals/fca13efd');
 
 const NOW = new Date('2026-11-20T16:00:00Z');
-const order = (overrides = {}) => ({ product: 'ror2-hallowed-concepts', platform: 'steam', region: 'US', ...overrides });
+const registration = (overrides = {}) => ({
+  hunterName: 'VaultHunter_77', email: 'vaulthunter77@example.com', platform: 'steam', region: 'US', rulesAccepted: true, ...overrides,
+});
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
 beforeEach(() => {
@@ -27,14 +29,14 @@ afterAll(() => { delete process.env.DEVIN_SERVICE_KEY_FCA13EFD; });
 
 describe('Gearbox 2K studio page registration and page', () => {
   test('registers the hex slug only, in API mode, with no aliases', () => {
-    expect(getCustomerConfig(svc.CUSTOMER)).toMatchObject({ label: 'Gearbox Entertainment — 2K Buy Now', triggerMode: 'api', githubOrg: 'COG-GTM' });
+    expect(getCustomerConfig(svc.CUSTOMER)).toMatchObject({ label: 'Gearbox Entertainment — The Hunt Registration', triggerMode: 'api', githubOrg: 'COG-GTM' });
     expect(require('../config/customers/fca13efd').aliases).toBeUndefined();
   });
 
   test('page pre-selects Steam, posts presenter identity and ships every local image', () => {
     const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/fca13efd.html'), 'utf8');
     expect(html).toContain("platform: 'steam'");
-    expect(html).toContain("'/api/fca13efd/buy-now'");
+    expect(html).toContain("'/api/fca13efd/hunt-registrations'");
     for (const key of ['devinUserId', 'devinOrgId', 'devinEmail']) expect(html).toContain(`identity('${key}')`);
     const files = [...html.matchAll(/\/verticals\/(fca13efd-assets\/[^"')\s]+)/g)].map(m => m[1]);
     expect(files.length).toBeGreaterThan(20);
@@ -44,33 +46,34 @@ describe('Gearbox 2K studio page registration and page', () => {
 
 describe('healthy platforms and validation', () => {
   test.each([
-    ['epic', 'Epic Games'], ['ps5', 'PlayStation'], ['xbox-series', 'Xbox'], ['switch', 'Nintendo'],
-  ])('%s routes to the %s store', async (platform, retailerName) => {
-    const result = await svc.submitBuyNow({ order: order({ platform }) }, NOW);
-    expect(result).toMatchObject({ success: true, retailerName, edition: 'Digital edition', product: 'Risk of Rain 2: Hallowed Concepts' });
-    expect(result.orderId).toMatch(/^2K-BN-2026-\d{6}$/);
-    expect(new URL(result.redirectUrl).searchParams.get('utm_source')).toBe('2k.com');
+    ['epic', 'Team Epic'], ['ps5', 'Team PlayStation'], ['xbox-series', 'Team Xbox'],
+  ])('%s registration joins %s with a fundraising page', async (platform, teamName) => {
+    const result = await svc.submitHuntRegistration({ registration: registration({ platform }) }, NOW);
+    expect(result).toMatchObject({ success: true, teamName, beneficiary: "St. Jude Children's Research Hospital" });
+    expect(result.registrationId).toMatch(/^HUNT-2026-\d{6}$/);
+    expect(result.personalGoalUsd).toBeGreaterThan(0);
+    expect(result.fundraisingPage).toContain(result.registrationId.toLowerCase());
     expect(Sentry.captureException).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
   });
 
-  test('rejects an unknown region', async () => {
-    await expect(svc.submitBuyNow({ order: order({ region: 'XX' }) }, NOW)).rejects.toMatchObject({ status: 400, code: 'INVALID_BUY_NOW' });
+  test('rejects a registration without the official rules', async () => {
+    await expect(svc.submitHuntRegistration({ registration: registration({ rulesAccepted: false }) }, NOW)).rejects.toMatchObject({ status: 400, code: 'INVALID_HUNT_REGISTRATION' });
   });
 });
 
 describe('planted Steam failure goes from Sentry straight to Devin', () => {
-  test('default BUY NOW fails downstream and opens one Devin session, never Slack', async () => {
-    const data = { order: order(), devinUserId: 'user-presenter', devinOrgId: 'org-presenter' };
-    await expect(svc.submitBuyNow(data, NOW)).rejects.toMatchObject({
-      name: 'TypeError', status: 500, code: 'BUY_NOW_FAILED',
-      message: expect.stringContaining("reading 'checkoutBaseUrl'"),
+  test('default registration fails downstream and opens one Devin session, never Slack', async () => {
+    const data = { registration: registration(), devinUserId: 'user-presenter', devinOrgId: 'org-presenter' };
+    await expect(svc.submitHuntRegistration(data, NOW)).rejects.toMatchObject({
+      name: 'TypeError', status: 500, code: 'HUNT_REGISTRATION_FAILED',
+      message: expect.stringContaining("reading 'teamName'"),
     });
     await flush();
 
     const [, sentryContext] = Sentry.captureException.mock.calls[0];
-    expect(sentryContext.tags).toMatchObject({ customer: 'fca13efd', service: 'gearbox-buy-now', alert_path: 'instant' });
-    expect(sentryContext.extra).toEqual({ orderId: expect.stringMatching(/^2K-BN-/), product: 'ror2-hallowed-concepts', platform: 'steam', region: 'US' });
+    expect(sentryContext.tags).toMatchObject({ customer: 'fca13efd', service: 'gearbox-gives-hunt-registration', alert_path: 'instant' });
+    expect(sentryContext.extra).toEqual({ registrationId: expect.stringMatching(/^HUNT-2026-/), event: 'the-hunt-nov-2026', platform: 'steam', region: 'US' });
     expect(isInstantPathEvent({ tags: [['alert_path', 'instant']] })).toBe(true);
 
     expect(createDevinSession).toHaveBeenCalledTimes(1);
@@ -84,7 +87,7 @@ describe('planted Steam failure goes from Sentry straight to Devin', () => {
   });
 
   test('repeat failures inside the cooldown do not open more sessions', async () => {
-    for (let i = 0; i < 3; i += 1) await expect(svc.submitBuyNow({ order: order() }, NOW)).rejects.toThrow(TypeError);
+    for (let i = 0; i < 3; i += 1) await expect(svc.submitHuntRegistration({ registration: registration() }, NOW)).rejects.toThrow(TypeError);
     await flush();
     expect(Sentry.captureException).toHaveBeenCalledTimes(3);
     expect(createDevinSession).toHaveBeenCalledTimes(1);
