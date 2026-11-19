@@ -147,6 +147,19 @@ jobs:
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
             'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
+      # Optional: BNY demo Bot webhook secrets (Actions secret MAIN_<NAME>),
+      # used by devindemos.com to wake the iOS Engineer Bot without a v3 message.
+      - name: Stage BNY Bot webhook secrets for host .env
+        env:
+          BNY_IOS_BOT_WEBHOOK_SECRET: ${{ secrets.MAIN_BNY_IOS_BOT_WEBHOOK_SECRET }}
+        run: |
+          if [ -z "$BNY_IOS_BOT_WEBHOOK_SECRET" ]; then
+            echo "No BNY Bot webhook secrets set; host .env left unchanged"; exit 0
+          fi
+          printf 'BNY_IOS_BOT_WEBHOOK_SECRET=%s\n' "$BNY_IOS_BOT_WEBHOOK_SECRET" | \
+            ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+
       # Optional: Field CTO reservations Slack app (/fcto) credentials, staged the
       # same way. Actions secrets FCTO_SLACK_SIGNING_SECRET / FCTO_SLACK_BOT_TOKEN
       # map to the same .env keys; FCTO_CHANNEL_ID is the #exec-field-requests ID

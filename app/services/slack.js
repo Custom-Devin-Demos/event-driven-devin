@@ -735,6 +735,7 @@ async function postPersonaMessage(token, channel, text, username, icon, threadTs
     username,
     ...(threadTs ? { thread_ts: threadTs } : {}),
     ...(image ? { icon_url: icon } : { icon_emoji: icon }),
+    ...(threadTs ? { thread_ts: threadTs } : {}),
   }, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -814,6 +815,21 @@ async function getChannelHistory(token, channelId, options = {}) {
 }
 
 /**
+ * Read a thread (parent first, then replies). Requires `channels:history`.
+ */
+async function getThreadReplies(token, channelId, threadTs, options = {}) {
+  const response = await axios.get(`${SLACK_API_BASE}/conversations.replies`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { channel: channelId, ts: threadTs, limit: options.limit || 200 },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+  return response.data.messages || [];
+}
+
+/**
  * Delete a Slack message. Used to clean up the @Devin trigger message
  * after Devin has acknowledged it (slack trigger mode only).
  */
@@ -857,4 +873,5 @@ module.exports = {
   createChannel,
   archiveChannel,
   getChannelHistory,
+  getThreadReplies,
 };
