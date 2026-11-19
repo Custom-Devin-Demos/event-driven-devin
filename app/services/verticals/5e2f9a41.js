@@ -233,6 +233,8 @@ async function submitBid(data, { hold = BID_HOLD_MS } = {}) {
   const yieldPct = input.yieldPct;
   if (!(Number.isFinite(nominalMn) && nominalMn >= MIN_BID_MN)) throw validationError(`Nominal must be at least ${MIN_BID_MN}mn`, 'INVALID_NOMINAL');
   if (!(Number.isFinite(yieldPct) && yieldPct > 0)) throw validationError('Enter a bid yield', 'INVALID_YIELD');
+  if (!Number.isInteger(nominalMn)) throw validationError('Nominal must be in whole millions', 'INVALID_INCREMENT');
+  if (Math.abs(yieldPct * 1000 - Math.round(yieldPct * 1000)) > 1e-6) throw validationError('Yield must be in increments of 0.001%', 'INVALID_INCREMENT');
   const bid = { nominalMn, yieldPct };
 
   logger.info('Auction bid request', { requestId, auctionId: auction.auctionId, nominalMn, service: SERVICE, route: ROUTE });
@@ -252,7 +254,8 @@ async function submitBid(data, { hold = BID_HOLD_MS } = {}) {
     error.publicMessage = BID_ERROR;
     throw error;
   }
-  if (nominalMn > limits.maxBidMn) throw validationError(`Bid exceeds your limit of ${limits.maxBidMn}mn`, 'OVER_LIMIT');
+  const used = bids.filter((item) => item.auctionId === auction.auctionId).reduce((sum, item) => sum + item.nominalMn, 0);
+  if (used + nominalMn > limits.maxBidMn) throw validationError(`Bid exceeds your limit of ${limits.maxBidMn}mn (${limits.maxBidMn - used}mn remaining)`, 'OVER_LIMIT');
   if (yieldPct < limits.minYield || yieldPct > limits.maxYield) throw validationError(`Yield must be between ${limits.minYield}% and ${limits.maxYield}%`, 'YIELD_OUT_OF_BAND');
 
   const accepted = { bidId: `BID-${uuidv4().slice(0, 8).toUpperCase()}`, auctionId: auction.auctionId, security: auction.security, nominalMn, yieldPct, currency: auction.currency, status: 'ACCEPTED', user: DEALER.user, at: new Date().toISOString() };

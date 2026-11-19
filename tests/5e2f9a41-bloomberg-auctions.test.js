@@ -124,6 +124,10 @@ describe('Bloomberg Auction System vertical (5e2f9a41)', () => {
     expect(service.getAuctions().bids).toHaveLength(1);
     expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, nominalMn: 5000 })).body.code).toBe('OVER_LIMIT');
     expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, yieldPct: 9 })).body.code).toBe('YIELD_OUT_OF_BAND');
+    expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, nominalMn: 1.5 })).body.code).toBe('INVALID_INCREMENT');
+    expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, yieldPct: 4.4125 })).body.code).toBe('INVALID_INCREMENT');
+    expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, nominalMn: 750 })).status).toBe(201);
+    expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, nominalMn: 1 })).body.code).toBe('OVER_LIMIT');
     expect(slack.postMessage).not.toHaveBeenCalled();
   });
 });
