@@ -3,7 +3,8 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { listOrgUsers, listEnterpriseAdmins, sendDevinSessionMessage } = require('../devin-api');
+const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
+const { pageBot } = require('../bot-pager');
 const { getCustomerConfig } = require('../../../config/customers');
 const { declareDatadogIncident } = require('../datadog-incidents');
 const { queueIncidentChannelInvites } = require('../datadog-incident-slack');
@@ -131,6 +132,7 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
 ].join('\n');
 
 const DEFAULT_NEXEN_SRE_BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
+const DEFAULT_NEXEN_SRE_BOT_WEBHOOK_URL = 'https://devin-gtm.devinenterprise.com/api/webhooks/automations/org_69IXJFLrljx8zSAw/auto-3e9cab1507444129b9cf3f56344d8ee9';
 const DEFAULT_NEXEN_SEV1_CHANNEL_ID = 'C0CJQDXKD9D';
 const DATADOG_CHANNEL_LOOKUP_INTERVAL_MS = 15000;
 const DATADOG_CHANNEL_LOOKUP_TIMEOUT_MS = 5 * 60 * 1000;
@@ -158,6 +160,13 @@ function nexenSev1ChannelId() {
   if (configured === undefined) return DEFAULT_NEXEN_SEV1_CHANNEL_ID;
   const channelId = configured.trim();
   return !channelId || channelId.toLowerCase() === 'off' ? null : channelId;
+}
+
+function nexenSreBotWebhookUrl() {
+  const configured = process.env.NEXEN_SRE_BOT_WEBHOOK_URL;
+  if (configured === undefined) return DEFAULT_NEXEN_SRE_BOT_WEBHOOK_URL;
+  const webhookUrl = configured.trim();
+  return !webhookUrl || webhookUrl.toLowerCase() === 'off' ? null : webhookUrl;
 }
 
 function nexenSettlementResponderSlackIds() {
@@ -349,9 +358,32 @@ function buildSettlementSreBotPage({
   return lines.join('\n');
 }
 
-async function pageNexenSreBot(botId, page, reference) {
+async function pageNexenSreBot(botId, page, reference, { alert, incidentChannel } = {}) {
+  const webhookUrl = nexenSreBotWebhookUrl();
+  const webhookSecret = process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET;
+  if (webhookUrl && !webhookSecret) {
+    logger.error('NEXEN SRE Bot webhook secret is missing; page skipped', { reference, botId });
+    return null;
+  }
+
+  const alertChannelId = (alert && alert.channelId) || SETTLEMENT.slackChannelId;
+  const sev1ChannelId = incidentChannel ? incidentChannel.id : null;
   try {
-    const response = await sendDevinSessionMessage(botId, page, resolveNexenSessionIdentity());
+    const response = await pageBot({
+      botId,
+      message: page,
+      webhookUrl,
+      webhookSecret,
+      identity: resolveNexenSessionIdentity(),
+      payload: {
+        incident: SETTLEMENT.incidentTitle,
+        reference,
+        slack_channel_id: alertChannelId,
+        slack_thread_ts: (alert && alert.threadTs) || null,
+        alert_channel_id: alertChannelId,
+        sev1_channel_id: sev1ChannelId,
+      },
+    });
     if (!response) {
       logger.error('NEXEN SRE Bot page failed', { reference, botId });
       return null;
@@ -446,7 +478,7 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
     batchId,
     instructionCount,
   });
-  await pageNexenSreBot(botId, page, reference);
+  await pageNexenSreBot(botId, page, reference, { alert, incidentChannel });
   if (incidentChannel) {
     scheduleSettlementPersonas(personaToken, incidentChannel.id, channelCreatedAt);
   }

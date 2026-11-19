@@ -56,6 +56,7 @@ jest.mock('../app/telemetry/datadog', () => ({
 
 const express = require('express');
 const http = require('http');
+const axios = require('axios');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { declareDatadogIncident } = require('../app/services/datadog-incidents');
 const { queueIncidentChannelInvites } = require('../app/services/datadog-incident-slack');
@@ -75,6 +76,7 @@ const {
 } = require('../app/services/slack');
 const { runWithLegacyAlertsSuppressed } = require('../app/services/oncall-suppression');
 const { Sentry } = require('../app/telemetry/sentry');
+const logger = require('../app/telemetry/logger');
 const {
   reportAppFailure,
   resetSettlementIncidentForTests,
@@ -292,6 +294,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
   const envKeys = [
     'NEXEN_SRE_BOT_ID',
     'NEXEN_SRE_BOT_SLACK_ID',
+    'NEXEN_SRE_BOT_WEBHOOK_URL',
+    'NEXEN_SRE_BOT_WEBHOOK_SECRET',
     'NEXEN_SEV1_CHANNEL_ID',
     'NEXEN_PERSONAS',
     'SLACK_BOT_TOKEN',
@@ -321,6 +325,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     resetSettlementIncidentForTests();
     process.env.NEXEN_SRE_BOT_ID = 'off';
     delete process.env.NEXEN_SRE_BOT_SLACK_ID;
+    process.env.NEXEN_SRE_BOT_WEBHOOK_URL = 'off';
+    delete process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET;
     delete process.env.NEXEN_SEV1_CHANNEL_ID;
     process.env.SLACK_BOT_TOKEN = 'test-slack-token';
     delete process.env.NEXEN_PERSONAS;
@@ -330,6 +336,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     findChannelByNameFragment.mockResolvedValue(null);
     joinChannel.mockReset();
     joinChannel.mockResolvedValue(true);
+    jest.spyOn(axios, 'post').mockResolvedValue({ status: 202 });
   });
 
   afterEach(() => {
@@ -338,6 +345,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       else process.env[key] = originalEnv[key];
     }
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   test('alerts in #pershing-access-alerts with the settlement directive', async () => {
@@ -439,6 +447,67 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(postPersonaMessage).toHaveBeenCalledTimes(9);
     expect(createChannel).not.toHaveBeenCalled();
     expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
+  });
+
+  test('pages SRE Bot through the webhook with fixed-channel context', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    delete process.env.NEXEN_SRE_BOT_WEBHOOK_URL;
+    process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET = 'unit-test-secret';
+    process.env.NEXEN_PERSONAS = 'off';
+
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await incidentPromise;
+
+    expect(axios.post).toHaveBeenCalledWith(
+      'https://devin-gtm.devinenterprise.com/api/webhooks/automations/org_69IXJFLrljx8zSAw/auto-3e9cab1507444129b9cf3f56344d8ee9',
+      expect.objectContaining({
+        bot_id: BOT_ID,
+        source: 'devindemos.com',
+        incident: SETTLEMENT.incidentTitle,
+        reference: expect.any(String),
+        slack_channel_id: "C0CJPN2C5D5",
+        slack_thread_ts: '1712345678.000100',
+        alert_channel_id: 'C0CJPN2C5D5',
+        sev1_channel_id: FIXED_SEV1_CHANNEL_ID,
+      }),
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Webhook-Secret': 'unit-test-secret' }),
+      }),
+    );
+    expect(sendDevinSessionMessage).not.toHaveBeenCalled();
+  });
+
+  test('skips webhook paging and logs an error when the webhook secret is missing', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    delete process.env.NEXEN_SRE_BOT_WEBHOOK_URL;
+    process.env.NEXEN_PERSONAS = 'off';
+    const errorLog = jest.spyOn(logger, 'error').mockImplementation(() => {});
+
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await incidentPromise;
+
+    expect(axios.post).not.toHaveBeenCalled();
+    expect(sendDevinSessionMessage).not.toHaveBeenCalled();
+    expect(errorLog).toHaveBeenCalledWith(
+      'NEXEN SRE Bot webhook secret is missing; page skipped',
+      expect.objectContaining({ reference: expect.any(String), botId: BOT_ID }),
+    );
+  });
+
+  test('NEXEN_SRE_BOT_WEBHOOK_URL=off pages through the v3 messages API', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    process.env.NEXEN_SRE_BOT_WEBHOOK_URL = 'off';
+    process.env.NEXEN_PERSONAS = 'off';
+
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await incidentPromise;
+
+    expect(axios.post).not.toHaveBeenCalled();
+    expect(sendDevinSessionMessage).toHaveBeenCalledWith(
+      BOT_ID,
+      expect.stringContaining(`channel id ${FIXED_SEV1_CHANNEL_ID}`),
+      expect.any(Object),
+    );
   });
 
   test('retries a taken settlement channel name with the -2 suffix', async () => {
