@@ -9,7 +9,7 @@
   :root { --bg:#000; --pane:#0d0d0d; --head:#1a1a1a; --line:#2e2e2e; --line2:#1f1f1f; --text:#d9d9d9; --dim:#8a8a8a; --amber:#ffa028; --blue:#5aa9ff; --green:#4cc38a; --red:#ff5a52; --sel:#16283c; }
   * { box-sizing:border-box; }
   html, body { height:100%; }
-  body { margin:0; background:var(--bg); color:var(--text); font:12px/1.35 Arial, "Helvetica Neue", Helvetica, sans-serif; display:flex; flex-direction:column; min-width:1000px; }
+  body { margin:0; background:var(--bg); color:var(--text); font:12px/1.35 Arial, "Helvetica Neue", Helvetica, sans-serif; display:flex; flex-direction:column; min-width:1000px; overflow-x:auto; }
   button, input, select { font:inherit; color:inherit; }
   .num { text-align:right; font-variant-numeric:tabular-nums; }
   a { color:var(--blue); text-decoration:none; }
@@ -49,6 +49,11 @@
   td { padding:4px 8px; border-bottom:1px solid var(--line2); white-space:nowrap; }
   th.num, td.num { text-align:right; }
   aside td, aside th { padding-left:6px; padding-right:6px; }
+  #auctions td { white-space:normal; }
+  #cal { table-layout:fixed; }
+  #cal th:nth-child(2) { width:62px; } #cal th:nth-child(3) { width:52px; } #cal th:nth-child(4) { width:74px; }
+  * { scrollbar-width:thin; scrollbar-color:#3a3a3a #0d0d0d; }
+  .menu a, .logo, .app { white-space:nowrap; }
   .grp td { background:#101010; color:var(--amber); font-size:11px; padding:3px 8px; border-bottom:1px solid var(--line); }
   tr.pick { cursor:pointer; }
   tr.pick:hover td { background:#151515; }
@@ -102,7 +107,7 @@
   .dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green); margin-right:5px; }
   .dot.bad { background:var(--red); }
   .foot .r { margin-left:auto; overflow:hidden; text-overflow:ellipsis; }
-  @media (max-width:1180px) { .work { grid-template-columns:300px minmax(0,1fr) 260px; } .terms { grid-template-columns:repeat(3, minmax(0,1fr)); } .terms div:nth-child(4n) { border-right:1px solid var(--line2); } }
+  @media (max-width:1180px) { .wide, .menu a:nth-child(n+5) { display:none; } .work { grid-template-columns:300px minmax(0,1fr) 260px; } .terms { grid-template-columns:repeat(3, minmax(0,1fr)); } .terms div:nth-child(4n) { border-right:1px solid var(--line2); } }
 </style>
 </head>
 <body>
@@ -110,7 +115,7 @@
   <div class="logo">Bloomberg</div>
   <div class="app">Auction System</div>
   <nav class="menu" aria-label="Primary"><a class="on" href="#" aria-current="page">Auctions</a><a href="#">My Bids</a><a href="#">Results</a><a href="#">Allocations</a><a href="#">Reports</a><a href="#">Help</a></nav>
-  <div class="sess"><span class="env">PROD</span><span><b id="firm">&nbsp;</b></span><span id="user">&nbsp;</span><span><b id="london">--:--:--</b> London</span></div>
+  <div class="sess"><span class="env">PROD</span><span><b id="firm">&nbsp;</b></span><span id="user" class="wide">&nbsp;</span><span><b id="london">--:--:--</b> London</span></div>
 </header>
 <div class="crumbs">
   <span>Issuers</span><span>&rsaquo;</span><span>UK Debt Management Office</span><span>&rsaquo;</span><b id="crumb">&nbsp;</b>
@@ -124,8 +129,8 @@
 <div class="work">
   <aside class="pane">
     <div class="ph">Auction calendar<small id="cal-count"></small></div>
-    <div class="scroll"><table>
-      <thead><tr><th>Security</th><th class="num">Size mn</th><th>Date</th><th>Status</th></tr></thead>
+    <div class="scroll"><table id="cal">
+      <thead><tr><th>Security <span class="dim">/ cover, avg, tail</span></th><th class="num">Size mn</th><th>Date</th><th>Status</th></tr></thead>
       <tbody id="auctions"></tbody>
     </table></div>
   </aside>
@@ -207,7 +212,7 @@
     rows += state.auctions.filter(function (a) { return a.status === 'OPEN'; }).map(row).join('');
     rows += '<tr class="grp"><td colspan="4">ANNOUNCED</td></tr>' + state.auctions.filter(function (a) { return a.status !== 'OPEN'; }).map(row).join('');
     rows += '<tr class="grp"><td colspan="4">RECENT RESULTS</td></tr>' + state.results.map(function (r) {
-      return '<tr><td>' + esc(r.security) + '<div class="dim">Cover ' + r.cover.toFixed(2) + 'x \u00b7 Avg ' + r.avgYield.toFixed(3) + '% \u00b7 Tail ' + r.tailBp.toFixed(1) + 'bp</div></td><td class="num">' + fmtN(r.sizeMn) +
+      return '<tr><td>' + esc(r.security) + '<div class="dim">' + r.cover.toFixed(2) + 'x \u00b7 ' + r.avgYield.toFixed(3) + '% \u00b7 ' + r.tailBp.toFixed(1) + 'bp</div></td><td class="num">' + fmtN(r.sizeMn) +
         '<div class="dim">Alloc ' + fmtN(r.allocatedMn, r.allocatedMn % 1 ? 1 : 0) + '</div></td><td>' + dmy(r.date) + '</td><td class="st wait">Closed</td></tr>';
     }).join('');
     $('auctions').innerHTML = rows;
