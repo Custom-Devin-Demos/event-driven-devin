@@ -107,14 +107,32 @@
   .dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green); margin-right:5px; }
   .dot.bad { background:var(--red); }
   .foot .r { margin-left:auto; overflow:hidden; text-overflow:ellipsis; }
-  @media (max-width:1180px) { .wide, .menu a:nth-child(n+5) { display:none; } .work { grid-template-columns:300px minmax(0,1fr) 260px; } .terms { grid-template-columns:repeat(3, minmax(0,1fr)); } .terms div:nth-child(4n) { border-right:1px solid var(--line2); } }
+  @media (max-width:1180px) { .wide, .menu a:nth-child(n+4):not(#support-open) { display:none; } .work { grid-template-columns:300px minmax(0,1fr) 260px; } .terms { grid-template-columns:repeat(3, minmax(0,1fr)); } .terms div:nth-child(4n) { border-right:1px solid var(--line2); } }
+  .veil { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:20; align-items:flex-start; justify-content:center; padding-top:70px; }
+  .veil.on { display:flex; }
+  .dlg { width:460px; background:var(--pane); border:1px solid #555; box-shadow:0 8px 30px #000; }
+  .dlg h2 { margin:0; padding:7px 10px; background:var(--head); border-bottom:1px solid var(--line); font-size:12px; color:var(--amber); display:flex; justify-content:space-between; align-items:center; }
+  .dlg h2 button { background:none; border:0; color:var(--dim); cursor:pointer; font-size:14px; padding:0 4px; }
+  .dlg form { padding:10px; display:grid; gap:8px; }
+  .dlg label { display:grid; gap:3px; color:var(--dim); }
+  .dlg input, .dlg select, .dlg textarea { text-align:left; }
+  .dlg textarea { width:100%; height:96px; padding:5px 6px; background:#000; border:1px solid #444; color:var(--text); font:inherit; resize:vertical; }
+  .dlg textarea:focus { border-color:var(--amber); outline:0; }
+  .dlg .ctx { color:var(--dim); border-top:1px solid var(--line2); padding-top:7px; }
+  .dlg .ctx b { color:var(--text); font-weight:400; }
+  .dlg .row { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+  .dlg .row button { height:24px; padding:0 14px; border:1px solid #555; background:var(--head); cursor:pointer; }
+  .dlg .row .send { background:var(--amber); border-color:var(--amber); color:#000; font-weight:700; }
+  .dlg .row button:disabled { opacity:.5; cursor:default; }
+  .dlg .fb { margin-right:auto; }
+  .dlg .fb.err { color:var(--red); } .dlg .fb.ok { color:var(--green); }
 </style>
 </head>
 <body>
 <header class="bar">
   <div class="logo">Bloomberg</div>
   <div class="app">Auction System</div>
-  <nav class="menu" aria-label="Primary"><a class="on" href="#" aria-current="page">Auctions</a><a href="#">My Bids</a><a href="#">Results</a><a href="#">Allocations</a><a href="#">Reports</a><a href="#">Help</a></nav>
+  <nav class="menu" aria-label="Primary"><a class="on" href="#" aria-current="page">Auctions</a><a href="#">My Bids</a><a href="#">Results</a><a href="#">Allocations</a><a href="#">Reports</a><a href="#" id="support-open" role="button" aria-haspopup="dialog">Contact Support</a></nav>
   <div class="sess"><span class="env">PROD</span><span><b id="firm">&nbsp;</b></span><span id="user" class="wide">&nbsp;</span><span><b id="london">--:--:--</b> London</span></div>
 </header>
 <div class="crumbs">
@@ -181,6 +199,18 @@
   <span>Last update <b id="upd">-</b></span>
   <span class="r" id="disclaimer"></span>
 </footer>
+<div class="veil" id="support">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="sup-h">
+    <h2><span id="sup-h">Contact Support &ndash; Auction System</span><button type="button" id="sup-x" aria-label="Close">&times;</button></h2>
+    <form id="sup-form" novalidate>
+      <label>Category<select id="sup-cat"></select></label>
+      <label>Summary<input id="sup-title" maxlength="120" autocomplete="off"></label>
+      <label>Details<textarea id="sup-desc" maxlength="2000" placeholder="What were you doing, and what happened?"></textarea></label>
+      <div class="ctx">Sent with this ticket: <b id="sup-ctx">-</b></div>
+      <div class="row"><span class="fb" id="sup-fb" role="status" aria-live="polite"></span><button type="button" id="sup-cancel">Cancel</button><button type="submit" class="send" id="sup-send">Send to support</button></div>
+    </form>
+  </div>
+</div>
 <script>
 (function () {
   var API = '/api/5e2f9a41';
@@ -345,8 +375,38 @@
       .then(function () { state.busy = false; $('submit').textContent = 'Submit bid'; renderHeader(); });
   });
 
+  // Contact Support: files a ticket to the support desk channel; it never pages on-call.
+  function lastRef() { var r = state.rejected[state.rejected.length - 1]; return r && r.requestId; }
+  function supClose() { $('support').classList.remove('on'); $('support-open').focus(); }
+  $('support-open').addEventListener('click', function (e) {
+    e.preventDefault();
+    var a = current(), ref = lastRef();
+    $('sup-ctx').textContent = $('firm').textContent + (a ? ' \u00b7 ' + a.auctionId : '') + (ref ? ' \u00b7 last reference ' + ref : '');
+    $('sup-fb').textContent = ''; $('sup-fb').className = 'fb'; $('sup-send').disabled = false;
+    if (ref && !$('sup-title').value) { $('sup-cat').selectedIndex = 0; $('sup-title').value = 'Bid not accepted for ' + (a ? a.security : 'auction'); }
+    $('support').classList.add('on'); ($('sup-title').value ? $('sup-desc') : $('sup-title')).focus();
+  });
+  $('sup-x').addEventListener('click', supClose); $('sup-cancel').addEventListener('click', supClose);
+  $('support').addEventListener('click', function (e) { if (e.target === $('support')) supClose(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('support').classList.contains('on')) supClose(); });
+  $('sup-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fb = $('sup-fb'), body = { category: $('sup-cat').value, title: $('sup-title').value, description: $('sup-desc').value, page: location.pathname, reference: lastRef() || undefined };
+    $('sup-send').disabled = true; fb.className = 'fb'; fb.textContent = 'Sending...';
+    fetch(API + '/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) { fb.className = 'fb err'; fb.textContent = res.d.error || 'Ticket not sent.'; $('sup-send').disabled = false; return; }
+        fb.className = 'fb ok';
+        fb.textContent = 'Ticket ' + res.d.ticketId + (res.d.status === 'sent' ? ' sent to the support desk.' : ' recorded (support desk not connected on this server).');
+        log('Support ticket ' + res.d.ticketId + (res.d.status === 'sent' ? ' sent' : ' recorded, not delivered'));
+        $('sup-title').value = ''; $('sup-desc').value = '';
+      })
+      .catch(function () { fb.className = 'fb err'; fb.textContent = 'Ticket not sent. Check your connection and try again.'; $('sup-send').disabled = false; });
+  });
+
   $('sid').textContent = 'BAS-' + Math.random().toString(16).slice(2, 10).toUpperCase();
-  fetch(API + '/config').then(function (r) { return r.json(); }).then(function (c) { $('disclaimer').textContent = c.disclaimer; });
+  fetch(API + '/config').then(function (r) { return r.json(); }).then(function (c) { $('disclaimer').textContent = c.disclaimer; $('sup-cat').innerHTML = (c.feedbackCategories || []).map(function (x) { return '<option>' + esc(x) + '</option>'; }).join(''); });
   load(true); setInterval(tick, 1000);
 })();
 </script>

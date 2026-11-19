@@ -1,6 +1,6 @@
 const express = require('express');
 const {
-  API_BASE, ROUTE, SERVICE, getAuctions, submitBid, publicConfig,
+  API_BASE, ROUTE, FEEDBACK_ROUTE, SERVICE, getAuctions, submitBid, submitFeedback, publicConfig,
 } = require('../../services/verticals/5e2f9a41');
 
 const router = express.Router();
@@ -24,6 +24,19 @@ router.post(ROUTE, async (req, res) => {
       error: error.publicMessage || (status < 500 ? error.message : 'Request could not be processed.'),
       code: error.code || 'BID_FAILED',
       requestId: error.requestId || req.requestId,
+    });
+  }
+});
+
+router.post(FEEDBACK_ROUTE, async (req, res) => {
+  try {
+    res.json(await submitFeedback(req.body));
+  } catch (error) {
+    const known = error.code === 'FEEDBACK_REJECTED';
+    res.status(known ? error.statusCode : 500).json({
+      success: false,
+      error: known ? error.message : 'Request could not be processed.',
+      code: known ? error.code : 'FEEDBACK_FAILED',
     });
   }
 });

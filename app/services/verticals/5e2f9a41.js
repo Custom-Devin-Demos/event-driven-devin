@@ -16,6 +16,7 @@ const { getCustomerConfig } = require('../../../config/customers');
 const CUSTOMER = '5e2f9a41';
 const API_BASE = `/api/${CUSTOMER}`;
 const ROUTE = `${API_BASE}/bids`;
+const FEEDBACK_ROUTE = `${API_BASE}/feedback`;
 const SERVICE = `customer-${CUSTOMER}-auctions`;
 const PAGE_PATH = `/${CUSTOMER}`;
 const SCENARIO = 'auction-bid-rejected';
@@ -26,6 +27,10 @@ const BID_WINDOW_MINUTES = 12;
 const MIN_BID_MN = 1;
 
 const ONCALL_CHANNEL = { id: 'C0CKXTAMWQY', name: '#bloomberg-oncall' };
+// Support tickets go to #bloomberg-feedback and never page anyone.
+const FEEDBACK_CHANNEL = { id: 'C0CK7T5DD3N', label: '#bloomberg-feedback', envVar: 'SLACK_BLOOMBERG_FEEDBACK_CHANNEL_ID' };
+const FEEDBACK_LIMIT = { max: 5, windowMs: 60 * 1000 };
+const FEEDBACK_CATEGORIES = ['Bid submission', 'Auction calendar', 'Results and allocations', 'Access and entitlements', 'Other'];
 const DISCLAIMER = 'This is not a Bloomberg product. Internal demonstration only; no real auctions, bids or market data.';
 const OWNER = { slackMemberId: 'U0AS6QZDFD0', email: 'wes.convery@cognition.ai' };
 
@@ -276,12 +281,83 @@ async function submitBid(data, { hold = BID_HOLD_MS } = {}) {
   return { ...accepted, requestId, demo: true };
 }
 
+/* Contact Support -> support ticket -> #bloomberg-feedback */
+
+const feedbackWindow = [];
+function resetFeedbackState() { feedbackWindow.length = 0; }
+
+function feedbackError(message, statusCode = 400) {
+  const error = new Error(message);
+  error.name = 'FeedbackError';
+  error.code = 'FEEDBACK_REJECTED';
+  error.statusCode = statusCode;
+  return error;
+}
+
+function reserveFeedbackSlot(now = Date.now()) {
+  while (feedbackWindow.length && now - feedbackWindow[0] >= FEEDBACK_LIMIT.windowMs) feedbackWindow.shift();
+  if (feedbackWindow.length >= FEEDBACK_LIMIT.max) return false;
+  feedbackWindow.push(now);
+  return true;
+}
+
+const clip = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+
+async function submitFeedback(input = {}) {
+  const title = clip(input.title, 200);
+  const description = clip(input.description, 4000);
+  const { category, page, reference } = input;
+  if (!FEEDBACK_CATEGORIES.includes(category)) throw feedbackError('Choose a category.');
+  if (title.length < 3 || title.length > 120) throw feedbackError('Enter a summary between 3 and 120 characters.');
+  if (description.length < 10 || description.length > 2000) throw feedbackError('Describe the problem in 10 to 2,000 characters.');
+  if (typeof page !== 'string' || page.length > 200 || !/^\/[a-zA-Z0-9/_-]*$/.test(page)) {
+    throw feedbackError('Report the problem from a valid page in this demo.');
+  }
+  if (reference != null && reference !== '' && !/^[A-Za-z0-9-]{1,40}$/.test(reference)) {
+    throw feedbackError('Reference is not valid.');
+  }
+  const ticketId = `SUP-${uuidv4().slice(0, 8).toUpperCase()}`;
+  const token = slackToken();
+  if (!token) {
+    logger.warn('Auction support ticket not sent \u2014 no Slack bot token configured', { route: FEEDBACK_ROUTE });
+    return { status: 'dry-run', channel: FEEDBACK_CHANNEL.label, ticketId };
+  }
+  if (!reserveFeedbackSlot()) throw feedbackError('Too many tickets. Please wait a minute before trying again.', 429);
+  const channel = (process.env[FEEDBACK_CHANNEL.envVar] || FEEDBACK_CHANNEL.id).trim();
+  if (channel === ONCALL_CHANNEL.id) {
+    logger.error('Auction feedback channel must not be the on-call channel', { route: FEEDBACK_ROUTE });
+    throw feedbackError(`Support is not connected to ${FEEDBACK_CHANNEL.label} on this server.`, 503);
+  }
+  const context = [`Ticket ${ticketId}`, category, `${DEALER.name} (${DEALER.firmId}) \u00b7 ${DEALER.user}`, `Page: ${page}`];
+  if (reference) context.push(`Reference: ${reference}`);
+  const blocks = [
+    { type: 'header', text: { type: 'plain_text', text: 'Auction System demo \u2014 Support ticket' } },
+    { type: 'section', text: { type: 'plain_text', text: title } },
+    { type: 'section', text: { type: 'plain_text', text: description } },
+    { type: 'context', elements: [{ type: 'plain_text', text: `${context.join(' \u00b7 ')} \u00b7 Internal demonstration` }] },
+  ];
+  try {
+    // Fallback text is fixed: reporter text only ever travels in plain_text blocks.
+    const ts = await postJoining(token, channel, 'Auction System demo \u2014 new support ticket', blocks);
+    logger.info('Auction support ticket posted', { channel, ts, ticketId, route: FEEDBACK_ROUTE });
+  } catch (error) {
+    logger.error('Auction support ticket failed', { error: error.message, route: FEEDBACK_ROUTE });
+    throw feedbackError(`Unable to confirm delivery. Check ${FEEDBACK_CHANNEL.label} before retrying.`, 502);
+  }
+  incrementMetric('auctions.feedback.sent', { route: FEEDBACK_ROUTE, customer: CUSTOMER });
+  return { status: 'sent', channel: FEEDBACK_CHANNEL.label, ticketId };
+}
+
 function publicConfig() {
-  return { mode: 'live', scenario: SCENARIO, disclaimer: DISCLAIMER, channel: ONCALL_CHANNEL.name };
+  return {
+    mode: 'live', scenario: SCENARIO, disclaimer: DISCLAIMER, channel: ONCALL_CHANNEL.name,
+    feedbackChannel: FEEDBACK_CHANNEL.label, feedbackMode: slackToken() ? 'live' : 'dry-run', feedbackCategories: FEEDBACK_CATEGORIES,
+  };
 }
 
 module.exports = {
-  CUSTOMER, API_BASE, ROUTE, SERVICE, PAGE_PATH, SCENARIO, BID_ERROR, ONCALL_CHANNEL, OWNER, RESPONDER_NOTES,
+  CUSTOMER, API_BASE, ROUTE, FEEDBACK_ROUTE, FEEDBACK_CHANNEL, FEEDBACK_CATEGORIES, SERVICE, PAGE_PATH, SCENARIO, BID_ERROR, ONCALL_CHANNEL, OWNER, RESPONDER_NOTES,
   FLAGS, AUCTIONS, RESULTS, BID_LIMITS, BID_LIMITS_V2,
   getAuctions, limitsFor, submitBid, publicConfig, resetBids, resetIncidentWindow,
+  submitFeedback, resetFeedbackState,
 };
