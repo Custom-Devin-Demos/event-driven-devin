@@ -89,6 +89,7 @@ jobs:
       #     (On-Call skins with teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI')
       #   MAIN_ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE -> ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE
       #     (PBM, payer, and life-sciences On-Call scenario alerts)
+      #   MAIN_BNY_IOS_BOT_WEBHOOK_SECRET -> BNY_IOS_BOT_WEBHOOK_SECRET (BNY iOS Engineer Bot webhook)
       # deploy-ec2.sh applies them under the deploy lock, after its .env backup.
       # Skipped when neither secret is set.
       - name: Stage Teams webhooks for host .env
@@ -98,6 +99,7 @@ jobs:
           LOWES_TEAMS_WEBHOOK_URL: ${{ secrets.LOWES_TEAMS_WEBHOOK_URL }}
           ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI: ${{ secrets.MAIN_ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI }}
           ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE: ${{ secrets.MAIN_ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE }}
+          BNY_IOS_BOT_WEBHOOK_SECRET: ${{ secrets.MAIN_BNY_IOS_BOT_WEBHOOK_SECRET }}
         run: |
           sync=""
           if [ -n "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
@@ -114,6 +116,9 @@ jobs:
           fi
           if [ -n "$ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE" ]; then
             sync+="ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE=$ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE"$'\n'
+          fi
+          if [ -n "$BNY_IOS_BOT_WEBHOOK_SECRET" ]; then
+            sync+="BNY_IOS_BOT_WEBHOOK_SECRET=$BNY_IOS_BOT_WEBHOOK_SECRET"$'\n'
           fi
           if [ -z "$sync" ]; then
             echo "No Teams webhook secrets set; host .env left unchanged"; exit 0

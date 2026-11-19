@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pershing Access KPIs · presenter</title>
+<style>
+  body { font: 15px/1.45 -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #f5f6f8; color: #1d2433; }
+  main { max-width: 760px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: #5b6476; margin-bottom: 24px; }
+  .card { background: #fff; border: 1px solid #e1e4ea; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  button { font: inherit; padding: 9px 16px; border-radius: 7px; border: 1px solid #00467f; background: #00467f; color: #fff; cursor: pointer; margin-right: 8px; }
+  button.secondary { background: #fff; color: #00467f; }
+  button:disabled { opacity: .5; cursor: default; }
+  pre { white-space: pre-wrap; background: #f0f2f5; border-radius: 7px; padding: 12px; font-size: 13px; }
+  label { margin-right: 6px; }
+  select { font: inherit; padding: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pershing Access daily KPIs</h1>
+  <div class="sub">Posts dated daily KPI posts to <b>#pershing-access-metrics</b>. A post that shows a new Android transfer completion drop pages the iOS Engineer Bot into its thread, and the eng lead, PM and support personas join.</div>
+  <div class="card">
+    <b>1. Seed the run-up</b>
+    <p>Posts Nov 9 to Nov 15 (pre-2.4.0, steady day over day).</p>
+    <button id="seed">Seed 7 days</button>
+  </div>
+  <div class="card">
+    <b>2. Post the next day</b>
+    <p>Next: <b id="next">…</b> <label for="date">or pick</label><select id="date"></select></p>
+    <button id="day">Post day</button>
+    <button id="reset" class="secondary">Reset sequence</button>
+  </div>
+  <div class="card"><b>Result</b><pre id="out">Ready.</pre></div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const out = (v) => { $('out').textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  async function refresh() {
+    const s = await (await fetch('/api/pershing-kpis/state')).json();
+    $('next').textContent = s.nextDate || 'end of data';
+    $('date').innerHTML = '<option value="">next day</option>' + s.dates.map((d) => `<option>${d}</option>`).join('');
+  }
+  async function post(url, body) {
+    document.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    out('Posting…');
+    try {
+      const secret = new URLSearchParams(location.search).get('sessionSecret');
+      const headers = { 'Content-Type': 'application/json', ...(secret ? { 'x-session-secret': secret } : {}) };
+      const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body || {}) });
+      out(await r.json());
+    } catch (e) { out(String(e)); }
+    document.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+    refresh();
+  }
+  $('seed').onclick = () => post('/api/pershing-kpis/seed');
+  $('day').onclick = () => post('/api/pershing-kpis/next-day', { date: $('date').value || undefined });
+  $('reset').onclick = () => post('/api/pershing-kpis/reset');
+  refresh();
+</script>
+</body>
+</html>

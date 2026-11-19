@@ -727,12 +727,13 @@ async function inviteToChannel(token, channelId, userIds) {
  * an emoji shortcode (`:wrench:`) or an image URL, which Slack fetches and
  * renders like a real profile picture.
  */
-async function postPersonaMessage(token, channel, text, username, icon) {
+async function postPersonaMessage(token, channel, text, username, icon, threadTs) {
   const image = /^https?:\/\//.test(icon || '');
   const response = await axios.post(`${SLACK_API_BASE}/chat.postMessage`, {
     channel,
     text,
     username,
+    ...(threadTs ? { thread_ts: threadTs } : {}),
     ...(image ? { icon_url: icon } : { icon_emoji: icon }),
   }, {
     headers: {
