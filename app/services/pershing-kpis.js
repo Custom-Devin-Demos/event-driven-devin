@@ -1,11 +1,11 @@
 const axios = require('axios');
 const kpiData = require('../../config/pershing/kpi-days.json');
 const personaScript = require('../../config/pershing/kpi-personas.json');
-const { postPersonaMessage, inviteToChannel, joinChannel } = require('./slack');
+const { postPersonaMessage, inviteToChannel, joinChannel, getThreadReplies } = require('./slack');
 const { sendDevinSessionMessage } = require('./devin-api');
 const logger = require('../telemetry/logger');
 
-const DEFAULT_CHANNEL_ID = 'C0CK78ZR1B3';
+const DEFAULT_CHANNEL_ID = 'C0CKGCDNJ2V';
 const DEFAULT_BOT_ID = 'bot-59656379ddc5470281166b1458334c2c';
 const DEFAULT_BOT_SLACK_ID = 'U0CK6TNG7T3';
 const DEFAULT_SEED = { from: '2026-11-09', to: '2026-11-15' };
@@ -16,7 +16,7 @@ const ANDROID_REPO = 'COG-GTM/android-demos';
 const ANDROID_BRANCH = 'devin/1795069865-pershing-access-android';
 
 const days = kpiData.days;
-const state = { lastDate: null, lastRun: null, busy: false };
+const state = { lastDate: null, lastRun: null, busy: false, handoffTimer: null };
 
 const channelId = () => process.env.PERSHING_KPI_CHANNEL_ID || DEFAULT_CHANNEL_ID;
 const slackToken = () => process.env.PERSHING_KPI_SLACK_TOKEN || process.env.SLACK_ONCALL_BOT_TOKEN || '';
@@ -106,20 +106,29 @@ function renderDay(date) {
   return { text: lines.join('\n'), analysis: a };
 }
 
+function orgChart() {
+  return personaScript.personas.map((p) => `${p.username}: ${p.role}`).join(' ');
+}
+
 function buildBotPage({ date, threadTs, analysis }) {
   const ch = channelId();
   const { day, baseline, dropPts } = analysis;
+  const expert = personaScript.personas.find((p) => p.id === personaScript.handoff.persona);
   return [
-    `KPI alert from #pershing-access-metrics (Slack channel ${ch}). Investigate it in that post's thread: channel ${ch}, thread_ts ${threadTs}. Reply only in that thread.`,
+    `KPI alert from #bny-pershing-access-android-app-metrics (Slack channel ${ch}). Investigate it in that post's thread: channel ${ch}, thread_ts ${threadTs}. Reply only in that thread.`,
     '',
     `The daily Pershing Access KPI post for ${date} shows Android transfer completion at ${pct(day.android.completionRate)}, ${dropPts.toFixed(1)} pts below its 7-day pre-release average of ${pct(baseline)}. Web is flat at ${pct(day.web.completionRate)}. Android 2.4.0 started rolling out on ${kpiData.release.rolledOut}.`,
     '',
+    `Your team (they post through a Slack app, so they are not Slack users you can @mention; write their names as plain text): ${orgChart()}`,
+    '',
     'What to do:',
-    `1. Post a short note in the thread right away that you are looking into it.`,
+    '1. Post a one-line note in the thread that you are looking into it.',
     `2. Find which segment carries the drop and why. The data and app are in ${ANDROID_REPO} on branch \`${ANDROID_BRANCH}\`, app \`apps/b113a373\` (Pershing Access): daily KPIs in \`metrics/daily_kpis.csv\`, the per-session transfer funnel in \`metrics/events_sample.csv\` (segment by app_version and os_version), and the transfer flow code (start with the confirm step and the 2.4.0 changes).`,
-    '3. Post findings in the thread as you get them, in plain language for engineering, product and support: the segment, its share of Android sessions, how much of the drop it explains, the root cause with file and line, and the proposed fix.',
-    `4. People in the thread (Marcus Chen, mobile eng lead; Sofia Alvarez, PM; Jordan Ellis, client support) will ask you questions. Each question is also forwarded to you here; answer each of them by name in the thread, like a teammate who is already in it.`,
-    `5. If Marcus asks for a fix, open a PR against \`${ANDROID_BRANCH}\` with a regression test for Android 12 and link it in the thread. Never merge it; the planted bug must stay on that branch for the demo.`,
+    '3. Post your analysis in the thread as a short prose write-up, the way a teammate would: two or three plain-language paragraphs, no bullet lists or bold headings. Cover the segment, its share of Android sessions, how much of the drop it explains, the root cause with file and line, and the proposed fix.',
+    '4. Follow up on your own analysis: check it a second way (for example, recompute Android completion without the affected segment and compare it with web and the pre-2.4.0 baseline) and post what that confirms. With that follow-up, attach a polished, self-contained HTML report of the analysis to the thread: a daily completion trend by platform, the funnel by OS version for 2.4.0, the root cause with the code excerpt, and the proposed fix.',
+    `5. Then hand it to the expert by name, for example: "I've done this analysis, @${expert.username}, can you jump in and look deeper?"`,
+    '6. Questions from the team are forwarded to you here as they are posted. Answer each person by name in the thread.',
+    `7. If you are asked for the fix, open a PR against \`${ANDROID_BRANCH}\` with a regression test for Android 12 and link it in the thread. Never merge it; the planted bug must stay on that branch for the demo.`,
     '',
     'This is a demo with synthetic data; treat it as real and do not mention that it is staged.',
   ].join('\n');
@@ -127,16 +136,14 @@ function buildBotPage({ date, threadTs, analysis }) {
 
 function relayPersonaReply(persona, text, threadTs) {
   return [
-    `New reply in the #pershing-access-metrics KPI thread you are investigating (channel ${channelId()}, thread_ts ${threadTs}).`,
+    `New reply in the #bny-pershing-access-android-app-metrics KPI thread you are investigating (channel ${channelId()}, thread_ts ${threadTs}).`,
     `${persona.username} (${persona.role}) wrote: "${text}"`,
     `Answer ${persona.username.split(' ')[0]} by name in that thread.`,
   ].join('\n');
 }
 
-function schedulePersonas(token, channel, threadTs) {
-  if ((process.env.PERSHING_KPI_PERSONAS || '').toLowerCase() === 'off') return 0;
+function playScript(token, channel, threadTs) {
   const byId = Object.fromEntries(personaScript.personas.map((p) => [p.id, p]));
-  let scheduled = 0;
   for (const line of personaScript.script) {
     const persona = byId[line.persona];
     if (!persona) continue;
@@ -147,10 +154,38 @@ function schedulePersonas(token, channel, threadTs) {
       } catch (err) {
         logger.warn('Pershing KPI persona message failed', { persona: persona.id, error: err.message });
       }
-    }, line.atMs).unref();
-    scheduled += 1;
+    }, line.afterHandoffMs).unref();
   }
-  return scheduled;
+}
+
+function botHandedOff(messages, expertName) {
+  const mention = new RegExp(`@[*_\\s]*${expertName.split(' ')[0]}`, 'i');
+  return messages.some((m) => m.user === botSlackId() && mention.test(m.text || ''));
+}
+
+// The team joins once the Bot hands the thread to the expert, or after the timeout.
+function schedulePersonas(token, channel, threadTs) {
+  if ((process.env.PERSHING_KPI_PERSONAS || '').toLowerCase() === 'off') return 0;
+  const { persona: expertId, timeoutMs, pollMs } = personaScript.handoff;
+  const expert = personaScript.personas.find((p) => p.id === expertId);
+  const deadline = Date.now() + timeoutMs;
+  clearTimeout(state.handoffTimer);
+  const poll = async () => {
+    let handedOff = false;
+    try {
+      handedOff = botHandedOff(await getThreadReplies(token, channel, threadTs), expert.username);
+    } catch (err) {
+      logger.warn('Pershing KPI thread poll failed', { error: err.message });
+    }
+    if (handedOff || Date.now() >= deadline) {
+      if (!handedOff) logger.warn('Pershing KPI Bot did not hand off before the timeout; starting personas');
+      playScript(token, channel, threadTs);
+      return;
+    }
+    state.handoffTimer = setTimeout(poll, pollMs).unref();
+  };
+  state.handoffTimer = setTimeout(poll, pollMs).unref();
+  return personaScript.script.length;
 }
 
 async function postDay(date, { trigger = true } = {}) {
@@ -266,6 +301,8 @@ function getState() {
 }
 
 function resetState() {
+  clearTimeout(state.handoffTimer);
+  state.handoffTimer = null;
   state.lastDate = null;
   state.lastRun = null;
 }

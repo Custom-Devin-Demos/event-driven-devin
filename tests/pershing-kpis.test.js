@@ -2,6 +2,7 @@ jest.mock('../app/services/slack', () => ({
   postPersonaMessage: jest.fn(() => Promise.resolve('1795000000.000100')),
   inviteToChannel: jest.fn(() => Promise.resolve(true)),
   joinChannel: jest.fn(() => Promise.resolve(true)),
+  getThreadReplies: jest.fn(() => Promise.resolve([])),
 }));
 jest.mock('../app/services/devin-api', () => ({
   sendDevinSessionMessage: jest.fn(() => Promise.resolve({ sessionId: 'bot-59656379ddc5470281166b1458334c2c', url: 'https://app.devin.ai/bots/x' })),
@@ -10,7 +11,7 @@ jest.mock('../app/services/devin-api', () => ({
 jest.mock('axios', () => ({ post: jest.fn(() => Promise.resolve({ status: 200 })) }));
 
 const axios = require('axios');
-const { postPersonaMessage, inviteToChannel } = require('../app/services/slack');
+const { postPersonaMessage, inviteToChannel, getThreadReplies } = require('../app/services/slack');
 const { sendDevinSessionMessage } = require('../app/services/devin-api');
 const kpis = require('../app/services/pershing-kpis');
 
@@ -52,21 +53,38 @@ describe('Pershing Access KPI posts', () => {
 
   test('drop day pages the Bot into the post thread and schedules personas there', async () => {
     const run = await kpis.nextDay({ date: '2026-11-16' });
-    expect(run.posts[0].investigation).toMatchObject({ paged: true, personas: 5 });
-    expect(inviteToChannel).toHaveBeenCalledWith('xoxb-test', 'C0CK78ZR1B3', ['U0CK6TNG7T3']);
+    expect(run.posts[0].investigation).toMatchObject({ paged: true, personas: 3 });
+    expect(inviteToChannel).toHaveBeenCalledWith('xoxb-test', 'C0CKGCDNJ2V', ['U0CK6TNG7T3']);
     const [botId, page] = sendDevinSessionMessage.mock.calls[0];
     expect(botId).toBe('bot-59656379ddc5470281166b1458334c2c');
     expect(page).toContain('thread_ts 1795000000.000100');
     expect(page).toContain('metrics/events_sample.csv');
+    expect(page).toContain('@Jordan Ellis, can you jump in and look deeper?');
+    expect(page).toContain('HTML report');
 
-    await jest.advanceTimersByTimeAsync(300000);
-    expect(sendDevinSessionMessage).toHaveBeenCalledTimes(5);
-    expect(sendDevinSessionMessage.mock.calls[1][1]).toContain('Marcus Chen');
+    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: 'Jordan owns this flow, so the analysis below covers the confirm step.' }]);
+    await jest.advanceTimersByTimeAsync(30000);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
+
+    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
+    await jest.advanceTimersByTimeAsync(5000);
+    await jest.advanceTimersByTimeAsync(10000);
     const replies = postPersonaMessage.mock.calls.slice(1);
-    expect(replies).toHaveLength(5);
-    replies.forEach((call) => expect(call[5]).toBe('1795000000.000100'));
-    expect(new Set(replies.map((c) => c[3]))).toEqual(new Set(['Marcus Chen', 'Sofia Alvarez', 'Jordan Ellis']));
-    expect(replies.some((c) => c[2].includes('<@'))).toBe(false);
+    expect(replies.map((c) => c[3])).toEqual(['Jordan Ellis', 'Marcus Chen', 'Sofia Alvarez']);
+    replies.forEach((call) => {
+      expect(call[5]).toBe('1795000000.000100');
+      expect(call[4]).toBe(':bust_in_silhouette:');
+      expect(call[2]).not.toContain('<@');
+    });
+    expect(sendDevinSessionMessage).toHaveBeenCalledTimes(3);
+    expect(sendDevinSessionMessage.mock.calls[1][1]).toContain('Jordan Ellis');
+  });
+
+  test('personas start after the timeout when the Bot never hands off', async () => {
+    getThreadReplies.mockResolvedValue([]);
+    await kpis.nextDay({ date: '2026-11-16' });
+    await jest.advanceTimersByTimeAsync(615000);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(4);
   });
 
   test('pages through the Bot-owned webhook with the thread when one is configured', async () => {
@@ -77,7 +95,7 @@ describe('Pershing Access KPI posts', () => {
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
     const [url, body, config] = axios.post.mock.calls[0];
     expect(url).toBe('https://example.test/hook');
-    expect(body).toMatchObject({ slack_channel_id: 'C0CK78ZR1B3', slack_thread_ts: '1795000000.000100', bot_id: 'bot-59656379ddc5470281166b1458334c2c' });
+    expect(body).toMatchObject({ slack_channel_id: 'C0CKGCDNJ2V', slack_thread_ts: '1795000000.000100', bot_id: 'bot-59656379ddc5470281166b1458334c2c' });
     expect(config.headers['X-Webhook-Secret']).toBe('shh');
   });
 
