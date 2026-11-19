@@ -1,0 +1,34 @@
+{
+  "id": "nexen-settlement-sev1",
+  "title": "NEXEN: USD settlement batch release failing",
+  "personas": [
+    {
+      "id": "ic",
+      "username": "Maya Okafor",
+      "icon": ":rotating_light:",
+      "role": "Incident commander; head of settlement operations for NEXEN custody. Calm, time-boxed, thinks in cutoffs and client impact."
+    },
+    {
+      "id": "eng",
+      "username": "Daniel Reyes",
+      "icon": ":hammer_and_wrench:",
+      "role": "On-call engineer for the NEXEN web platform. Owns the Transactions screen and the release pipeline."
+    },
+    {
+      "id": "cs",
+      "username": "Priya Natarajan",
+      "icon": ":telephone_receiver:",
+      "role": "Client service manager for institutional custody clients. Fields client calls, needs a plain-language status."
+    }
+  ],
+  "script": [
+    { "atMs": 0,      "persona": "ic",  "text": "declaring sev1. USD settlement batch SB-20260918-USD won't release from NEXEN Transactions, every attempt fails. 4 instructions queued, 16:00 ET cutoff." },
+    { "atMs": 25000,  "persona": "cs",  "text": "ABC Global Investors' ops desk just called, they're waiting on the Siemens and Vodafone receipts. what can I tell them?" },
+    { "atMs": 45000,  "persona": "ic",  "text": "{sre_bot} can you take this? start from the alert in #pershing-access-alerts and Datadog. I need cause, blast radius, and whether we roll back or forward-fix.", "mentionsBot": true },
+    { "atMs": 70000,  "persona": "eng", "text": "nothing deployed on the settlement gateway today. the only NEXEN change this week was the new Settlement Batch panel on Transactions" },
+    { "atMs": 100000, "persona": "cs",  "text": "holding line for ABC: release delayed, no instructions have left NEXEN, next update in 30 min. ok to send?" },
+    { "atMs": 115000, "persona": "ic",  "text": "send it. Daniel, can you confirm with SRE Bot whether this is the panel change before anyone rolls back" },
+    { "atMs": 180000, "persona": "eng", "text": "{sre_bot} once you have the root cause, is the fix PR ready to review? I'll take it", "mentionsBot": true },
+    { "atMs": 240000, "persona": "ic",  "text": "thanks all. forward-fix once the PR is reviewed, no rollback. {sre_bot} please draft the RCA from our template when the fix is in", "mentionsBot": true }
+  ]
+}

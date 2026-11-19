@@ -3,10 +3,13 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
+const { listOrgUsers, listEnterpriseAdmins, sendDevinSessionMessage } = require('../devin-api');
 const { getCustomerConfig } = require('../../../config/customers');
 const { declareDatadogIncident } = require('../datadog-incidents');
 const { queueIncidentChannelInvites } = require('../datadog-incident-slack');
+const { postAlertToSlack, createChannel, inviteToChannel, postPersonaMessage } = require('../slack');
+const { legacyAlertsSuppressed } = require('../oncall-suppression');
+const settlementPersonas = require('../../../config/nexen/sev1-personas.json');
 
 /**
  * BNY NEXEN custody platform (github.com/COG-GTM/bny).
@@ -77,8 +80,8 @@ const APP_REMEDIATION_DIRECTIVE = [
 
 /**
  * Second scenario: Release batch on Transactions fails in the browser before
- * any instruction leaves NEXEN. It alerts in #pershing-access-alerts and
- * declares a Datadog SEV-1, whose Slack channel the Devin incident agent joins.
+ * any instruction leaves NEXEN. It alerts in #pershing-access-alerts, declares
+ * a Datadog SEV-1, and pages the SRE Bot to an app-created responder channel.
  */
 const SETTLEMENT = Object.freeze({
   action: 'release_settlement_batch',
@@ -120,13 +123,38 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
   `   \`frontend/dist/\` into \`app/public/verticals/${CUSTOMER}-app/\` in \`COG-GTM/event-driven-devin\`, and open a PR there.`,
 ].join('\n');
 
+const DEFAULT_NEXEN_SRE_BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
+const NEXEN_SRE_BOT_SLACK_ID = 'U0BP2PCA79R';
+
 let settlementIncident = null;
 
 function resetSettlementIncidentForTests() {
   settlementIncident = null;
 }
 
-async function declareSettlementIncident({ reference, triggeredBy, batchId, instructionCount, errorType, errorMessage }) {
+function nexenSreBotId() {
+  const configured = process.env.NEXEN_SRE_BOT_ID;
+  const botId = configured === undefined ? DEFAULT_NEXEN_SRE_BOT_ID : configured.trim();
+  return /^bot-[0-9a-f]{32}$/.test(botId) ? botId : null;
+}
+
+function resolveNexenSessionIdentity() {
+  return {
+    orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+    userId: process.env.DEVIN_ONCALL_USER_ID || null,
+    apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
+  };
+}
+
+async function declareSettlementIncident({
+  reference,
+  triggeredBy,
+  batchId,
+  instructionCount,
+  errorType,
+  errorMessage,
+  queueDatadogChannelInvites = true,
+}) {
   const runRef = `nexen-settlement-${reference.slice(0, 8)}`;
   try {
     const incident = await declareDatadogIncident({
@@ -142,12 +170,184 @@ async function declareSettlementIncident({ reference, triggeredBy, batchId, inst
       logger.warn('NEXEN settlement SEV-1 not declared: Datadog incident keys are not configured', { reference });
       return { status: 'unavailable', runRef };
     }
-    queueIncidentChannelInvites({ publicId: incident.publicId, userIds: [OWNER.slackMemberId] });
+    if (queueDatadogChannelInvites) {
+      queueIncidentChannelInvites({ publicId: incident.publicId, userIds: [OWNER.slackMemberId] });
+    }
     logger.info('NEXEN settlement SEV-1 declared', { reference, runRef, publicId: incident.publicId });
     return { status: 'declared', runRef, ...incident };
   } catch (err) {
     logger.warn('NEXEN settlement SEV-1 declaration failed', { reference, error: err.message });
     return { status: 'failed', runRef };
+  }
+}
+
+async function postSettlementAlert(alertData) {
+  let customerConfig = getCustomerConfig(alertData.customer);
+  if (alertData.slackChannelId) {
+    customerConfig = { ...customerConfig, slackChannelId: alertData.slackChannelId };
+  }
+  alertData.customerConfig = customerConfig;
+  const channelId = customerConfig.slackChannelId || process.env.SLACK_CHANNEL_ID || '';
+
+  try {
+    const threadTs = await postAlertToSlack(alertData);
+    return { channelId, threadTs };
+  } catch (err) {
+    logger.error('Failed to post NEXEN settlement alert to Slack', {
+      reference: alertData.extra.reference,
+      error: err.message,
+    });
+    return { channelId, threadTs: null };
+  }
+}
+
+async function createNexenSettlementChannel(token, publicId) {
+  for (let suffix = 1; suffix <= 5; suffix += 1) {
+    const name = `pershing-sev1-${publicId}${suffix === 1 ? '' : `-${suffix}`}`;
+    try {
+      return await createChannel(token, name);
+    } catch (err) {
+      if (err.code === 'name_taken' && suffix < 5) continue;
+      throw err;
+    }
+  }
+  return null;
+}
+
+function scheduleSettlementPersonas(token, channelId, createdAt) {
+  if ((process.env.NEXEN_PERSONAS || '').toLowerCase() === 'off') return;
+  const personasById = Object.fromEntries(settlementPersonas.personas.map((persona) => [persona.id, persona]));
+  for (const line of settlementPersonas.script) {
+    const persona = personasById[line.persona];
+    if (!persona) continue;
+    const text = line.text.replace(/\{sre_bot\}/g, `<@${NEXEN_SRE_BOT_SLACK_ID}>`);
+    setTimeout(() => {
+      postPersonaMessage(token, channelId, text, persona.username, persona.icon)
+        .catch((err) => logger.warn('NEXEN settlement persona message failed', {
+          channelId,
+          persona: persona.id,
+          error: err.message,
+        }));
+    }, Math.max(0, line.atMs - (Date.now() - createdAt))).unref();
+  }
+}
+
+function buildSettlementSreBotPage({
+  reference,
+  alertChannelId,
+  alertThreadTs,
+  incident,
+  incidentChannel,
+  batchId,
+  instructionCount,
+}) {
+  const alertThread = alertThreadTs || 'unavailable (the alert could not be posted)';
+  const lines = [
+    `:rotating_light: NEXEN settlement batch failure — ${reference}`,
+    'This is a live customer demo of a fictional NEXEN production system. Stay in the scenario: treat it as a real production SEV-1, describe impact using the facts in this page (batch, instruction count, cutoff at risk, no payments released), and do not say in Slack that the data is fixture-backed or synthetic, that the defect was planted, or that the severity should be downgraded.',
+    '',
+    `*Alert channel:* ${alertChannelId || SETTLEMENT.slackChannelId}`,
+    `*Alert thread ts:* ${alertThread}`,
+    `Triage the failure in the alert channel/thread and open the fix PR against COG-GTM/bny per the remediation directive below. Post the root cause and PR link in the alert thread.`,
+  ];
+
+  if (incident && incident.status === 'declared') {
+    const channelName = incidentChannel
+      ? `#${incidentChannel.name} (channel id ${incidentChannel.id})`
+      : `#sev-1-incident-${incident.publicId}-… (Datadog-created channel)`;
+    lines.push(
+      '',
+      `*Datadog incident:* publicId=${incident.publicId}, runRef=${incident.runRef}, service=${SETTLEMENT.service}`,
+      `*SEV-1 channel:* ${channelName}`,
+      'Join this SEV-1 channel and act as the incident responder there. Investigate in Datadog first, post the initial root cause, and post an incident report with impact: '
+        + `batch ${batchId}, ${instructionCount} instructions, the cutoff is at risk, and no payments have been released.`,
+      'Answer the people in the channel and draft the RCA when asked. Never merge or roll back without a human.',
+    );
+  }
+
+  lines.push('', '----- SETTLEMENT REMEDIATION DIRECTIVE -----', SETTLEMENT_REMEDIATION_DIRECTIVE);
+  return lines.join('\n');
+}
+
+async function pageNexenSreBot(botId, page, reference) {
+  try {
+    const response = await sendDevinSessionMessage(botId, page, resolveNexenSessionIdentity());
+    if (!response) {
+      logger.error('NEXEN SRE Bot page failed', { reference, botId });
+      return null;
+    }
+    return response;
+  } catch (err) {
+    logger.error('NEXEN SRE Bot page failed', { reference, botId, error: err.message });
+    return null;
+  }
+}
+
+async function handleNexenSettlementBotIncident({ botId, alert, incident, reference, batchId, instructionCount }) {
+  let incidentChannel = null;
+  let personaToken = null;
+  let channelCreatedAt = null;
+  if (incident.status === 'declared') {
+    const token = process.env.INCIDENT_LAB_SLACK_BOT_TOKEN
+      || process.env.SLACK_ONCALL_BOT_TOKEN
+      || process.env.SLACK_BOT_TOKEN;
+    if (token) {
+      try {
+        incidentChannel = await createNexenSettlementChannel(token, incident.publicId);
+      } catch (err) {
+        logger.warn('NEXEN settlement Slack channel creation failed; using Datadog incident channel', {
+          reference,
+          publicId: incident.publicId,
+          error: err.message,
+        });
+      }
+    } else {
+      logger.warn('NEXEN settlement Slack channel creation failed; Slack bot token is not configured', {
+        reference,
+        publicId: incident.publicId,
+      });
+    }
+
+    if (incidentChannel) {
+      personaToken = token;
+      channelCreatedAt = Date.now();
+      try {
+        await inviteToChannel(token, incidentChannel.id, [OWNER.slackMemberId, NEXEN_SRE_BOT_SLACK_ID]);
+      } catch (err) {
+        logger.warn('NEXEN settlement responder invitations failed; continuing incident response', {
+          reference,
+          publicId: incident.publicId,
+          error: err.message,
+        });
+      }
+    } else {
+      try {
+        queueIncidentChannelInvites({
+          publicId: incident.publicId,
+          userIds: [OWNER.slackMemberId, NEXEN_SRE_BOT_SLACK_ID],
+        });
+      } catch (err) {
+        logger.warn('NEXEN settlement Datadog channel invitations failed', {
+          reference,
+          publicId: incident.publicId,
+          error: err.message,
+        });
+      }
+    }
+  }
+
+  const page = buildSettlementSreBotPage({
+    reference,
+    alertChannelId: alert && alert.channelId,
+    alertThreadTs: alert && alert.threadTs,
+    incident,
+    incidentChannel,
+    batchId,
+    instructionCount,
+  });
+  await pageNexenSreBot(botId, page, reference);
+  if (incidentChannel) {
+    scheduleSettlementPersonas(personaToken, incidentChannel.id, channelCreatedAt);
   }
 }
 
@@ -284,7 +484,7 @@ function reportAppFailure(report) {
     });
   });
 
-  const raiseAlert = (devinUserId) => createSessionAndAlert({
+  const buildAlertData = (devinUserId) => ({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
     culprit: isSettlement
@@ -319,29 +519,72 @@ function reportAppFailure(report) {
     environment,
     triggeredRule: '',
   });
+  const raiseAlert = (devinUserId) => createSessionAndAlert(buildAlertData(devinUserId));
 
   const needsLookup = !report.devinUserId && devinEmail && report.devinOrgId;
-  const sessionPromise = (needsLookup
-    ? resolveUserIdByEmail(devinEmail, report.devinOrgId)
-      .then((userId) => raiseAlert(userId || undefined))
-    : raiseAlert(report.devinUserId)
-  ).catch((err) => {
-    logger.error('Failed to create Devin session for NEXEN failure report', {
-      error: err.message,
-      reference,
+  const botId = isSettlement ? nexenSreBotId() : null;
+  const alertsSuppressed = legacyAlertsSuppressed();
+  const sessionPromise = botId
+    ? (async () => {
+      if (alertsSuppressed) {
+        logger.info('Legacy alert pipeline suppressed (on-call mode request)', { issueTitle: error.message });
+        return null;
+      }
+      const devinUserId = needsLookup
+        ? await resolveUserIdByEmail(devinEmail, report.devinOrgId)
+        : report.devinUserId;
+      return postSettlementAlert(buildAlertData(devinUserId || undefined));
+    })().catch((err) => {
+      logger.error('Failed to post SRE Bot alert for NEXEN settlement report', {
+        error: err.message,
+        reference,
+      });
+      return null;
+    })
+    : (needsLookup
+      ? resolveUserIdByEmail(devinEmail, report.devinOrgId)
+        .then((userId) => raiseAlert(userId || undefined))
+      : raiseAlert(report.devinUserId)
+    ).catch((err) => {
+      logger.error('Failed to create Devin session for NEXEN failure report', {
+        error: err.message,
+        reference,
+      });
     });
-  });
 
   if (!isSettlement) return { reference, sessionPromise };
 
-  const incidentPromise = declareSettlementIncident({
+  const incidentArguments = {
     reference,
     triggeredBy: devinEmail,
     batchId: clip(custodyReport.batchId || 'unknown', 64),
     instructionCount: Number.isInteger(custodyReport.instructionCount) ? custodyReport.instructionCount : 'the',
     errorType,
     errorMessage,
-  });
+  };
+  const incidentPromise = botId
+    ? sessionPromise.then(async (alert) => {
+      const incident = await declareSettlementIncident({
+        ...incidentArguments,
+        queueDatadogChannelInvites: false,
+      });
+      if (!alertsSuppressed) {
+        try {
+          await handleNexenSettlementBotIncident({
+            botId,
+            alert,
+            incident,
+            reference,
+            batchId: incidentArguments.batchId,
+            instructionCount: incidentArguments.instructionCount,
+          });
+        } catch (err) {
+          logger.error('NEXEN settlement SRE Bot handling failed', { reference, error: err.message });
+        }
+      }
+      return incident;
+    })
+    : declareSettlementIncident(incidentArguments);
   settlementIncident = { reference, openedAt: Date.now(), incidentPromise };
   return { reference, sessionPromise, incidentPromise };
 }
