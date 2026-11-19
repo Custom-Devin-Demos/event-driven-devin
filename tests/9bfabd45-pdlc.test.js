@@ -23,7 +23,7 @@ function fakeDeps({ botReplies }) {
   const deps = {
     now: () => clock,
     sleep: async (ms) => { clock += ms; },
-    findChannelByName: jest.fn(async () => ({ id: 'C0PRODUCT', name: 'pershing-access-product' })),
+    findChannelByName: jest.fn(async () => ({ id: 'C0PRODUCT', name: 'bny-pershing-access-android-app' })),
     joinChannel: jest.fn(async () => true),
     postPersonaMessage: jest.fn(async (_t, _c, text, username, _icon, threadTs) => {
       const ts = `${tsCounter += 1}.000100`;
