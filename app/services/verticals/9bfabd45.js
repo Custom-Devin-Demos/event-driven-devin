@@ -147,7 +147,9 @@ function nexenSreBotId() {
 }
 
 function nexenSreBotSlackId() {
-  return (process.env.NEXEN_SRE_BOT_SLACK_ID || '').trim();
+  if (process.env.NEXEN_SRE_BOT_SLACK_ID === undefined) return 'U0CJZC8RZBM';
+  const configured = process.env.NEXEN_SRE_BOT_SLACK_ID.trim();
+  return configured.toLowerCase() === 'off' ? '' : configured;
 }
 
 function nexenSettlementResponderSlackIds() {
