@@ -78,7 +78,7 @@ function isBotMessage(message, ids = pdlcBotSlackIds()) {
 }
 
 function hasImages(message) {
-  return Array.isArray(message.files) && message.files.some((f) => /^image\//.test(f.mimetype || '') || /\.(png|jpe?g|gif|webp)$/i.test(f.name || ''));
+  return Array.isArray(message.files) && message.files.some((f) => /^(image\/|text\/html)/.test(f.mimetype || '') || /\.(png|jpe?g|gif|webp|html?)$/i.test(f.name || ''));
 }
 
 function botRepliesAfter(messages, afterTs, ids) {

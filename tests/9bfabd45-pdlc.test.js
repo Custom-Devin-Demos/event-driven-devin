@@ -142,3 +142,8 @@ test('persona messages use each persona\'s shared BNY avatar on the public asset
     'https://devindemos.com/bny/avatars/tom-nguyen.png',
   ]);
 });
+
+test('treats an HTML wireframe artifact as the Bot\'s wireframes', () => {
+  expect(pdlc.hasImages({ files: [{ name: 'holdings-price-alerts.html', mimetype: 'text/html' }] })).toBe(true);
+  expect(pdlc.hasImages({ files: [{ name: 'notes.txt', mimetype: 'text/plain' }] })).toBe(false);
+});
