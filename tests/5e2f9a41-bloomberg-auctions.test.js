@@ -66,17 +66,21 @@ describe('Bloomberg Auction System vertical (5e2f9a41)', () => {
     expect(html).toContain('Submit bid');
   });
 
-  test('lists three open auctions with a future cutoff', async () => {
+  test('lists the calendar with one auction open and a future cutoff', async () => {
     const res = await call('GET', '/api/5e2f9a41/auctions');
     expect(res.status).toBe(200);
     expect(res.body.auctions).toHaveLength(3);
     expect(new Date(res.body.auctions[0].cutoff).getTime()).toBeGreaterThan(Date.now());
+    expect(res.body.auctions.map((a) => a.status)).toEqual(['OPEN', 'ANNOUNCED', 'ANNOUNCED']);
+    expect(res.body.summary).toMatchObject({ open: 1, totalSizeMn: 4000 });
+    expect(res.body.results.length).toBeGreaterThan(0);
     expect(res.body.bids).toEqual([]);
   });
 
   test('rejects invalid tickets with 400 and no alert', async () => {
     expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, auctionId: 'NOPE' })).body.code).toBe('UNKNOWN_AUCTION');
     expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, nominalMn: 0 })).body.code).toBe('INVALID_NOMINAL');
+    expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, auctionId: 'UKT-4H30' })).body.code).toBe('AUCTION_NOT_OPEN');
     expect((await call('POST', '/api/5e2f9a41/bids', { ...bid, yieldPct: 'x' })).status).toBe(400);
     expect(slack.postMessage).not.toHaveBeenCalled();
   });
@@ -89,7 +93,7 @@ describe('Bloomberg Auction System vertical (5e2f9a41)', () => {
     expect(service.getAuctions().bids).toEqual([]);
     expect(Sentry.captureException).toHaveBeenCalledWith(expect.any(TypeError), expect.objectContaining({
       tags: expect.objectContaining({ flag: FLAG, service: service.SERVICE }),
-      extra: expect.objectContaining({ auctionSizeAtRiskMn: 10750 }),
+      extra: expect.objectContaining({ auctionSizeAtRiskMn: 4000 }),
     }));
     await new Promise((r) => setTimeout(r, 20));
     expect(slack.postMessage).toHaveBeenCalledTimes(1);
@@ -99,7 +103,7 @@ describe('Bloomberg Auction System vertical (5e2f9a41)', () => {
 
   test('repeat failures inside the incident window post one card', async () => {
     await call('POST', '/api/5e2f9a41/bids', bid);
-    await call('POST', '/api/5e2f9a41/bids', { ...bid, auctionId: 'DBR-2Q35', yieldPct: 2.684 });
+    await call('POST', '/api/5e2f9a41/bids', { ...bid, nominalMn: 100, yieldPct: 4.42 });
     await new Promise((r) => setTimeout(r, 20));
     expect(slack.postMessage).toHaveBeenCalledTimes(1);
   });

@@ -38,26 +38,40 @@ const RESPONDER_NOTES = [
   'Feature flag: auctions.bid-limits-v2 (bloomberg-feature-flag MCP).',
 ].join('\n');
 
-const DEALER = { name: 'Meridian Capital Markets', role: 'Primary dealer (GEMM)', user: 'AMORGAN' };
+const DEALER = { name: 'Meridian Capital Markets', role: 'Gilt-edged Market Maker', user: 'AMORGAN', firmId: 'MCMK' };
 
+const DMO = 'UK Debt Management Office';
+const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
+
+/** Today's auction is open for bidding; the rest of the calendar is announced but not yet open. */
 const AUCTIONS = [
-  { auctionId: 'UKT-4Q34', issuer: 'UKT', issuerName: 'UK Debt Management Office', security: 'UKT 4 1/4 07/31/34', isin: 'GB00BPCJD880', maturity: '2034-07-31', sizeMn: 4000, currency: 'GBP', indicativeYield: 4.412 },
-  { auctionId: 'UKT-1Q54', issuer: 'UKT', issuerName: 'UK Debt Management Office', security: 'UKT 4 3/8 07/31/54', isin: 'GB00BPSNBB36', maturity: '2054-07-31', sizeMn: 2250, currency: 'GBP', indicativeYield: 4.957 },
-  { auctionId: 'DBR-2Q35', issuer: 'DBR', issuerName: 'German Finance Agency', security: 'DBR 2.6 08/15/35', isin: 'DE000BU2Z056', maturity: '2035-08-15', sizeMn: 4500, currency: 'EUR', indicativeYield: 2.684 },
+  { auctionId: 'UKT-4Q34', status: 'OPEN', issuer: 'UKT', issuerName: DMO, security: 'UKT 4 1/4 07/31/34', name: '4\u00bc% Treasury Gilt 2034', isin: 'GB00BPCJD880', coupon: 4.25, maturity: '2034-07-31', sizeMn: 4000, currency: 'GBP', indicativeYield: 4.412, wiBid: 4.417, wiAsk: 4.407, auctionDate: day(0), settlement: day(1), format: 'Competitive, multiple price', previous: { date: day(-35), cover: 3.04, avgYield: 4.386, tailBp: 0.4 } },
+  { auctionId: 'UKT-4H30', status: 'ANNOUNCED', issuer: 'UKT', issuerName: DMO, security: 'UKT 4 3/8 03/07/30', name: '4\u215c% Treasury Gilt 2030', isin: 'GB00BQC82C90', coupon: 4.375, maturity: '2030-03-07', sizeMn: 4500, currency: 'GBP', indicativeYield: 3.941, wiBid: 3.946, wiAsk: 3.936, auctionDate: day(2), settlement: day(3), format: 'Competitive, multiple price', previous: { date: day(-28), cover: 3.31, avgYield: 3.902, tailBp: 0.2 } },
+  { auctionId: 'UKT-1Q54', status: 'ANNOUNCED', issuer: 'UKT', issuerName: DMO, security: 'UKT 4 3/8 07/31/54', name: '4\u215c% Treasury Gilt 2054', isin: 'GB00BPSNBB36', coupon: 4.375, maturity: '2054-07-31', sizeMn: 2250, currency: 'GBP', indicativeYield: 4.957, wiBid: 4.963, wiAsk: 4.951, auctionDate: day(7), settlement: day(8), format: 'Competitive, multiple price', previous: { date: day(-49), cover: 2.87, avgYield: 4.921, tailBp: 0.9 } },
 ];
+
+/** Recently closed auctions, shown on the calendar with their published results. */
+const RESULTS = [
+  { auctionId: 'UKT-3T28', security: 'UKT 3 3/4 03/07/28', date: day(-2), sizeMn: 4750, cover: 3.18, avgYield: 3.702, tailBp: 0.3, allocatedMn: 212.5 },
+  { auctionId: 'UKTI-1Q36', security: 'UKTI 1 1/8 09/22/36', date: day(-7), sizeMn: 1600, cover: 3.42, avgYield: 1.214, tailBp: 0.6, allocatedMn: 64 },
+  { auctionId: 'UKT-4H44', security: 'UKT 4 1/2 12/07/44', date: day(-9), sizeMn: 2750, cover: 2.94, avgYield: 4.873, tailBp: 1.1, allocatedMn: 118 },
+];
+
+const openAuctions = () => AUCTIONS.filter((auction) => auction.status === 'OPEN');
+const sizeOf = (list) => list.reduce((sum, auction) => sum + auction.sizeMn, 0);
 
 /** v1 limits: per-ISIN dealer bid limits (nominal, millions). */
 const BID_LIMITS = {
   GB00BPCJD880: { maxBidMn: 1000, minYield: 3.5, maxYield: 5.5 },
+  GB00BQC82C90: { maxBidMn: 1100, minYield: 3.0, maxYield: 5.0 },
   GB00BPSNBB36: { maxBidMn: 560, minYield: 4.0, maxYield: 6.0 },
-  DE000BU2Z056: { maxBidMn: 1100, minYield: 1.8, maxYield: 3.6 },
 };
 
 /** v2 limits: per issuer and maturity bucket (auction-gateway 2026.11.3). */
 const BID_LIMITS_V2 = {
   'UKT:10Y': { maxBidMn: 1000, yieldBand: { min: 3.5, max: 5.5 } },
+  'UKT:5Y': { maxBidMn: 1100, yieldBand: { min: 3.0, max: 5.0 } },
   'UKT:30Y': { maxBidMn: 560, yieldBand: { min: 4.0, max: 6.0 } },
-  'DBR:10Y': { maxBidMn: 1100, yieldBand: { min: 1.8, max: 3.6 } },
 };
 
 const openedAt = Date.now();
@@ -85,9 +99,10 @@ function getAuctions() {
   const cutoff = cutoffFor();
   return {
     dealer: { ...DEALER },
-    auctions: AUCTIONS.map((auction) => ({ ...auction, status: 'BIDDING OPEN', cutoff, maxBidMn: BID_LIMITS[auction.isin].maxBidMn })),
+    auctions: AUCTIONS.map((auction) => ({ ...auction, cutoff: auction.status === 'OPEN' ? cutoff : null, maxBidMn: BID_LIMITS[auction.isin].maxBidMn })),
+    results: RESULTS.map((result) => ({ ...result })),
     bids: bids.map((bid) => ({ ...bid })),
-    summary: { open: AUCTIONS.length, totalSizeMn: AUCTIONS.reduce((sum, auction) => sum + auction.sizeMn, 0), bidsAccepted: bids.length },
+    summary: { open: openAuctions().length, totalSizeMn: sizeOf(openAuctions()), bidsAccepted: bids.length },
   };
 }
 
@@ -158,8 +173,8 @@ function raiseIncident(error, auction, bid, requestId) {
     security: auction.security,
     bidNominalMn: bid.nominalMn,
     currency: auction.currency,
-    auctionsOpen: AUCTIONS.length,
-    auctionSizeAtRiskMn: AUCTIONS.reduce((sum, item) => sum + item.sizeMn, 0),
+    auctionsOpen: openAuctions().length,
+    auctionSizeAtRiskMn: sizeOf(openAuctions()),
     bidsAcceptedThisWindow: bids.length,
     cutoff: cutoffFor(now),
   };
@@ -213,6 +228,7 @@ async function submitBid(data, { hold = BID_HOLD_MS } = {}) {
   const input = data || {};
   const auction = AUCTIONS.find((item) => item.auctionId === String(input.auctionId || '').toUpperCase());
   if (!auction) throw validationError('Unknown auction', 'UNKNOWN_AUCTION');
+  if (auction.status !== 'OPEN') throw validationError('Bidding is not open for this auction', 'AUCTION_NOT_OPEN');
   const nominalMn = input.nominalMn;
   const yieldPct = input.yieldPct;
   if (!(Number.isFinite(nominalMn) && nominalMn >= MIN_BID_MN)) throw validationError(`Nominal must be at least ${MIN_BID_MN}mn`, 'INVALID_NOMINAL');
@@ -239,7 +255,7 @@ async function submitBid(data, { hold = BID_HOLD_MS } = {}) {
   if (nominalMn > limits.maxBidMn) throw validationError(`Bid exceeds your limit of ${limits.maxBidMn}mn`, 'OVER_LIMIT');
   if (yieldPct < limits.minYield || yieldPct > limits.maxYield) throw validationError(`Yield must be between ${limits.minYield}% and ${limits.maxYield}%`, 'YIELD_OUT_OF_BAND');
 
-  const accepted = { bidId: `BID-${uuidv4().slice(0, 8).toUpperCase()}`, auctionId: auction.auctionId, security: auction.security, nominalMn, yieldPct, currency: auction.currency, status: 'ACCEPTED', at: new Date().toISOString() };
+  const accepted = { bidId: `BID-${uuidv4().slice(0, 8).toUpperCase()}`, auctionId: auction.auctionId, security: auction.security, nominalMn, yieldPct, currency: auction.currency, status: 'ACCEPTED', user: DEALER.user, at: new Date().toISOString() };
   bids.push(accepted);
   incrementMetric('auctions.bid.success', { route: ROUTE, customer: CUSTOMER });
   recordTiming('auctions.bid.latency', Date.now() - startTime, { route: ROUTE });
@@ -252,6 +268,6 @@ function publicConfig() {
 
 module.exports = {
   CUSTOMER, API_BASE, ROUTE, SERVICE, PAGE_PATH, SCENARIO, BID_ERROR, ONCALL_CHANNEL, OWNER, RESPONDER_NOTES,
-  FLAGS, AUCTIONS, BID_LIMITS, BID_LIMITS_V2,
+  FLAGS, AUCTIONS, RESULTS, BID_LIMITS, BID_LIMITS_V2,
   getAuctions, limitsFor, submitBid, publicConfig, resetBids, resetIncidentWindow,
 };
