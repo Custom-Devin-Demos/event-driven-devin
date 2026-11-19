@@ -131,10 +131,14 @@ test('pages through the Bot-owned webhook when one is configured', async () => {
   expect(deps.pageBot).toHaveBeenCalledWith(expect.objectContaining({ webhookUrl: 'https://example.test/hook', webhookSecret: 'test-secret', botId: null }));
 });
 
-test('persona messages use the person-outline icon on the public asset host', async () => {
+test('persona messages use each persona\'s shared BNY avatar on the public asset host', async () => {
   const { deps } = fakeDeps({ botReplies: [] });
   const { run } = pdlc.startPdlcRun({}, deps);
   await run.done;
   const icons = new Set(deps.postPersonaMessage.mock.calls.map((c) => c[4]));
-  expect([...icons]).toEqual(['https://devindemos.com/verticals/9bfabd45-person-outline.png']);
+  expect([...icons].sort()).toEqual([
+    'https://devindemos.com/bny/avatars/rachel-kim.png',
+    'https://devindemos.com/bny/avatars/sofia-alvarez.png',
+    'https://devindemos.com/bny/avatars/tom-nguyen.png',
+  ]);
 });

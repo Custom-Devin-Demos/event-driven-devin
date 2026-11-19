@@ -73,7 +73,7 @@ describe('Pershing Access KPI posts', () => {
     expect(replies.map((c) => c[3])).toEqual(['Jordan Ellis', 'Marcus Chen', 'Sofia Alvarez']);
     replies.forEach((call) => {
       expect(call[5]).toBe('1795000000.000100');
-      expect(call[4]).toBe(':bust_in_silhouette:');
+      expect(call[4]).toMatch(/^https:\/\/devindemos\.com\/bny\/avatars\/(jordan-ellis|marcus-chen|sofia-alvarez)\.png$/);
       expect(call[2]).not.toContain('<@');
     });
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(3);

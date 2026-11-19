@@ -435,9 +435,9 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       ':rotating_light:',
     );
     expect(postPersonaMessage.mock.calls.slice(1).every((call) => call[1] === FIXED_SEV1_CHANNEL_ID)).toBe(true);
-    expect(postPersonaMessage.mock.calls.slice(1).map((call) => call[4])).toEqual(
-      Array(7).fill('https://devindemos.com/incident-lab/avatars/person-outline.png'),
-    );
+    postPersonaMessage.mock.calls.slice(1).forEach((call) => {
+      expect(call[4]).toMatch(/^https:\/\/devindemos\.com\/bny\/avatars\/(maya-okafor|daniel-reyes|priya-natarajan)\.png$/);
+    });
   });
 
   test('fixed-channel invitation failure still pages SRE Bot and schedules personas', async () => {
@@ -632,9 +632,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await incidentPromise;
     await jest.advanceTimersByTimeAsync(0);
 
-    expect(postPersonaMessage.mock.calls[1][4]).toBe(
-      'https://demo.example.test/incident-lab/avatars/person-outline.png',
-    );
+    expect(postPersonaMessage.mock.calls[1][4]).toMatch(/^https:\/\/demo\.example\.test\/bny\/avatars\/[a-z-]+\.png$/);
   });
 
   test('posts five persona lines within 15 seconds and does not mention SRE Bot before 240 seconds', async () => {
