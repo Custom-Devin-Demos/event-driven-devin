@@ -130,3 +130,11 @@ test('pages through the Bot-owned webhook when one is configured', async () => {
   await run.done;
   expect(deps.pageBot).toHaveBeenCalledWith(expect.objectContaining({ webhookUrl: 'https://example.test/hook', webhookSecret: 'test-secret', botId: null }));
 });
+
+test('persona messages use the person-outline icon on the public asset host', async () => {
+  const { deps } = fakeDeps({ botReplies: [] });
+  const { run } = pdlc.startPdlcRun({}, deps);
+  await run.done;
+  const icons = new Set(deps.postPersonaMessage.mock.calls.map((c) => c[4]));
+  expect([...icons]).toEqual(['https://devindemos.com/verticals/9bfabd45-person-outline.png']);
+});

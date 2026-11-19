@@ -22,7 +22,7 @@ const script = require('../../../config/nexen/pdlc-personas.json');
 const DEFAULT_PDLC_BOT_ID = 'bot-59656379ddc5470281166b1458334c2c';
 const DEFAULT_PDLC_BOT_SLACK_ID = 'U0CK6TNG7T3';
 const DEFAULT_PDLC_BOT_APP_BOT_ID = 'B0CK8N59ZLL';
-const DEFAULT_CHANNEL_NAME = 'pershing-access-product';
+const DEFAULT_CHANNEL_NAME = 'bny-pershing-access-android-app';
 const DEFAULT_IOS_BOT_WEBHOOK_URL =
   'https://devin-gtm.devinenterprise.com/api/webhooks/automations/org_69IXJFLrljx8zSAw/auto-2203779474c643fb9262f44c8fd61791';
 const APP_REPO = 'COG-GTM/android-demos';
@@ -60,6 +60,14 @@ function sessionIdentity() {
     orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
     apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
   };
+}
+
+const DEFAULT_ASSET_BASE_URL = 'https://devindemos.com';
+
+function personaIcon(persona) {
+  const icon = persona.icon || '';
+  if (!icon.startsWith('/')) return icon;
+  return `${(process.env.BNY_PDLC_ASSET_BASE_URL || DEFAULT_ASSET_BASE_URL).replace(/\/$/, '')}${icon}`;
 }
 
 const personasById = Object.fromEntries(script.personas.map((p) => [p.id, p]));
@@ -102,10 +110,10 @@ function buildJoinPage({ channelId, threadTs }) {
     '',
     '*Do now, in that thread (Slack tool, team T08RSEMT71Q, thread_ts above):*',
     '1. One short message: how you\'d scope v1 (3-5 bullets: entry point, threshold model, on-device storage, what is out of scope) and one KPI to watch (e.g. % of active users with at least one alert).',
-    '2. Then 2-3 lo-fi wireframe options of the Holdings screen as PNG images (render them quickly yourself, e.g. HTML + headless Chrome screenshot or PIL; phone-sized, grayscale, labelled A/B/C) attached to one post with one line per option. Aim to have them up within a few minutes.',
+    '2. Then 2-3 wireframe options of the Holdings screen as PNG images, each drawn inside a phone frame (render them yourself, e.g. HTML + headless Chrome screenshot; labelled A/B/C), attached to one post with one line per option. Attach in the same post one polished, self-contained HTML artifact (`holdings-price-alerts.html`: the scope, the KPI and the options side by side in phone frames, in the app\'s colors and type) so the team can open it in a browser. Aim to have them up within a few minutes.',
     '3. Stop and wait. Every later reply in this thread from the team is forwarded to you as a message like this one; answer each one once, in the thread.',
-    'When someone asks for a change: post a revised wireframe (PNG) with the change, and ask if that\'s good to build.',
-    `When someone says to go ahead: say you're on it, then dispatch a child session bound to this thread (bot_slack_channel=${channelId}, bot_slack_thread_ts=${threadTs}) that implements the agreed design in ${APP_REPO} ${APP_MODULE} on a new branch with JVM tests, runs \`make build test lint APP=b113a373\` on Java 17, captures emulator screenshots or a short recording of the new UI as the preview, opens a PR (never merges) and posts the PR link plus the preview in this thread.`,
+    'When someone asks for a change: post the revised wireframes (PNG, in a phone frame) with the change plus an updated HTML artifact, and ask if that\'s good to build.',
+    `When someone says to go ahead: say you're on it, then dispatch a child session bound to this thread (bot_slack_channel=${channelId}, bot_slack_thread_ts=${threadTs}) that implements the agreed design in ${APP_REPO} ${APP_MODULE} on a new branch with JVM tests, runs \`make build test lint APP=b113a373\` on Java 17, records a short emulator video walking through the new flow and composites it inside an Android phone frame (device mockup, e.g. ffmpeg overlay onto a phone bezel) as the preview MP4, opens a PR (never merges) and posts in this thread the PR link, the phone-framed preview video and a polished self-contained HTML artifact (\`price-alerts-preview.html\`: what shipped, phone-framed screens of each state, tests run).`,
   ].join('\n');
 }
 
@@ -140,7 +148,7 @@ async function resolveChannel(token, deps) {
 
 async function postAs(run, deps, personaId, text) {
   const persona = personasById[personaId];
-  const ts = await deps.postPersonaMessage(run.token, run.channelId, text, persona.username, persona.icon, run.threadTs || undefined);
+  const ts = await deps.postPersonaMessage(run.token, run.channelId, text, persona.username, personaIcon(persona), run.threadTs || undefined);
   run.log.push({ at: new Date(deps.now()).toISOString(), persona: personaId, ts });
   return { persona, ts };
 }
