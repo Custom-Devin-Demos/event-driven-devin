@@ -241,8 +241,8 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     paths: ['/xfinity', '/xfinity-oncall'],
     alertDestination: 'slack',
-    onCallSlackMemberId: 'U0BQZBHCNMA',
-    incidentInviteUserIds: ['U0BQZBHCNMA'],
+    onCallSlackMemberId: 'U0BLF6TLGP4',
+    incidentInviteUserIds: ['U0BLF6TLGP4'],
     devinSession: {
       auto: true,
       onCallIsTriggerer: true,
