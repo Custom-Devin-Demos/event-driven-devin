@@ -15,6 +15,7 @@ initSentry();
 const healthRoutes = require('./routes/health');
 const dynatraceDemoMcpRoutes = require('./routes/dynatrace-demo-mcp');
 const dellFeatureFlagMcpRoutes = require('./routes/dell-feature-flag-mcp');
+const bloombergFeatureFlagMcpRoutes = require('./routes/bloomberg-feature-flag-mcp');
 const loginRoutes = require('./routes/login');
 const searchRoutes = require('./routes/search');
 const checkoutRoutes = require('./routes/checkout');
@@ -121,6 +122,7 @@ app.use((req, res, next) => {
 app.use(healthRoutes);
 app.use(dynatraceDemoMcpRoutes);
 app.use(dellFeatureFlagMcpRoutes);
+app.use(bloombergFeatureFlagMcpRoutes);
 app.use(loginRoutes);
 app.use(searchRoutes);
 app.use(checkoutRoutes);

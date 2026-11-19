@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Auction System | Bidding</title>
+<style>
+  :root { --bg:#0b0d10; --panel:#14181d; --panel2:#1b2027; --line:#2a313a; --text:#e8eaed; --muted:#8b95a1; --amber:#fb8b1e; --blue:#4da3ff; --green:#2fbf71; --red:#ff4d4f; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  button, input { font: inherit; }
+  .top { display:flex; align-items:center; gap:20px; height:52px; padding:0 24px; background:#000; border-bottom:1px solid var(--line); }
+  .brand { font-weight:700; font-size:20px; letter-spacing:-.3px; }
+  .product { color:var(--amber); font-weight:600; padding-left:20px; border-left:1px solid var(--line); }
+  .top nav { display:flex; gap:22px; margin-left:24px; }
+  .top nav a { color:var(--muted); text-decoration:none; padding:16px 0; border-bottom:2px solid transparent; }
+  .top nav a.on { color:var(--text); border-color:var(--amber); }
+  .who { margin-left:auto; text-align:right; font-size:12px; color:var(--muted); }
+  .who b { display:block; color:var(--text); font-size:13px; }
+  .strip { display:flex; gap:32px; padding:14px 24px; background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .kpi span { display:block; font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); }
+  .kpi b { font-size:20px; font-variant-numeric:tabular-nums; }
+  .kpi b.warn { color:var(--amber); } .kpi b.bad { color:var(--red); } .kpi b.good { color:var(--green); }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:20px; padding:20px 24px; max-width:1440px; margin:0 auto; }
+  @media (max-width: 960px) { main { grid-template-columns:1fr; } .top nav { display:none; } }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:6px; }
+  .card h2 { margin:0; padding:12px 16px; font-size:13px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line); }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { padding:11px 16px; text-align:left; white-space:nowrap; border-bottom:1px solid var(--line); }
+  th { font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  td.num, th.num { text-align:right; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover { background:var(--panel2); }
+  tbody tr.sel { background:#1d2733; box-shadow:inset 3px 0 0 var(--amber); }
+  tbody tr:focus-visible, button:focus-visible, input:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
+  .sec { font-weight:600; } .sub { color:var(--muted); font-size:12px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; letter-spacing:.4px; background:rgba(47,191,113,.15); color:var(--green); }
+  .pill.bad { background:rgba(255,77,79,.15); color:var(--red); }
+  .ticket { padding:16px; }
+  .ticket .head { margin-bottom:14px; }
+  .ticket .head b { font-size:16px; display:block; }
+  .row { display:flex; justify-content:space-between; padding:5px 0; color:var(--muted); font-size:13px; }
+  .row b { color:var(--text); font-variant-numeric:tabular-nums; }
+  label { display:block; margin:14px 0 5px; font-size:12px; color:var(--muted); }
+  input { width:100%; padding:10px 12px; background:#0b0d10; border:1px solid var(--line); border-radius:4px; color:var(--text); font-variant-numeric:tabular-nums; }
+  .submit { width:100%; margin-top:18px; padding:12px; border:0; border-radius:4px; background:var(--amber); color:#000; font-weight:700; cursor:pointer; }
+  .submit:disabled { opacity:.6; cursor:wait; }
+  .msg { margin-top:14px; padding:12px; border-radius:4px; font-size:13px; display:none; }
+  .msg.err { display:block; background:rgba(255,77,79,.12); border:1px solid var(--red); color:#ffb3b4; }
+  .msg.ok { display:block; background:rgba(47,191,113,.12); border:1px solid var(--green); color:#a7e8c5; }
+  .msg small { display:block; margin-top:4px; color:var(--muted); }
+  .impact { display:none; grid-column:1/-1; padding:14px 16px; border:1px solid var(--red); border-radius:6px; background:rgba(255,77,79,.08); }
+  .impact.on { display:flex; gap:28px; flex-wrap:wrap; align-items:center; }
+  .impact strong { color:var(--red); }
+  .empty { padding:16px; color:var(--muted); }
+  .stack { display:flex; flex-direction:column; gap:20px; }
+  footer { padding:16px 24px 28px; color:var(--muted); font-size:12px; text-align:center; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Bloomberg</div>
+  <div class="product">Auction System</div>
+  <nav aria-label="Primary"><a class="on" href="#" aria-current="page">Bidding</a><a href="#">Calendar</a><a href="#">Results</a><a href="#">Allocations</a></nav>
+  <div class="who"><b id="dealer">&nbsp;</b><span id="role">&nbsp;</span></div>
+</header>
+<section class="strip" aria-label="Bidding window">
+  <div class="kpi"><span>Bidding closes in</span><b id="countdown" class="warn">--:--</b></div>
+  <div class="kpi"><span>Auctions open</span><b id="k-open">-</b></div>
+  <div class="kpi"><span>Total on offer</span><b id="k-size">-</b></div>
+  <div class="kpi"><span>Your bids accepted</span><b id="k-bids">0</b></div>
+  <div class="kpi"><span>Bid gateway</span><b id="k-gw" class="good">ACCEPTING BIDS</b></div>
+</section>
+<main>
+  <div class="impact" id="impact" role="alert">
+    <div><strong>Bids are not being accepted.</strong> Bloomberg support has been notified.</div>
+    <div>Rejected bids: <b id="i-rej">0</b></div>
+    <div>Your nominal not placed: <b id="i-nom">-</b></div>
+    <div>Auction size at risk: <b id="i-risk">-</b></div>
+  </div>
+  <div class="stack">
+    <section class="card">
+      <h2>Today's auctions</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Security</th><th>Issuer</th><th class="num">Size</th><th class="num">Indicative yield</th><th class="num">Your limit</th><th>Status</th></tr></thead>
+        <tbody id="auctions"></tbody>
+      </table></div>
+    </section>
+    <section class="card">
+      <h2>Your bids</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Time</th><th>Security</th><th class="num">Nominal</th><th class="num">Yield</th><th>Status</th><th>Reference</th></tr></thead>
+        <tbody id="bids"></tbody>
+      </table></div>
+      <div class="empty" id="no-bids">No bids submitted in this window.</div>
+    </section>
+  </div>
+  <section class="card">
+    <h2>Bid ticket</h2>
+    <form class="ticket" id="ticket" novalidate>
+      <div class="head"><b id="t-sec">Select an auction</b><span class="sub" id="t-isin"></span></div>
+      <div class="row"><span>Issuer</span><b id="t-issuer">-</b></div>
+      <div class="row"><span>Auction size</span><b id="t-size">-</b></div>
+      <div class="row"><span>Bid type</span><b>Competitive</b></div>
+      <label for="nominal">Nominal (millions)</label>
+      <input id="nominal" inputmode="decimal" value="250" autocomplete="off">
+      <label for="yield">Bid yield (%)</label>
+      <input id="yield" inputmode="decimal" autocomplete="off">
+      <button class="submit" id="submit" type="submit">Submit bid</button>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
+    </form>
+  </section>
+</main>
+<footer id="disclaimer"></footer>
+<script>
+(function () {
+  var API = '/api/5e2f9a41';
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { auctions: [], bids: [], selected: null, cutoff: null, rejected: [], busy: false };
+  var SYM = { GBP: '\u00a3', EUR: '\u20ac', USD: '$' };
+  function money(mn, ccy) { return (SYM[ccy] || '') + (mn >= 1000 ? (mn / 1000).toFixed(2).replace(/\.?0+$/, '') + 'bn' : mn + 'mn'); }
+  function esc(s) { var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
+  function renderAuctions() {
+    $('auctions').innerHTML = state.auctions.map(function (a) {
+      var failed = state.rejected.some(function (r) { return r.auctionId === a.auctionId; });
+      return '<tr tabindex="0" data-id="' + a.auctionId + '" class="' + (a.auctionId === state.selected ? 'sel' : '') + '">' +
+        '<td><div class="sec">' + esc(a.security) + '</div><div class="sub">' + esc(a.isin) + '</div></td>' +
+        '<td>' + esc(a.issuerName) + '</td><td class="num">' + money(a.sizeMn, a.currency) + '</td>' +
+        '<td class="num">' + a.indicativeYield.toFixed(3) + '%</td><td class="num">' + money(a.maxBidMn, a.currency) + '</td>' +
+        '<td><span class="pill' + (failed ? ' bad' : '') + '">' + (failed ? 'BID REJECTED' : esc(a.status)) + '</span></td></tr>';
+    }).join('');
+  }
+  function renderBids() {
+    var rows = state.rejected.concat(state.bids).sort(function (x, y) { return x.at < y.at ? 1 : -1; });
+    $('no-bids').style.display = rows.length ? 'none' : '';
+    $('bids').innerHTML = rows.map(function (b) {
+      var bad = b.status !== 'ACCEPTED';
+      return '<tr><td>' + new Date(b.at).toLocaleTimeString('en-GB') + '</td><td>' + esc(b.security) + '</td><td class="num">' + money(b.nominalMn, b.currency) +
+        '</td><td class="num">' + Number(b.yieldPct).toFixed(3) + '%</td><td><span class="pill' + (bad ? ' bad' : '') + '">' + esc(b.status) + '</span></td><td>' + esc(b.bidId || b.requestId || '') + '</td></tr>';
+    }).join('');
+    $('k-bids').textContent = state.bids.length;
+  }
+  function renderImpact() {
+    var on = state.rejected.length > 0;
+    $('impact').classList.toggle('on', on);
+    $('k-gw').textContent = on ? 'REJECTING BIDS' : 'ACCEPTING BIDS';
+    $('k-gw').className = on ? 'bad' : 'good';
+    if (!on) return;
+    var byCcy = {};
+    state.rejected.forEach(function (r) { byCcy[r.currency] = (byCcy[r.currency] || 0) + r.nominalMn; });
+    $('i-rej').textContent = state.rejected.length;
+    $('i-nom').textContent = Object.keys(byCcy).map(function (c) { return money(byCcy[c], c); }).join(' + ');
+    $('i-risk').textContent = sizeText();
+  }
+  function sizeText() {
+    var byCcy = {};
+    state.auctions.forEach(function (a) { byCcy[a.currency] = (byCcy[a.currency] || 0) + a.sizeMn; });
+    return Object.keys(byCcy).map(function (c) { return money(byCcy[c], c); }).join(' + ');
+  }
+  function select(id) {
+    var a = state.auctions.find(function (x) { return x.auctionId === id; });
+    if (!a) return;
+    state.selected = id;
+    $('t-sec').textContent = a.security; $('t-isin').textContent = a.isin;
+    $('t-issuer').textContent = a.issuerName; $('t-size').textContent = money(a.sizeMn, a.currency);
+    $('yield').value = a.indicativeYield.toFixed(3);
+    $('msg').className = 'msg';
+    renderAuctions();
+  }
+  function load() {
+    return fetch(API + '/auctions').then(function (r) { return r.json(); }).then(function (d) {
+      state.auctions = d.auctions; state.bids = d.bids; state.cutoff = d.auctions[0] && d.auctions[0].cutoff;
+      $('dealer').textContent = d.dealer.name; $('role').textContent = d.dealer.role + ' \u00b7 ' + d.dealer.user;
+      $('k-open').textContent = d.summary.open; $('k-size').textContent = sizeText();
+      if (!state.selected && d.auctions[0]) select(d.auctions[0].auctionId); else renderAuctions();
+      renderBids(); renderImpact();
+    });
+  }
+  function tick() {
+    if (!state.cutoff) return;
+    var left = Math.floor((new Date(state.cutoff) - Date.now()) / 1000);
+    if (left <= 0) { load(); return; }
+    $('countdown').textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+    $('countdown').className = left < 180 ? 'bad' : 'warn';
+  }
+  function show(kind, text, small) {
+    var m = $('msg'); m.className = 'msg ' + kind; m.textContent = text;
+    if (small) { var s = document.createElement('small'); s.textContent = small; m.appendChild(s); }
+  }
+
+  $('auctions').addEventListener('click', function (e) { var tr = e.target.closest('tr'); if (tr) select(tr.dataset.id); });
+  $('auctions').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { var tr = e.target.closest('tr'); if (tr) { e.preventDefault(); select(tr.dataset.id); } } });
+  $('ticket').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (state.busy || !state.selected) return;
+    var a = state.auctions.find(function (x) { return x.auctionId === state.selected; });
+    var body = { auctionId: a.auctionId, nominalMn: parseFloat($('nominal').value), yieldPct: parseFloat($('yield').value) };
+    state.busy = true; $('submit').disabled = true; $('submit').textContent = 'Submitting\u2026'; $('msg').className = 'msg';
+    fetch(API + '/bids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (d) { return { status: r.status, d: d }; }); })
+      .then(function (res) {
+        if (res.status === 201) { show('ok', 'Bid accepted: ' + money(res.d.nominalMn, res.d.currency) + ' at ' + res.d.yieldPct.toFixed(3) + '%', 'Reference ' + res.d.bidId); return load(); }
+        if (res.status >= 500) {
+          state.rejected.push({ auctionId: a.auctionId, security: a.security, nominalMn: body.nominalMn, yieldPct: body.yieldPct, currency: a.currency, status: 'NOT ACCEPTED', requestId: res.d.requestId, at: new Date().toISOString() });
+          show('err', res.d.error || 'Bid not accepted.', 'Reference ' + (res.d.requestId || 'n/a') + '. Your bid has not been placed.');
+          renderAuctions(); renderBids(); renderImpact();
+        } else { show('err', res.d.error || 'Bid not accepted.'); }
+      })
+      .catch(function () { show('err', 'Bid not accepted. Check your connection and try again.'); })
+      .then(function () { state.busy = false; $('submit').disabled = false; $('submit').textContent = 'Submit bid'; });
+  });
+
+  fetch(API + '/config').then(function (r) { return r.json(); }).then(function (c) { $('disclaimer').textContent = c.disclaimer; });
+  load(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
