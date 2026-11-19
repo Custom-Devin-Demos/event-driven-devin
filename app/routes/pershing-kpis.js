@@ -35,6 +35,7 @@ const run = (fn) => async (req, res) => {
 
 router.post('/api/pershing-kpis/seed', verifySessionSecret, run((body) => kpis.seed({ from: body.from, to: body.to })));
 router.post('/api/pershing-kpis/next-day', verifySessionSecret, run((body) => kpis.nextDay({ date: body.date })));
+router.post('/api/pershing-kpis/clear', verifySessionSecret, run(() => kpis.clearChannel()));
 router.post('/api/pershing-kpis/reset', verifySessionSecret, run(async () => { kpis.resetState(); return kpis.getState(); }));
 
 module.exports = router;

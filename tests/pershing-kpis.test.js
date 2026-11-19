@@ -3,6 +3,8 @@ jest.mock('../app/services/slack', () => ({
   inviteToChannel: jest.fn(() => Promise.resolve(true)),
   joinChannel: jest.fn(() => Promise.resolve(true)),
   getThreadReplies: jest.fn(() => Promise.resolve([])),
+  getChannelHistory: jest.fn(() => Promise.resolve([])),
+  deleteMessage: jest.fn(() => Promise.resolve(true)),
 }));
 jest.mock('../app/services/devin-api', () => ({
   sendDevinSessionMessage: jest.fn(() => Promise.resolve({ sessionId: 'bot-59656379ddc5470281166b1458334c2c', url: 'https://app.devin.ai/bots/x' })),
@@ -11,7 +13,9 @@ jest.mock('../app/services/devin-api', () => ({
 jest.mock('axios', () => ({ post: jest.fn(() => Promise.resolve({ status: 200 })) }));
 
 const axios = require('axios');
-const { postPersonaMessage, inviteToChannel, getThreadReplies } = require('../app/services/slack');
+const {
+  postPersonaMessage, inviteToChannel, getThreadReplies, getChannelHistory, deleteMessage,
+} = require('../app/services/slack');
 const { sendDevinSessionMessage } = require('../app/services/devin-api');
 const kpis = require('../app/services/pershing-kpis');
 
@@ -80,10 +84,18 @@ describe('Pershing Access KPI posts', () => {
     expect(sendDevinSessionMessage.mock.calls[1][1]).toContain('Jordan Ellis');
   });
 
+  test('a plain-text hand-off that names Jordan also starts the personas', async () => {
+    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "Jordan Ellis, you own the confirm flow, so I'm handing this to you." }]);
+    await kpis.nextDay({ date: '2026-11-16' });
+    await jest.advanceTimersByTimeAsync(5000);
+    await jest.advanceTimersByTimeAsync(10000);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(4);
+  });
+
   test('personas start after the timeout when the Bot never hands off', async () => {
     getThreadReplies.mockResolvedValue([]);
     await kpis.nextDay({ date: '2026-11-16' });
-    await jest.advanceTimersByTimeAsync(615000);
+    await jest.advanceTimersByTimeAsync(375000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(4);
   });
 
@@ -113,6 +125,40 @@ describe('Pershing Access KPI posts', () => {
     release();
     await first;
     await expect(kpis.nextDay({ date: '2026-11-13' })).resolves.toBeTruthy();
+  });
+
+  test('clear deletes KPI posts and persona replies and asks the Bot to clean up its own', async () => {
+    getChannelHistory.mockResolvedValue([
+      { ts: '1.0', username: 'Pershing Access Metrics' },
+      { ts: '2.0', username: 'Pershing Access Metrics', reply_count: 3 },
+      { ts: '3.0', user: 'U0B2YAUPSHL', text: 'someone else' },
+    ]);
+    getThreadReplies.mockResolvedValue([
+      { ts: '2.0' }, { ts: '2.1', username: 'Jordan Ellis' }, { ts: '2.2', user: 'U0CK6TNG7T3' }, { ts: '2.3', username: 'Sofia Alvarez' },
+    ]);
+    const result = await kpis.clearChannel();
+    expect(result).toMatchObject({ deleted: 4, botThreads: ['2.0'], botAsked: true });
+    expect(deleteMessage.mock.calls.map((c) => c[2]).sort()).toEqual(['1.0', '2.0', '2.1', '2.3']);
+    expect(sendDevinSessionMessage.mock.calls[0][1]).toContain('thread_ts 2.0');
+  });
+
+  test('clear keeps Bot thread roots when the Bot cannot be asked, so a retry can find them', async () => {
+    sendDevinSessionMessage.mockResolvedValueOnce(null);
+    getChannelHistory.mockResolvedValue([{ ts: '2.0', username: 'Pershing Access Metrics', reply_count: 1 }]);
+    getThreadReplies.mockResolvedValue([{ ts: '2.0' }, { ts: '2.2', user: 'U0CK6TNG7T3' }]);
+    const result = await kpis.clearChannel();
+    expect(result).toMatchObject({ deleted: 0, botAsked: false });
+    expect(deleteMessage).not.toHaveBeenCalled();
+  });
+
+  test('clear cancels persona replies still scheduled for the cleared thread', async () => {
+    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
+    await kpis.nextDay({ date: '2026-11-16' });
+    await jest.advanceTimersByTimeAsync(5000);
+    getChannelHistory.mockResolvedValue([]);
+    await kpis.clearChannel();
+    await jest.advanceTimersByTimeAsync(20000);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
   });
 
   test('a continuing drop day does not page the Bot again', async () => {

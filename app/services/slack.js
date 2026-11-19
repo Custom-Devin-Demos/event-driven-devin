@@ -874,4 +874,5 @@ module.exports = {
   archiveChannel,
   getChannelHistory,
   getThreadReplies,
+  deleteMessage,
 };

@@ -1,7 +1,9 @@
 const axios = require('axios');
 const kpiData = require('../../config/pershing/kpi-days.json');
 const personaScript = require('../../config/pershing/kpi-personas.json');
-const { postPersonaMessage, inviteToChannel, joinChannel, getThreadReplies } = require('./slack');
+const {
+  postPersonaMessage, inviteToChannel, joinChannel, getThreadReplies, getChannelHistory, deleteMessage,
+} = require('./slack');
 const { sendDevinSessionMessage } = require('./devin-api');
 const logger = require('../telemetry/logger');
 
@@ -16,7 +18,9 @@ const ANDROID_REPO = 'COG-GTM/android-demos';
 const ANDROID_BRANCH = 'devin/1795069865-pershing-access-android';
 
 const days = kpiData.days;
-const state = { lastDate: null, lastRun: null, busy: false, handoffTimer: null };
+const state = {
+  lastDate: null, lastRun: null, busy: false, handoffTimer: null, personaTimers: [],
+};
 
 const channelId = () => process.env.PERSHING_KPI_CHANNEL_ID || DEFAULT_CHANNEL_ID;
 const slackToken = () => process.env.PERSHING_KPI_SLACK_TOKEN || process.env.SLACK_ONCALL_BOT_TOKEN || '';
@@ -126,7 +130,7 @@ function buildBotPage({ date, threadTs, analysis }) {
     `2. Find which segment carries the drop and why. The data and app are in ${ANDROID_REPO} on branch \`${ANDROID_BRANCH}\`, app \`apps/b113a373\` (Pershing Access): daily KPIs in \`metrics/daily_kpis.csv\`, the per-session transfer funnel in \`metrics/events_sample.csv\` (segment by app_version and os_version), and the transfer flow code (start with the confirm step and the 2.4.0 changes).`,
     '3. Post your analysis in the thread as a short prose write-up, the way a teammate would: two or three plain-language paragraphs, no bullet lists or bold headings. Cover the segment, its share of Android sessions, how much of the drop it explains, the root cause with file and line, and the proposed fix.',
     '4. Follow up on your own analysis: check it a second way (for example, recompute Android completion without the affected segment and compare it with web and the pre-2.4.0 baseline) and post what that confirms. With that follow-up, attach a polished, self-contained HTML report of the analysis to the thread: a daily completion trend by platform, the funnel by OS version for 2.4.0, the root cause with the code excerpt, and the proposed fix.',
-    `5. Then hand it to the expert by name, for example: "I've done this analysis, @${expert.username}, can you jump in and look deeper?"`,
+    `5. Then hand it to the expert in its own message, using exactly this line: "I've done this analysis, @${expert.username}, can you jump in and look deeper?"`,
     '6. Questions from the team are forwarded to you here as they are posted. Answer each person by name in the thread.',
     `7. If you are asked for the fix, open a PR against \`${ANDROID_BRANCH}\` with a regression test for Android 12 and link it in the thread. Never merge it; the planted bug must stay on that branch for the demo.`,
     '',
@@ -147,20 +151,27 @@ function playScript(token, channel, threadTs) {
   for (const line of personaScript.script) {
     const persona = byId[line.persona];
     if (!persona) continue;
-    setTimeout(async () => {
+    state.personaTimers.push(setTimeout(async () => {
       try {
         await postPersonaMessage(token, channel, line.text, persona.username, iconUrl(persona.icon), threadTs);
         if (line.asksBot) await pageBot({ message: relayPersonaReply(persona, line.text, threadTs), threadTs });
       } catch (err) {
         logger.warn('Pershing KPI persona message failed', { persona: persona.id, error: err.message });
       }
-    }, line.afterHandoffMs).unref();
+    }, line.afterHandoffMs).unref());
   }
 }
 
+const HANDOFF_WORDS = /look deeper|jump in|hand(ing|ed)? (this|it) (over |off )?to you|over to you|take it from here/i;
+
 function botHandedOff(messages, expertName) {
-  const mention = new RegExp(`@[*_\\s]*${expertName.split(' ')[0]}`, 'i');
-  return messages.some((m) => m.user === botSlackId() && mention.test(m.text || ''));
+  const first = expertName.split(' ')[0];
+  const mention = new RegExp(`@[*_\\s]*${first}`, 'i');
+  const named = new RegExp(`\\b${first}\\b`, 'i');
+  return messages.some((m) => {
+    const text = m.text || '';
+    return m.user === botSlackId() && (mention.test(text) || (named.test(text) && HANDOFF_WORDS.test(text)));
+  });
 }
 
 // The team joins once the Bot hands the thread to the expert, or after the timeout.
@@ -287,6 +298,47 @@ async function nextDay({ date } = {}) {
   });
 }
 
+// Deletes this demo's posts (KPI posts and persona replies) and asks the Bot to delete its own replies.
+async function clearChannel() {
+  const token = slackToken();
+  if (!token) throw Object.assign(new Error('Slack token not configured'), { status: 503 });
+  const channel = channelId();
+  const personaNames = new Set(personaScript.personas.map((p) => p.username));
+  return exclusive(async () => {
+    cancelScheduled();
+    const history = await getChannelHistory(token, channel, { limit: 200 });
+    const roots = history.filter((m) => m.username === personaScript.reporter.username);
+    const threads = new Map();
+    for (const root of roots) {
+      threads.set(root.ts, root.reply_count ? (await getThreadReplies(token, channel, root.ts)).slice(1) : []);
+    }
+    const botThreads = roots.filter((r) => threads.get(r.ts).some((m) => m.user === botSlackId())).map((r) => r.ts);
+    let botAsked = false;
+    if (botThreads.length) {
+      botAsked = Boolean(await pageBot({
+        message: `Demo reset for #bny-pershing-access-android-app-metrics (channel ${channel}): delete every message you posted in the threads with thread_ts ${botThreads.join(', ')}, including attached files. Do not post anything.`,
+        threadTs: botThreads[0],
+      }));
+    }
+    let deleted = 0;
+    for (const root of roots) {
+      for (const reply of threads.get(root.ts)) {
+        if (personaNames.has(reply.username)) {
+          await deleteMessage(token, channel, reply.ts);
+          deleted += 1;
+        }
+      }
+      // Keep a root the Bot still has replies under when it could not be asked, so a retry finds it.
+      if (!botAsked && botThreads.includes(root.ts)) continue;
+      await deleteMessage(token, channel, root.ts);
+      deleted += 1;
+    }
+    state.lastDate = null;
+    state.lastRun = null;
+    return { deleted, botThreads, botAsked };
+  });
+}
+
 function getState() {
   return {
     channelId: channelId(),
@@ -300,11 +352,19 @@ function getState() {
   };
 }
 
-function resetState() {
+function cancelScheduled() {
   clearTimeout(state.handoffTimer);
   state.handoffTimer = null;
+  state.personaTimers.forEach(clearTimeout);
+  state.personaTimers = [];
+}
+
+function resetState() {
+  cancelScheduled();
   state.lastDate = null;
   state.lastRun = null;
 }
 
-module.exports = { renderDay, analyzeDay, buildBotPage, seed, nextDay, postDay, getState, resetState };
+module.exports = {
+  renderDay, analyzeDay, buildBotPage, seed, nextDay, postDay, getState, resetState, clearChannel,
+};
