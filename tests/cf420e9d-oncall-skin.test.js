@@ -114,7 +114,7 @@ describe('Xfinity My Account on-call skin', () => {
     expect(skin.devinSession.auto).toBe(true);
     expect(skin.devinSession.onCallIsTriggerer).toBe(true);
     expect(skin.devinSession.repo).toBeUndefined();
-    expect(skin.onCallSlackMemberId).toBe('U0BQZBHCNMA');
+    expect(skin.onCallSlackMemberId).toBe('U0BLF6TLGP4');
     expect(skin.devinSession.promptAppendix).toMatch(/do not merge or deploy/);
   });
 
@@ -188,7 +188,7 @@ describe('Xfinity My Account on-call skin', () => {
     expect(Sentry.captureException.mock.calls[0][0].message).toMatch(/reading 'authorize'/);
     expect(postMessage).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
-    expect(queueIncidentChannelInvites).toHaveBeenCalledWith({ publicId: 518, userIds: ['U0BQZBHCNMA'] });
+    expect(queueIncidentChannelInvites).toHaveBeenCalledWith({ publicId: 518, userIds: ['U0BLF6TLGP4'] });
   });
 
   test('valid payments have their own hourly limit, invalid ones consume none', async () => {
