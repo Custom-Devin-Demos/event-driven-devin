@@ -41,7 +41,18 @@ const RESPONDER_NOTES = [
 const DEALER = { name: 'Meridian Capital Markets', role: 'Gilt-edged Market Maker', user: 'AMORGAN', firmId: 'MCMK' };
 
 const DMO = 'UK Debt Management Office';
-const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
+/** ISO date `offset` business days from today (weekends skipped; today counts if it is a weekday). */
+function day(offset) {
+  const date = new Date();
+  const step = offset < 0 ? -1 : 1;
+  const weekend = () => date.getUTCDay() === 0 || date.getUTCDay() === 6;
+  while (weekend()) date.setUTCDate(date.getUTCDate() + step);
+  for (let left = Math.abs(offset); left > 0;) {
+    date.setUTCDate(date.getUTCDate() + step);
+    if (!weekend()) left -= 1;
+  }
+  return date.toISOString().slice(0, 10);
+}
 
 /** Today's auction is open for bidding; the rest of the calendar is announced but not yet open. */
 const AUCTIONS = [
