@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EOD Snapshot Publish | Fenics MarketData</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0b2a5b;
+      --navy-2: #12397a;
+      --navy-3: #0a2048;
+      --gold: #c8962e;
+      --gold-2: #e0b04c;
+      --page: #f3f5f9;
+      --card: #ffffff;
+      --ink: #14213d;
+      --muted: #56627a;
+      --muted-2: #8b95a8;
+      --line: #e2e7ef;
+      --line-2: #cfd7e3;
+      --tile: #1a2233;
+      --tile-2: #222c40;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --ok: #1f8a4c;
+      --ok-bg: #e5f5ec;
+      --warn: #9a6300;
+      --warn-bg: #fff3d6;
+      --err: #b42318;
+      --err-bg: #fdecec;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--page); }
+    body { font: 13px/1.45 Inter, "Segoe UI", Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+    a { color: var(--navy-2); text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    .num, .mono { font-variant-numeric: tabular-nums; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; }
+
+    /* Fenics utility + main nav */
+    .util { background: #eef1f6; border-bottom: 1px solid var(--line); height: 34px; display: flex; align-items: center; gap: 22px; padding: 0 28px; font: 600 11px/1 Montserrat, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); overflow-x: auto; white-space: nowrap; }
+    .util a { color: var(--muted); }
+    .util a.on { color: var(--navy); border-bottom: 2px solid var(--gold); padding-bottom: 9px; margin-bottom: -11px; }
+    .util .sp { margin-left: auto; }
+    .top { background: var(--navy); color: #fff; height: 64px; display: flex; align-items: center; gap: 28px; padding: 0 28px; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 0 var(--gold); }
+    .brand { display: flex; align-items: center; gap: 12px; flex: none; }
+    .brand-word { font: 800 22px/1 Montserrat, sans-serif; letter-spacing: -.01em; }
+    .brand-sep { width: 1px; height: 26px; background: rgba(255,255,255,.35); }
+    .brand-sub { font: 600 15px/1 Montserrat, sans-serif; color: var(--gold-2); letter-spacing: .01em; }
+    .nav { display: flex; gap: 22px; font: 600 12.5px/1 Montserrat, sans-serif; letter-spacing: .02em; }
+    .nav a { color: #c9d4e8; padding: 24px 0 22px; border-bottom: 3px solid transparent; }
+    .nav a.on { color: #fff; border-bottom-color: var(--gold); }
+    .top-r { margin-left: auto; display: flex; align-items: center; gap: 14px; flex: none; }
+    .env { font: 700 10.5px/1 Montserrat, sans-serif; letter-spacing: .08em; background: rgba(200,150,46,.18); color: var(--gold-2); border: 1px solid rgba(224,176,76,.5); padding: 6px 9px; border-radius: 3px; }
+    .clock { color: #c9d4e8; font-size: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: var(--navy); display: grid; place-items: center; font: 700 12px/1 Montserrat, sans-serif; }
+
+    main { max-width: 1360px; margin: 0 auto; padding: 20px 28px 48px; }
+    .crumbs { color: var(--muted); font-size: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .crumbs i { font-style: normal; color: var(--muted-2); }
+    .ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 6px 0 16px; flex-wrap: wrap; }
+    .ph h1 { margin: 0; font: 700 23px/1.2 Montserrat, sans-serif; letter-spacing: -.01em; color: var(--navy); }
+    .ph h1 small { display: block; font: 500 12.5px/1.4 Inter, sans-serif; color: var(--muted); margin-top: 4px; letter-spacing: 0; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; font-weight: 600; font-size: 12px; white-space: nowrap; }
+    .chip.warn { background: var(--warn-bg); color: var(--warn); }
+    .chip.info { background: #e6edf9; color: var(--navy-2); }
+
+    /* Lucera-style host strip */
+    .host { background: var(--tile); border-radius: 8px; color: #dbe2ee; padding: 14px 16px 16px; margin-bottom: 18px; }
+    .host-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .host-h strong { font: 700 13px/1 Montserrat, sans-serif; color: #fff; letter-spacing: .02em; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .host-h .meta { color: #8f9bb3; font-size: 12px; }
+    .host-h .meta b { color: #c7d0e0; font-weight: 600; }
+    .host-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 2.2fr); gap: 10px; }
+    .tile { background: var(--tile-2); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+    .tile small { display: flex; align-items: center; gap: 6px; color: #8f9bb3; font: 700 10.5px/1 Montserrat, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .tile strong { display: block; margin-top: 8px; font: 600 22px/1.1 Inter, sans-serif; color: #fff; }
+    .tile em { display: block; font-style: normal; color: #8f9bb3; font-size: 11.5px; margin-top: 4px; }
+    .tile .bar { height: 4px; background: #333e55; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .tile .bar i { display: block; height: 100%; background: var(--gold); }
+    .tile.chart { padding-bottom: 6px; }
+    .legend { display: flex; gap: 12px; margin-left: auto; font: 600 10.5px/1 Inter, sans-serif; color: #8f9bb3; letter-spacing: 0; text-transform: none; }
+    .legend i { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-right: 4px; }
+    #tput { width: 100%; height: 74px; display: block; margin-top: 6px; }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 2px rgba(11,42,91,.05); }
+    .card-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
+    .card-h h2, .card h2 { margin: 0; font: 700 14.5px/1.3 Montserrat, sans-serif; color: var(--navy); }
+    .card-h p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .btn { height: 32px; padding: 0 12px; border-radius: 4px; border: 1px solid var(--line-2); background: #fff; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; }
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th { text-align: left; font: 700 10.5px/1 Montserrat, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-2); padding: 10px 16px; background: #f8fafc; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td .s { display: block; color: var(--muted-2); font-size: 11.5px; margin-top: 2px; }
+    td.r, th.r { text-align: right; }
+    .v { font-weight: 600; }
+    .st { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+    .st.stg { background: #e6edf9; color: var(--navy-2); }
+    .st.ok { background: var(--ok-bg); color: var(--ok); }
+    .st.er { background: var(--err-bg); color: var(--err); }
+    .tbl-f { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 16px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); background: #fbfcfe; border-radius: 0 0 8px 8px; }
+
+    .side { display: grid; gap: 18px; }
+    .pub { padding: 16px; border-top: 3px solid var(--gold); }
+    .pub > p { margin: 4px 0 14px; color: var(--muted); font-size: 12px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font: 700 10.5px/1 Montserrat, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; height: 38px; border: 1px solid var(--line-2); border-radius: 4px; padding: 0 10px; background: #fff; outline: none; }
+    .field select:focus, .field input:focus { border-color: var(--navy-2); box-shadow: 0 0 0 3px rgba(18,57,122,.12); }
+    .sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 14px; }
+    .sum div { background: #f5f7fb; border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
+    .sum span { display: block; color: var(--muted-2); font-size: 11px; }
+    .sum strong { font-size: 13px; color: var(--navy); }
+    #submitBtn { width: 100%; height: 42px; border: 0; border-radius: 4px; background: var(--gold); color: var(--navy-3); font: 700 13.5px/1 Montserrat, sans-serif; letter-spacing: .02em; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    #submitBtn:hover { background: var(--gold-2); }
+    #submitBtn:disabled { opacity: .75; cursor: progress; }
+    .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(10,32,72,.3); border-top-color: var(--navy-3); animation: sp .8s linear infinite; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    .fine { color: var(--muted-2); font-size: 11.5px; margin: 10px 0 0; }
+    #result { margin-top: 12px; font-size: 12.5px; border-radius: 4px; }
+    #result:empty { display: none; }
+    #result.busy { background: #eef3fb; color: var(--navy-2); padding: 10px 12px; }
+    #result.ok { background: var(--ok-bg); color: var(--ok); padding: 10px 12px; }
+    #result.err { background: var(--err-bg); color: var(--err); padding: 10px 12px; }
+
+    .sla ul { list-style: none; margin: 0; padding: 4px 16px 10px; }
+    .sla li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .sla li:last-child { border-bottom: 0; }
+    .sla li span { flex: 1; }
+    .sla li em { font-style: normal; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .ck { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+    .ck.y { background: var(--ok); }
+    .ck.p { border: 2px solid var(--gold); }
+    .ck.n { border: 2px solid var(--line-2); }
+    .ck.x { background: var(--err); }
+
+    footer { max-width: 1360px; margin: 0 auto; padding: 0 28px 32px; color: var(--muted-2); font-size: 11.5px; }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .host-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tile.chart { grid-column: 1 / -1; }
+      .nav { display: none; }
+    }
+    @media (max-width: 640px) {
+      .util { padding: 0 16px; }
+      .top { padding: 0 16px; gap: 12px; height: 56px; }
+      .brand-word { font-size: 18px; }
+      .brand-sub { font-size: 12.5px; }
+      .clock { display: none; }
+      main { padding: 16px 14px 36px; }
+      .ph h1 { font-size: 19px; }
+      .sum { grid-template-columns: 1fr 1fr 1fr; }
+      footer { padding: 0 14px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util" aria-label="Fenics markets">
+    <a href="#">FMX</a><a href="#">FMX Futures Exchange</a><a href="#">Fenics Direct</a><a href="#">US Treasuries</a><a href="#">Repo</a><a href="#">FX</a><a href="#">NDF</a><a href="#" class="on">Market Data</a><a href="#">Fenics GO</a>
+    <a href="#" class="sp">Client support</a>
+  </div>
+  <header class="top">
+    <div class="brand"><span class="brand-word">Fenics</span><span class="brand-sep"></span><span class="brand-sub">MarketData</span></div>
+    <nav class="nav" aria-label="MarketData">
+      <a href="#">Data Catalog</a><a href="#" class="on">Delivery Console</a><a href="#">Subscribers</a><a href="#">Entitlements</a><a href="#">Analytics</a>
+    </nav>
+    <div class="top-r">
+      <span class="env">PROD &middot; NY4</span>
+      <span class="clock mono" id="clock">17:04:12 ET</span>
+      <span class="avatar" aria-label="Signed in as Daniel Okafor">DO</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="crumbs"><a href="#">MarketData</a><i>/</i><a href="#">Delivery Console</a><i>/</i><span>EOD snapshot publish</span></div>
+    <div class="ph">
+      <h1>End-of-day snapshot publish<small>FX options, NDF and US Treasury closing marks for licensed subscribers</small></h1>
+      <div class="chips">
+        <span class="chip warn">17:00 NY close &middot; publish window closes 17:30 ET</span>
+        <span class="chip info">Snapshot FMD-20261119-1700</span>
+      </div>
+    </div>
+
+    <section class="host" aria-label="Publisher host">
+      <div class="host-h">
+        <span class="dot" aria-hidden="true"></span>
+        <strong>fmd-snap-ny4-02</strong>
+        <span class="meta">Datacenter <b>NY4</b> &middot; OS <b>Win2008-enterprise</b> &middot; IP <b class="mono">10.20.1.73</b> &middot; Snapshot publisher <b>v2026.11.2</b></span>
+      </div>
+      <div class="host-grid">
+        <div class="tile"><small>CPU</small><strong class="num">26%</strong><em>8 cores &middot; 3.4 GHz</em><div class="bar"><i style="width:26%"></i></div></div>
+        <div class="tile"><small>Network</small><strong class="num">418 Mb/s</strong><em>in 132 &middot; out 286</em><div class="bar"><i style="width:42%"></i></div></div>
+        <div class="tile"><small>Disk</small><strong class="num">61%</strong><em>1.22 / 2.00 TB tick store</em><div class="bar"><i style="width:61%"></i></div></div>
+        <div class="tile"><small>RAM</small><strong class="num">40.2 GB</strong><em>of 64 GB &middot; curve cache warm</em><div class="bar"><i style="width:63%"></i></div></div>
+        <div class="tile chart"><small>Ticks / sec &middot; last 15 min<span class="legend"><span><i style="background:#3b82f6"></i>FX vol</span><span><i style="background:#ef4444"></i>UST</span></span></small><svg id="tput" viewBox="0 0 300 74" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card" aria-label="Subscriber deliveries">
+        <div class="card-h">
+          <div><h2>Subscriber deliveries</h2><p>Staged for the 17:00 NY close &middot; 6 distribution endpoints &middot; 214 licensed firms</p></div>
+          <button class="btn" type="button">Entitlement report</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Subscriber endpoint</th><th>Datasets</th><th class="r">Instruments</th><th>SLA</th><th>Last delivered</th><th>Status</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="tbl-f"><span>6 of 6 endpoints staged &middot; prior close delivered 11/18 17:06:41 ET</span><span class="num">Snapshot size <strong>18,432 instruments &middot; 2.7 GB</strong></span></div>
+      </section>
+
+      <div class="side">
+        <section class="card pub" aria-label="Publish snapshot">
+          <h2>Publish EOD snapshot</h2>
+          <p>Releases the closing snapshot to every entitled subscriber feed and stamps the official Fenics close.</p>
+          <form id="transferForm">
+            <div class="field">
+              <label for="fromAccount">Snapshot dataset</label>
+              <select id="fromAccount">
+                <option value="FMD-FXV-EOD">FX options vol surfaces &middot; G10 + EM (17:00 NY)</option>
+                <option value="FMD-UST-EOD">US Treasury curve &middot; on-the-run + OTR spreads</option>
+                <option value="FMD-NDF-EOD">NDF forward points &middot; Asia + LatAm</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">Distribution</label>
+              <select id="toAccount">
+                <option value="DIST-ALL-SUBSCRIBERS">All entitled subscribers (6 endpoints)</option>
+                <option value="DIST-VENDOR-ONLY">Vendor redistribution only (B-PIPE, LSEG, ICE)</option>
+                <option value="DIST-DIRECT-ONLY">Direct client feeds only</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="amount">Instruments in snapshot</label>
+              <input id="amount" type="number" inputmode="numeric" min="0" step="1" value="18432">
+            </div>
+            <div class="field">
+              <label for="accountTier">Surface detail</label>
+              <select id="accountTier">
+                <option value="standard">Full surface (all tenors &times; 5 deltas)</option>
+                <option value="basic">ATM + 25&Delta; RR/BF only</option>
+              </select>
+            </div>
+            <div class="sum">
+              <div><span>Subscribers</span><strong class="num">214</strong></div>
+              <div><span>Endpoints</span><strong class="num">6</strong></div>
+              <div><span>Close</span><strong class="num">17:00 NY</strong></div>
+            </div>
+            <button type="submit" id="submitBtn">Publish EOD snapshot</button>
+            <p class="fine">Validated by Market Data QA (Priya Raman, 17:02 ET) &middot; Publisher: Daniel Okafor</p>
+            <div id="result" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <section class="card sla" aria-label="Close checklist">
+          <div class="card-h"><div><h2>17:00 close checklist</h2><p>Fenics MarketData &middot; FX &amp; Rates</p></div></div>
+          <ul>
+            <li><i class="ck y"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 5.2l2 2 4-4.4" stroke="#fff" stroke-width="1.6" fill="none"/></svg></i><span>Venue fixes captured (FMX, Fenics Direct)</span><em>17:00:04</em></li>
+            <li><i class="ck y"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 5.2l2 2 4-4.4" stroke="#fff" stroke-width="1.6" fill="none"/></svg></i><span>Surfaces calibrated &amp; arbitrage-checked</span><em>17:01:38</em></li>
+            <li><i class="ck y"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 5.2l2 2 4-4.4" stroke="#fff" stroke-width="1.6" fill="none"/></svg></i><span>QA sign-off</span><em>17:02</em></li>
+            <li><i class="ck p" id="ckPub"></i><span>Snapshot published to subscribers</span><em id="ckPubNote">0 / 6</em></li>
+            <li><i class="ck n"></i><span>Close stamped &amp; archived</span><em>Not started</em></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer>&copy; 2026 Fenics MarketData demo console. Market data shown is synthetic.</footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var ROWS = [
+        ['Bloomberg B-PIPE', 'Vendor redistribution', 'FXV, UST, NDF', 18432, 'T+6 min', '11/18 17:05:12'],
+        ['LSEG DataScope Select', 'Vendor redistribution', 'FXV, UST', 14108, 'T+8 min', '11/18 17:06:03'],
+        ['ICE Connect', 'Vendor redistribution', 'UST, NDF', 6214, 'T+10 min', '11/18 17:06:41'],
+        ['Murex MX.3 \u00b7 Tier-1 bank (direct)', 'Client risk / EOD marks', 'FXV, NDF', 9876, 'T+5 min', '11/18 17:04:58'],
+        ['Calypso \u00b7 Asset manager (direct)', 'Client valuations', 'FXV', 7342, 'T+5 min', '11/18 17:05:20'],
+        ['Fenics GO pricing engine', 'Internal \u00b7 options pricer', 'FXV', 12290, 'T+2 min', '11/18 17:02:44'],
+      ];
+      function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      var rowsEl = document.getElementById('rows');
+      function render(status) {
+        var st = status === 'delivered' ? '<span class="st ok">Delivered</span>'
+          : status === 'failed' ? '<span class="st er">Not delivered</span>'
+          : '<span class="st stg">Staged</span>';
+        rowsEl.innerHTML = ROWS.map(function (r) {
+          return '<tr><td><span class="v">' + esc(r[0]) + '</span><span class="s">' + esc(r[1]) + '</span></td>'
+            + '<td>' + esc(r[2]) + '</td>'
+            + '<td class="r num">' + r[3].toLocaleString('en-US') + '</td>'
+            + '<td>' + esc(r[4]) + '</td>'
+            + '<td class="num">' + esc(r[5]) + ' ET</td><td>' + st + '</td></tr>';
+        }).join('');
+      }
+      render('staged');
+
+      // Lucera-style throughput sparkline
+      var svg = document.getElementById('tput');
+      function line(seed, base, amp, color) {
+        var pts = [];
+        for (var i = 0; i <= 60; i++) {
+          var y = base + Math.sin(i / 4 + seed) * amp + Math.sin(i * 1.7 + seed * 3) * amp * 0.35;
+          pts.push((i * 5) + ',' + Math.max(4, Math.min(70, y)).toFixed(1));
+        }
+        return '<polyline fill="none" stroke="' + color + '" stroke-width="1.6" points="' + pts.join(' ') + '"/>';
+      }
+      svg.innerHTML = '<path d="M0 18H300M0 37H300M0 56H300" stroke="#333e55" stroke-width=".6"/>'
+        + line(0.4, 30, 12, '#3b82f6') + line(2.1, 50, 9, '#ef4444');
+
+      var clock = document.getElementById('clock');
+      var t0 = Date.now();
+      setInterval(function () {
+        var s = 17 * 3600 + 4 * 60 + 12 + Math.floor((Date.now() - t0) / 1000);
+        clock.textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(function (n) { return String(n).padStart(2, '0'); }).join(':') + ' ET';
+      }, 1000);
+
+      var form = document.getElementById('transferForm');
+      var button = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var dataset = document.getElementById('fromAccount');
+      var dist = document.getElementById('toAccount');
+      function label(sel) { return sel.options[sel.selectedIndex].text.split(' \u00b7 ')[0].split(' (')[0]; }
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        button.disabled = true;
+        button.innerHTML = '<span class="spin" aria-hidden="true"></span>Publishing snapshot\u2026';
+        result.className = 'busy';
+        result.textContent = 'Publishing ' + label(dataset) + ' to ' + label(dist).toLowerCase() + '\u2026';
+        try {
+          var response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: dataset.value,
+              toAccount: dist.value,
+              amount: parseInt(document.getElementById('amount').value, 10),
+              accountTier: document.getElementById('accountTier').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await response.json();
+          if (!response.ok || !data.receipt) throw new Error('publish failed');
+          render('delivered');
+          document.getElementById('ckPub').className = 'ck y';
+          document.getElementById('ckPub').innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 5.2l2 2 4-4.4" stroke="#fff" stroke-width="1.6" fill="none"/></svg>';
+          document.getElementById('ckPubNote').textContent = '6 / 6';
+          result.className = 'ok';
+          result.textContent = 'Published ' + label(dataset) + ' to ' + label(dist).toLowerCase() + ' (ref ' + data.receipt.receiptId + ').';
+        } catch (_error) {
+          render('failed');
+          document.getElementById('ckPub').className = 'ck x';
+          document.getElementById('ckPubNote').textContent = 'Failed';
+          result.className = 'err';
+          result.textContent = 'Publishing the snapshot timed out. Subscribers have not received the 17:00 NY close and still show prior-day marks. Try again in a few minutes.';
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Publish EOD snapshot';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

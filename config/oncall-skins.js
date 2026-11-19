@@ -94,6 +94,10 @@
  * 5xx rate. The page must show a calm "try again later" message on failure.
  * failAfterMs: <ms> (banking only) ends that hang with the 504 after roughly
  * <ms> instead of the default ~9s.
+ * deployTrigger: { path, body } fires the skin's failing request and its alert
+ * once the skin-creating PR has auto-merged and deployed (PR label
+ * `oncall-skin:auto-merge`, .github/workflows/oncall-skin-automerge.yml,
+ * scripts/oncall-deploy-trigger.js).
  *
  * Skins are direct-URL only: the stock /oncall hub never lists customers,
  * and each skin is reachable solely by its own /oncall/c/<slug> URL. Skins on a
@@ -3351,6 +3355,32 @@ const ONCALL_SKINS = {
       impact: 'Multi-location operators at period close cannot post approved AP batches (e.g. 1,284 invoices across 40 locations) to the general ledger, so the period cannot be closed and P&L reports are incomplete.',
     },
     disclaimer: 'NOT ACTUALLY A RESTAURANT365 SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Restaurant365 product.',
+  },
+  'c83477cf': {
+    slug: 'c83477cf',
+    company: 'Fenics Market Data',
+    vertical: 'banking',
+    oncallOnly: true,
+    failAfterHang: true,
+    page: { file: 'c83477cf.html', title: 'EOD Snapshot Publish | Fenics MarketData' },
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    alertCard: {
+      title: 'Failure rate increase — Fenics MarketData: EOD snapshot publish',
+      release: 'fmd-snapshot-publisher@2026.11.2',
+      team: 'fenics-marketdata-oncall',
+      metricValue: '504 on ~100% of EOD snapshot publish requests',
+      threshold: '> 5% error rate per 5m',
+      baseline: '<0.1% (7-day)',
+      symptom: 'Publish EOD snapshot on the Fenics MarketData delivery console hangs ~9s and then fails with 504 Gateway Timeout. No snapshot is released to subscriber feeds; the 17:00 NY close stays Staged – Not Delivered. Latency on the request path is elevated.',
+      impact: 'Subscribers (B-PIPE, LSEG DataScope, ICE Connect, client OMS/risk) do not receive the 17:00 NY close FX options vol surfaces and UST curves, so end-of-day marks, VaR and client valuations run on stale prior-day data.',
+    },
+    deployTrigger: {
+      path: '/api/oncall/banking/transfer',
+      body: { fromAccount: 'FMD-FXV-EOD', toAccount: 'DIST-ALL-SUBSCRIBERS', amount: 18432, accountTier: 'standard' },
+    },
+    disclaimer: 'NOT ACTUALLY A CANTOR FITZGERALD / BGC / FENICS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Fenics Market Data product.',
   },
   '2179350e': {
     slug: '2179350e',

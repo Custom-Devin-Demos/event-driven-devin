@@ -1,0 +1,94 @@
+name: On-call skin auto-merge
+
+# A PR that adds an On-Call customer skin (config/oncall-skins.js) and carries
+# the `oncall-skin:auto-merge` label merges itself once unit-tests pass,
+# deploys, then fires each new skin's deployTrigger so the planted failure and
+# its alert (Slack or Teams, per the skin) land right after the deploy.
+
+on:
+  pull_request:
+    types: [opened, labeled, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+  checks: read
+
+concurrency:
+  group: oncall-skin-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  automerge:
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'oncall-skin:auto-merge')
+      && !github.event.pull_request.draft
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Skins added by this PR
+        id: skins
+        run: |
+          SLUGS=$(git diff "origin/${{ github.base_ref }}...HEAD" -- config/oncall-skins.js \
+            | grep -oE "^\+  '[0-9a-f]{8}': \{" | grep -oE "[0-9a-f]{8}" | sort -u | tr '\n' ' ')
+          if [ -z "$SLUGS" ]; then
+            echo "::error::This PR adds no On-Call skin; oncall-skin:auto-merge only applies to skin-creating PRs."
+            exit 1
+          fi
+          echo "New skins: $SLUGS"
+          echo "slugs=$SLUGS" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for unit-tests
+        run: |
+          for i in $(seq 1 90); do
+            STATE=$(gh api "repos/$REPO/commits/$HEAD_SHA/check-runs?check_name=unit-tests" \
+              --jq '.check_runs[0] | (.status // "") + " " + (.conclusion // "")' || true)
+            echo "unit-tests: ${STATE:-not started}"
+            case "$STATE" in
+              "completed success") exit 0 ;;
+              completed*) echo "::error::unit-tests did not pass"; exit 1 ;;
+            esac
+            sleep 20
+          done
+          echo "::error::Timed out waiting for unit-tests"; exit 1
+
+      - name: Merge
+        run: gh pr merge "$PR" --repo "$REPO" --merge --delete-branch --match-head-commit "$HEAD_SHA"
+
+      # A merge made with GITHUB_TOKEN does not fire push workflows, so start the deploy explicitly.
+      - name: Deploy
+        run: |
+          STARTED=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run deploy.yml --repo "$REPO" --ref main
+          for i in $(seq 1 30); do
+            RUN_ID=$(gh run list --repo "$REPO" --workflow deploy.yml --event workflow_dispatch --limit 5 \
+              --json databaseId,createdAt --jq "[.[] | select(.createdAt >= \"$STARTED\")][0].databaseId // empty")
+            [ -n "$RUN_ID" ] && break
+            sleep 10
+          done
+          [ -n "$RUN_ID" ] || { echo "::error::Deploy run not found"; exit 1; }
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status --interval 30
+
+      - name: Trigger the planted failure
+        env:
+          ONCALL_DEPLOY_TRIGGER_BASE_URL: ${{ vars.ONCALL_DEPLOY_TRIGGER_BASE_URL || 'https://devindemos.com' }}
+          DEPLOY_TRIGGER_DEVIN_EMAIL: ${{ vars.DEPLOY_TRIGGER_DEVIN_EMAIL }}
+        run: |
+          sleep 30
+          node scripts/oncall-deploy-trigger.js ${{ steps.skins.outputs.slugs }}
