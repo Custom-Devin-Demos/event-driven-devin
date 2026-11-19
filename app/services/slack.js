@@ -311,13 +311,13 @@ function buildAlertText(alertData) {
  */
 const pendingOnCallLookups = new WeakMap();
 
-async function resolveOnCallMember(alertData) {
+async function resolveOnCallMember(alertData, token = process.env.SLACK_BOT_TOKEN) {
   if (alertData.slackMemberId) return alertData.slackMemberId;
 
   if (alertData.devinEmail) {
     let lookup = pendingOnCallLookups.get(alertData);
     if (!lookup) {
-      lookup = lookupSlackUserByEmail(process.env.SLACK_BOT_TOKEN, alertData.devinEmail);
+      lookup = lookupSlackUserByEmail(token, alertData.devinEmail);
       pendingOnCallLookups.set(alertData, lookup);
     }
     const memberId = await lookup;
@@ -345,9 +345,9 @@ async function resolveOnCallMember(alertData) {
  * Post the initial alert to Slack and return the thread timestamp.
  * If alertData.devinEmail is set, resolves the email to a Slack member ID
  * and @mentions the user in the alert so they get a notification.
+ * An optional token overrides SLACK_BOT_TOKEN for the post and member lookup.
  */
-async function postAlertToSlack(alertData) {
-  const token = process.env.SLACK_BOT_TOKEN;
+async function postAlertToSlack(alertData, token = process.env.SLACK_BOT_TOKEN) {
   const channel = (alertData.customerConfig && alertData.customerConfig.slackChannelId)
     || process.env.SLACK_CHANNEL_ID;
 
@@ -357,7 +357,7 @@ async function postAlertToSlack(alertData) {
   }
 
   try {
-    await resolveOnCallMember(alertData);
+    await resolveOnCallMember(alertData, token);
 
     const text = buildAlertText(alertData);
     const blocks = buildAlertBlocks(alertData);

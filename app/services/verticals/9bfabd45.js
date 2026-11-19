@@ -124,7 +124,6 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
 ].join('\n');
 
 const DEFAULT_NEXEN_SRE_BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
-const NEXEN_SRE_BOT_SLACK_ID = 'U0BP2PCA79R';
 
 let settlementIncident = null;
 
@@ -136,6 +135,17 @@ function nexenSreBotId() {
   const configured = process.env.NEXEN_SRE_BOT_ID;
   const botId = configured === undefined ? DEFAULT_NEXEN_SRE_BOT_ID : configured.trim();
   return /^bot-[0-9a-f]{32}$/.test(botId) ? botId : null;
+}
+
+function nexenSreBotSlackId() {
+  return (process.env.NEXEN_SRE_BOT_SLACK_ID || '').trim();
+}
+
+function nexenSettlementResponderSlackIds() {
+  const ids = [OWNER.slackMemberId];
+  const botSlackId = nexenSreBotSlackId();
+  if (botSlackId) ids.push(botSlackId);
+  return ids;
 }
 
 function resolveNexenSessionIdentity() {
@@ -190,7 +200,8 @@ async function postSettlementAlert(alertData) {
   const channelId = customerConfig.slackChannelId || process.env.SLACK_CHANNEL_ID || '';
 
   try {
-    const threadTs = await postAlertToSlack(alertData);
+    const token = process.env.SLACK_ONCALL_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
+    const threadTs = await postAlertToSlack(alertData, token);
     return { channelId, threadTs };
   } catch (err) {
     logger.error('Failed to post NEXEN settlement alert to Slack', {
@@ -220,7 +231,9 @@ function scheduleSettlementPersonas(token, channelId, createdAt) {
   for (const line of settlementPersonas.script) {
     const persona = personasById[line.persona];
     if (!persona) continue;
-    const text = line.text.replace(/\{sre_bot\}/g, `<@${NEXEN_SRE_BOT_SLACK_ID}>`);
+    const botSlackId = nexenSreBotSlackId();
+    const sreBotLabel = botSlackId ? `<@${botSlackId}>` : 'SRE Bot';
+    const text = line.text.replace(/\{sre_bot\}/g, sreBotLabel);
     setTimeout(() => {
       postPersonaMessage(token, channelId, text, persona.username, persona.icon)
         .catch((err) => logger.warn('NEXEN settlement persona message failed', {
@@ -312,7 +325,7 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
       personaToken = token;
       channelCreatedAt = Date.now();
       try {
-        await inviteToChannel(token, incidentChannel.id, [OWNER.slackMemberId, NEXEN_SRE_BOT_SLACK_ID]);
+        await inviteToChannel(token, incidentChannel.id, nexenSettlementResponderSlackIds());
       } catch (err) {
         logger.warn('NEXEN settlement responder invitations failed; continuing incident response', {
           reference,
@@ -324,7 +337,7 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
       try {
         queueIncidentChannelInvites({
           publicId: incident.publicId,
-          userIds: [OWNER.slackMemberId, NEXEN_SRE_BOT_SLACK_ID],
+          userIds: nexenSettlementResponderSlackIds(),
         });
       } catch (err) {
         logger.warn('NEXEN settlement Datadog channel invitations failed', {
