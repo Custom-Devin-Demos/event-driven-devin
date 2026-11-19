@@ -376,15 +376,24 @@
   });
 
   // Contact Support: files a ticket to the support desk channel; it never pages on-call.
-  function lastRef() { var r = state.rejected[state.rejected.length - 1]; return r && r.requestId; }
+  function lastRej() { return state.rejected[state.rejected.length - 1]; }
+  function lastRef() { var r = lastRej(); return r && r.requestId; }
   function supClose() { $('support').classList.remove('on'); $('support-open').focus(); }
   $('support-open').addEventListener('click', function (e) {
     e.preventDefault();
-    var a = current(), ref = lastRef();
-    $('sup-ctx').textContent = $('firm').textContent + (a ? ' \u00b7 ' + a.auctionId : '') + (ref ? ' \u00b7 last reference ' + ref : '');
+    var a = current(), rej = lastRej();
+    // A failed bid's reference travels with the auction it was for, not the one now selected.
+    $('sup-ctx').textContent = $('firm').textContent + (rej ? ' \u00b7 ' + rej.auctionId + ' \u00b7 last reference ' + rej.requestId : (a ? ' \u00b7 ' + a.auctionId : ''));
     $('sup-fb').textContent = ''; $('sup-fb').className = 'fb'; $('sup-send').disabled = false;
-    if (ref && !$('sup-title').value) { $('sup-cat').selectedIndex = 0; $('sup-title').value = 'Bid not accepted for ' + (a ? a.security : 'auction'); }
+    if (rej && !$('sup-title').value) { $('sup-cat').selectedIndex = 0; $('sup-title').value = 'Bid not accepted for ' + rej.security; }
     $('support').classList.add('on'); ($('sup-title').value ? $('sup-desc') : $('sup-title')).focus();
+  });
+  $('support').addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab') return;
+    var f = Array.prototype.filter.call($('support').querySelectorAll('button, input, select, textarea'), function (el) { return !el.disabled; });
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
   $('sup-x').addEventListener('click', supClose); $('sup-cancel').addEventListener('click', supClose);
   $('support').addEventListener('click', function (e) { if (e.target === $('support')) supClose(); });
