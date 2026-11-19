@@ -10287,6 +10287,8 @@ const ONCALL_SKINS = {
     slug: '5a3928aa',
     company: 'StoreForce',
     vertical: 'hightech',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: {
       file: '5a3928aa.html',
       title: 'StoreForce | Retail Workforce Management Software',
