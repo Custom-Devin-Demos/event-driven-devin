@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harvey | Professional Class AI for Legal Work</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #fafaf9; --ink: #0f0e0d; --muted: #6b6761; --line: #dcd9d4; --card: #f2f1ee; --dark: #0f0e0d; --dark2: #1a1917; --serif: 'Newsreader', 'Times New Roman', serif; --sans: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.5; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .wrap { max-width: 1392px; margin: 0 auto; padding: 0 32px; }
+    .serif { font-family: var(--serif); font-weight: 400; letter-spacing: -0.02em; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px/1 var(--sans); border-radius: 4px; padding: 11px 14px; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: #fff; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn.ghost { background: transparent; color: var(--ink); }
+    .btn.light { background: #fff; color: var(--ink); border-color: #fff; }
+    .btn.outline-light { background: transparent; color: #fff; border-color: rgba(255,255,255,.7); font-size: 12px; padding: 7px 10px; }
+    .btn.lg { font-size: 16px; padding: 15px 20px; }
+
+    /* Header */
+    header.site { position: sticky; top: 0; z-index: 20; background: rgba(250,250,249,.96); backdrop-filter: blur(8px); }
+    .nav { display: flex; align-items: center; height: 70px; gap: 34px; }
+    .logo { font-family: var(--serif); font-size: 29px; letter-spacing: -0.02em; line-height: 1; }
+    .nav ul { display: flex; gap: 30px; list-style: none; font-size: 14.5px; font-weight: 500; }
+    .nav ul li { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .nav ul li.dd::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+    .nav .right { margin-left: auto; display: flex; gap: 12px; }
+
+    /* Hero */
+    .hero { padding: 56px 0 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(48px, 5.6vw, 82px); line-height: 1.02; letter-spacing: -0.025em; }
+    .hero p { font-size: 20px; line-height: 1.4; max-width: 640px; margin: 8px 0 32px; }
+    .hero-media { border-radius: 8px; overflow: hidden; background: #3b4340; aspect-ratio: 3296/1796; }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Logos */
+    .logos { padding: 96px 0 72px; text-align: center; }
+    .logos h2 { font-size: 30px; margin-bottom: 56px; }
+    .logo-grid { display: grid; grid-template-columns: repeat(6, 1fr); row-gap: 34px; column-gap: 24px; max-width: 1240px; margin: 0 auto; }
+    .logo-grid div { height: 46px; display: flex; align-items: center; justify-content: center; }
+    .logo-grid img { max-height: 46px; max-width: 150px; opacity: .95; }
+
+    /* Platform */
+    .platform { padding: 96px 0; text-align: center; }
+    .platform h2 { font-size: 46px; line-height: 1.1; }
+    .platform > .wrap > p { max-width: 520px; margin: 18px auto 48px; font-size: 15px; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
+    .panel { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1 / 1.02; color: #fff; background: #1d2321 center/cover no-repeat; }
+    .panel .copy { position: absolute; top: 26px; left: 28px; max-width: 330px; }
+    .panel h3 { font-family: var(--serif); font-weight: 400; font-size: 32px; letter-spacing: -0.02em; margin-bottom: 10px; }
+    .panel p { font-size: 15px; line-height: 1.45; margin-bottom: 18px; opacity: .92; }
+
+    /* Harvey II */
+    .intro { padding: 96px 0 40px; text-align: center; }
+    .pill { display: inline-block; background: var(--ink); color: #fff; font: 600 10px/1 var(--sans); letter-spacing: .06em; padding: 6px 8px; border-radius: 4px; margin-bottom: 18px; }
+    .intro h2 { font-size: 46px; }
+    .intro p { max-width: 520px; margin: 14px auto 28px; }
+    .intro .shot { margin: 64px auto 0; max-width: 1220px; border-radius: 8px; overflow: hidden; background: #e6e5e2; padding: 48px 64px 0; }
+    .intro .shot img { border-radius: 6px 6px 0 0; box-shadow: 0 12px 40px rgba(0,0,0,.12); }
+
+    /* Products */
+    .products { padding: 96px 0; display: grid; grid-template-columns: 420px 1fr; gap: 64px; }
+    .products h2 { font: 500 26px/1.25 var(--sans); letter-spacing: -0.01em; margin-bottom: 36px; }
+    .acc div { border-top: 1px solid var(--line); padding: 16px 0; color: var(--muted); font-size: 17px; cursor: pointer; }
+    .acc div.on { color: var(--ink); }
+    .acc div.on span { display: block; font-size: 14px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+    .products .pimg { border-radius: 8px; overflow: hidden; background: var(--card); }
+    .products .pimg img { width: 100%; }
+
+    /* Quote */
+    .quote { background: var(--card); padding: 150px 0; }
+    .quote .wrap { display: grid; grid-template-columns: 1fr 1fr; }
+    .quote blockquote { grid-column: 2; font-family: var(--serif); font-size: 34px; line-height: 1.12; letter-spacing: -0.02em; }
+    .quote cite { display: block; font-style: normal; margin-top: 28px; font: 500 15px var(--sans); }
+    .quote cite small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+
+    /* Dark */
+    .dark { background: var(--dark); color: #fff; }
+    .impact { padding: 120px 0 80px; }
+    .row-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 64px; }
+    .row-head h2 { font: 500 26px var(--sans); letter-spacing: -0.01em; }
+    .stories { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 12px; }
+    .story { position: relative; border-radius: 6px; overflow: hidden; aspect-ratio: 4/3; background: #2b2a28 center/cover; }
+    .story::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55)); }
+    .story p { position: absolute; z-index: 1; left: 24px; right: 24px; bottom: 24px; font-family: var(--serif); font-size: 24px; line-height: 1.15; }
+    .stats { padding: 80px 0 120px; display: grid; grid-template-columns: 1fr 1fr; }
+    .stats h2 { font: 500 26px/1.25 var(--sans); max-width: 380px; margin-bottom: 64px; grid-column: 1 / -1; }
+    .stat { display: contents; }
+    .stat span, .stat b { border-top: 1px solid #2c2b29; padding: 24px 0; }
+    .stat span { font-size: 13px; color: #d8d6d2; }
+    .stat b { font-family: var(--serif); font-weight: 300; font-size: 58px; line-height: 1; letter-spacing: -0.02em; }
+    .security { background: #141311; padding: 120px 0; }
+    .security .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+    .security h2 { font: 500 26px/1.2 var(--sans); max-width: 340px; }
+    .security p { margin: 18px 0 28px; max-width: 440px; color: #d8d6d2; }
+    .cert { display: flex; align-items: center; gap: 18px; border-bottom: 1px solid #2c2b29; padding: 16px 0; font-size: 18px; font-weight: 500; }
+    .cert i { width: 40px; height: 40px; border: 1.5px solid #fff; border-radius: 50%; display: grid; place-items: center; font: 700 10px var(--sans); font-style: normal; }
+    .cert em { margin-left: auto; font-style: normal; color: #a19d97; font-size: 15px; font-weight: 400; }
+    .cta { padding: 64px 0; border-bottom: 1px solid #2c2b29; display: flex; justify-content: space-between; align-items: center; }
+    .cta h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; letter-spacing: -0.02em; }
+    footer.site { padding: 56px 0 40px; display: grid; grid-template-columns: 200px repeat(5, 1fr); gap: 24px; font-size: 13px; }
+    footer.site h4 { color: #a19d97; font-weight: 500; margin-bottom: 14px; font-size: 13px; }
+    footer.site li { list-style: none; margin-bottom: 10px; }
+    footer.site .H { font-family: var(--serif); font-size: 40px; font-weight: 500; line-height: 1; }
+    footer.site .copy { grid-column: 1; align-self: end; color: #a19d97; font-size: 12px; margin-top: 32px; }
+    .disclaimer { text-align: center; font-size: 11px; color: #8a867f; padding: 10px; background: var(--dark); }
+
+    /* Contact sales view */
+    #contact-view { display: none; }
+    body.contact #home-view { display: none; }
+    body.contact #contact-view { display: block; }
+    .c-head { display: flex; align-items: center; justify-content: space-between; height: 100px; }
+    .c-head a.back { font-size: 13px; color: #4a4741; }
+    .c-hero { max-width: 1060px; margin: 0 auto; padding: 72px 32px 56px; }
+    .c-hero h1 { font-family: var(--serif); font-weight: 400; font-size: 72px; line-height: 1.04; letter-spacing: -0.025em; max-width: 600px; }
+    .c-hero p { font-size: 19px; line-height: 1.5; max-width: 660px; margin-top: 36px; }
+    .marquee { overflow: hidden; max-width: 900px; margin: 48px auto 0; padding: 0 32px; mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+    .marquee .track { display: flex; gap: 56px; width: max-content; animation: scroll 40s linear infinite; }
+    .marquee img { height: 34px; width: auto; }
+    @keyframes scroll { to { transform: translateX(-50%); } }
+    .c-form-band { background: #181613 url('https://cdn.sanity.io/images/07s0r5r6/production/4c4ae330b0956737abec4d0915d60a0fbd68688f-2442x2328.png?w=2000&fm=webp') center/cover no-repeat; padding: 64px 32px 72px; margin-top: 56px; }
+    .c-card { max-width: 800px; margin: 0 auto; background: var(--bg); border-radius: 3px; padding: 32px 32px 30px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 32px; }
+    .full { grid-column: 1 / -1; }
+    .field label { display: block; font-size: 14px; margin-bottom: 9px; }
+    .field input, .field select { width: 100%; height: 48px; border: 1px solid #c9c6c1; border-radius: 3px; background: var(--bg); padding: 0 16px; font: 14.5px var(--sans); color: var(--ink); appearance: none; -webkit-appearance: none; }
+    .field select { background-image: linear-gradient(45deg, transparent 50%, #555 50%), linear-gradient(135deg, #555 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 16px) 21px; background-size: 4px 4px; background-repeat: no-repeat; }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--ink); }
+    .field input.bad, .field select.bad { border-color: #b3261e; }
+    .check { display: flex; gap: 14px; align-items: flex-start; font-size: 14.5px; line-height: 1.45; margin: 30px 0 20px; }
+    .check input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 2px; flex: none; }
+    #submit-btn { width: 100%; height: 48px; border-radius: 3px; font-size: 15px; }
+    #submit-btn[disabled] { opacity: 1; cursor: progress; background: #2a2825; }
+    .spin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: rot .8s linear infinite; display: none; }
+    #submit-btn[disabled] .spin { display: inline-block; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    .privacy { text-align: center; color: #e6e3de; font-size: 13px; margin-top: 22px; }
+    .privacy u { text-underline-offset: 2px; }
+    .c-foot { text-align: center; font-size: 13px; color: #4a4741; padding: 36px 0 42px; }
+    .c-foot a { margin: 0 8px; }
+    #thanks { display: none; max-width: 800px; margin: 0 auto; background: var(--bg); border-radius: 3px; overflow: hidden; }
+    #thanks img { width: 100%; height: 260px; object-fit: cover; }
+    #thanks .in { padding: 32px; }
+    #thanks h2 { font-family: var(--serif); font-weight: 400; font-size: 40px; letter-spacing: -0.02em; margin-bottom: 10px; }
+    #thanks dl { display: grid; grid-template-columns: 160px 1fr; gap: 8px 16px; margin: 22px 0 24px; font-size: 14px; border-top: 1px solid var(--line); padding-top: 20px; }
+    #thanks dt { color: var(--muted); }
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 380px; background: #fff; border-left: 4px solid #b3261e; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 14px 18px; font-size: 14px; border-radius: 4px; transform: translateY(150%); transition: transform .25s; z-index: 50; }
+    .toast.show { transform: none; }
+    .toast strong { display: block; margin-bottom: 4px; }
+
+    @media (max-width: 900px) {
+      .nav ul { display: none; } .hero, .split, .products, .quote .wrap, .stats, .security .wrap, .stories { grid-template-columns: 1fr; }
+      .quote blockquote { grid-column: 1; } .logo-grid { grid-template-columns: repeat(3, 1fr); } .grid2 { grid-template-columns: 1fr; } .c-hero h1 { font-size: 48px; }
+      footer.site { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="home-view">
+    <header class="site">
+      <div class="wrap nav">
+        <a class="logo" href="#">Harvey</a>
+        <ul>
+          <li class="dd">Products</li><li class="dd">Solutions</li><li>Customers</li><li>Security</li><li class="dd">Resources</li><li class="dd">Company</li>
+        </ul>
+        <div class="right">
+          <a class="btn ghost" href="#">Login &nbsp;&#8964;</a>
+          <a class="btn" href="#contact-sales" data-demo>Request a Demo</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="wrap hero">
+        <h1>Build a Frontier Legal Organization</h1>
+        <div>
+          <p>The world's top law firms and in-house legal teams trust Harvey with their highest-stakes work.</p>
+          <a class="btn lg" href="#contact-sales" data-demo>Request a Demo</a>
+        </div>
+      </section>
+      <div class="wrap">
+        <div class="hero-media"><img src="https://cdn.sanity.io/images/07s0r5r6/production/acf4a0772c068016f3d3312b1bf191a0e2727114-3296x1796.png?w=2400&fm=webp" alt="Harvey Command Center" onerror="this.style.display='none'"></div>
+      </div>
+
+      <section class="logos wrap">
+        <h2 class="serif">3,500+ Legal Organizations Build on Harvey</h2>
+        <div class="logo-grid" id="logo-grid"></div>
+      </section>
+
+      <section class="platform">
+        <div class="wrap">
+          <h2 class="serif">One Platform for Legal Work</h2>
+          <p>Firms and legal departments do their best work with Harvey. Run everything your team and practice needs on one collaborative platform.</p>
+          <div class="split">
+            <div class="panel" style="background-image:url('https://cdn.sanity.io/images/07s0r5r6/production/16949d43fd0271a3c172c158813685de30c9eaf1-2442x2328.png?w=1400&fm=webp')">
+              <div class="copy"><h3>For Law Firms</h3><p>Run every client matter securely on one platform, with your lawyers and agents working from the same context.</p><a class="btn outline-light" href="#">Explore Harvey for Law Firms</a></div>
+            </div>
+            <div class="panel" style="background-image:url('https://cdn.sanity.io/images/07s0r5r6/production/4c4ae330b0956737abec4d0915d60a0fbd68688f-2442x2328.png?w=1400&fm=webp')">
+              <div class="copy"><h3>For In-House</h3><p>Manage your contracts intelligently, optimize external counsel relationships and hand the repetitive work to agents.</p><a class="btn outline-light" href="#">Explore Harvey for In-House Teams</a></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="intro wrap">
+        <span class="pill">NEW</span>
+        <h2 class="serif">Introducing Harvey II</h2>
+        <p>The most powerful Harvey yet. Smarter agents can now deliver more complex work in exactly the way you like it.</p>
+        <a class="btn" href="#contact-sales" data-demo>Request a Demo</a>
+        <div class="shot"><img src="https://cdn.sanity.io/images/07s0r5r6/production/0b07889e9ecc06391d4192704957517f80e600d7-4350x2430.png?w=2000&fm=webp" alt="Harvey workspace — Project Titan" onerror="this.parentNode.style.display='none'"></div>
+      </section>
+
+      <section class="wrap products">
+        <div>
+          <h2>Product Innovation for the Best Legal Minds</h2>
+          <div class="acc">
+            <div class="on">Agents<span>Delegate multi-step legal work to agents that plan, draft and review alongside your team.</span></div>
+            <div>Spaces</div><div>Vault</div><div>Contract Intelligence</div><div>Command Center</div><div>Research</div>
+          </div>
+        </div>
+        <div class="pimg"><img src="https://cdn.sanity.io/images/07s0r5r6/production/b307d0b133b12acf71cc3770ff557630bb49661d-4350x2430.png?w=1800&fm=webp" alt="Harvey Contract Intelligence" onerror="this.style.display='none'"></div>
+      </section>
+
+      <section class="quote">
+        <div class="wrap">
+          <blockquote>&ldquo;What we have seen at Reed Smith with Harvey is by far the most successful firm technology adoption story I have ever been a part of.&rdquo;
+            <cite>Rich Robbins<small>Director of Applied Artificial Intelligence</small></cite>
+          </blockquote>
+        </div>
+      </section>
+
+      <div class="dark">
+        <section class="wrap impact">
+          <div class="row-head"><h2>Real Impact for Real Clients</h2><a class="btn outline-light" href="#">See More Videos</a></div>
+          <div class="stories">
+            <div class="story" style="background-image:url('https://7vn8ttiyyyh9h7tg.public.blob.vercel-storage.com/thank-you-image.webp')"><p>Repsol uses Harvey for greater time savings across their entire legal team.</p></div>
+            <div class="story" style="background-image:url('https://7vn8ttiyyyh9h7tg.public.blob.vercel-storage.com/404-hero.webp')"><p>Harvey helps A&amp;O Shearman deliver on critical work for clients.</p></div>
+            <div class="story" style="background-image:url('https://cdn.sanity.io/images/07s0r5r6/production/16949d43fd0271a3c172c158813685de30c9eaf1-2442x2328.png?w=900&fm=webp')"><p>How Ashurst scaled Harvey across 30 offices worldwide.</p></div>
+          </div>
+        </section>
+        <section class="wrap stats">
+          <h2>Helping Teams Stay Focused and See Measurable Results</h2>
+          <div class="stat"><span>Average hours saved per month</span><b>25+</b></div>
+          <div class="stat"><span>Professionals using Harvey</span><b>200,000+</b></div>
+          <div class="stat"><span>Law firms and in-house legal teams using Harvey</span><b>3,500+</b></div>
+          <div class="stat"><span>Countries Harvey is used in</span><b>85+</b></div>
+          <div class="stat"><span>AmLaw 100 firms using Harvey</span><b>80+</b></div>
+        </section>
+        <section class="security">
+          <div class="wrap">
+            <div>
+              <h2>Enterprise-Grade Security and Controls</h2>
+              <p>Harvey meets the highest industry standards for security and compliance. We include all default controls that enterprise teams expect: SAML SSO, audit logs, IP allow-listing, data lifecycle management, and more.</p>
+              <a class="btn outline-light" href="#">More About Security</a>
+            </div>
+            <div>
+              <div class="cert"><i>SOC</i>SOC2 II<em>Details</em></div>
+              <div class="cert"><i>&#128274;</i>CCPA<em>Details</em></div>
+              <div class="cert"><i>&#128274;</i>GDPR<em>Details</em></div>
+              <div class="cert"><i>AI</i>AIUC-1<em>Details</em></div>
+              <div class="cert"><i>FR</i>FedRAMP Class D<em>Details</em></div>
+              <div class="cert"><i>ISO</i>ISO 27001<em>Details</em></div>
+              <div class="cert"><i>ISO</i>ISO 42001<em>Details</em></div>
+            </div>
+          </div>
+        </section>
+        <div class="wrap">
+          <div class="cta"><h2>Unlock Professional Class AI for Your Organization</h2><a class="btn light" href="#contact-sales" data-demo>Request a Demo</a></div>
+          <footer class="site">
+            <div><div class="H">H</div></div>
+            <div><h4>Products</h4><ul><li>Overview</li><li>Agents</li><li>Vault</li><li>Review Tables</li><li>Knowledge</li><li>Spaces</li><li>Command Center</li></ul></div>
+            <div><h4>Solutions</h4><ul><li>Innovation</li><li>Transactional</li><li>Litigation</li><li>In-House</li><li>Law Firms</li><li>Mid-Sized Firms</li></ul></div>
+            <div><h4>Company</h4><ul><li>Customers</li><li>Security</li><li>About</li><li>Careers</li><li>Newsroom</li><li>Law Schools</li></ul></div>
+            <div><h4>Resources</h4><ul><li>Blog</li><li>Resources Hub</li><li>Harvey Academy</li><li>Help Center</li><li>Legal</li><li>Privacy Policy</li></ul></div>
+            <div><h4>Follow</h4><ul><li>X</li><li>LinkedIn</li><li>YouTube</li><li>Instagram</li></ul></div>
+            <div class="copy">Copyright &copy; 2026 Harvey AI Corporation. All rights reserved.</div>
+          </footer>
+        </div>
+        <div class="disclaimer">NOT ACTUALLY A HARVEY SITE — internal demo only, not affiliated with, endorsed by, or a real Harvey product.</div>
+      </div>
+    </main>
+  </div>
+
+  <div id="contact-view">
+    <div class="wrap c-head">
+      <a class="logo" href="#">Harvey</a>
+      <a class="back" href="#">Back to full website</a>
+    </div>
+    <section class="c-hero">
+      <h1>See Why Top Legal Teams Use Harvey.</h1>
+      <p>Purpose built for the world's most demanding legal workflows. Book a demo to see Harvey in action.</p>
+    </section>
+    <div class="marquee"><div class="track" id="marquee"></div></div>
+
+    <div class="c-form-band">
+      <form class="c-card" id="demo-form" novalidate>
+        <div class="grid2">
+          <div class="field"><label for="firstName">First Name: *</label><input id="firstName" name="firstName" placeholder="First Name" autocomplete="given-name"></div>
+          <div class="field"><label for="lastName">Last Name: *</label><input id="lastName" name="lastName" placeholder="Last Name" autocomplete="family-name"></div>
+          <div class="field"><label for="email">Business Email Address: *</label><input id="email" name="email" type="email" placeholder="Business Email Address" autocomplete="email"></div>
+          <div class="field"><label for="company">Company Name: *</label><input id="company" name="company" placeholder="Company Name" autocomplete="organization"></div>
+          <div class="field full"><label for="country">Country: *</label><select id="country" name="country"><option value="">Select...</option></select></div>
+          <div class="field"><label for="jobTitle">Job Title: *</label><input id="jobTitle" name="jobTitle" placeholder="Job Title"></div>
+          <div class="field"><label for="phone">Phone Number:</label><input id="phone" name="phone" placeholder="Phone Number" autocomplete="tel"></div>
+          <div class="field full"><label for="organizationType">Organization Type: *</label><select id="organizationType" name="organizationType"><option value="">Select...</option></select></div>
+        </div>
+        <label class="check"><input type="checkbox" id="marketing" checked> <span>Yes, I would like to receive marketing communications regarding Harvey's products, services, and events. I can unsubscribe at any time</span></label>
+        <button class="btn" type="submit" id="submit-btn"><span class="spin"></span><span id="submit-label">Submit</span></button>
+      </form>
+      <div id="thanks">
+        <img src="https://7vn8ttiyyyh9h7tg.public.blob.vercel-storage.com/thank-you-image.webp" alt="" onerror="this.style.display='none'">
+        <div class="in">
+          <h2>Thank you for your interest in Harvey.</h2>
+          <p id="thanks-copy">A member of our team will be in touch shortly.</p>
+          <dl id="thanks-dl"></dl>
+          <a class="btn" href="#">Back to full website</a>
+        </div>
+      </div>
+      <p class="privacy">For details about how we collect, use, and protect your information, please see our <u>privacy policy</u>.</p>
+    </div>
+    <div class="c-foot"><a href="#">Security</a><a href="#">Legal</a> &copy; 2026 Harvey AI Corporation</div>
+    <div class="disclaimer">NOT ACTUALLY A HARVEY SITE — internal demo only, not affiliated with, endorsed by, or a real Harvey product.</div>
+  </div>
+
+  <div class="toast" id="toast" role="alert"><strong>We couldn't submit your request</strong><span id="toast-copy"></span></div>
+
+  <script>
+    var API = '/api/65ee9e8f';
+    var SANITY = 'https://cdn.sanity.io/images/07s0r5r6/production/';
+
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    function addLogos(container, ids) {
+      ids.forEach(function (id) {
+        var tile = document.createElement('div');
+        var img = document.createElement('img');
+        img.src = SANITY + id + '.svg';
+        img.alt = '';
+        img.onerror = function () { tile.style.display = 'none'; };
+        tile.appendChild(img);
+        container.appendChild(tile);
+      });
+    }
+    addLogos(document.getElementById('logo-grid'), [
+      '5a8cebb0d30bb2504e682ef3f56e527c8fd26c46-286x200', 'aa902d946686d8c88ad90ee5ce12f1accccbd183-477x200', '58781c8c2d6d1afbde174df6db054dcaa7e34a4a-276x200',
+      '836f98bbb1bf04b3e949572ec728b4b6a58c18b0-424x200', 'a5acbb2b73f4fcb759f955d7e973f5888f8c879b-162x200', '33a2a1dfd3237523efc5e7a9c3d05a0b26ffca74-330x200',
+      'ba14f7b784976279fb4d3e226835611d528dbc95-307x200', 'c5f8feb79fbe2434104b1b2c5db6f58c7c2b922d-501x200', 'd992383f99be4f64ce3ee36700ede331633fc8db-361x200',
+      'b3be817e6cf2e694fb4a6468ff40251276cf708e-120x200', '75f8114732e5390ce16118342b6675c31b48a4c2-318x200', '0d0080b5cb6e1f903501716a74db9599e63f67e7-501x200',
+      '2e1d55d54ce5c29410e6a342847ed7aa9d2e78bc-263x200', '85215fdd1f52d4d1be7974d0dbb972f7cefa79ec-364x200', '83861a8c8874b9caadcb9a74a7ecae385e71253c-306x200',
+      '03f1e3758db5ba10391de58da4acd0a150590324-289x200', '86c7ef02e8bcde337581a22440bcedf0fcb36f1c-210x200', '99a63c12d14c6de1a2f46e32ea119bd3c72746dc-322x200'
+    ]);
+    var marqueeIds = ['9f0f05ad412aa80895deca37273fc8b185136493-310x200', '0c2ff647a07fb43c8feeb07d037260e149639334-318x200', 'a281839afe874eac003baf1e28addafe7e14d9d6-399x200',
+      'feadb50362759eb3b13d460906e59d74faee6332-286x200', '7ecc9f5b22a50405f42f785c7eeb20e1db3a0aad-162x200', '117c26aec013eee30d2913cb49a2c10fd8fa7086-364x200',
+      '5239d39b145d5c4c616cf401539c5bcc1103d573-477x200', 'c432afb63d58215e4a7bca3f5f4a87f9d9e16c9d-330x200', '8c7fb58d5a410e2d1f1ca35b5bafd109dc4446d8-307x200',
+      'b6b5d90279c298dddad1eccc1d0a6ca3e327e8a5-119x200', '10c80b65105112ee8b2908513ec160649e147706-501x200', 'b08fd5629fa0438898db9e66214a427e85949175-245x200'];
+    addLogos(document.getElementById('marquee'), marqueeIds.concat(marqueeIds));
+    Array.prototype.forEach.call(document.querySelectorAll('#marquee div'), function (d) { d.replaceWith(d.firstChild); });
+
+    function route() {
+      var contact = location.hash === '#contact-sales';
+      document.body.classList.toggle('contact', contact);
+      document.title = contact ? 'Contact Sales | Harvey' : 'Harvey | Professional Class AI for Legal Work';
+      window.scrollTo(0, 0);
+    }
+    window.addEventListener('hashchange', route);
+    route();
+
+    var form = document.getElementById('demo-form');
+    var fields = ['firstName', 'lastName', 'email', 'company', 'country', 'jobTitle', 'phone', 'organizationType'];
+    var extra = {};
+
+    function fillSelect(id, items) {
+      var sel = document.getElementById(id);
+      items.forEach(function (item) {
+        var opt = document.createElement('option');
+        opt.value = typeof item === 'string' ? item : item.id;
+        opt.textContent = typeof item === 'string' ? item : item.label;
+        sel.appendChild(opt);
+      });
+    }
+
+    fetch(API + '/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        var opts = cfg.options || {};
+        fillSelect('country', opts.countries || []);
+        fillSelect('organizationType', opts.organizationTypes || []);
+        var prefill = cfg.prefill || {};
+        fields.forEach(function (f) { if (prefill[f] !== undefined) document.getElementById(f).value = prefill[f]; });
+        extra.companySize = prefill.companySize;
+        extra.message = prefill.message;
+      })
+      .catch(function () { showToast('The form could not be loaded. Please refresh the page.'); });
+
+    function showToast(msg) {
+      document.getElementById('toast-copy').textContent = msg;
+      var t = document.getElementById('toast');
+      t.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(function () { t.classList.remove('show'); }, 6000);
+    }
+
+    function row(dl, k, v) {
+      var dt = document.createElement('dt'); dt.textContent = k;
+      var dd = document.createElement('dd'); dd.textContent = v;
+      dl.appendChild(dt); dl.appendChild(dd);
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = {};
+      var missing = [];
+      fields.forEach(function (f) {
+        var el = document.getElementById(f);
+        el.classList.remove('bad');
+        body[f] = el.value.trim();
+        if (f !== 'phone' && !body[f]) { el.classList.add('bad'); missing.push(f); }
+      });
+      if (missing.length) { showToast('Please complete all required fields.'); return; }
+      body.companySize = extra.companySize;
+      body.message = extra.message;
+      body.marketingOptIn = document.getElementById('marketing').checked;
+
+      var btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      document.getElementById('submit-label').textContent = 'Submitting...';
+
+      identityReady.then(function () {
+        body.devinUserId = localStorage.getItem('devinUserId') || '';
+        body.devinOrgId = localStorage.getItem('devinOrgId') || '';
+        body.devinEmail = localStorage.getItem('devinEmail') || '';
+        return fetch(API + '/demo-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, data: j }; }); })
+        .then(function (res) {
+          if (!res.ok || !res.data.success) {
+            var err = res.data || {};
+            if (err.code === 'INVALID_EMAIL') document.getElementById('email').classList.add('bad');
+            throw new Error(err.error || 'Something went wrong. Please try again.');
+          }
+          var dr = res.data.demoRequest || {};
+          var owner = dr.accountOwner || {};
+          var dl = document.getElementById('thanks-dl');
+          dl.innerHTML = '';
+          row(dl, 'Request ID', dr.id || res.data.requestId || '');
+          row(dl, 'Organization', (dr.contact && dr.contact.company) || body.company);
+          if (owner.name) row(dl, 'Account executive', owner.name + (owner.title ? ', ' + owner.title : ''));
+          if (owner.territory) row(dl, 'Territory', owner.territory);
+          if (owner.email) row(dl, 'Contact', owner.email);
+          document.getElementById('thanks-copy').textContent = dr.nextStep || 'A member of our team will be in touch shortly.';
+          window.__demoRequest = res.data;
+          form.style.display = 'none';
+          document.getElementById('thanks').style.display = 'block';
+        })
+        .catch(function (err) { showToast(err.message || 'Network error. Please try again.'); })
+        .then(function () {
+          btn.disabled = false;
+          document.getElementById('submit-label').textContent = 'Submit';
+        });
+    });
+  </script>
+</body>
+</html>
