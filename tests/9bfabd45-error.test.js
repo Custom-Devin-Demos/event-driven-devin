@@ -299,7 +299,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
   ];
   const originalEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));
   const BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
-  const BOT_SLACK_ID = 'U0NEXENSRE01';
+  const BOT_SLACK_ID = 'U0CJZC8RZBM';
 
   const SETTLEMENT_REPORT = {
     source: 'nexen-custody/web',
@@ -318,7 +318,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     jest.clearAllMocks();
     resetSettlementIncidentForTests();
     process.env.NEXEN_SRE_BOT_ID = 'off';
-    process.env.NEXEN_SRE_BOT_SLACK_ID = BOT_SLACK_ID;
+    delete process.env.NEXEN_SRE_BOT_SLACK_ID;
     process.env.SLACK_BOT_TOKEN = 'test-slack-token';
     delete process.env.NEXEN_PERSONAS;
     delete process.env.SLACK_ONCALL_BOT_TOKEN;
@@ -438,7 +438,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
   test('falls back to Datadog channel invitations when creating the app channel fails', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
-    delete process.env.NEXEN_SRE_BOT_SLACK_ID;
+    process.env.NEXEN_SRE_BOT_SLACK_ID = 'off';
     process.env.NEXEN_PERSONAS = 'off';
     createChannel.mockRejectedValueOnce(new Error('missing channels:manage'));
 
@@ -516,9 +516,9 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(mentions.every((text) => !text.includes('{sre_bot}'))).toBe(true);
   });
 
-  test('when the SRE Bot Slack ID is unset, invites only the owner and uses plain persona text', async () => {
+  test.each(['', 'off'])('when the SRE Bot Slack ID is %p, invites only the owner and uses plain persona text', async (slackId) => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
-    delete process.env.NEXEN_SRE_BOT_SLACK_ID;
+    process.env.NEXEN_SRE_BOT_SLACK_ID = slackId;
     jest.useFakeTimers();
     const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await incidentPromise;
