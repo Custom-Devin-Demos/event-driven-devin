@@ -5,6 +5,8 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
 const { getCustomerConfig } = require('../../../config/customers');
+const { declareDatadogIncident } = require('../datadog-incidents');
+const { queueIncidentChannelInvites } = require('../datadog-incident-slack');
 
 /**
  * BNY NEXEN custody platform (github.com/COG-GTM/bny).
@@ -73,6 +75,82 @@ const APP_REMEDIATION_DIRECTIVE = [
   `   \`COG-GTM/event-driven-devin\`, and open a PR there so \`${APP_WEB_PATH}\` picks up the fix.`,
 ].join('\n');
 
+/**
+ * Second scenario: Release batch on Transactions fails in the browser before
+ * any instruction leaves NEXEN. It alerts in #pershing-access-alerts and
+ * declares a Datadog SEV-1, whose Slack channel the Devin incident agent joins.
+ */
+const SETTLEMENT = Object.freeze({
+  action: 'release_settlement_batch',
+  scenario: 'settlement-batch-release',
+  service: 'nexen-settlement',
+  slackChannelId: process.env.SLACK_CHANNEL_ID_9BFABD45_SETTLEMENT || 'C0CJPN2C5D5',
+  incidentWindowMs: 10 * 60 * 1000,
+  incidentTitle: 'NEXEN: USD settlement batch release failing',
+});
+
+const SETTLEMENT_REMEDIATION_DIRECTIVE = [
+  `*Repository to investigate and fix:* \`${APP_REPO}\``,
+  '',
+  'This error was raised by NEXEN, the BNY custody platform: a Vite + React 19 + TypeScript',
+  'frontend (`frontend/`) over a Spring Boot 3 / Java 21 API (`backend/`). Read `README.md` in that repo first.',
+  '',
+  'The failing code path is **Release batch** on the Transactions → Activity screen:',
+  '- Entry: `SettlementBatchPanel` in `frontend/src/pages/TransactionsPage.tsx`',
+  '- Release lines sent to the cash-settlement gateway: `frontend/src/domain/settlement.ts`',
+  '- Batch data: `settlementBatch` in `frontend/src/api/fixtures.ts`, served by `frontend/src/api/fixtureClient.ts`',
+  '',
+  'The same failure declared a Datadog SEV-1, tracked in its own `#sev-1-incident-*` Slack channel by the',
+  'Devin incident agent. Keep your findings in this alert thread.',
+  '',
+  'Steps:',
+  '1. Reproduce first: `cd frontend && npm install && npm run dev`, open Transactions and click Release batch.',
+  '   CI is green on the broken baseline: nothing exercises the release lines.',
+  '2. Fix the root cause, not just the crash site: every instruction in the batch must produce a release',
+  '   line in the settlement currency, and an instruction the release step cannot convert must fail with an',
+  '   explicit typed error instead of dereferencing undefined. Do not drop instructions from the batch.',
+  '3. Add a regression test for the release lines covering every seeded instruction and the unconvertible',
+  '   path (add a minimal test runner to the frontend if needed and run it in CI).',
+  '   `npx tsc -b`, `npx oxlint`, `npm run build` and `./gradlew test` must pass.',
+  `   Do not change the incident reporting identity in \`frontend/src/lib/incident.ts\` (\`${APP_SERVICE}\`).`,
+  '4. Re-run the reproduction on the fix commit: Release batch completes and shows the released count and USD total.',
+  '5. Open a pull request against `main`, request Devin Review, post the root cause and PR link in this',
+  '   alert thread, and STOP for human approval.',
+  `6. After approval, refresh the hosted build: \`npx vite build --base=${APP_WEB_PATH}/\` on the fix commit, copy`,
+  `   \`frontend/dist/\` into \`app/public/verticals/${CUSTOMER}-app/\` in \`COG-GTM/event-driven-devin\`, and open a PR there.`,
+].join('\n');
+
+let settlementIncident = null;
+
+function resetSettlementIncidentForTests() {
+  settlementIncident = null;
+}
+
+async function declareSettlementIncident({ reference, triggeredBy, batchId, instructionCount, errorType, errorMessage }) {
+  const runRef = `nexen-settlement-${reference.slice(0, 8)}`;
+  try {
+    const incident = await declareDatadogIncident({
+      title: SETTLEMENT.incidentTitle,
+      summary: `Releasing settlement batch ${batchId} from NEXEN Transactions fails before any instruction reaches the cash-settlement gateway (${errorType}: ${errorMessage}). All ${instructionCount} instructions remain queued and the cutoff is at risk; no payments have been released. Code: ${APP_REPO} (frontend).`,
+      runRef,
+      service: SETTLEMENT.service,
+      triggeredBy,
+      repoUrl: `https://${APP_REPO}`,
+      severity: 'SEV-1',
+    });
+    if (!incident) {
+      logger.warn('NEXEN settlement SEV-1 not declared: Datadog incident keys are not configured', { reference });
+      return { status: 'unavailable', runRef };
+    }
+    queueIncidentChannelInvites({ publicId: incident.publicId, userIds: [OWNER.slackMemberId] });
+    logger.info('NEXEN settlement SEV-1 declared', { reference, runRef, publicId: incident.publicId });
+    return { status: 'declared', runRef, ...incident };
+  } catch (err) {
+    logger.warn('NEXEN settlement SEV-1 declaration failed', { reference, error: err.message });
+    return { status: 'failed', runRef };
+  }
+}
+
 function clip(value, max) {
   const text = value == null ? '' : String(value);
   return text.length > max ? text.slice(0, max) : text;
@@ -135,15 +213,22 @@ async function resolveUserIdByEmail(email, orgId) {
  * error state; this is telemetry only.
  */
 function reportAppFailure(report) {
+  const action = clip(report.action || 'load_allocation_chart', 64);
+  const isSettlement = action === SETTLEMENT.action;
+  if (isSettlement && settlementIncident
+    && Date.now() - settlementIncident.openedAt < SETTLEMENT.incidentWindowMs) {
+    logger.info('NEXEN settlement failure folded into the open incident', { reference: settlementIncident.reference });
+    return { ...settlementIncident, sessionPromise: Promise.resolve(null), deduplicated: true };
+  }
   const reference = uuidv4();
   const platform = clip(report.platform || 'web', 32);
-  const screen = clip(report.screen || 'collateral_overview', 64);
-  const action = clip(report.action || 'load_allocation_chart', 64);
+  const screen = clip(report.screen || (isSettlement ? 'transactions' : 'collateral_overview'), 64);
   const accountNumber = clip(report.accountNumber || 'unknown', 64);
   const clientName = clip(report.clientName || 'unknown', 128);
   const market = clip(report.market || 'unknown', 8);
   const errorType = clip(report.errorType || 'Error', 128);
-  const errorMessage = clip(report.errorMessage || 'Collateral allocation chart failed to load', 512);
+  const errorMessage = clip(report.errorMessage
+    || (isSettlement ? 'Settlement batch release failed' : 'Collateral allocation chart failed to load'), 512);
   const stackTrace = clip(report.stackTrace, 4000);
   const release = clip(report.release || APP_RELEASE, 64);
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
@@ -160,10 +245,10 @@ function reportAppFailure(report) {
     account_number: accountNumber,
     client_name: clientName,
     market,
-    scenario: SCENARIO,
+    scenario: isSettlement ? SETTLEMENT.scenario : SCENARIO,
   };
 
-  incrementMetric('collateral_overview.failure', {
+  incrementMetric(isSettlement ? 'settlement_batch.failure' : 'collateral_overview.failure', {
     route: '/api/9bfabd45/error',
     errorClass: errorType,
     platform,
@@ -202,7 +287,9 @@ function reportAppFailure(report) {
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
-    culprit: `${CUSTOMER}/frontend/src/domain/allocation.ts \u2014 buildAllocationBars`,
+    culprit: isSettlement
+      ? `${CUSTOMER}/frontend/src/domain/settlement.ts \u2014 buildReleaseLines`
+      : `${CUSTOMER}/frontend/src/domain/allocation.ts \u2014 buildAllocationBars`,
     errorType,
     errorValue: errorMessage,
     devinUserId,
@@ -212,7 +299,8 @@ function reportAppFailure(report) {
     slackMemberIdFallback: OWNER.slackMemberId,
     service: APP_SERVICE,
     verticalLabel: 'BNY NEXEN',
-    promptAppendix: APP_REMEDIATION_DIRECTIVE,
+    promptAppendix: isSettlement ? SETTLEMENT_REMEDIATION_DIRECTIVE : APP_REMEDIATION_DIRECTIVE,
+    ...(isSettlement ? { slackChannelId: SETTLEMENT.slackChannelId } : {}),
     customer: CUSTOMER,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: {
@@ -244,7 +332,18 @@ function reportAppFailure(report) {
     });
   });
 
-  return { reference, sessionPromise };
+  if (!isSettlement) return { reference, sessionPromise };
+
+  const incidentPromise = declareSettlementIncident({
+    reference,
+    triggeredBy: devinEmail,
+    batchId: clip(custodyReport.batchId || 'unknown', 64),
+    instructionCount: Number.isInteger(custodyReport.instructionCount) ? custodyReport.instructionCount : 'the',
+    errorType,
+    errorMessage,
+  });
+  settlementIncident = { reference, openedAt: Date.now(), incidentPromise };
+  return { reference, sessionPromise, incidentPromise };
 }
 
 module.exports = {
@@ -257,7 +356,10 @@ module.exports = {
   APP_REMEDIATION_DIRECTIVE,
   OWNER,
   SCENARIO,
+  SETTLEMENT,
+  SETTLEMENT_REMEDIATION_DIRECTIVE,
   isAppReport,
   isAppSource,
   reportAppFailure,
+  resetSettlementIncidentForTests,
 };

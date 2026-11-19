@@ -1,3 +1,11 @@
+jest.mock('../app/services/datadog-incidents', () => ({
+  declareDatadogIncident: jest.fn(() => Promise.resolve({ id: 'inc-uuid', publicId: 412 })),
+}));
+
+jest.mock('../app/services/datadog-incident-slack', () => ({
+  queueIncidentChannelInvites: jest.fn(() => true),
+}));
+
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
 }));
@@ -31,11 +39,16 @@ jest.mock('../app/telemetry/datadog', () => ({
 const express = require('express');
 const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { declareDatadogIncident } = require('../app/services/datadog-incidents');
+const { queueIncidentChannelInvites } = require('../app/services/datadog-incident-slack');
 const { listOrgUsers, listEnterpriseAdmins } = require('../app/services/devin-api');
 const { Sentry } = require('../app/telemetry/sentry');
 const {
   reportAppFailure,
+  resetSettlementIncidentForTests,
   APP_REMEDIATION_DIRECTIVE,
+  SETTLEMENT,
+  SETTLEMENT_REMEDIATION_DIRECTIVE,
   OWNER,
 } = require('../app/services/verticals/9bfabd45');
 const router = require('../app/routes/verticals/9bfabd45');
@@ -240,5 +253,75 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
       expect(res.body.received).toBe(false);
       expect(createSessionAndAlert).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
+  const SETTLEMENT_REPORT = {
+    source: 'nexen-custody/web',
+    service: 'customer-9bfabd45-web',
+    platform: 'web',
+    screen: 'transactions',
+    action: 'release_settlement_batch',
+    accountNumber: '8842910',
+    errorType: 'TypeError',
+    errorMessage: "Cannot read properties of undefined (reading 'currency')",
+    stackTrace: 'at buildReleaseLines (settlement.ts:24:37)',
+    report: { batchId: 'SB-20260918-USD', instructionCount: 4, settlementCurrency: 'USD' },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSettlementIncidentForTests();
+  });
+
+  test('alerts in #pershing-access-alerts with the settlement directive', async () => {
+    const { sessionPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await sessionPromise;
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.slackChannelId).toBe('C0CJPN2C5D5');
+    expect(alert.slackChannelId).toBe(SETTLEMENT.slackChannelId);
+    expect(alert.promptAppendix).toBe(SETTLEMENT_REMEDIATION_DIRECTIVE);
+    expect(alert.culprit).toContain('frontend/src/domain/settlement.ts');
+    expect(alert.tags).toEqual(expect.arrayContaining([{ key: 'scenario', value: 'settlement-batch-release' }]));
+  });
+
+  test('declares a SEV-1 and invites the demo owner to its channel', async () => {
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await expect(incidentPromise).resolves.toMatchObject({ status: 'declared', publicId: 412 });
+    expect(declareDatadogIncident).toHaveBeenCalledWith(expect.objectContaining({
+      title: SETTLEMENT.incidentTitle,
+      severity: 'SEV-1',
+      service: 'nexen-settlement',
+      repoUrl: 'https://github.com/COG-GTM/bny',
+    }));
+    expect(declareDatadogIncident.mock.calls[0][0].summary).toContain('SB-20260918-USD');
+    expect(queueIncidentChannelInvites).toHaveBeenCalledWith({ publicId: 412, userIds: [OWNER.slackMemberId] });
+  });
+
+  test('repeat releases inside the window reuse the open incident', async () => {
+    const first = reportAppFailure(SETTLEMENT_REPORT);
+    await first.incidentPromise;
+    const second = reportAppFailure(SETTLEMENT_REPORT);
+    expect(second.deduplicated).toBe(true);
+    expect(second.reference).toBe(first.reference);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(1);
+  });
+
+  test('reports the SEV-1 as unavailable when Datadog keys are missing', async () => {
+    declareDatadogIncident.mockResolvedValueOnce(null);
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await expect(incidentPromise).resolves.toMatchObject({ status: 'unavailable' });
+    expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
+  });
+
+  test('chart failures keep the shared channel and declare no incident', async () => {
+    const { sessionPromise, incidentPromise } = reportAppFailure(APP_REPORT);
+    await sessionPromise;
+    expect(incidentPromise).toBeUndefined();
+    expect(createSessionAndAlert.mock.calls[0][0].slackChannelId).toBeUndefined();
+    expect(declareDatadogIncident).not.toHaveBeenCalled();
   });
 });
