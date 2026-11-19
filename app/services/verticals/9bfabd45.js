@@ -131,6 +131,7 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
 ].join('\n');
 
 const DEFAULT_NEXEN_SRE_BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
+const DEFAULT_NEXEN_SEV1_CHANNEL_ID = 'C0CJQDXKD9D';
 const DATADOG_CHANNEL_LOOKUP_INTERVAL_MS = 15000;
 const DATADOG_CHANNEL_LOOKUP_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -150,6 +151,13 @@ function nexenSreBotSlackId() {
   if (process.env.NEXEN_SRE_BOT_SLACK_ID === undefined) return 'U0CJZC8RZBM';
   const configured = process.env.NEXEN_SRE_BOT_SLACK_ID.trim();
   return configured.toLowerCase() === 'off' ? '' : configured;
+}
+
+function nexenSev1ChannelId() {
+  const configured = process.env.NEXEN_SEV1_CHANNEL_ID;
+  if (configured === undefined) return DEFAULT_NEXEN_SEV1_CHANNEL_ID;
+  const channelId = configured.trim();
+  return !channelId || channelId.toLowerCase() === 'off' ? null : channelId;
 }
 
 function nexenSettlementResponderSlackIds() {
@@ -359,19 +367,26 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
   let incidentChannel = null;
   let personaToken = null;
   let channelCreatedAt = null;
+  let fixedSev1Channel = false;
   if (incident.status === 'declared') {
     const token = process.env.INCIDENT_LAB_SLACK_BOT_TOKEN
       || process.env.SLACK_ONCALL_BOT_TOKEN
       || process.env.SLACK_BOT_TOKEN;
     if (token) {
-      try {
-        incidentChannel = await createNexenSettlementChannel(token, incident.publicId);
-      } catch (err) {
-        logger.warn('NEXEN settlement Slack channel creation failed; using Datadog incident channel', {
-          reference,
-          publicId: incident.publicId,
-          error: err.message,
-        });
+      const fixedChannelId = nexenSev1ChannelId();
+      if (fixedChannelId) {
+        incidentChannel = { id: fixedChannelId, name: 'pershing-sev1' };
+        fixedSev1Channel = true;
+      } else {
+        try {
+          incidentChannel = await createNexenSettlementChannel(token, incident.publicId);
+        } catch (err) {
+          logger.warn('NEXEN settlement Slack channel creation failed; using Datadog incident channel', {
+            reference,
+            publicId: incident.publicId,
+            error: err.message,
+          });
+        }
       }
     } else {
       logger.warn('NEXEN settlement Slack channel creation failed; Slack bot token is not configured', {
@@ -391,6 +406,19 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
           publicId: incident.publicId,
           error: err.message,
         });
+      }
+      if (fixedSev1Channel) {
+        const openingMessage = `:rotating_light: *SEV-1 declared* — ${SETTLEMENT.incidentTitle} · Datadog incident #${incident.publicId} · ref ${incident.runRef}`;
+        try {
+          await postPersonaMessage(token, incidentChannel.id, openingMessage, 'NEXEN Incident Bot', ':rotating_light:');
+        } catch (err) {
+          logger.warn('NEXEN settlement opening message failed; continuing incident response', {
+            reference,
+            publicId: incident.publicId,
+            channelId: incidentChannel.id,
+            error: err.message,
+          });
+        }
       }
     } else {
       try {

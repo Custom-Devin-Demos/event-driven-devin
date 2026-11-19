@@ -292,6 +292,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
   const envKeys = [
     'NEXEN_SRE_BOT_ID',
     'NEXEN_SRE_BOT_SLACK_ID',
+    'NEXEN_SEV1_CHANNEL_ID',
     'NEXEN_PERSONAS',
     'SLACK_BOT_TOKEN',
     'SLACK_ONCALL_BOT_TOKEN',
@@ -300,6 +301,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
   const originalEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));
   const BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
   const BOT_SLACK_ID = 'U0CJZC8RZBM';
+  const FIXED_SEV1_CHANNEL_ID = 'C0CJQDXKD9D';
 
   const SETTLEMENT_REPORT = {
     source: 'nexen-custody/web',
@@ -319,6 +321,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     resetSettlementIncidentForTests();
     process.env.NEXEN_SRE_BOT_ID = 'off';
     delete process.env.NEXEN_SRE_BOT_SLACK_ID;
+    delete process.env.NEXEN_SEV1_CHANNEL_ID;
     process.env.SLACK_BOT_TOKEN = 'test-slack-token';
     delete process.env.NEXEN_PERSONAS;
     delete process.env.SLACK_ONCALL_BOT_TOKEN;
@@ -363,14 +366,16 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(queueIncidentChannelInvites).toHaveBeenCalledWith({ publicId: 412, userIds: [OWNER.slackMemberId] });
   });
 
-  test('SRE Bot mode posts the alert, creates its own channel, invites responders, and pages once', async () => {
+  test('SRE Bot mode posts the alert, uses the fixed channel, invites responders, and pages once', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
     process.env.SLACK_ONCALL_BOT_TOKEN = 'oncall-test-token';
     process.env.INCIDENT_LAB_SLACK_BOT_TOKEN = 'incident-test-token';
-    process.env.NEXEN_PERSONAS = 'off';
+    jest.useFakeTimers();
     const { sessionPromise, incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await sessionPromise;
-    await expect(incidentPromise).resolves.toMatchObject({ status: 'declared', publicId: 412 });
+    const incident = await incidentPromise;
+    expect(incident).toMatchObject({ status: 'declared', publicId: 412 });
+    await jest.runAllTimersAsync();
 
     expect(postAlertToSlack).toHaveBeenCalledTimes(1);
     const alert = postAlertToSlack.mock.calls[0][0];
@@ -379,16 +384,17 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(alert.promptAppendix).toBe(SETTLEMENT_REMEDIATION_DIRECTIVE);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
-    expect(createChannel).toHaveBeenCalledWith('incident-test-token', 'pershing-sev1-412');
-    expect(inviteToChannel).toHaveBeenCalledWith('incident-test-token', 'C-SEV-1', [
+    expect(createChannel).not.toHaveBeenCalled();
+    expect(inviteToChannel).toHaveBeenCalledWith('incident-test-token', FIXED_SEV1_CHANNEL_ID, [
       OWNER.slackMemberId,
       BOT_SLACK_ID,
     ]);
     expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
+    expect(findChannelByNameFragment).not.toHaveBeenCalled();
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
     expect(sendDevinSessionMessage).toHaveBeenCalledWith(
       BOT_ID,
-      expect.stringContaining('channel id C-SEV-1'),
+      expect.stringContaining(`channel id ${FIXED_SEV1_CHANNEL_ID}`),
       expect.any(Object),
     );
     const page = sendDevinSessionMessage.mock.calls[0][1];
@@ -399,13 +405,23 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(page).toContain('service=nexen-settlement');
     expect(page).toContain('Join this SEV-1 channel and act as the incident responder there.');
     expect(page).toContain('Stay in the scenario');
-    expect(page).toContain('#pershing-sev1-412');
+    expect(page).toContain(`#pershing-sev1 (channel id ${FIXED_SEV1_CHANNEL_ID})`);
     expect(page).toContain(SETTLEMENT_REMEDIATION_DIRECTIVE);
     expect(page).toContain('SB-20260918-USD');
     expect(page).toContain('Never merge or roll back without a human.');
+    expect(postPersonaMessage).toHaveBeenCalledTimes(9);
+    expect(postPersonaMessage).toHaveBeenNthCalledWith(
+      1,
+      'incident-test-token',
+      FIXED_SEV1_CHANNEL_ID,
+      expect.stringMatching(/^:rotating_light: \*SEV-1 declared\* — NEXEN: USD settlement batch release failing · Datadog incident #412 · ref nexen-settlement-/),
+      'NEXEN Incident Bot',
+      ':rotating_light:',
+    );
+    expect(postPersonaMessage.mock.calls.slice(1).every((call) => call[1] === FIXED_SEV1_CHANNEL_ID)).toBe(true);
   });
 
-  test('still pages SRE Bot and schedules personas when channel invitations fail', async () => {
+  test('fixed-channel invitation failure still pages SRE Bot and schedules personas', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
     jest.useFakeTimers();
     inviteToChannel.mockRejectedValueOnce(new Error('Slack invite failed'));
@@ -414,12 +430,20 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await incidentPromise;
     await jest.runAllTimersAsync();
 
+    expect(inviteToChannel).toHaveBeenCalledWith('test-slack-token', FIXED_SEV1_CHANNEL_ID, [
+      OWNER.slackMemberId,
+      BOT_SLACK_ID,
+    ]);
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
+    expect(sendDevinSessionMessage.mock.calls[0][1]).toContain(`channel id ${FIXED_SEV1_CHANNEL_ID}`);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(9);
+    expect(createChannel).not.toHaveBeenCalled();
+    expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
   });
 
   test('retries a taken settlement channel name with the -2 suffix', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    process.env.NEXEN_SEV1_CHANNEL_ID = 'off';
     process.env.NEXEN_PERSONAS = 'off';
     createChannel
       .mockRejectedValueOnce(Object.assign(new Error('name taken'), { code: 'name_taken' }))
@@ -438,6 +462,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
   test('falls back to Datadog channel invitations when creating the app channel fails', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    process.env.NEXEN_SEV1_CHANNEL_ID = 'off';
     process.env.NEXEN_SRE_BOT_SLACK_ID = 'off';
     process.env.NEXEN_PERSONAS = 'off';
     createChannel.mockRejectedValueOnce(new Error('missing channels:manage'));
@@ -456,6 +481,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
   test('finds the Datadog channel, joins it, and runs personas after app-channel creation fails', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    process.env.NEXEN_SEV1_CHANNEL_ID = 'off';
     jest.useFakeTimers();
     createChannel.mockRejectedValueOnce(new Error('missing channels:manage'));
     findChannelByNameFragment
@@ -479,6 +505,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
   test('stops looking for the Datadog channel after five minutes', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    process.env.NEXEN_SEV1_CHANNEL_ID = 'off';
     jest.useFakeTimers();
     createChannel.mockRejectedValueOnce(new Error('missing channels:manage'));
 
@@ -498,8 +525,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await incidentPromise;
     await jest.runAllTimersAsync();
 
-    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
-    expect(postPersonaMessage.mock.calls.map((call) => call[3])).toEqual([
+    expect(postPersonaMessage).toHaveBeenCalledTimes(9);
+    expect(postPersonaMessage.mock.calls.slice(1).map((call) => call[3])).toEqual([
       'Maya Okafor',
       'Priya Natarajan',
       'Maya Okafor',
@@ -510,6 +537,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       'Maya Okafor',
     ]);
     const mentions = postPersonaMessage.mock.calls
+      .slice(1)
       .map((call) => call[2])
       .filter((text) => text.includes(`<@${BOT_SLACK_ID}>`));
     expect(mentions).toHaveLength(3);
@@ -524,7 +552,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await incidentPromise;
     await jest.runAllTimersAsync();
 
-    expect(inviteToChannel).toHaveBeenCalledWith('test-slack-token', 'C-SEV-1', [OWNER.slackMemberId]);
+    expect(inviteToChannel).toHaveBeenCalledWith('test-slack-token', FIXED_SEV1_CHANNEL_ID, [OWNER.slackMemberId]);
     const personaTexts = postPersonaMessage.mock.calls.map((call) => call[2]);
     const placeholderLines = personaTexts.filter((text) => (
       text.includes('can you take this?')
@@ -543,7 +571,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
     const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await incidentPromise;
-    expect(postPersonaMessage).not.toHaveBeenCalled();
+    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
+    expect(postPersonaMessage.mock.calls[0][3]).toBe('NEXEN Incident Bot');
   });
 
   test('repeat releases inside the window reuse the open incident', async () => {
@@ -556,7 +585,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(declareDatadogIncident).toHaveBeenCalledTimes(1);
   });
 
-  test('bot-mode repeat reports do not post another alert, page, or create another channel', async () => {
+  test('bot-mode repeat reports do not post another alert, page, or opening message', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
     process.env.NEXEN_PERSONAS = 'off';
     const first = reportAppFailure(SETTLEMENT_REPORT);
@@ -566,7 +595,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(second.deduplicated).toBe(true);
     expect(postAlertToSlack).toHaveBeenCalledTimes(1);
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
-    expect(createChannel).toHaveBeenCalledTimes(1);
+    expect(createChannel).not.toHaveBeenCalled();
+    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
   });
 
   test('legacy alert suppression also suppresses direct alerts and SRE Bot pages', async () => {
