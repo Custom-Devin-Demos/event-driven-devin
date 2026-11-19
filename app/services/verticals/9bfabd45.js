@@ -111,8 +111,8 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
   '- Release lines sent to the cash-settlement gateway: `frontend/src/domain/settlement.ts`',
   '- Batch data: `settlementBatch` in `frontend/src/api/fixtures.ts`, served by `frontend/src/api/fixtureClient.ts`',
   '',
-  'The same failure declared a Datadog SEV-1, tracked in its own `#sev-1-incident-*` Slack channel by the',
-  'Devin incident agent. Keep your findings in this alert thread.',
+  'The same failure declared a Datadog SEV-1, run in the fixed `#pershing-sev1` Slack channel. Post triage, root cause and',
+  'the PR link in this alert thread; incident updates, the incident report and the RCA go in `#pershing-sev1`.',
   '',
   'Steps:',
   '1. Reproduce first: `cd frontend && npm install && npm run dev`, open Transactions and click Release batch.',
@@ -262,8 +262,11 @@ function scheduleSettlementPersonas(token, channelId, createdAt) {
     const botSlackId = nexenSreBotSlackId();
     const sreBotLabel = botSlackId ? `<@${botSlackId}>` : 'SRE Bot';
     const text = line.text.replace(/\{sre_bot\}/g, sreBotLabel);
+    const icon = persona.icon && persona.icon.startsWith('/')
+      ? `${(process.env.PUBLIC_BASE_URL || 'https://devindemos.com').replace(/\/$/, '')}${persona.icon}`
+      : persona.icon;
     setTimeout(() => {
-      postPersonaMessage(token, channelId, text, persona.username, persona.icon)
+      postPersonaMessage(token, channelId, text, persona.username, icon)
         .catch((err) => logger.warn('NEXEN settlement persona message failed', {
           channelId,
           persona: persona.id,
@@ -331,9 +334,16 @@ function buildSettlementSreBotPage({
   instructionCount,
 }) {
   const alertThread = alertThreadTs || 'unavailable (the alert could not be posted)';
+  const incidentChannelMention = incidentChannel ? `<#${incidentChannel.id}>` : '#pershing-sev1';
   const lines = [
     `:rotating_light: NEXEN settlement batch failure — ${reference}`,
     'This is a live customer demo of a fictional NEXEN production system. Stay in the scenario: treat it as a real production SEV-1, describe impact using the facts in this page (batch, instruction count, cutoff at risk, no payments released), and do not say in Slack that the data is fixture-backed or synthetic, that the defect was planted, or that the severity should be downgraded.',
+    '',
+    'Nobody will @mention you: this page comes from the alert the NEXEN monitoring app just raised in #pershing-access-alerts. Pick it up on your own, as you would any alert another bot raises.',
+    `Pull the right people in. In the alert thread, post a short triage (route, error, start time, failure rate, likely change, owner), then tag <@${OWNER.slackMemberId}> as the human incident lead for approvals and name the owners below, pointing them to ${incidentChannelMention}:`,
+    '- Daniel Reyes: on-call engineer for NEXEN web; owns Transactions and the Settlement Batch panel (the suspected change).',
+    '- Maya Okafor: incident commander; head of settlement operations; decides roll back vs forward-fix.',
+    '- Priya Natarajan: client service for institutional custody clients; needs a plain-language status for ABC Global Investors.',
     '',
     `*Alert channel:* ${alertChannelId || SETTLEMENT.slackChannelId}`,
     `*Alert thread ts:* ${alertThread}`,
@@ -350,7 +360,9 @@ function buildSettlementSreBotPage({
       `*SEV-1 channel:* ${channelName}`,
       'Join this SEV-1 channel and act as the incident responder there. Investigate in Datadog first, post the initial root cause, and post an incident report with impact: '
         + `batch ${batchId}, ${instructionCount} instructions, the cutoff is at risk, and no payments have been released.`,
-      'Answer the people in the channel and draft the RCA when asked. Never merge or roll back without a human.',
+      'Answer the people in the channel. Never merge or roll back without a human.',
+      'When asked for an RCA (e.g. "Can you generate an RCA report in Markdown format for this incident?"): follow `docs/incidents/RCA-TEMPLATE.md` in COG-GTM/bny and post the Markdown in the thread. Include the timeline, root cause, impact, what went well, and action items, each with an owner and due date. Then follow through: offer to open each action item as a ticket or PR and do it once a human says go.',
+      'Also render the same RCA as a self-contained HTML report using `docs/incidents/rca-template.html` in COG-GTM/bny as the layout, and upload it to the thread as an .html file. Commit the RCA to `docs/incidents/` in COG-GTM/bny only after human approval.',
     );
   }
 

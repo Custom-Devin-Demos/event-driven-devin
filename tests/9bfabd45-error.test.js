@@ -298,6 +298,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     'NEXEN_SRE_BOT_WEBHOOK_SECRET',
     'NEXEN_SEV1_CHANNEL_ID',
     'NEXEN_PERSONAS',
+    'PUBLIC_BASE_URL',
     'SLACK_BOT_TOKEN',
     'SLACK_ONCALL_BOT_TOKEN',
     'INCIDENT_LAB_SLACK_BOT_TOKEN',
@@ -328,6 +329,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     process.env.NEXEN_SRE_BOT_WEBHOOK_URL = 'off';
     delete process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET;
     delete process.env.NEXEN_SEV1_CHANNEL_ID;
+    delete process.env.PUBLIC_BASE_URL;
     process.env.SLACK_BOT_TOKEN = 'test-slack-token';
     delete process.env.NEXEN_PERSONAS;
     delete process.env.SLACK_ONCALL_BOT_TOKEN;
@@ -413,11 +415,17 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(page).toContain('service=nexen-settlement');
     expect(page).toContain('Join this SEV-1 channel and act as the incident responder there.');
     expect(page).toContain('Stay in the scenario');
+    expect(page).toContain('Nobody will @mention you');
+    expect(page).toContain(`<@${OWNER.slackMemberId}>`);
+    expect(page).toContain(`<#${FIXED_SEV1_CHANNEL_ID}>`);
+    expect(page).toContain('RCA-TEMPLATE.md');
+    expect(page).toContain('rca-template.html');
+    expect(page).not.toMatch(/#sev-1-incident-/);
     expect(page).toContain(`#pershing-sev1 (channel id ${FIXED_SEV1_CHANNEL_ID})`);
     expect(page).toContain(SETTLEMENT_REMEDIATION_DIRECTIVE);
     expect(page).toContain('SB-20260918-USD');
     expect(page).toContain('Never merge or roll back without a human.');
-    expect(postPersonaMessage).toHaveBeenCalledTimes(9);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
     expect(postPersonaMessage).toHaveBeenNthCalledWith(
       1,
       'incident-test-token',
@@ -427,6 +435,9 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       ':rotating_light:',
     );
     expect(postPersonaMessage.mock.calls.slice(1).every((call) => call[1] === FIXED_SEV1_CHANNEL_ID)).toBe(true);
+    expect(postPersonaMessage.mock.calls.slice(1).map((call) => call[4])).toEqual(
+      Array(7).fill('https://devindemos.com/incident-lab/avatars/person-outline.png'),
+    );
   });
 
   test('fixed-channel invitation failure still pages SRE Bot and schedules personas', async () => {
@@ -444,7 +455,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     ]);
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
     expect(sendDevinSessionMessage.mock.calls[0][1]).toContain(`channel id ${FIXED_SEV1_CHANNEL_ID}`);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(9);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
     expect(createChannel).not.toHaveBeenCalled();
     expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
   });
@@ -566,9 +577,9 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await jest.advanceTimersByTimeAsync(15000);
     expect(findChannelByNameFragment).toHaveBeenCalledTimes(2);
     expect(joinChannel).toHaveBeenCalledWith('test-slack-token', 'C_DD');
-    await jest.advanceTimersByTimeAsync(240000);
+    await jest.advanceTimersByTimeAsync(300000);
 
-    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(7);
     expect(postPersonaMessage.mock.calls.every((call) => call[1] === 'C_DD')).toBe(true);
   });
 
@@ -587,18 +598,17 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(postPersonaMessage).not.toHaveBeenCalled();
   });
 
-  test('posts all eight persona messages in order and replaces SRE Bot mentions', async () => {
+  test('posts seven persona messages in order and replaces SRE Bot mentions', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
     jest.useFakeTimers();
     const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await incidentPromise;
     await jest.runAllTimersAsync();
 
-    expect(postPersonaMessage).toHaveBeenCalledTimes(9);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
     expect(postPersonaMessage.mock.calls.slice(1).map((call) => call[3])).toEqual([
       'Maya Okafor',
       'Priya Natarajan',
-      'Maya Okafor',
       'Daniel Reyes',
       'Priya Natarajan',
       'Maya Okafor',
@@ -609,8 +619,55 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       .slice(1)
       .map((call) => call[2])
       .filter((text) => text.includes(`<@${BOT_SLACK_ID}>`));
-    expect(mentions).toHaveLength(3);
+    expect(mentions).toHaveLength(1);
     expect(mentions.every((text) => !text.includes('{sre_bot}'))).toBe(true);
+  });
+
+  test('uses PUBLIC_BASE_URL for persona avatar URLs', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    process.env.PUBLIC_BASE_URL = 'https://demo.example.test/';
+    jest.useFakeTimers();
+
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await incidentPromise;
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(postPersonaMessage.mock.calls[1][4]).toBe(
+      'https://demo.example.test/incident-lab/avatars/person-outline.png',
+    );
+  });
+
+  test('posts five persona lines within 15 seconds and does not mention SRE Bot before 240 seconds', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    jest.useFakeTimers();
+
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await incidentPromise;
+    await jest.advanceTimersByTimeAsync(14999);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(5);
+
+    await jest.advanceTimersByTimeAsync(1);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(6);
+    expect(postPersonaMessage.mock.calls.slice(1).map((call) => call[3])).toEqual([
+      'Maya Okafor',
+      'Priya Natarajan',
+      'Daniel Reyes',
+      'Priya Natarajan',
+      'Maya Okafor',
+    ]);
+    expect(postPersonaMessage.mock.calls.slice(1).every((call) => (
+      !call[2].includes(`<@${BOT_SLACK_ID}>`)
+    ))).toBe(true);
+
+    await jest.advanceTimersByTimeAsync(224999);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(6);
+    expect(postPersonaMessage.mock.calls.slice(1).every((call) => (
+      !call[2].includes(`<@${BOT_SLACK_ID}>`)
+    ))).toBe(true);
+
+    await jest.advanceTimersByTimeAsync(1);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(7);
+    expect(postPersonaMessage.mock.calls[6][2]).toContain(`<@${BOT_SLACK_ID}>`);
   });
 
   test.each(['', 'off'])('when the SRE Bot Slack ID is %p, invites only the owner and uses plain persona text', async (slackId) => {
@@ -623,12 +680,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
     expect(inviteToChannel).toHaveBeenCalledWith('test-slack-token', FIXED_SEV1_CHANNEL_ID, [OWNER.slackMemberId]);
     const personaTexts = postPersonaMessage.mock.calls.map((call) => call[2]);
-    const placeholderLines = personaTexts.filter((text) => (
-      text.includes('can you take this?')
-      || text.includes('once you have the root cause')
-      || text.includes('please draft the RCA')
-    ));
-    expect(placeholderLines).toHaveLength(3);
+    const placeholderLines = personaTexts.filter((text) => text.includes('saw your root cause'));
+    expect(placeholderLines).toHaveLength(1);
     expect(placeholderLines.every((text) => (
       text.includes('SRE Bot') && !text.includes('<@') && !text.includes('{sre_bot}')
     ))).toBe(true);
