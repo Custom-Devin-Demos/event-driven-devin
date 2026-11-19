@@ -172,6 +172,8 @@ const DIRECT_ALERT_PATHS = ['instant', 'latency'];
 // Latency-budget breaches alert directly; their issue webhooks carry no event
 // tags, so match the LatencyBudgetExceeded title/type against these routes.
 const LATENCY_DIRECT_ALERT_ROUTES = ['/api/ef51d258/', '/api/a6fe3aeb/', '/api/f887d0be/', '/api/d708940c/', '/api/04525b56/', '/api/fd043af6/', '/api/fe97a788/', '/api/37b90289/', '/api/8f970d35/', '/api/924f5ec9/', '/api/2ecabf0c/', '/api/b1e1bd35/', '/api/f6f7a1d9/', '/api/532a696f/', '/api/3c9e1f7a/', '/api/5ac6319f/', '/api/e9838029/', '/api/947c7934/', '/api/b62bfb77/', '/api/98cd161c/', '/api/85bedc75/', '/api/5d0fd49b/', '/api/0166f378/', '/api/53cfb2d5/', '/api/4ea2d7f6/', '/api/f3e617ec/', '/api/2fbca1a9/'];
+INSTANT_PATH_SLUGS.push('65ee9e8f');
+LATENCY_DIRECT_ALERT_ROUTES.push('/api/65ee9e8f/');
 
 function isInstantPathEvent(alertData) {
   const isDirectAlertError = typeof alertData.issueTitle === 'string'
