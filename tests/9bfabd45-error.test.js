@@ -17,6 +17,8 @@ jest.mock('../app/services/slack', () => {
     postAlertToSlack: jest.fn(() => Promise.resolve('1712345678.000100')),
     createChannel: jest.fn((_token, name) => Promise.resolve({ id: 'C-SEV-1', name })),
     inviteToChannel: jest.fn(() => Promise.resolve(true)),
+    findChannelByNameFragment: jest.fn(() => Promise.resolve(null)),
+    joinChannel: jest.fn(() => Promise.resolve(true)),
     postPersonaMessage: jest.fn(() => Promise.resolve('1712345678.000200')),
   };
 });
@@ -67,6 +69,8 @@ const {
   postAlertToSlack,
   createChannel,
   inviteToChannel,
+  findChannelByNameFragment,
+  joinChannel,
   postPersonaMessage,
 } = require('../app/services/slack');
 const { runWithLegacyAlertsSuppressed } = require('../app/services/oncall-suppression');
@@ -319,6 +323,10 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     delete process.env.NEXEN_PERSONAS;
     delete process.env.SLACK_ONCALL_BOT_TOKEN;
     delete process.env.INCIDENT_LAB_SLACK_BOT_TOKEN;
+    findChannelByNameFragment.mockReset();
+    findChannelByNameFragment.mockResolvedValue(null);
+    joinChannel.mockReset();
+    joinChannel.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -441,8 +449,46 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       publicId: 412,
       userIds: [OWNER.slackMemberId],
     });
+    expect(findChannelByNameFragment).not.toHaveBeenCalled();
     expect(postPersonaMessage).not.toHaveBeenCalled();
     expect(sendDevinSessionMessage.mock.calls[0][1]).toContain('#sev-1-incident-412-…');
+  });
+
+  test('finds the Datadog channel, joins it, and runs personas after app-channel creation fails', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    jest.useFakeTimers();
+    createChannel.mockRejectedValueOnce(new Error('missing channels:manage'));
+    findChannelByNameFragment
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'C_DD', name: 'sev-1-incident-412-x' });
+    joinChannel.mockRejectedValueOnce(new Error('already_in_channel'));
+
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await incidentPromise;
+
+    expect(findChannelByNameFragment).toHaveBeenCalledTimes(1);
+    expect(findChannelByNameFragment).toHaveBeenCalledWith('test-slack-token', 'incident-412-');
+    await jest.advanceTimersByTimeAsync(15000);
+    expect(findChannelByNameFragment).toHaveBeenCalledTimes(2);
+    expect(joinChannel).toHaveBeenCalledWith('test-slack-token', 'C_DD');
+    await jest.advanceTimersByTimeAsync(240000);
+
+    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
+    expect(postPersonaMessage.mock.calls.every((call) => call[1] === 'C_DD')).toBe(true);
+  });
+
+  test('stops looking for the Datadog channel after five minutes', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    jest.useFakeTimers();
+    createChannel.mockRejectedValueOnce(new Error('missing channels:manage'));
+
+    const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await incidentPromise;
+    await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+
+    expect(findChannelByNameFragment).toHaveBeenCalledTimes(21);
+    expect(joinChannel).not.toHaveBeenCalled();
+    expect(postPersonaMessage).not.toHaveBeenCalled();
   });
 
   test('posts all eight persona messages in order and replaces SRE Bot mentions', async () => {

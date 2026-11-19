@@ -7,7 +7,14 @@ const { listOrgUsers, listEnterpriseAdmins, sendDevinSessionMessage } = require(
 const { getCustomerConfig } = require('../../../config/customers');
 const { declareDatadogIncident } = require('../datadog-incidents');
 const { queueIncidentChannelInvites } = require('../datadog-incident-slack');
-const { postAlertToSlack, createChannel, inviteToChannel, postPersonaMessage } = require('../slack');
+const {
+  postAlertToSlack,
+  createChannel,
+  inviteToChannel,
+  findChannelByNameFragment,
+  joinChannel,
+  postPersonaMessage,
+} = require('../slack');
 const { legacyAlertsSuppressed } = require('../oncall-suppression');
 const settlementPersonas = require('../../../config/nexen/sev1-personas.json');
 
@@ -124,6 +131,8 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
 ].join('\n');
 
 const DEFAULT_NEXEN_SRE_BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
+const DATADOG_CHANNEL_LOOKUP_INTERVAL_MS = 15000;
+const DATADOG_CHANNEL_LOOKUP_TIMEOUT_MS = 5 * 60 * 1000;
 
 let settlementIncident = null;
 
@@ -245,6 +254,54 @@ function scheduleSettlementPersonas(token, channelId, createdAt) {
   }
 }
 
+function locateDatadogSettlementPersonas(token, publicId) {
+  if (!token || (process.env.NEXEN_PERSONAS || '').toLowerCase() === 'off') return;
+
+  const marker = `incident-${publicId}-`;
+  const deadline = Date.now() + DATADOG_CHANNEL_LOOKUP_TIMEOUT_MS;
+  const locate = async () => {
+    let channel = null;
+    try {
+      channel = await findChannelByNameFragment(token, marker);
+    } catch (err) {
+      logger.warn('NEXEN settlement Datadog channel lookup failed', {
+        publicId,
+        marker,
+        error: err.message,
+      });
+    }
+
+    if (Date.now() > deadline) {
+      logger.warn('NEXEN settlement Datadog channel did not appear before timeout', { publicId, marker });
+      return;
+    }
+
+    if (channel) {
+      try {
+        await joinChannel(token, channel.id);
+      } catch (err) {
+        logger.warn('NEXEN settlement could not join Datadog incident channel; continuing personas', {
+          publicId,
+          channelId: channel.id,
+          error: err.message,
+        });
+      }
+      scheduleSettlementPersonas(token, channel.id, Date.now());
+      return;
+    }
+
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
+      logger.warn('NEXEN settlement Datadog channel did not appear before timeout', { publicId, marker });
+      return;
+    }
+    const timer = setTimeout(locate, Math.min(DATADOG_CHANNEL_LOOKUP_INTERVAL_MS, remainingMs));
+    if (timer.unref) timer.unref();
+  };
+
+  void locate();
+}
+
 function buildSettlementSreBotPage({
   reference,
   alertChannelId,
@@ -346,6 +403,7 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
           error: err.message,
         });
       }
+      locateDatadogSettlementPersonas(token, incident.publicId);
     }
   }
 
