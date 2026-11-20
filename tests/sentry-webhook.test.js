@@ -22,6 +22,13 @@ describe('Sentry customer identity mapping', () => {
     })).toBe(true);
   });
 
+  test('recognizes fleet health events tagged as instant-path alerts', () => {
+    expect(isInstantPathEvent({
+      tags: [['alert_path', 'instant'], ['service', '9663ef9a-api']],
+      culprit: 'app/services/verticals/9663ef9a.js — runSweep',
+    })).toBe(true);
+  });
+
   test('recognizes tagless Applied Epic attachment search issue webhooks by culprit module path', () => {
     expect(isInstantPathEvent({
       issueTitle: "TypeError: Cannot read properties of undefined (reading 'description')",
