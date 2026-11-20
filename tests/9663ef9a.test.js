@@ -10,6 +10,7 @@ const service = require('../app/services/verticals/9663ef9a');
 const { adaptTelemetry } = require('../app/services/verticals/9663ef9a-health-rules');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
+const logger = require('../app/telemetry/logger');
 const { runWithAlertDestination } = require('../app/services/alert-destination');
 
 beforeEach(() => { service.resetRollout(); jest.clearAllMocks(); });
@@ -38,7 +39,13 @@ test.each([undefined, 'slack', 'teams'])('rollout preserves untargeted trucks an
   let result;
   try {
     result = await runWithAlertDestination(destination, () => service.runRollout({ devinEmail: 'operator@example.com' }));
-  } catch {
+  } catch (error) {
+    expect(error.cause).toBeInstanceOf(Error);
+    const cause = { name: error.cause.name, message: error.cause.message, stack: error.cause.stack };
+    expect(cause.stack).toEqual(expect.any(String));
+    expect(logger.error).toHaveBeenCalledWith('OEM firmware rollout failed', expect.objectContaining({ cause }));
+    expect(Sentry.captureException).toHaveBeenCalledWith(error, expect.objectContaining({ extra: expect.objectContaining({ cause }) }));
+    expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({ extra: expect.objectContaining({ cause }) }));
     expect(service.getOverview()).toMatchObject({ status: 'Failed', kpis: { running: 6, stopped: 4 } });
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ tags: { service: '9663ef9a-api', alert_path: 'instant' } }));

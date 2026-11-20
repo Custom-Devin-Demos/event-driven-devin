@@ -46,14 +46,15 @@ async function runRollout(data = {}) {
       }
     });
     state = { status: 'Completed', error: null, fleet };
-    if (failures.length) throw new Error(`${failures.length} trucks safe-stopped after OEM firmware rollout. Telemetry adapter could not read vehicle data. Six unaffected trucks remain running.`);
+    if (failures.length) throw new Error(`${failures.length} trucks safe-stopped after OEM firmware rollout. Telemetry adapter could not read vehicle data. Six unaffected trucks remain running.`, { cause: failures[0] });
     incrementMetric('9663ef9a.rollout.success', { service: SERVICE });
     return { success: true, requestId, ...getOverview() };
   } catch (error) {
+    const cause = error.cause ? { name: error.cause.name, message: error.cause.message, stack: error.cause.stack } : undefined;
     state = { ...state, status: 'Failed', error: error.message };
     incrementMetric('9663ef9a.rollout.failure', { service: SERVICE });
-    logger.error('OEM firmware rollout failed', { service: SERVICE, requestId, error: error.message, stack: error.stack });
-    Sentry.captureException(error, { tags: { service: SERVICE, alert_path: 'instant' }, extra: { requestId } });
+    logger.error('OEM firmware rollout failed', { service: SERVICE, requestId, error: error.message, stack: error.stack, cause });
+    Sentry.captureException(error, { tags: { service: SERVICE, alert_path: 'instant' }, extra: { requestId, cause } });
     logger.info('Invoking createSessionAndAlert', { service: SERVICE, requestId, alertDestination: 'teams' });
     runWithAlertDestination('teams', () => createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
@@ -64,7 +65,7 @@ async function runRollout(data = {}) {
       service: SERVICE, verticalLabel: 'Surface mine fleet health',
       promptAppendix: 'Investigate the root cause, implement the fix, and include a regression test in the PR. Verify the firmware rollout and unaffected fleet at /9663ef9a. Do not deploy.',
       tags: [{ key: 'service', value: SERVICE }, { key: 'route', value: '/api/9663ef9a/rollout' }],
-      extra: { requestId, targets: TARGETS }, level: 'error', platform: 'node',
+      extra: { requestId, targets: TARGETS, cause }, level: 'error', platform: 'node',
       firstSeen: '', lastSeen: new Date().toISOString(), count: '', shortId: '',
       project: 'event-driven-devin', release: process.env.SENTRY_RELEASE || '9663ef9a@1.0.0',
       environment: process.env.DD_ENV || 'prod', triggeredRule: '',
