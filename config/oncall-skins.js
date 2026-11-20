@@ -2711,24 +2711,6 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A MYBOEINGFLEET SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
   },
-  'bb0a082c': {
-    slug: 'bb0a082c',
-    company: 'Gap',
-    brandMark: 'G',
-    vertical: 'banking',
-    page: {
-      file: 'bb0a082c.html',
-      title: 'Checkout | Gap',
-    },
-    theme: {
-      '--accent': '#031BA1',
-      '--ink': '#000000',
-      '--surface': '#ffffff',
-      '--chrome-bg': '#000000',
-      '--chrome-text': '#ffffff',
-    },
-    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
-  },
   'afc90dda': {
     slug: 'afc90dda',
     company: 'Zurich',
@@ -3158,22 +3140,6 @@ const ONCALL_SKINS = {
     },
     devinSession: { auto: true },
     disclaimer: 'NOT ACTUALLY A QBE SITE — internal demo only, not affiliated with, endorsed by, or a real QBE Insurance product.',
-  },
-  '143165b5': {
-    slug: '143165b5',
-    company: 'Gap',
-    brandMark: 'G',
-    vertical: 'banking',
-    oncallOnly: true,
-    page: { file: '143165b5.html', title: 'Checkout | Gap' },
-    theme: {
-      '--accent': '#05274C',
-      '--ink': '#000000',
-      '--surface': '#FFFFFF',
-      '--chrome-bg': '#000000',
-      '--chrome-text': '#FFFFFF',
-    },
-    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
   'd5e0112b': {
     slug: 'd5e0112b',
@@ -10577,6 +10543,13 @@ const ONCALL_SKINS = {
       impact: 'Payroll processors wait ~10 seconds on every client funding release; some resubmit, which risks funding the same pay run twice.',
     },
     disclaimer: 'NOT ACTUALLY A LONG LAKE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Long Lake product.',
+  },
+  '9fd677c0': {
+    slug: '9fd677c0',
+    company: 'Gap',
+    vertical: 'banking',
+    page: { file: '9fd677c0.html', title: 'Checkout' },
+    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
 };
 
