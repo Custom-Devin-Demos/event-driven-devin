@@ -1,4 +1,4 @@
-/* global describe, expect, test, jest, afterEach, beforeEach, setImmediate */
+/* global jest, describe, test, expect */
 
 jest.mock('../app/services/slack', () => ({
   postMessage: jest.fn(() => Promise.resolve('1792090000.000100')),
