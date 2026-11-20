@@ -4,6 +4,7 @@ const {
   findChannelByName,
   joinChannel,
   postPersonaMessage,
+  postUserMessage,
   getThreadReplies,
 } = require('../slack');
 const script = require('../../../config/nexen/pdlc-personas.json');
@@ -18,6 +19,12 @@ const script = require('../../../config/nexen/pdlc-personas.json');
  * it joins on its own, scopes the idea and posts wireframes. The runner then
  * watches the thread and, as the Bot answers, posts the persona change request
  * and the go-ahead, relaying each one to the Bot.
+ *
+ * A persona listed in BNY_PDLC_PERSONA_USER_TOKENS (JSON, persona id -> a real
+ * Slack member's `xoxp-` user token) posts as that member instead. The Bot
+ * watches the thread, so those lines reach it as Slack messages from a person
+ * and show up that way in its Devin chat; the runner pages the line only if
+ * the Bot has not answered within USER_POST_GRACE_MS.
  */
 const DEFAULT_PDLC_BOT_ID = 'bot-59656379ddc5470281166b1458334c2c';
 const DEFAULT_PDLC_BOT_SLACK_ID = 'U0CK6TNG7T3';
@@ -30,6 +37,7 @@ const APP_MODULE = 'apps/b113a373';
 const POLL_INTERVAL_MS = 10000;
 const PAGE_ATTEMPTS = 4;
 const PAGE_RETRY_MS = 20000;
+const USER_POST_GRACE_MS = 90 * 1000;
 const STAGE_TIMEOUT_MS = 30 * 60 * 1000;
 const BUILD_TIMEOUT_MS = 90 * 60 * 1000;
 const RUN_COOLDOWN_MS = 2 * 60 * 1000;
@@ -55,6 +63,18 @@ function personaToken() {
     || process.env.SLACK_ONCALL_BOT_TOKEN
     || process.env.SLACK_BOT_TOKEN
     || '';
+}
+
+function personaUserTokens() {
+  const raw = process.env.BNY_PDLC_PERSONA_USER_TOKENS;
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return Object.fromEntries(Object.entries(parsed || {}).filter(([, token]) => typeof token === 'string' && token.trim()));
+  } catch (err) {
+    logger.warn('BNY_PDLC_PERSONA_USER_TOKENS is not valid JSON; personas post through the app', { error: err.message });
+    return {};
+  }
 }
 
 function sessionIdentity() {
@@ -116,6 +136,7 @@ function buildBotInstructions() {
     '',
     `Pages from your \`webhook:incoming\` automation carry new lines from a thread in #${DEFAULT_CHANNEL_NAME} (Slack team T08RSEMT71Q). The payload's \`channel_id\` and \`thread_ts\` name the thread; \`message\` is the Slack text, one \`Name: text\` line per message. Treat them as Slack messages in that thread and reply there with your Slack tool. Nobody @mentions you: you join product threads on your own as the team's AI product engineer.`,
     'Stay in the scenario: talk like a teammate and never mention pages, webhooks, relays, scripts or a demo in Slack.',
+    'Teammates may also reply in that thread as themselves in Slack. As soon as a page names a thread, watch it (Slack tool `watch_thread` with its `channel_id` and `thread_ts`) so their replies reach you directly. A line that arrives both ways is one line: answer it once.',
     '',
     `*App:* Pershing Access Android, \`${APP_REPO}\` module \`${APP_MODULE}\` (Kotlin + Jetpack Compose; Holdings screen and rows in \`core/Holdings.kt\` and the Holdings UI; rows expand one at a time).`,
     `*Engineering owner:* ${owner.name} (Slack ${ownerTag}, ${owner.email}) owns the app.`,
@@ -127,7 +148,7 @@ function buildBotInstructions() {
     '3. Then 2-3 wireframe options of the screen as PNG images, each drawn inside a phone frame (labelled A/B/C), attached to one post with one line per option, plus one polished, self-contained HTML artifact (the scope, the KPI and the options side by side in phone frames, in the app\'s colors and type). Aim to have them up within a few minutes.',
     '4. Stop and wait for the next page.',
     '',
-    '## Each later page',
+    '## Each later line (a page or a Slack reply in the thread)',
     'Answer each new line once, in the thread.',
     '- A change request: post the revised wireframes (PNG, in a phone frame) plus an updated HTML artifact, ask if that\'s good to build, and update the Jira ticket\'s acceptance criteria.',
     `- A go-ahead: say you're on it (move the Jira ticket to In Progress), then dispatch a child session bound to the thread (bot_slack_channel = channel_id, bot_slack_thread_ts = thread_ts) that implements the agreed design in ${APP_REPO} ${APP_MODULE} on a new branch named after the Jira key with JVM tests, runs \`make build test lint APP=b113a373\` on Java 17, records a short emulator video of the new flow composited inside an Android phone frame as the preview MP4, opens a PR (never merges) whose title starts with the Jira key and whose description links the ticket, comments the PR link on the Jira ticket, and posts in the thread the PR link, the Jira ticket link, one line tagging ${ownerTag} as engineering owner for review, the phone-framed preview video and a polished self-contained HTML artifact (\`price-alerts-preview.html\`: what shipped, the Jira ticket, phone-framed screens of each state, tests run).`,
@@ -153,6 +174,7 @@ function defaultDeps() {
     findChannelByName,
     joinChannel,
     postPersonaMessage,
+    postUserMessage,
     getThreadReplies,
     pageBot,
   };
@@ -168,9 +190,12 @@ async function resolveChannel(token, deps) {
 
 async function postAs(run, deps, personaId, text) {
   const persona = personasById[personaId];
-  const ts = await deps.postPersonaMessage(run.token, run.channelId, text, persona.username, personaIcon(persona), run.threadTs || undefined);
-  run.log.push({ at: new Date(deps.now()).toISOString(), persona: personaId, ts });
-  return { persona, ts };
+  const userToken = run.userTokens[personaId];
+  const ts = userToken
+    ? await deps.postUserMessage(userToken, run.channelId, text, run.threadTs || undefined)
+    : await deps.postPersonaMessage(run.token, run.channelId, text, persona.username, personaIcon(persona), run.threadTs || undefined);
+  run.log.push({ at: new Date(deps.now()).toISOString(), persona: personaId, ts, asUser: Boolean(userToken) });
+  return { persona, ts, asUser: Boolean(userToken) };
 }
 
 async function page(run, deps, message, label) {
@@ -221,7 +246,13 @@ async function waitForBot(run, deps, { afterTs, timeoutMs, match }) {
 
 async function replyAndRelay(run, deps, step, afterBot) {
   await deps.sleep(step.afterBotMs || 0);
-  const { persona, ts } = await postAs(run, deps, step.persona, step.text);
+  const { persona, ts, asUser } = await postAs(run, deps, step.persona, step.text);
+  if (asUser) {
+    const answered = await waitForBot(run, deps, { afterTs: ts, timeoutMs: USER_POST_GRACE_MS, match: () => true });
+    if (answered) return { ts, afterBot };
+    run.userPostFallbacks.push(step.persona);
+    logger.warn('BNY PDLC Bot did not answer a Slack post from a person; paging the line', { runId: run.id, persona: step.persona });
+  }
   await page(run, deps, buildRelayPage({
     channelId: run.channelId, threadTs: run.threadTs, persona, text: step.text, ts,
   }), step.persona);
@@ -262,8 +293,10 @@ async function executeRun(run, deps) {
   if (!pr) return 'timeout_pr';
   run.prUrl = (pr.text.match(PR_URL_RE) || [])[0];
 
-  await deps.sleep(script.wrapUp.afterBotMs || 0);
-  await postAs(run, deps, script.wrapUp.persona, script.wrapUp.text);
+  if (script.wrapUp) {
+    await deps.sleep(script.wrapUp.afterBotMs || 0);
+    await postAs(run, deps, script.wrapUp.persona, script.wrapUp.text);
+  }
   return 'complete';
 }
 
@@ -278,6 +311,7 @@ function publicState(run) {
     threadUrl: run.channelId && run.threadTs ? threadPermalink(run.channelId, run.threadTs) : null,
     prUrl: run.prUrl || null,
     pageFailures: run.pageFailures,
+    userPostFallbacks: run.userPostFallbacks,
     startedAt: run.startedAt,
     finishedAt: run.finishedAt || null,
     error: run.error || null,
@@ -306,8 +340,10 @@ function startPdlcRun({ triggeredBy = 'unknown' } = {}, deps = defaultDeps()) {
     botId: pdlcBotId(),
     channelId: null,
     threadTs: null,
+    userTokens: personaUserTokens(),
     log: [],
     pageFailures: [],
+    userPostFallbacks: [],
     startedAt: new Date(deps.now()).toISOString(),
   };
   currentRun = run;

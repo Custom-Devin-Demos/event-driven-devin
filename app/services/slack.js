@@ -750,6 +750,28 @@ async function postPersonaMessage(token, channel, text, username, icon, threadTs
 }
 
 /**
+ * Post as a real Slack member with that member's user token (`xoxp-`, user
+ * scope `chat:write`). The message carries the member's own name and photo.
+ */
+async function postUserMessage(token, channel, text, threadTs) {
+  const response = await axios.post(`${SLACK_API_BASE}/chat.postMessage`, {
+    channel,
+    text,
+    ...(threadTs ? { thread_ts: threadTs } : {}),
+  }, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+  return response.data.ts;
+}
+
+/**
  * Create a public Slack channel.
  * Requires the `channels:manage` scope. `name_taken` is surfaced with a
  * machine-readable code so demo callers can retry with a suffix.
@@ -862,6 +884,7 @@ module.exports = {
   findChannelByName,
   joinChannel,
   postPersonaMessage,
+  postUserMessage,
   postAlertToSlack,
   postBugReportToTriage,
   postDevinSessionLink,

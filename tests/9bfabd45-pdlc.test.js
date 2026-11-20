@@ -2,6 +2,7 @@ jest.mock('../app/services/slack', () => ({
   findChannelByName: jest.fn(),
   joinChannel: jest.fn(),
   postPersonaMessage: jest.fn(),
+  postUserMessage: jest.fn(),
   getThreadReplies: jest.fn(),
 }));
 jest.mock('../app/services/bot-pager', () => ({
@@ -14,7 +15,7 @@ const script = require('../config/nexen/pdlc-personas.json');
 const BOT = { user: 'U0CK6TNG7T3', bot_id: 'B0CK8N59ZLL' };
 const png = [{ name: 'option-a.png', mimetype: 'image/png' }];
 
-function fakeDeps({ botReplies }) {
+function fakeDeps({ botReplies, userReplies = [] }) {
   let clock = 1_000_000;
   let tsCounter = 1000;
   const thread = [];
@@ -29,6 +30,14 @@ function fakeDeps({ botReplies }) {
       const ts = `${tsCounter += 1}.000100`;
       posted.push({ text, username, threadTs, ts });
       thread.push({ ts, text, username, bot_id: 'BPERSONA' });
+      return ts;
+    }),
+    postUserMessage: jest.fn(async (token, _c, text, threadTs) => {
+      const ts = `${tsCounter += 1}.000100`;
+      posted.push({ text, token, threadTs, ts });
+      thread.push({ ts, text, user: 'UHUMAN' });
+      const reply = userReplies.shift();
+      if (reply) thread.push({ ts: `${tsCounter += 1}.000200`, ...BOT, ...reply });
       return ts;
     }),
     getThreadReplies: jest.fn(async () => thread),
@@ -49,6 +58,7 @@ beforeEach(() => {
   delete process.env.BNY_PDLC_BOT_ID;
   delete process.env.BNY_IOS_BOT_WEBHOOK_SECRET;
   delete process.env.BNY_IOS_BOT_WEBHOOK_URL;
+  delete process.env.BNY_PDLC_PERSONA_USER_TOKENS;
 });
 
 test('plays the discussion, pages the Bot without an @mention and follows its replies to the PR', async () => {
@@ -72,8 +82,8 @@ test('plays the discussion, pages the Bot without an @mention and follows its re
     ...script.discussion.map((l) => l.text),
     script.changeRequest.text,
     script.goAhead.text,
-    script.wrapUp.text,
   ]);
+  expect(script.wrapUp).toBeUndefined();
   expect(posted[0].threadTs).toBeUndefined();
   expect(posted.slice(1).every((p) => p.threadTs === posted[0].ts)).toBe(true);
   expect(texts.join(' ')).not.toMatch(/<@/);
@@ -174,4 +184,47 @@ test('pages carry only the Slack lines; the Jira and owner steps live in the sta
 test('docs/BNY-PDLC-BOT-INSTRUCTIONS.md matches the standing instructions', () => {
   const doc = require('fs').readFileSync(require('path').join(__dirname, '..', 'docs', 'BNY-PDLC-BOT-INSTRUCTIONS.md'), 'utf8');
   expect(doc).toBe(pdlc.buildBotInstructions());
+});
+
+test('a persona with a user token posts every line as that Slack member and is not paged when the Bot answers', async () => {
+  process.env.BNY_PDLC_PERSONA_USER_TOKENS = JSON.stringify({ design: 'xoxp-hannah' });
+  const { deps, posted, pages } = fakeDeps({
+    botReplies: [
+      { text: 'here are three options', files: png },
+      { text: 'PR is up: https://github.com/COG-GTM/android-demos/pull/101' },
+    ],
+    userReplies: [null, { text: 'revised with a % slider, good to build?', files: png }],
+  });
+  const { run } = pdlc.startPdlcRun({}, deps);
+  await run.done;
+  expect(run.status).toBe('complete');
+  const userPosts = posted.filter((p) => p.token);
+  const designLines = script.discussion.filter((l) => l.persona === 'design').map((l) => l.text);
+  expect(userPosts.map((p) => p.text)).toEqual([...designLines, script.changeRequest.text]);
+  expect(userPosts.every((p) => p.token === 'xoxp-hannah')).toBe(true);
+  expect(userPosts[userPosts.length - 1].threadTs).toBe(posted[0].ts);
+  expect(pages.map((p) => p.message.split('\n')[0])).toEqual([
+    expect.stringContaining('https://coggtm.slack.com/archives/'),
+    `#bny-pershing-access-android-app · Rachel Kim: ${script.goAhead.text}`,
+  ]);
+  expect(run.userPostFallbacks).toEqual([]);
+});
+
+test('pages a user-token line when the Bot does not answer it in time', async () => {
+  process.env.BNY_PDLC_PERSONA_USER_TOKENS = JSON.stringify({ design: 'xoxp-hannah' });
+  const { deps, pages } = fakeDeps({
+    botReplies: [{ text: 'here are three options', files: png }, { text: 'revised', files: png }],
+  });
+  const { run } = pdlc.startPdlcRun({}, deps);
+  await run.done;
+  expect(run.userPostFallbacks).toEqual(['design']);
+  expect(pages[1].message).toBe(`#bny-pershing-access-android-app · Sofia Alvarez: ${script.changeRequest.text}`);
+});
+
+test('ignores a malformed BNY_PDLC_PERSONA_USER_TOKENS and posts through the app', async () => {
+  process.env.BNY_PDLC_PERSONA_USER_TOKENS = '{not json';
+  const { deps } = fakeDeps({ botReplies: [] });
+  const { run } = pdlc.startPdlcRun({}, deps);
+  await run.done;
+  expect(deps.postUserMessage).not.toHaveBeenCalled();
 });
