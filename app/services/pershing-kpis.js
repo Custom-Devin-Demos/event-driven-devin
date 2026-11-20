@@ -170,6 +170,12 @@ function playScript(token, channel, threadTs) {
 
 const HANDOFF_WORDS = /look deeper|jump in|hand(ing|ed)? (this|it) (over |off )?to you|over to you|take it from here/i;
 
+const FIX_PR = /github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/;
+
+function botPostedFixPr(messages) {
+  return messages.some((m) => m.user === botSlackId() && FIX_PR.test(m.text || ''));
+}
+
 function botHandedOff(messages, expertName, tagSlackId) {
   const first = expertName.split(' ')[0];
   const mention = new RegExp(`@[*_\\s]*${first}`, 'i');
@@ -181,7 +187,7 @@ function botHandedOff(messages, expertName, tagSlackId) {
   });
 }
 
-// The team joins once the Bot hands the thread to the expert, or after the timeout.
+// The team joins once the Bot posts its fix PR (or hands off to the expert), or after the timeout.
 function schedulePersonas(token, channel, threadTs) {
   if ((process.env.PERSHING_KPI_PERSONAS || '').toLowerCase() === 'off') return 0;
   const { persona: expertId, timeoutMs, pollMs } = personaScript.handoff;
@@ -191,7 +197,10 @@ function schedulePersonas(token, channel, threadTs) {
   const poll = async () => {
     let handedOff = false;
     try {
-      handedOff = botHandedOff(await getThreadReplies(token, channel, threadTs), expert.username, personaScript.handoff.tag?.slackUserId);
+      const replies = await getThreadReplies(token, channel, threadTs);
+      handedOff = personaScript.handoff.trigger === 'fixPr'
+        ? botPostedFixPr(replies)
+        : botHandedOff(replies, expert.username, personaScript.handoff.tag?.slackUserId);
     } catch (err) {
       logger.warn('Pershing KPI thread poll failed', { error: err.message });
     }

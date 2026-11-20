@@ -60,7 +60,7 @@ describe('Pershing Access KPI posts', () => {
     expect(kpis.getState().nextDate).toBe('2026-11-19');
   });
 
-  test('by default the drop pages no Bot; personas wait for BNY KPI Bot to tag Hannah', async () => {
+  test('by default the drop pages no Bot; personas wait for the BNY KPI Bot fix PR', async () => {
     const run = await kpis.nextDay({ date: '2026-11-19' });
     expect(run.posts[0].investigation).toMatchObject({ paged: false, via: 'listener', botSlackId: 'U0CLC4SR91N', personas: 3 });
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
@@ -69,9 +69,13 @@ describe('Pershing Access KPI posts', () => {
     expect(inviteToChannel).toHaveBeenCalledWith('xoxb-test', 'C0CKGCDNJ2V', ['U0CLC4SR91N']);
     await jest.advanceTimersByTimeAsync(30000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(0);
-    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?" }]);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "<@U0B2YAUPSHL>, can you look deeper?" }]);
+    await jest.advanceTimersByTimeAsync(30000);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(0);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: 'Fix is up: https://github.com/COG-GTM/android-demos/pull/96' }]);
     await jest.advanceTimersByTimeAsync(5000 + 12000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(3);
+    postPersonaMessage.mock.calls.forEach((c) => expect(c[2]).not.toMatch(/\?/));
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
   });
 
@@ -96,14 +100,14 @@ describe('Pershing Access KPI posts', () => {
     expect(botId).toBe('bot-3a43e8d41c194bbe82bdaed7f6af36e2');
     expect(page).toContain('thread_ts 1795000000.000100');
     expect(page).toContain('metrics/events_sample.csv');
-    expect(page).toContain("I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?");
+    expect(page).toContain("I've done this analysis, @Jordan Ellis, can you jump in and look deeper?");
     expect(page).toContain('HTML report');
 
     getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: 'Jordan owns this flow, so the analysis below covers the confirm step.' }]);
     await jest.advanceTimersByTimeAsync(30000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(0);
 
-    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: 'Fix is up: https://github.com/COG-GTM/android-demos/pull/96' }]);
     await jest.advanceTimersByTimeAsync(5000);
     await jest.advanceTimersByTimeAsync(10000);
     const replies = postPersonaMessage.mock.calls;
@@ -113,30 +117,29 @@ describe('Pershing Access KPI posts', () => {
       expect(call[4]).toMatch(/^https:\/\/devindemos\.com\/bny\/avatars\/(jordan-ellis|marcus-chen|sofia-alvarez)\.png$/);
       expect(call[2]).not.toContain('<@');
     });
-    expect(sendDevinSessionMessage).toHaveBeenCalledTimes(3);
-    expect(sendDevinSessionMessage.mock.calls[1][1]).toContain('Jordan Ellis');
+    expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
   });
 
-  test('the Bot tagging Hannah starts the personas', async () => {
-    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?" }]);
+  test('the Bot posting its fix PR starts the personas', async () => {
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: 'Fix is up: https://github.com/COG-GTM/android-demos/pull/96' }]);
     await kpis.seed();
     await kpis.nextDay();
     await jest.advanceTimersByTimeAsync(5000 + 12000);
     expect(postPersonaMessage.mock.calls.filter((c) => c[5] === '1795000000.000100').length).toBeGreaterThan(0);
   });
 
-  test('a plain-text hand-off that names Jordan also starts the personas', async () => {
+  test('a Bot hand-off line without a PR link does not start the personas', async () => {
     getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "Jordan Ellis, you own the confirm flow, so I'm handing this to you." }]);
     await kpis.nextDay({ date: '2026-11-19' });
     await jest.advanceTimersByTimeAsync(5000);
     await jest.advanceTimersByTimeAsync(10000);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(3);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(0);
   });
 
   test('personas start after the timeout when the Bot never hands off', async () => {
     getThreadReplies.mockResolvedValue([]);
     await kpis.nextDay({ date: '2026-11-19' });
-    await jest.advanceTimersByTimeAsync(375000);
+    await jest.advanceTimersByTimeAsync(1515000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(3);
   });
 
