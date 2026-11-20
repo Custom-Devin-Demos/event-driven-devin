@@ -67,7 +67,7 @@ router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {
 });
 
 // BNY demo 1 (PDLC): personas discuss price alerts on Holdings in
-// #pershing-access-product and the iOS Engineer Bot joins unprompted.
+// #pershing-access-product and the Android Engineer Bot joins unprompted.
 const PDLC_PAGE = path.join(__dirname, '..', '..', 'public', 'verticals', '9bfabd45-pdlc.html');
 for (const entry of ['/9bfabd45/pdlc', '/bny-pdlc']) {
   router.get(entry, (_req, res) => res.sendFile(PDLC_PAGE));

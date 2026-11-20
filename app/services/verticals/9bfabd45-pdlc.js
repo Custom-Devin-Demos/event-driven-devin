@@ -17,7 +17,7 @@ const script = require('../../../config/nexen/pdlc-personas.json');
  *
  * Three personas (one Slack app, chat:write.customize) discuss a feature idea in
  * #pershing-access-product. Nobody @mentions Devin: when the discussion ends
- * the iOS Engineer Bot is paged through the v3 messages API with the thread, so
+ * the Android Engineer Bot is paged through the v3 messages API with the thread, so
  * it joins on its own, scopes the idea and posts wireframes. The runner then
  * watches the thread and, as the Bot answers, posts the persona change request
  * and the go-ahead, relaying each one to the Bot.
