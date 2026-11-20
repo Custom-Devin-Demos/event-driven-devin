@@ -14,7 +14,7 @@ On the right, I see the warnings waiting to be assessed. The numbered codes iden
 I click **Run health sweep**. The console should score these warnings and prepare work orders. Instead, I get a red error and the sweep fails. No partial work orders are published.
 
 ## What happens next
-The service reports the exception to Sentry and sends failure metrics to Datadog. It invokes the configured Slack and Devin alert flow. In a configured environment, Devin investigates why the two reading formats disagree, proposes a fix, and opens a pull request with a regression test for a human to review. It does not deploy the change.
+The service reports the exception to Sentry and sends failure metrics to Datadog. It posts the alert to the configured Microsoft Teams channel. The Teams responder starts the investigation and replies in that alert's thread. In a configured environment, Devin investigates why the two reading formats disagree, proposes a fix, and opens a pull request with a regression test for a human to review. It does not deploy the change. If the Teams webhook is missing, the shared alert flow falls back to Slack.
 
 ## Why this matters
 The story is autonomy deployments in weeks, followed by continuous updates. Engineers are the capacity constraint. Devin adds engineering capacity so a small compatibility issue does not hold up the next rollout.

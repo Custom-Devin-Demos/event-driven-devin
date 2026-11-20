@@ -3,6 +3,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { runWithAlertDestination } = require('../alert-destination');
 const { SEVERITY_RULES, normalizeEvent } = require('./9663ef9a-health-rules');
 
 const SERVICE = '9663ef9a-api';
@@ -58,7 +59,7 @@ async function runSweep(data = {}) {
     logger.error('Health sweep failed', { service: SERVICE, requestId, error: error.message, stack: error.stack });
     Sentry.captureException(error, { tags: { service: SERVICE, alert_path: 'instant' }, extra: { requestId } });
     logger.info('Invoking createSessionAndAlert', { service: SERVICE, requestId });
-    createSessionAndAlert({
+    runWithAlertDestination('teams', () => createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/`,
       culprit: 'app/services/verticals/9663ef9a.js — runSweep',
@@ -71,7 +72,7 @@ async function runSweep(data = {}) {
       firstSeen: '', lastSeen: new Date().toISOString(), count: '', shortId: '',
       project: 'event-driven-devin', release: process.env.SENTRY_RELEASE || '9663ef9a@1.0.0',
       environment: process.env.DD_ENV || 'prod', triggeredRule: '',
-    }).catch(err => logger.error('Session dispatch failed', { service: SERVICE, error: err.message }));
+    })).catch(err => logger.error('Session dispatch failed', { service: SERVICE, error: err.message }));
     throw error;
   } finally {
     recordTiming('9663ef9a.sweep.latency', Date.now() - started, { service: SERVICE });
