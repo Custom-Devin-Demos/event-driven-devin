@@ -154,6 +154,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alertData = createSessionAndAlert.mock.calls[0][0];
 
+    expect(alertData).not.toHaveProperty('slackPoster');
     expect(alertData).toMatchObject({
       customer: '9bfabd45',
       service: 'customer-9bfabd45-web',
@@ -296,6 +297,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     'NEXEN_SRE_BOT_SLACK_ID',
     'NEXEN_SRE_BOT_WEBHOOK_URL',
     'NEXEN_SRE_BOT_WEBHOOK_SECRET',
+    'NEXEN_ALERT_USERNAME',
     'NEXEN_SEV1_CHANNEL_ID',
     'NEXEN_PERSONAS',
     'PUBLIC_BASE_URL',
@@ -328,6 +330,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     delete process.env.NEXEN_SRE_BOT_SLACK_ID;
     process.env.NEXEN_SRE_BOT_WEBHOOK_URL = 'off';
     delete process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET;
+    delete process.env.NEXEN_ALERT_USERNAME;
     delete process.env.NEXEN_SEV1_CHANNEL_ID;
     delete process.env.PUBLIC_BASE_URL;
     process.env.SLACK_BOT_TOKEN = 'test-slack-token';
@@ -357,10 +360,31 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.slackChannelId).toBe('C0CJPN2C5D5');
     expect(alert.slackChannelId).toBe(SETTLEMENT.slackChannelId);
+    expect(alert.slackPoster).toEqual({
+      username: 'NEXEN Monitoring',
+      icon_emoji: ':satellite_antenna:',
+    });
     expect(alert.promptAppendix).toBe(SETTLEMENT_REMEDIATION_DIRECTIVE);
     expect(alert.culprit).toContain('frontend/src/domain/settlement.ts');
     expect(alert.tags).toEqual(expect.arrayContaining([{ key: 'scenario', value: 'settlement-batch-release' }]));
     expect(postAlertToSlack).not.toHaveBeenCalled();
+  });
+
+  test.each(['', 'off', ' OFF '])('omits the alert poster when NEXEN_ALERT_USERNAME is %j', async (username) => {
+    process.env.NEXEN_ALERT_USERNAME = username;
+    const { sessionPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await sessionPromise;
+    expect(createSessionAndAlert.mock.calls[0][0]).not.toHaveProperty('slackPoster');
+  });
+
+  test('uses a configured NEXEN alert username', async () => {
+    process.env.NEXEN_ALERT_USERNAME = 'Custom Name';
+    const { sessionPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await sessionPromise;
+    expect(createSessionAndAlert.mock.calls[0][0].slackPoster).toEqual({
+      username: 'Custom Name',
+      icon_emoji: ':satellite_antenna:',
+    });
   });
 
   test('declares a SEV-1 and invites the demo owner to its channel', async () => {

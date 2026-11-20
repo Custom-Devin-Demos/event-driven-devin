@@ -169,6 +169,13 @@ function nexenSreBotWebhookUrl() {
   return !webhookUrl || webhookUrl.toLowerCase() === 'off' ? null : webhookUrl;
 }
 
+function nexenAlertPoster() {
+  const configured = process.env.NEXEN_ALERT_USERNAME;
+  const username = configured === undefined ? 'NEXEN Monitoring' : configured.trim();
+  if (!username || username.toLowerCase() === 'off') return null;
+  return { username, icon_emoji: ':satellite_antenna:' };
+}
+
 function nexenSettlementResponderSlackIds() {
   const ids = [OWNER.slackMemberId];
   const botSlackId = nexenSreBotSlackId();
@@ -629,41 +636,45 @@ function reportAppFailure(report) {
     });
   });
 
-  const buildAlertData = (devinUserId) => ({
-    issueTitle: `${errorType}: ${errorMessage}`,
-    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
-    culprit: isSettlement
-      ? `${CUSTOMER}/frontend/src/domain/settlement.ts \u2014 buildReleaseLines`
-      : `${CUSTOMER}/frontend/src/domain/allocation.ts \u2014 buildAllocationBars`,
-    errorType,
-    errorValue: errorMessage,
-    devinUserId,
-    devinEmail,
-    devinOrgId: report.devinOrgId,
-    slackMemberId: OWNER.slackMemberId,
-    slackMemberIdFallback: OWNER.slackMemberId,
-    service: APP_SERVICE,
-    verticalLabel: 'BNY NEXEN',
-    promptAppendix: isSettlement ? SETTLEMENT_REMEDIATION_DIRECTIVE : APP_REMEDIATION_DIRECTIVE,
-    ...(isSettlement ? { slackChannelId: SETTLEMENT.slackChannelId } : {}),
-    customer: CUSTOMER,
-    tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
-    extra: {
-      reference,
-      stackTrace,
-      report: custodyReport,
-    },
-    level: 'error',
-    platform,
-    firstSeen: '',
-    lastSeen: new Date().toISOString(),
-    count: '',
-    shortId: '',
-    project: APP_PROJECT,
-    release,
-    environment,
-    triggeredRule: '',
-  });
+  const buildAlertData = (devinUserId) => {
+    const poster = isSettlement ? nexenAlertPoster() : null;
+    return {
+      issueTitle: `${errorType}: ${errorMessage}`,
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
+      culprit: isSettlement
+        ? `${CUSTOMER}/frontend/src/domain/settlement.ts \u2014 buildReleaseLines`
+        : `${CUSTOMER}/frontend/src/domain/allocation.ts \u2014 buildAllocationBars`,
+      errorType,
+      errorValue: errorMessage,
+      devinUserId,
+      devinEmail,
+      devinOrgId: report.devinOrgId,
+      slackMemberId: OWNER.slackMemberId,
+      slackMemberIdFallback: OWNER.slackMemberId,
+      service: APP_SERVICE,
+      verticalLabel: 'BNY NEXEN',
+      promptAppendix: isSettlement ? SETTLEMENT_REMEDIATION_DIRECTIVE : APP_REMEDIATION_DIRECTIVE,
+      ...(isSettlement ? { slackChannelId: SETTLEMENT.slackChannelId } : {}),
+      ...(isSettlement && poster ? { slackPoster: poster } : {}),
+      customer: CUSTOMER,
+      tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
+      extra: {
+        reference,
+        stackTrace,
+        report: custodyReport,
+      },
+      level: 'error',
+      platform,
+      firstSeen: '',
+      lastSeen: new Date().toISOString(),
+      count: '',
+      shortId: '',
+      project: APP_PROJECT,
+      release,
+      environment,
+      triggeredRule: '',
+    };
+  };
   const raiseAlert = (devinUserId) => createSessionAndAlert(buildAlertData(devinUserId));
 
   const needsLookup = !report.devinUserId && devinEmail && report.devinOrgId;

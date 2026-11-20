@@ -59,6 +59,27 @@ describe('per-customer Slack channel override', () => {
     expect(axios.post.mock.calls[0][1].channel).toBe('C_GLOBAL');
   });
 
+  test('uses the alert poster in the chat.postMessage body when provided', async () => {
+    await postAlertToSlack({
+      ...ALERT,
+      slackPoster: { username: 'NEXEN Monitoring', icon_emoji: ':satellite_antenna:' },
+    });
+
+    expect(axios.post.mock.calls[0][1]).toMatchObject({
+      username: 'NEXEN Monitoring',
+      icon_emoji: ':satellite_antenna:',
+    });
+  });
+
+  test('does not add poster fields when no alert poster is provided', async () => {
+    await postAlertToSlack({ ...ALERT });
+
+    const body = axios.post.mock.calls[0][1];
+    expect(body).not.toHaveProperty('username');
+    expect(body).not.toHaveProperty('icon_url');
+    expect(body).not.toHaveProperty('icon_emoji');
+  });
+
   test('getCustomerConfig resolves the Tekion channel from the customer entry', () => {
     expect(getCustomerConfig('0a537b71').slackChannelId).toBe('C0C1FP3FM5K');
   });

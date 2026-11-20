@@ -34,10 +34,15 @@ function onCallText(slackMemberId, unassignedText = ONCALL_UNASSIGNED_TEXT) {
  * Post a message to a Slack channel.
  * Returns the message timestamp (ts) for threading replies.
  */
-async function postMessage(token, channel, text, blocks) {
+async function postMessage(token, channel, text, blocks, poster) {
   const body = { channel, text };
   if (blocks) {
     body.blocks = blocks;
+  }
+  if (poster) {
+    if (poster.username) body.username = poster.username;
+    if (poster.icon_url) body.icon_url = poster.icon_url;
+    else if (poster.icon_emoji) body.icon_emoji = poster.icon_emoji;
   }
 
   const response = await axios.post(`${SLACK_API_BASE}/chat.postMessage`, body, {
@@ -361,7 +366,7 @@ async function postAlertToSlack(alertData, token = process.env.SLACK_BOT_TOKEN) 
 
     const text = buildAlertText(alertData);
     const blocks = buildAlertBlocks(alertData);
-    const threadTs = await postMessage(token, channel, text, blocks);
+    const threadTs = await postMessage(token, channel, text, blocks, alertData.slackPoster);
 
     logger.info('Alert posted to Slack', { channel, threadTs });
     return threadTs;

@@ -482,6 +482,8 @@ The app plants an encoding mismatch on its landing screen: `buildAllocationBars`
 
 SRE Bot paging uses the Bot-owned automation at `NEXEN_SRE_BOT_WEBHOOK_URL` by default and sends `NEXEN_SRE_BOT_WEBHOOK_SECRET` as `X-Webhook-Secret`; an empty or `off` webhook URL selects the v3 messages API, while a configured webhook without its secret logs an error and skips paging.
 
+NEXEN settlement alerts post as "NEXEN Monitoring" by default. `NEXEN_ALERT_USERNAME` overrides the name; an empty value or `off` posts as the Slack app's own name.
+
 The digital asset custody feature is deliberately *not* the incident: it is the feature Devin builds live during the demo (`COG-GTM/bny` PR #2).
 
 Identity: the client may forward `devinEmail` / `devinUserId` / `devinOrgId`, and the service resolves an email to an org member with `DEVIN_SERVICE_KEY_9BFABD45` when no user id was sent; with nothing from the client it falls back to the demo owner (Hannah Huh, `U0B2YAUPSHL`), who is also the `slackMemberId` on every card. `CUSTOMER_ALERT_IDENTITY` maps `customer-9bfabd45-web` to the NEXEN `APP_REMEDIATION_DIRECTIVE` (reconcile the chart series with the allocation data, replace the undefined dereference with explicit handling, add frontend and backend coverage for the chart series, refresh the hosted build). Regression coverage lives in `tests/9bfabd45-error.test.js`.
