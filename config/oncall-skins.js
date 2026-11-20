@@ -3043,6 +3043,28 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN ACCELYA SITE — internal demo only, not affiliated with, endorsed by, or a real Accelya product.',
   },
+  'fd837e5a': {
+    slug: 'fd837e5a',
+    company: 'Verizon',
+    brandMark: 'V',
+    vertical: 'grocery',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: 'fd837e5a.html',
+      title: 'Cart | My Verizon',
+    },
+    accent: '#EE0000',
+    accentDark: '#C00000',
+    theme: {
+      '--accent': '#EE0000',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    disclaimer: 'NOT ACTUALLY A VERIZON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Verizon product.',
+  },
   '1213f496': {
     slug: '1213f496',
     company: 'Rappi',

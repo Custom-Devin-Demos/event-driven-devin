@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cart | My Verizon</title>
+<style>
+  :root { --red:#EE0000; --ink:#000000; --gray:#6F7171; --line:#D8DADA; --bg:#F6F6F6; --green:#008331; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Verizon NHG DS", "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  .topbar { position: sticky; top: 0; z-index: 5; background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
+  .logo { display: flex; align-items: center; gap: 2px; font-weight: 700; font-size: 22px; letter-spacing: -0.6px; }
+  .logo svg { margin-left: 1px; margin-bottom: 8px; }
+  .icons { display: flex; gap: 18px; }
+  .icons svg { display: block; }
+  .crumb { background: #fff; padding: 14px 16px 12px; display: flex; align-items: center; gap: 10px; }
+  .crumb h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .crumb small { color: var(--gray); font-size: 14px; }
+  main { max-width: 760px; margin: 0 auto; padding: 12px 12px 120px; display: grid; gap: 12px; }
+  .card { background: #fff; border-radius: 8px; padding: 16px; }
+  .card h2 { margin: 0 0 12px; font-size: 20px; font-weight: 700; }
+  .ship { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--ink); border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 4px; }
+  .ship b { display: block; font-size: 15px; }
+  .item { display: grid; grid-template-columns: 72px 1fr auto; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .item:last-child { border-bottom: 0; }
+  .thumb { width: 72px; height: 72px; border-radius: 6px; background: var(--bg); display: grid; place-items: center; font-size: 34px; }
+  .item-name { font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .item-name small { display: block; font-weight: 400; color: var(--gray); font-size: 13px; margin-top: 2px; }
+  .promo { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--red); }
+  .strike { color: var(--gray); text-decoration: line-through; font-size: 13px; margin-left: 6px; font-weight: 400; }
+  .qtyline { display: flex; gap: 14px; align-items: center; margin-top: 8px; font-size: 13px; }
+  .qtysel { border: 1px solid var(--ink); border-radius: 4px; padding: 4px 10px; font-weight: 700; }
+  .qtyline a { color: var(--ink); text-decoration: underline; }
+  .price { font-weight: 700; font-size: 16px; text-align: right; }
+  .row { display: flex; justify-content: space-between; font-size: 16px; padding: 6px 0; }
+  .pay { display: flex; justify-content: space-between; align-items: center; font-size: 14px; border-top: 1px solid var(--line); margin-top: 8px; padding-top: 12px; }
+  .pay a { color: var(--ink); font-weight: 700; text-decoration: underline; }
+  .note { font-size: 12px; color: var(--gray); line-height: 1.4; margin: 12px 0; }
+  .cta { width: 100%; min-height: 48px; border: 0; border-radius: 24px; background: var(--ink); color: #fff; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .cta:disabled { background: var(--gray); }
+  .result-box { display: none; margin-top: 12px; border-radius: 6px; padding: 12px; font-size: 14px; line-height: 1.4; }
+  .result-box.success { display: block; background: #E6F4EA; border-left: 4px solid var(--green); }
+  .result-box.error { display: block; background: #FFE6E6; border-left: 4px solid var(--red); }
+  .result-title { font-weight: 700; margin-bottom: 2px; }
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: #fff; border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding: 8px 4px calc(10px + env(safe-area-inset-bottom)); }
+  .tabbar a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--ink); text-decoration: none; position: relative; }
+  .tabbar a.active { font-weight: 700; }
+  .tabbar a.active::before { content: ""; position: absolute; top: -9px; width: 32px; height: 3px; background: var(--red); border-radius: 2px; }
+  .badge { position: absolute; top: -4px; left: 52%; background: var(--red); color: #fff; border-radius: 9px; font-size: 10px; font-weight: 700; padding: 1px 5px; }
+  @media (min-width: 900px) { main { grid-template-columns: 1.4fr 1fr; max-width: 1080px; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo" aria-label="Verizon">verizon<svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M1 8.5 5 13 13 1" fill="none" stroke="#EE0000" stroke-width="2.6"/></svg></div>
+  <div class="icons">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>
+  </div>
+</header>
+<div class="crumb">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+  <div><h1>Cart</h1><small>4 items · Accessories</small></div>
+</div>
+
+<main>
+  <section class="card">
+    <div class="ship"><span aria-hidden="true">📦</span><div><b>Ship to 350 W 34th St, New York, NY 10001</b>Standard shipping</div></div>
+    <form id="cartForm">
+      <div class="item"><div class="thumb">📱</div><div class="item-name">Verizon Tempered Glass Screen Protector<small>iPhone 17 Pro · Clear</small><span class="promo">Save 33%</span><span class="strike">$14.99</span><div class="qtyline"><span class="qtysel">Qty 1</span><a href="#" tabindex="-1">Remove</a></div></div><div class="price">$10.00</div></div>
+      <div class="item"><div class="thumb">🔌</div><div class="item-name">Verizon USB-C to USB-C Cable (2 m)<small>Braided · Black</small><div class="qtyline"><span class="qtysel">Qty 2</span><a href="#" tabindex="-1">Remove</a></div></div><div class="price">$18.00</div></div>
+      <div class="item"><div class="thumb">⚡</div><div class="item-name">Verizon 20W USB-C Wall Charger<small>Fast charge · White</small><div class="qtyline"><span class="qtysel">Qty 1</span><a href="#" tabindex="-1">Remove</a></div></div><div class="price">$12.50</div></div>
+    </form>
+  </section>
+
+  <aside class="card">
+    <h2>Order summary</h2>
+    <div class="row"><span>Items (4)</span><b>$40.50</b></div>
+    <div class="pay"><span>💳 Visa •••• 4417</span><a href="#">Change</a></div>
+    <p class="note">By placing your order, you agree to the Verizon Customer Agreement and Terms of Sale.</p>
+    <button class="cta" id="placeOrderBtn" type="submit" form="cartForm">Place order</button>
+    <div id="result" class="result-box" role="status" aria-live="polite"></div>
+  </aside>
+</main>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Home</a>
+  <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Bill</a>
+  <a href="#" class="active"><span class="badge">4</span><svg width="24" height="24" viewBox="0 0 24 24" fill="#000" stroke="#000" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none"/></svg>Shop</a>
+  <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Account</a>
+  <a href="#"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg>Support</a>
+</nav>
+
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+</script>
+<script>
+  const formatUsd = (dollars) => '$' + Number(dollars).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  document.getElementById('cartForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('placeOrderBtn');
+    const result = document.getElementById('result');
+    const label = btn.textContent;
+    const show = (cls, title, detail) => {
+      result.className = 'result-box ' + cls;
+      result.textContent = '';
+      const t = document.createElement('div');
+      t.className = 'result-title';
+      t.textContent = title;
+      const d = document.createElement('div');
+      d.textContent = detail;
+      result.append(t, d);
+      result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    };
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const deliverySlot = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+    btn.disabled = true;
+    btn.textContent = 'Placing your order\u2026';
+    result.className = 'result-box';
+    try {
+      const res = await fetch('/api/grocery/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: '1039',
+          pickupSlot: deliverySlot,
+          lines: [
+            { sku: '21004836_EA', quantity: 1 },
+            { sku: '20083157_KG', quantity: 2 },
+            { sku: '20135377001_KG', quantity: 1 },
+          ],
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        show('error', 'We couldn\u2019t place your order.', 'Something went wrong calculating your total. Your cart is saved: please try again.');
+      } else {
+        show('success', 'Order confirmed', 'Order ' + (data.orderId || '').slice(0, 8).toUpperCase() + ' \u00b7 Total charged ' + (data.total != null ? formatUsd(data.total) : '') + ' \u00b7 Arrives in 2\u20133 business days.');
+      }
+    } catch (err) {
+      show('error', 'We couldn\u2019t place your order.', 'Something went wrong calculating your total. Your cart is saved: please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
