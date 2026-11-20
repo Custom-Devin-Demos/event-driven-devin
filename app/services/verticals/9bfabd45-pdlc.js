@@ -6,6 +6,8 @@ const {
   postPersonaMessage,
   postUserMessage,
   getThreadReplies,
+  getChannelHistory,
+  getUserDisplayName,
 } = require('../slack');
 const script = require('../../../config/nexen/pdlc-personas.json');
 
@@ -25,6 +27,11 @@ const script = require('../../../config/nexen/pdlc-personas.json');
  * watches the thread, so those lines reach it as Slack messages from a person
  * and show up that way in its Devin chat; the runner pages the line only if
  * the Bot has not answered within USER_POST_GRACE_MS.
+ *
+ * A run started with `kickoff: 'person'` posts no opener. It waits up to
+ * KICKOFF_TIMEOUT_MS for the next top-level post from a person in the channel,
+ * uses that post as the thread in place of the first scripted line, and plays
+ * the rest of the discussion as replies to it.
  */
 const DEFAULT_PDLC_BOT_ID = 'bot-59656379ddc5470281166b1458334c2c';
 const DEFAULT_PDLC_BOT_SLACK_ID = 'U0CK6TNG7T3';
@@ -42,6 +49,8 @@ const USER_POST_GRACE_MS = 90 * 1000;
 const STAGE_TIMEOUT_MS = 30 * 60 * 1000;
 const BUILD_TIMEOUT_MS = 90 * 60 * 1000;
 const RUN_COOLDOWN_MS = 2 * 60 * 1000;
+const KICKOFF_POLL_MS = 3000;
+const KICKOFF_TIMEOUT_MS = 30 * 60 * 1000;
 const PR_URL_RE = /https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/;
 
 let currentRun = null;
@@ -157,11 +166,9 @@ function buildBotInstructions() {
   ].join('\n');
 }
 
-function buildJoinPage({ channelId, threadTs }) {
-  return [
-    `#${DEFAULT_CHANNEL_NAME} · ${threadPermalink(channelId, threadTs)}`,
-    ...script.discussion.map((line) => slackLine(personasById[line.persona], line.text)),
-  ].join('\n');
+function buildJoinPage({ channelId, threadTs, lines }) {
+  const slackLines = lines || script.discussion.map((line) => slackLine(personasById[line.persona], line.text));
+  return [`#${DEFAULT_CHANNEL_NAME} · ${threadPermalink(channelId, threadTs)}`, ...slackLines].join('\n');
 }
 
 function buildRelayPage({ persona, text }) {
@@ -177,6 +184,8 @@ function defaultDeps() {
     postPersonaMessage,
     postUserMessage,
     getThreadReplies,
+    getChannelHistory,
+    getUserDisplayName,
     pageBot,
   };
 }
@@ -261,6 +270,38 @@ async function replyAndRelay(run, deps, step, afterBot) {
   return { ts, afterBot };
 }
 
+function isPersonKickoff(message) {
+  return Boolean(message.user) && !message.bot_id && !message.subtype
+    && (!message.thread_ts || message.thread_ts === message.ts);
+}
+
+async function waitForKickoff(run, deps) {
+  const oldest = (run.armedAtMs / 1000).toFixed(6);
+  const deadline = deps.now() + KICKOFF_TIMEOUT_MS;
+  while (deps.now() < deadline && !run.cancelled) {
+    await deps.sleep(KICKOFF_POLL_MS);
+    let messages;
+    try {
+      messages = await deps.getChannelHistory(run.token, run.channelId, { oldest, limit: 50 });
+    } catch (err) {
+      logger.warn('BNY PDLC channel poll failed', { runId: run.id, error: err.message });
+      continue;
+    }
+    const kickoff = messages.filter(isPersonKickoff).sort((a, b) => Number(a.ts) - Number(b.ts))[0];
+    if (kickoff) return kickoff;
+  }
+  return null;
+}
+
+async function personName(run, deps, userId) {
+  try {
+    return await deps.getUserDisplayName(run.token, userId);
+  } catch (err) {
+    logger.warn('BNY PDLC could not read the kickoff author name', { runId: run.id, error: err.message });
+    return `<@${userId}>`;
+  }
+}
+
 async function executeRun(run, deps) {
   run.channelId = await resolveChannel(run.token, deps);
   try {
@@ -269,18 +310,33 @@ async function executeRun(run, deps) {
     logger.warn('BNY PDLC could not join the product channel; posting anyway', { runId: run.id, error: err.message });
   }
 
-  run.stage = 'discussion';
+  let lines = script.discussion;
   let elapsed = 0;
-  for (const line of script.discussion) {
+  const pageLines = [];
+  if (run.kickoff === 'person') {
+    run.stage = 'waiting_for_kickoff';
+    const kickoff = await waitForKickoff(run, deps);
+    if (!kickoff) return 'timeout_kickoff';
+    run.threadTs = kickoff.ts;
+    run.kickoffBy = await personName(run, deps, kickoff.user);
+    run.log.push({ at: new Date(deps.now()).toISOString(), persona: null, user: kickoff.user, ts: kickoff.ts, asUser: true });
+    pageLines.push(`${run.kickoffBy}: ${kickoff.text || ''}`);
+    elapsed = lines[0].atMs;
+    lines = lines.slice(1);
+  }
+
+  run.stage = 'discussion';
+  for (const line of lines) {
     if (line.atMs > elapsed) await deps.sleep(line.atMs - elapsed);
     elapsed = Math.max(elapsed, line.atMs);
     const { ts } = await postAs(run, deps, line.persona, line.text);
     if (!run.threadTs) run.threadTs = ts;
+    pageLines.push(slackLine(personasById[line.persona], line.text));
   }
   const lastDiscussionTs = run.log[run.log.length - 1].ts;
 
   run.stage = 'awaiting_wireframes';
-  await page(run, deps, buildJoinPage({ channelId: run.channelId, threadTs: run.threadTs }), 'join');
+  await page(run, deps, buildJoinPage({ channelId: run.channelId, threadTs: run.threadTs, lines: pageLines }), 'join');
   const wireframes = await waitForBot(run, deps, { afterTs: lastDiscussionTs, timeoutMs: STAGE_TIMEOUT_MS, match: hasImages });
   if (!wireframes) return 'timeout_wireframes';
 
@@ -308,6 +364,8 @@ function publicState(run) {
     id: run.id,
     status: run.status,
     stage: run.stage,
+    kickoff: run.kickoff,
+    kickoffBy: run.kickoffBy || null,
     channelId: run.channelId,
     threadTs: run.threadTs,
     threadUrl: run.channelId && run.threadTs ? threadPermalink(run.channelId, run.threadTs) : null,
@@ -324,7 +382,7 @@ function publicState(run) {
  * Start one PDLC run. Only one run at a time, and a short cooldown after a run
  * ends so a double click does not post the discussion twice.
  */
-function startPdlcRun({ triggeredBy = 'unknown' } = {}, deps = defaultDeps()) {
+function startPdlcRun({ triggeredBy = 'unknown', kickoff = 'persona' } = {}, deps = defaultDeps()) {
   const token = personaToken();
   if (!token) return { started: false, reason: 'slack_not_configured', state: publicState(currentRun) };
   if (currentRun && currentRun.status === 'running') {
@@ -338,6 +396,8 @@ function startPdlcRun({ triggeredBy = 'unknown' } = {}, deps = defaultDeps()) {
     id: `pdlc-${deps.now().toString(36)}`,
     status: 'running',
     stage: 'starting',
+    kickoff: kickoff === 'person' ? 'person' : 'persona',
+    armedAtMs: deps.now(),
     token,
     botId: pdlcBotId(),
     channelId: null,
@@ -349,7 +409,7 @@ function startPdlcRun({ triggeredBy = 'unknown' } = {}, deps = defaultDeps()) {
     startedAt: new Date(deps.now()).toISOString(),
   };
   currentRun = run;
-  logger.info('BNY PDLC run started', { runId: run.id, triggeredBy });
+  logger.info('BNY PDLC run started', { runId: run.id, triggeredBy, kickoff: run.kickoff });
 
   run.done = executeRun(run, deps)
     .then((outcome) => {

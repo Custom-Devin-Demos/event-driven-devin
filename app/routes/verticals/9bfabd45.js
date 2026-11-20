@@ -82,7 +82,10 @@ router.get('/api/9bfabd45/pdlc/state', (_req, res) => res.json(getPdlcState()));
 
 router.post('/api/9bfabd45/pdlc/run', (req, res) => {
   if (!pdlcKeyOk(req)) return res.status(403).json({ started: false, reason: 'bad_key' });
-  const { started, reason, state } = startPdlcRun({ triggeredBy: req.get('x-demo-user') || 'web' });
+  const { started, reason, state } = startPdlcRun({
+    triggeredBy: req.get('x-demo-user') || 'web',
+    kickoff: req.body && req.body.kickoff === 'person' ? 'person' : 'persona',
+  });
   return res.status(started ? 202 : 409).json({ started, reason: reason || null, state });
 });
 

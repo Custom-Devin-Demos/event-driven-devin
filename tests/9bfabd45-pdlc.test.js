@@ -4,6 +4,8 @@ jest.mock('../app/services/slack', () => ({
   postPersonaMessage: jest.fn(),
   postUserMessage: jest.fn(),
   getThreadReplies: jest.fn(),
+  getChannelHistory: jest.fn(),
+  getUserDisplayName: jest.fn(),
 }));
 jest.mock('../app/services/bot-pager', () => ({
   pageBot: jest.fn(),
@@ -41,6 +43,8 @@ function fakeDeps({ botReplies, userReplies = [] }) {
       return ts;
     }),
     getThreadReplies: jest.fn(async () => thread),
+    getChannelHistory: jest.fn(async () => []),
+    getUserDisplayName: jest.fn(async () => 'Hannah Huh'),
     pageBot: jest.fn(async ({ botId, message }) => {
       pages.push({ botId, message });
       const reply = botReplies[pages.length - 1];
@@ -227,4 +231,49 @@ test('ignores a malformed BNY_PDLC_PERSONA_USER_TOKENS and posts through the app
   const { run } = pdlc.startPdlcRun({}, deps);
   await run.done;
   expect(deps.postUserMessage).not.toHaveBeenCalled();
+});
+
+test('a person kickoff waits for her top-level post and plays the rest of the discussion in its thread', async () => {
+  const { deps, posted, pages } = fakeDeps({
+    botReplies: [
+      { text: 'here are three options', files: png },
+      { text: 'revised with a % slider, good to build?', files: png },
+      { text: 'PR is up: https://github.com/COG-GTM/android-demos/pull/101' },
+    ],
+  });
+  const opener = 'idea for next sprint: price alerts on Holdings';
+  const history = [
+    { ts: '999.000100', user: 'UHANNAH', subtype: 'channel_join', text: 'joined' },
+    { ts: '999.000200', user: 'U0CK6TNG7T3', bot_id: 'B0CK8N59ZLL', text: 'bot chatter' },
+    { ts: '999.000300', user: 'UHANNAH', thread_ts: '998.000100', text: 'a reply elsewhere' },
+  ];
+  deps.getChannelHistory.mockImplementationOnce(async () => [])
+    .mockImplementation(async () => [{ ts: '999.000400', user: 'UHANNAH', text: opener }, ...history]);
+
+  const { run } = pdlc.startPdlcRun({ kickoff: 'person' }, deps);
+  expect(run.kickoff).toBe('person');
+  await run.done;
+
+  expect(run.status).toBe('complete');
+  expect(run.threadTs).toBe('999.000400');
+  expect(deps.getChannelHistory).toHaveBeenCalledWith('xoxb-test', 'C0CK3SP678E', expect.objectContaining({ oldest: expect.any(String) }));
+  expect(posted.map((p) => p.text)).toEqual([
+    ...script.discussion.slice(1).map((l) => l.text),
+    script.changeRequest.text,
+    script.goAhead.text,
+  ]);
+  expect(posted.every((p) => p.threadTs === '999.000400')).toBe(true);
+  expect(pages[0].message).toContain('p999000400');
+  expect(pages[0].message).toContain(`Hannah Huh: ${opener}`);
+  expect(pages[0].message).not.toContain(script.discussion[0].text);
+  expect(pdlc.getPdlcState()).toMatchObject({ kickoff: 'person', kickoffBy: 'Hannah Huh' });
+});
+
+test('a person kickoff stops when nobody posts in time', async () => {
+  const { deps, posted, pages } = fakeDeps({ botReplies: [] });
+  const { run } = pdlc.startPdlcRun({ kickoff: 'person' }, deps);
+  await run.done;
+  expect(run.stage).toBe('timeout_kickoff');
+  expect(posted).toEqual([]);
+  expect(pages).toEqual([]);
 });

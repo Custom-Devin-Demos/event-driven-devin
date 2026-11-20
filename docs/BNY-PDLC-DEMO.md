@@ -5,6 +5,7 @@ Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lea
 ## Trigger
 
 - Page: `https://devindemos.com/bny-pdlc` (or `/9bfabd45/pdlc`), **Start discussion**.
+- Presenter kickoff: **Wait for my Slack post** arms a run that posts no opener. The next top-level post from a person in the channel (within 30 min) becomes the thread in place of Rachel's opener; Sofia, Tom and Rachel reply in it and the Bot is paged as usual. API: `POST /api/9bfabd45/pdlc/run` with `{"kickoff":"person"}`.
 - API: `POST /api/9bfabd45/pdlc/run`, `GET /api/9bfabd45/pdlc/state`, `POST /api/9bfabd45/pdlc/stop`. With `BNY_PDLC_TRIGGER_KEY` set, send it as `x-demo-key`.
 - One run at a time, 2 min cooldown after a run ends. Each Bot stage times out after 30 min (90 min for the build).
 

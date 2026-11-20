@@ -842,6 +842,23 @@ async function getChannelHistory(token, channelId, options = {}) {
 }
 
 /**
+ * Display name of a workspace member. Requires `users:read`.
+ */
+async function getUserDisplayName(token, userId) {
+  const response = await axios.get(`${SLACK_API_BASE}/users.info`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { user: userId },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+  const user = response.data.user || {};
+  const profile = user.profile || {};
+  return profile.real_name || profile.display_name || user.real_name || user.name || userId;
+}
+
+/**
  * Read a thread (parent first, then replies). Requires `channels:history`.
  */
 async function getThreadReplies(token, channelId, threadTs, options = {}) {
@@ -901,6 +918,7 @@ module.exports = {
   createChannel,
   archiveChannel,
   getChannelHistory,
+  getUserDisplayName,
   getThreadReplies,
   deleteMessage,
 };

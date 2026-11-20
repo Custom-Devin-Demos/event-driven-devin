@@ -23,6 +23,7 @@
   <p>Starts the product discussion in <b>#bny-pershing-android-app</b>. The PM, designer and Android lead talk through the idea; the iOS Engineer Bot joins on its own with wireframes, takes a change request and builds it.</p>
   <label>Demo key (if configured)<input id="key" type="password" autocomplete="off"></label>
   <button id="run">Start discussion</button>
+  <button id="arm" class="secondary" title="Posts no opener: the next top-level post from a person in the channel starts the thread">Wait for my Slack post</button>
   <button id="stop" class="secondary">Stop</button>
   <pre id="state">loading…</pre>
 </main>
@@ -35,16 +36,18 @@
     stateEl.textContent = (lastRejection ? `Not started: ${lastRejection}\n\n` : '') + JSON.stringify(s, null, 2);
     if (s.threadUrl) stateEl.innerHTML += `\n\n<a href="${s.threadUrl}" target="_blank" rel="noopener">Open Slack thread</a>`;
     document.getElementById('run').disabled = s.status === 'running';
+    document.getElementById('arm').disabled = s.status === 'running';
   }
   async function refresh() { render(await (await fetch('/api/9bfabd45/pdlc/state')).json()); }
-  async function post(path) {
+  async function post(path, body = {}) {
     localStorage.setItem('bnyPdlcKey', keyEl.value);
-    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-demo-key': keyEl.value } });
+    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-demo-key': keyEl.value }, body: JSON.stringify(body) });
     const body = await r.json();
     lastRejection = body.reason || null;
     render(body.state || body);
   }
   document.getElementById('run').onclick = () => post('/api/9bfabd45/pdlc/run');
+  document.getElementById('arm').onclick = () => post('/api/9bfabd45/pdlc/run', { kickoff: 'person' });
   document.getElementById('stop').onclick = () => post('/api/9bfabd45/pdlc/stop');
   refresh(); setInterval(refresh, 5000);
 </script>
