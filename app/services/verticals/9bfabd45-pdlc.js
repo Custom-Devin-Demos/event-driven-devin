@@ -98,7 +98,17 @@ function transcript(lines) {
   }).join('\n');
 }
 
+function jiraConfig() {
+  return {
+    ...script.jira,
+    projectKey: process.env.BNY_PDLC_JIRA_PROJECT || script.jira.projectKey,
+  };
+}
+
 function buildJoinPage({ channelId, threadTs }) {
+  const owner = script.engineeringOwner;
+  const jira = jiraConfig();
+  const ownerTag = `<@${owner.slackId}>`;
   return [
     `:bulb: Product discussion in #${DEFAULT_CHANNEL_NAME} (channel id ${channelId}, thread_ts ${threadTs}): ${threadPermalink(channelId, threadTs)}`,
     '',
@@ -110,12 +120,15 @@ function buildJoinPage({ channelId, threadTs }) {
     '',
     `*App:* Pershing Access Android, \`${APP_REPO}\` module \`${APP_MODULE}\` (Kotlin + Jetpack Compose; Holdings screen and rows in \`core/Holdings.kt\` and the Holdings UI; rows expand one at a time).`,
     '',
+    `*Engineering owner:* ${owner.name} (Slack ${ownerTag}, ${owner.email}) owns the Pershing Access Android app. Tag them as ${ownerTag} where noted below.`,
+    '',
     '*Do now, in that thread (Slack tool, team T08RSEMT71Q, thread_ts above):*',
-    '1. One short message: how you\'d scope v1 (3-5 bullets: entry point, threshold model, on-device storage, what is out of scope) and one KPI to watch (e.g. % of active users with at least one alert).',
-    '2. Then 2-3 wireframe options of the Holdings screen as PNG images, each drawn inside a phone frame (render them yourself, e.g. HTML + headless Chrome screenshot; labelled A/B/C), attached to one post with one line per option. Attach in the same post one polished, self-contained HTML artifact (`holdings-price-alerts.html`: the scope, the KPI and the options side by side in phone frames, in the app\'s colors and type) so the team can open it in a browser. Aim to have them up within a few minutes.',
-    '3. Stop and wait. Every later reply in this thread from the team is forwarded to you as a message like this one; answer each one once, in the thread.',
-    'When someone asks for a change: post the revised wireframes (PNG, in a phone frame) with the change plus an updated HTML artifact, and ask if that\'s good to build.',
-    `When someone says to go ahead: say you're on it, then dispatch a child session bound to this thread (bot_slack_channel=${channelId}, bot_slack_thread_ts=${threadTs}) that implements the agreed design in ${APP_REPO} ${APP_MODULE} on a new branch with JVM tests, runs \`make build test lint APP=b113a373\` on Java 17, records a short emulator video walking through the new flow and composites it inside an Android phone frame (device mockup, e.g. ffmpeg overlay onto a phone bezel) as the preview MP4, opens a PR (never merges) and posts in this thread the PR link, the phone-framed preview video and a polished self-contained HTML artifact (\`price-alerts-preview.html\`: what shipped, phone-framed screens of each state, tests run).`,
+    `1. File a Jira ticket for this feature with your Atlassian tools: site ${jira.site}, project ${jira.projectKey}, issue type "${jira.issueType}", summary "Pershing Access Android: price alerts on Holdings (v1)", assignee ${owner.name} (look up ${owner.email}), description = the v1 scope, the KPI, acceptance criteria and a link to this Slack thread.`,
+    `2. One short message: how you'd scope v1 (3-5 bullets: entry point, threshold model, on-device storage, what is out of scope), one KPI to watch (e.g. % of active users with at least one alert), the Jira ticket as a link on its key, and one line tagging ${ownerTag} as the app's engineering owner (e.g. "${ownerTag} looping you in as engineering owner for Pershing Access Android; ticket is assigned to you").`,
+    '3. Then 2-3 wireframe options of the Holdings screen as PNG images, each drawn inside a phone frame (render them yourself, e.g. HTML + headless Chrome screenshot; labelled A/B/C), attached to one post with one line per option. Attach in the same post one polished, self-contained HTML artifact (`holdings-price-alerts.html`: the scope, the KPI and the options side by side in phone frames, in the app\'s colors and type) so the team can open it in a browser. Aim to have them up within a few minutes.',
+    '4. Stop and wait. Every later reply in this thread from the team is forwarded to you as a message like this one; answer each one once, in the thread.',
+    'When someone asks for a change: post the revised wireframes (PNG, in a phone frame) with the change plus an updated HTML artifact, and ask if that\'s good to build. Update the Jira ticket\'s acceptance criteria to the revised design.',
+    `When someone says to go ahead: say you're on it (move the Jira ticket to In Progress), then dispatch a child session bound to this thread (bot_slack_channel=${channelId}, bot_slack_thread_ts=${threadTs}) that implements the agreed design in ${APP_REPO} ${APP_MODULE} on a new branch named after the Jira key with JVM tests, runs \`make build test lint APP=b113a373\` on Java 17, records a short emulator video walking through the new flow and composites it inside an Android phone frame (device mockup, e.g. ffmpeg overlay onto a phone bezel) as the preview MP4, opens a PR (never merges) whose title starts with the Jira key and whose description links the ticket, comments the PR link on the Jira ticket, and posts in this thread the PR link, the Jira ticket link, one line tagging ${ownerTag} as engineering owner for review, the phone-framed preview video and a polished self-contained HTML artifact (\`price-alerts-preview.html\`: what shipped, the Jira ticket, phone-framed screens of each state, tests run).`,
   ].join('\n');
 }
 

@@ -157,3 +157,11 @@ test('treats an HTML wireframe artifact as the Bot\'s wireframes', () => {
   expect(pdlc.hasImages({ files: [{ name: 'holdings-price-alerts.html', mimetype: 'text/html' }] })).toBe(true);
   expect(pdlc.hasImages({ files: [{ name: 'notes.txt', mimetype: 'text/plain' }] })).toBe(false);
 });
+
+test('the join page has the Bot file a Jira ticket and tag the engineering owner', () => {
+  const page = pdlc.buildJoinPage({ channelId: 'C123', threadTs: '1.2' });
+  expect(page).toContain(`project ${script.jira.projectKey}`);
+  expect(page).toContain(`assignee ${script.engineeringOwner.name}`);
+  expect(page).toContain(`<@${script.engineeringOwner.slackId}>`);
+  expect(page).toMatch(/title starts with the Jira key/);
+});

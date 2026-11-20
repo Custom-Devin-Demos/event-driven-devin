@@ -1,6 +1,6 @@
 # BNY demo 1: PDLC in Slack (Pershing Access price alerts)
 
-Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lead) discuss price alerts on the Holdings screen of the Pershing Access Android app (`COG-GTM/android-demos` `apps/b113a373`) in `#bny-pershing-access-android-app` (C0CK3SP678E, formerly `#pershing-access-product`). Nobody @mentions Devin: when the discussion ends the iOS Engineer Bot (`bot-59656379ddc5470281166b1458334c2c`, Slack `U0CK6TNG7T3`) is paged through the v3 messages API, joins the thread on its own, scopes v1 and posts wireframes. The runner watches the thread: after the wireframes the designer asks for "the bell, but a % slider", after the revision the PM says go, and the Bot builds it and posts the PR and preview.
+Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lead) discuss price alerts on the Holdings screen of the Pershing Access Android app (`COG-GTM/android-demos` `apps/b113a373`) in `#bny-pershing-access-android-app` (C0CK3SP678E, formerly `#pershing-access-product`). Nobody @mentions Devin: when the discussion ends the iOS Engineer Bot (`bot-59656379ddc5470281166b1458334c2c`, Slack `U0CK6TNG7T3`) is paged through the v3 messages API, joins the thread on its own, files a Jira ticket (project `HB` on cog-gtm.atlassian.net, assigned to the engineering owner), scopes v1 with the ticket link, tags the app's engineering owner (Hannah Huh, `U0B2YAUPSHL`) and posts wireframes. The runner watches the thread: after the wireframes the designer asks for "the bell, but a % slider", after the revision the PM says go, and the Bot builds it and posts the PR (title starts with the Jira key), the Jira link, an owner tag and the preview.
 
 ## Trigger
 
@@ -20,6 +20,7 @@ Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lea
 | `BNY_PDLC_CHANNEL_ID` / `BNY_PDLC_CHANNEL_NAME` | lookup of `bny-pershing-access-android-app` |
 | `BNY_PDLC_BOT_ID` | `bot-59656379ddc5470281166b1458334c2c` |
 | `BNY_PDLC_BOT_SLACK_ID` / `BNY_PDLC_BOT_APP_BOT_ID` | `U0CK6TNG7T3` / `B0CK8N59ZLL` |
+| `BNY_PDLC_JIRA_PROJECT` | `jira.projectKey` in the script (`HB`); the owner and Jira site/issue type are `engineeringOwner` and `jira` there |
 | `BNY_PDLC_ASSET_BASE_URL` | `https://devindemos.com` (host of the persona icon `/verticals/9bfabd45-person-outline.png`, which Slack must reach) |
 
 Script: `config/nexen/pdlc-personas.json` (persona messages land 3-4 s apart; every persona uses the same person-outline icon). The page asks the Bot for phone-framed wireframes plus a self-contained HTML artifact, and for the build preview as an emulator video inside a phone frame plus an HTML summary. Service: `app/services/verticals/9bfabd45-pdlc.js`.
