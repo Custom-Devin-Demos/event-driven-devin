@@ -1,6 +1,6 @@
 # BNY demo 1: PDLC in Slack (Pershing Access price alerts)
 
-Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lead) discuss price alerts on the Holdings screen of the Pershing Access Android app (`COG-GTM/android-demos` `apps/b113a373`) in `#bny-pershing-access-android-app` (C0CK3SP678E, formerly `#pershing-access-product`). Nobody @mentions Devin: when the discussion ends the iOS Engineer Bot (`bot-59656379ddc5470281166b1458334c2c`, Slack `U0CK6TNG7T3`) is paged through the v3 messages API, joins the thread on its own, files a Jira ticket (project `HB` on cog-gtm.atlassian.net, assigned to the engineering owner), scopes v1 with the ticket link, tags the app's engineering owner (Hannah Huh, `U0B2YAUPSHL`) and posts wireframes. The runner watches the thread: after the wireframes the designer asks for "the bell, but a % slider", after the revision the PM says go, and the Bot builds it and posts the PR (title starts with the Jira key), the Jira link, an owner tag and the preview.
+Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lead) discuss price alerts on the Holdings screen of the Pershing Access Android app (`COG-GTM/android-demos` `apps/b113a373`) in `#bny-pershing-android-app` (C0CK3SP678E, formerly `#bny-pershing-access-android-app` and `#pershing-access-product`). Nobody @mentions Devin: when the discussion ends the iOS Engineer Bot (`bot-59656379ddc5470281166b1458334c2c`, Slack `U0CK6TNG7T3`) is paged through the v3 messages API, joins the thread on its own, files a Jira ticket (project `HB` on cog-gtm.atlassian.net, assigned to the engineering owner), scopes v1 with the ticket link, tags the app's engineering owner (Hannah Huh, `U0B2YAUPSHL`) and posts wireframes. The runner watches the thread: after the wireframes the designer asks for "the bell, but a % slider", after the revision the PM says go, and the Bot builds it and posts the PR (title starts with the Jira key), the Jira link, an owner tag and the preview.
 
 ## Trigger
 
@@ -17,7 +17,7 @@ Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lea
 
 | Env | Default |
 |-----|---------|
-| `BNY_PDLC_CHANNEL_ID` / `BNY_PDLC_CHANNEL_NAME` | lookup of `bny-pershing-access-android-app` |
+| `BNY_PDLC_CHANNEL_ID` / `BNY_PDLC_CHANNEL_NAME` | `C0CK3SP678E` (by ID, so a channel rename doesn't break runs); `BNY_PDLC_CHANNEL_NAME` looks a channel up by name instead |
 | `BNY_PDLC_BOT_ID` | `bot-59656379ddc5470281166b1458334c2c` |
 | `BNY_PDLC_BOT_SLACK_ID` / `BNY_PDLC_BOT_APP_BOT_ID` | `U0CK6TNG7T3` / `B0CK8N59ZLL` |
 | `BNY_PDLC_JIRA_PROJECT` | `jira.projectKey` in the script (`HB`); the owner and Jira site/issue type are `engineeringOwner` and `jira` there |
@@ -29,7 +29,7 @@ Script: `config/nexen/pdlc-personas.json` (persona messages land 3-4 s apart; ev
 ## Bot setup (one time, after a take, not during one)
 
 Pages carry only the Slack lines (`#channel · Name: text`; the join page adds the thread link and the four discussion lines), so the Bot's chat reads like Slack. The Bot needs its standing instructions in its own memory first:
-1. Ask the iOS Engineer Bot to save `docs/BNY-PDLC-BOT-INSTRUCTIONS.md` (rendered by `buildBotInstructions()`; a test keeps them in sync) as its standing instructions for `#bny-pershing-access-android-app`.
+1. Ask the iOS Engineer Bot to save `docs/BNY-PDLC-BOT-INSTRUCTIONS.md` (rendered by `buildBotInstructions()`; a test keeps them in sync) as its standing instructions for `#bny-pershing-android-app`.
 2. Ask it to change its `webhook:incoming` automation prompt to: "New Slack lines from a Pershing Access thread you follow; the payload names the channel and thread. Reply in that thread as a teammate, following your standing instructions for that channel and anything the lines ask." The KPI demo shares this automation, so keep the prompt neutral.
 
 ## Real Slack members for personas (scratch-channel check before a take)

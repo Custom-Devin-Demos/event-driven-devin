@@ -24,7 +24,7 @@ function fakeDeps({ botReplies, userReplies = [] }) {
   const deps = {
     now: () => clock,
     sleep: async (ms) => { clock += ms; },
-    findChannelByName: jest.fn(async () => ({ id: 'C0PRODUCT', name: 'bny-pershing-access-android-app' })),
+    findChannelByName: jest.fn(async () => ({ id: 'C0PRODUCT', name: 'bny-pershing-android-app' })),
     joinChannel: jest.fn(async () => true),
     postPersonaMessage: jest.fn(async (_t, _c, text, username, _icon, threadTs) => {
       const ts = `${tsCounter += 1}.000100`;
@@ -172,7 +172,7 @@ test('pages carry only the Slack lines; the Jira and owner steps live in the sta
   const join = pdlc.buildJoinPage({ channelId: 'C123', threadTs: '1.2' });
   const relay = pdlc.buildRelayPage({ persona: script.personas[1], text: 'hi' });
   expect(join.split('\n')).toHaveLength(script.discussion.length + 1);
-  expect(relay).toBe('#bny-pershing-access-android-app · Sofia Alvarez: hi');
+  expect(relay).toBe('#bny-pershing-android-app · Sofia Alvarez: hi');
   for (const page of [join, relay]) expect(page).not.toMatch(/demo|forwarded|relay|Answer it/i);
   const instructions = pdlc.buildBotInstructions();
   expect(instructions).toContain(`project ${script.jira.projectKey}`);
@@ -205,7 +205,7 @@ test('a persona with a user token posts every line as that Slack member and is n
   expect(userPosts[userPosts.length - 1].threadTs).toBe(posted[0].ts);
   expect(pages.map((p) => p.message.split('\n')[0])).toEqual([
     expect.stringContaining('https://coggtm.slack.com/archives/'),
-    `#bny-pershing-access-android-app · Rachel Kim: ${script.goAhead.text}`,
+    `#bny-pershing-android-app · Rachel Kim: ${script.goAhead.text}`,
   ]);
   expect(run.userPostFallbacks).toEqual([]);
 });
@@ -218,7 +218,7 @@ test('pages a user-token line when the Bot does not answer it in time', async ()
   const { run } = pdlc.startPdlcRun({}, deps);
   await run.done;
   expect(run.userPostFallbacks).toEqual(['design']);
-  expect(pages[1].message).toBe(`#bny-pershing-access-android-app · Sofia Alvarez: ${script.changeRequest.text}`);
+  expect(pages[1].message).toBe(`#bny-pershing-android-app · Sofia Alvarez: ${script.changeRequest.text}`);
 });
 
 test('ignores a malformed BNY_PDLC_PERSONA_USER_TOKENS and posts through the app', async () => {

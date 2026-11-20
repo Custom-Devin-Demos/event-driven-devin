@@ -29,7 +29,8 @@ const script = require('../../../config/nexen/pdlc-personas.json');
 const DEFAULT_PDLC_BOT_ID = 'bot-59656379ddc5470281166b1458334c2c';
 const DEFAULT_PDLC_BOT_SLACK_ID = 'U0CK6TNG7T3';
 const DEFAULT_PDLC_BOT_APP_BOT_ID = 'B0CK8N59ZLL';
-const DEFAULT_CHANNEL_NAME = 'bny-pershing-access-android-app';
+const DEFAULT_CHANNEL_NAME = 'bny-pershing-android-app';
+const DEFAULT_CHANNEL_ID = 'C0CK3SP678E';
 const DEFAULT_IOS_BOT_WEBHOOK_URL =
   'https://devin-gtm.devinenterprise.com/api/webhooks/automations/org_69IXJFLrljx8zSAw/auto-2203779474c643fb9262f44c8fd61791';
 const APP_REPO = 'COG-GTM/android-demos';
@@ -182,7 +183,8 @@ function defaultDeps() {
 
 async function resolveChannel(token, deps) {
   if (process.env.BNY_PDLC_CHANNEL_ID) return process.env.BNY_PDLC_CHANNEL_ID;
-  const name = process.env.BNY_PDLC_CHANNEL_NAME || DEFAULT_CHANNEL_NAME;
+  const name = process.env.BNY_PDLC_CHANNEL_NAME;
+  if (!name) return DEFAULT_CHANNEL_ID;
   const channel = await deps.findChannelByName(token, name);
   if (!channel) throw new Error(`Slack channel #${name} not found`);
   return channel.id;
