@@ -38,26 +38,29 @@ describe('Pershing Access KPI posts', () => {
     expect(analysis.isDrop).toBe(false);
   });
 
-  test('flags Nov 16 as a new Android completion drop and later days as continuing', () => {
-    const drop = kpis.analyzeDay('2026-11-16');
+  test('keeps Mon-Wed Nov 16-18 normal, flags Thu Nov 19 as a new drop and Nov 20 as continuing', () => {
+    ['2026-11-16', '2026-11-17', '2026-11-18'].forEach((d) => expect(kpis.analyzeDay(d).isDrop).toBe(false));
+    const drop = kpis.analyzeDay('2026-11-19');
     expect(drop.isNewDrop).toBe(true);
-    expect(drop.dropPts).toBeCloseTo(6.3, 1);
-    expect(kpis.renderDay('2026-11-16').text).toContain('Android transfer completion is 6.3 pts below');
-    expect(kpis.analyzeDay('2026-11-17').isDrop).toBe(true);
-    expect(kpis.analyzeDay('2026-11-17').isNewDrop).toBe(false);
+    expect(drop.dropPts).toBeCloseTo(6.2, 1);
+    expect(kpis.renderDay('2026-11-19').text).toContain('Android transfer completion is 6.2 pts below');
+    expect(kpis.analyzeDay('2026-11-20').isDrop).toBe(true);
+    expect(kpis.analyzeDay('2026-11-20').isNewDrop).toBe(false);
   });
 
-  test('seed posts Nov 9-15 without paging the Bot', async () => {
+  test('seed posts the 14 normal days Nov 5-18 without paging the Bot', async () => {
     const run = await kpis.seed();
-    expect(run.posts.map((p) => p.date)).toEqual(['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15']);
-    expect(axios.post.mock.calls.filter((c) => c[0].endsWith('chat.postMessage'))).toHaveLength(7);
-    expect(axios.post.mock.calls[0][1].blocks[1].image_url).toBe('https://devindemos.com/pershing/kpi/2026-11-09.png');
+    expect(run.posts.map((p) => p.date)).toHaveLength(14);
+    expect(run.posts[0].date).toBe('2026-11-05');
+    expect(run.posts[13].date).toBe('2026-11-18');
+    expect(axios.post.mock.calls.filter((c) => c[0].endsWith('chat.postMessage'))).toHaveLength(14);
+    expect(axios.post.mock.calls[0][1].blocks[1].image_url).toBe('https://devindemos.com/pershing/kpi/2026-11-05.png');
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
-    expect(kpis.getState().nextDate).toBe('2026-11-16');
+    expect(kpis.getState().nextDate).toBe('2026-11-19');
   });
 
   test('drop day pages the Bot into the post thread and schedules personas there', async () => {
-    const run = await kpis.nextDay({ date: '2026-11-16' });
+    const run = await kpis.nextDay({ date: '2026-11-19' });
     expect(run.posts[0].investigation).toMatchObject({ paged: true, personas: 3 });
     expect(inviteToChannel).toHaveBeenCalledWith('xoxb-test', 'C0CKGCDNJ2V', ['U0CK6TNG7T3']);
     const [botId, page] = sendDevinSessionMessage.mock.calls[0];
@@ -95,7 +98,7 @@ describe('Pershing Access KPI posts', () => {
 
   test('a plain-text hand-off that names Jordan also starts the personas', async () => {
     getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "Jordan Ellis, you own the confirm flow, so I'm handing this to you." }]);
-    await kpis.nextDay({ date: '2026-11-16' });
+    await kpis.nextDay({ date: '2026-11-19' });
     await jest.advanceTimersByTimeAsync(5000);
     await jest.advanceTimersByTimeAsync(10000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(3);
@@ -103,7 +106,7 @@ describe('Pershing Access KPI posts', () => {
 
   test('personas start after the timeout when the Bot never hands off', async () => {
     getThreadReplies.mockResolvedValue([]);
-    await kpis.nextDay({ date: '2026-11-16' });
+    await kpis.nextDay({ date: '2026-11-19' });
     await jest.advanceTimersByTimeAsync(375000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(3);
   });
@@ -111,7 +114,7 @@ describe('Pershing Access KPI posts', () => {
   test('pages through the Bot-owned webhook with the thread when one is configured', async () => {
     process.env.PERSHING_KPI_BOT_WEBHOOK_URL = 'https://example.test/hook';
     process.env.BNY_IOS_BOT_WEBHOOK_SECRET = 'shh';
-    const run = await kpis.nextDay({ date: '2026-11-16' });
+    const run = await kpis.nextDay({ date: '2026-11-19' });
     expect(run.posts[0].investigation).toMatchObject({ paged: true, via: 'webhook' });
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
     const [url, body, config] = axios.post.mock.calls.find((c) => c[0] === 'https://example.test/hook');
@@ -162,7 +165,7 @@ describe('Pershing Access KPI posts', () => {
 
   test('clear cancels persona replies still scheduled for the cleared thread', async () => {
     getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
-    await kpis.nextDay({ date: '2026-11-16' });
+    await kpis.nextDay({ date: '2026-11-19' });
     await jest.advanceTimersByTimeAsync(5000);
     getChannelHistory.mockResolvedValue([]);
     await kpis.clearChannel();
@@ -171,7 +174,7 @@ describe('Pershing Access KPI posts', () => {
   });
 
   test('a continuing drop day does not page the Bot again', async () => {
-    await kpis.nextDay({ date: '2026-11-17' });
+    await kpis.nextDay({ date: '2026-11-20' });
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
   });
 });
