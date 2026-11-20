@@ -7,7 +7,7 @@ jest.mock('../app/services/slack', () => ({
   deleteMessage: jest.fn(() => Promise.resolve(true)),
 }));
 jest.mock('../app/services/devin-api', () => ({
-  sendDevinSessionMessage: jest.fn(() => Promise.resolve({ sessionId: 'bot-59656379ddc5470281166b1458334c2c', url: 'https://app.devin.ai/bots/x' })),
+  sendDevinSessionMessage: jest.fn(() => Promise.resolve({ sessionId: 'bot-3a43e8d41c194bbe82bdaed7f6af36e2', url: 'https://app.devin.ai/bots/x' })),
 }));
 
 jest.mock('axios', () => ({ post: jest.fn(() => Promise.resolve({ status: 200, data: { ok: true, ts: '1795000000.000100' } })) }));
@@ -28,6 +28,7 @@ describe('Pershing Access KPI posts', () => {
     delete process.env.PERSHING_KPI_BOT_WEBHOOK_URL;
     delete process.env.BNY_IOS_BOT_WEBHOOK_SECRET;
     delete process.env.PERSHING_KPI_BOT_WEBHOOK_SECRET;
+    delete process.env.PERSHING_KPI_PAGE_BOT;
   });
   afterEach(() => jest.useRealTimers());
 
@@ -59,22 +60,50 @@ describe('Pershing Access KPI posts', () => {
     expect(kpis.getState().nextDate).toBe('2026-11-19');
   });
 
+  test('by default the drop pages no Bot; personas wait for BNY KPI Bot to tag Hannah', async () => {
+    const run = await kpis.nextDay({ date: '2026-11-19' });
+    expect(run.posts[0].investigation).toMatchObject({ paged: false, via: 'listener', botSlackId: 'U0CLC4SR91N', personas: 3 });
+    expect(sendDevinSessionMessage).not.toHaveBeenCalled();
+    expect(axios.post.mock.calls.filter((c) => !c[0].endsWith('chat.postMessage'))).toHaveLength(0);
+    expect(axios.post.mock.calls[0][1].username).toBe('BNY KPI Bot');
+    expect(inviteToChannel).toHaveBeenCalledWith('xoxb-test', 'C0CKGCDNJ2V', ['U0CLC4SR91N']);
+    await jest.advanceTimersByTimeAsync(30000);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(0);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?" }]);
+    await jest.advanceTimersByTimeAsync(5000 + 12000);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(3);
+    expect(sendDevinSessionMessage).not.toHaveBeenCalled();
+  });
+
+  test('after a restart the next day is the day after the seed (Thu Nov 19)', () => {
+    expect(kpis.getState().nextDate).toBe('2026-11-19');
+  });
+
+  test('by default clear deletes Bot thread roots without paging', async () => {
+    getChannelHistory.mockResolvedValue([{ ts: '2.0', username: 'BNY KPI Bot', reply_count: 1 }]);
+    getThreadReplies.mockResolvedValue([{ ts: '2.0' }, { ts: '2.2', user: 'U0CLC4SR91N' }]);
+    const result = await kpis.clearChannel();
+    expect(result).toMatchObject({ deleted: 1, botThreads: ['2.0'], botAsked: false });
+    expect(sendDevinSessionMessage).not.toHaveBeenCalled();
+  });
+
   test('drop day pages the Bot into the post thread and schedules personas there', async () => {
+    process.env.PERSHING_KPI_PAGE_BOT = 'on';
     const run = await kpis.nextDay({ date: '2026-11-19' });
     expect(run.posts[0].investigation).toMatchObject({ paged: true, personas: 3 });
-    expect(inviteToChannel).toHaveBeenCalledWith('xoxb-test', 'C0CKGCDNJ2V', ['U0CK6TNG7T3']);
+    expect(inviteToChannel).toHaveBeenCalledWith('xoxb-test', 'C0CKGCDNJ2V', ['U0CLC4SR91N']);
     const [botId, page] = sendDevinSessionMessage.mock.calls[0];
-    expect(botId).toBe('bot-59656379ddc5470281166b1458334c2c');
+    expect(botId).toBe('bot-3a43e8d41c194bbe82bdaed7f6af36e2');
     expect(page).toContain('thread_ts 1795000000.000100');
     expect(page).toContain('metrics/events_sample.csv');
     expect(page).toContain("I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?");
     expect(page).toContain('HTML report');
 
-    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: 'Jordan owns this flow, so the analysis below covers the confirm step.' }]);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: 'Jordan owns this flow, so the analysis below covers the confirm step.' }]);
     await jest.advanceTimersByTimeAsync(30000);
     expect(postPersonaMessage).toHaveBeenCalledTimes(0);
 
-    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
     await jest.advanceTimersByTimeAsync(5000);
     await jest.advanceTimersByTimeAsync(10000);
     const replies = postPersonaMessage.mock.calls;
@@ -89,7 +118,7 @@ describe('Pershing Access KPI posts', () => {
   });
 
   test('the Bot tagging Hannah starts the personas', async () => {
-    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?" }]);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?" }]);
     await kpis.seed();
     await kpis.nextDay();
     await jest.advanceTimersByTimeAsync(5000 + 12000);
@@ -97,7 +126,7 @@ describe('Pershing Access KPI posts', () => {
   });
 
   test('a plain-text hand-off that names Jordan also starts the personas', async () => {
-    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "Jordan Ellis, you own the confirm flow, so I'm handing this to you." }]);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "Jordan Ellis, you own the confirm flow, so I'm handing this to you." }]);
     await kpis.nextDay({ date: '2026-11-19' });
     await jest.advanceTimersByTimeAsync(5000);
     await jest.advanceTimersByTimeAsync(10000);
@@ -112,6 +141,7 @@ describe('Pershing Access KPI posts', () => {
   });
 
   test('pages through the Bot-owned webhook with the thread when one is configured', async () => {
+    process.env.PERSHING_KPI_PAGE_BOT = 'on';
     process.env.PERSHING_KPI_BOT_WEBHOOK_URL = 'https://example.test/hook';
     process.env.BNY_IOS_BOT_WEBHOOK_SECRET = 'shh';
     const run = await kpis.nextDay({ date: '2026-11-19' });
@@ -119,7 +149,7 @@ describe('Pershing Access KPI posts', () => {
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
     const [url, body, config] = axios.post.mock.calls.find((c) => c[0] === 'https://example.test/hook');
     expect(url).toBe('https://example.test/hook');
-    expect(body).toMatchObject({ slack_channel_id: 'C0CKGCDNJ2V', slack_thread_ts: '1795000000.000100', bot_id: 'bot-59656379ddc5470281166b1458334c2c' });
+    expect(body).toMatchObject({ slack_channel_id: 'C0CKGCDNJ2V', slack_thread_ts: '1795000000.000100', bot_id: 'bot-3a43e8d41c194bbe82bdaed7f6af36e2' });
     expect(config.headers['X-Webhook-Secret']).toBe('shh');
   });
 
@@ -140,13 +170,14 @@ describe('Pershing Access KPI posts', () => {
   });
 
   test('clear deletes KPI posts and persona replies and asks the Bot to clean up its own', async () => {
+    process.env.PERSHING_KPI_PAGE_BOT = 'on';
     getChannelHistory.mockResolvedValue([
       { ts: '1.0', username: 'KPI Bot' },
       { ts: '2.0', username: 'Pershing Access Metrics', reply_count: 3 },
       { ts: '3.0', user: 'U0B2YAUPSHL', text: 'someone else' },
     ]);
     getThreadReplies.mockResolvedValue([
-      { ts: '2.0' }, { ts: '2.1', username: 'Jordan Ellis' }, { ts: '2.2', user: 'U0CK6TNG7T3' }, { ts: '2.3', username: 'Sofia Alvarez' },
+      { ts: '2.0' }, { ts: '2.1', username: 'Jordan Ellis' }, { ts: '2.2', user: 'U0CLC4SR91N' }, { ts: '2.3', username: 'Sofia Alvarez' },
     ]);
     const result = await kpis.clearChannel();
     expect(result).toMatchObject({ deleted: 4, botThreads: ['2.0'], botAsked: true });
@@ -155,16 +186,17 @@ describe('Pershing Access KPI posts', () => {
   });
 
   test('clear keeps Bot thread roots when the Bot cannot be asked, so a retry can find them', async () => {
+    process.env.PERSHING_KPI_PAGE_BOT = 'on';
     sendDevinSessionMessage.mockResolvedValueOnce(null);
     getChannelHistory.mockResolvedValue([{ ts: '2.0', username: 'Pershing Access Metrics', reply_count: 1 }]);
-    getThreadReplies.mockResolvedValue([{ ts: '2.0' }, { ts: '2.2', user: 'U0CK6TNG7T3' }]);
+    getThreadReplies.mockResolvedValue([{ ts: '2.0' }, { ts: '2.2', user: 'U0CLC4SR91N' }]);
     const result = await kpis.clearChannel();
     expect(result).toMatchObject({ deleted: 0, botAsked: false });
     expect(deleteMessage).not.toHaveBeenCalled();
   });
 
   test('clear cancels persona replies still scheduled for the cleared thread', async () => {
-    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
+    getThreadReplies.mockResolvedValue([{ user: 'U0CLC4SR91N', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
     await kpis.nextDay({ date: '2026-11-19' });
     await jest.advanceTimersByTimeAsync(5000);
     getChannelHistory.mockResolvedValue([]);

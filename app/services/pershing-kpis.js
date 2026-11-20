@@ -8,8 +8,8 @@ const { sendDevinSessionMessage } = require('./devin-api');
 const logger = require('../telemetry/logger');
 
 const DEFAULT_CHANNEL_ID = 'C0CKGCDNJ2V';
-const DEFAULT_BOT_ID = 'bot-59656379ddc5470281166b1458334c2c';
-const DEFAULT_BOT_SLACK_ID = 'U0CK6TNG7T3';
+const DEFAULT_BOT_ID = 'bot-3a43e8d41c194bbe82bdaed7f6af36e2';
+const DEFAULT_BOT_SLACK_ID = 'U0CLC4SR91N';
 const DEFAULT_SEED = { from: '2026-11-05', to: '2026-11-18' };
 const DROP_THRESHOLD_PTS = 2;
 const BASELINE_DAYS = 7;
@@ -26,6 +26,8 @@ const channelId = () => process.env.PERSHING_KPI_CHANNEL_ID || DEFAULT_CHANNEL_I
 const slackToken = () => process.env.PERSHING_KPI_SLACK_TOKEN || process.env.SLACK_ONCALL_BOT_TOKEN || '';
 const botId = () => process.env.PERSHING_KPI_BOT_ID || DEFAULT_BOT_ID;
 const botSlackId = () => process.env.PERSHING_KPI_BOT_SLACK_ID || DEFAULT_BOT_SLACK_ID;
+// KPI Bot picks up the drop with its own Slack listener; paging it is opt-in.
+const pagingOn = () => (process.env.PERSHING_KPI_PAGE_BOT || '').toLowerCase() === 'on';
 const publicBase = () => (process.env.PUBLIC_BASE_URL || 'https://devindemos.com').replace(/\/$/, '');
 const iconUrl = (icon) => (icon && icon.startsWith('/') ? `${publicBase()}${icon}` : icon);
 
@@ -158,7 +160,7 @@ function playScript(token, channel, threadTs) {
     state.personaTimers.push(setTimeout(async () => {
       try {
         await postPersonaMessage(token, channel, line.text, persona.username, iconUrl(persona.icon), threadTs);
-        if (line.asksBot) await pageBot({ message: relayPersonaReply(persona, line.text, threadTs), threadTs });
+        if (line.asksBot && pagingOn()) await pageBot({ message: relayPersonaReply(persona, line.text, threadTs), threadTs });
       } catch (err) {
         logger.warn('Pershing KPI persona message failed', { persona: persona.id, error: err.message });
       }
@@ -218,11 +220,12 @@ async function postDay(date, { trigger = true } = {}) {
   if (botSlackId()) {
     await inviteToChannel(token, channel, [botSlackId()]).catch((err) => logger.warn('Pershing KPI bot invite failed', { error: err.message }));
   }
-  const page = buildBotPage({ date, threadTs: ts, analysis });
-  const paged = await pageBot({ message: page, threadTs: ts });
+  const paged = pagingOn() ? await pageBot({ message: buildBotPage({ date, threadTs: ts, analysis }), threadTs: ts }) : null;
   const personas = schedulePersonas(token, channel, ts);
-  result.investigation = { botId: id, paged: Boolean(paged), via: paged && paged.via, personas };
-  if (!paged) logger.warn('Pershing KPI bot page failed; check the Bot\'s "Who can message" setting', { botId: id });
+  result.investigation = {
+    botId: id, botSlackId: botSlackId(), paged: Boolean(paged), via: paged ? paged.via : 'listener', personas,
+  };
+  if (pagingOn() && !paged) logger.warn('Pershing KPI bot page failed; check the Bot\'s "Who can message" setting', { botId: id });
   return result;
 }
 
@@ -292,7 +295,7 @@ async function exclusive(fn) {
 }
 
 function nextDate() {
-  if (!state.lastDate) return '2026-11-16';
+  if (!state.lastDate) return days[dayIndex(DEFAULT_SEED.to) + 1]?.date || null;
   return days[dayIndex(state.lastDate) + 1]?.date || null;
 }
 
@@ -335,7 +338,7 @@ async function clearChannel() {
     }
     const botThreads = roots.filter((r) => threads.get(r.ts).some((m) => m.user === botSlackId())).map((r) => r.ts);
     let botAsked = false;
-    if (botThreads.length) {
+    if (botThreads.length && pagingOn()) {
       botAsked = Boolean(await pageBot({
         message: `Demo reset for #bny-pershing-access-android-app-metrics (channel ${channel}): delete every message you posted in the threads with thread_ts ${botThreads.join(', ')}, including attached files. Do not post anything.`,
         threadTs: botThreads[0],
@@ -349,8 +352,8 @@ async function clearChannel() {
           deleted += 1;
         }
       }
-      // Keep a root the Bot still has replies under when it could not be asked, so a retry finds it.
-      if (!botAsked && botThreads.includes(root.ts)) continue;
+      // When paging is on, keep a root the Bot still has replies under if it could not be asked, so a retry finds it.
+      if (pagingOn() && !botAsked && botThreads.includes(root.ts)) continue;
       await deleteMessage(token, channel, root.ts);
       deleted += 1;
     }
