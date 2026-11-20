@@ -47,6 +47,22 @@ describe('per-customer Slack channel override', () => {
     expect(axios.post.mock.calls[0][1].channel).toBe('C0C1FP3FM5K');
   });
 
+  test('posts NEXEN Monitoring alerts to the fixed SEV-1 channel', async () => {
+    await postAlertToSlack({
+      ...ALERT,
+      service: 'customer-9bfabd45-web',
+      customer: '9bfabd45',
+      customerConfig: { slackChannelId: 'C0CJQDXKD9D' },
+      slackPoster: { username: 'NEXEN Monitoring', icon_emoji: ':satellite_antenna:' },
+    });
+
+    expect(axios.post.mock.calls[0][1]).toMatchObject({
+      channel: 'C0CJQDXKD9D',
+      username: 'NEXEN Monitoring',
+      icon_emoji: ':satellite_antenna:',
+    });
+  });
+
   test('falls back to SLACK_CHANNEL_ID when no override is set', async () => {
     await postAlertToSlack({ ...ALERT, customerConfig: { slackChannelId: '' } });
 

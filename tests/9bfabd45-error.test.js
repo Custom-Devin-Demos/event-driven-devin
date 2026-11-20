@@ -299,6 +299,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     'NEXEN_SRE_BOT_WEBHOOK_SECRET',
     'NEXEN_ALERT_USERNAME',
     'NEXEN_SEV1_CHANNEL_ID',
+    'DD_VERSION',
     'NEXEN_PERSONAS',
     'PUBLIC_BASE_URL',
     'SLACK_BOT_TOKEN',
@@ -320,6 +321,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     errorType: 'TypeError',
     errorMessage: "Cannot read properties of undefined (reading 'currency')",
     stackTrace: 'at buildReleaseLines (settlement.ts:24:37)',
+    timestamp: '2026-11-20T08:00:00.000Z',
     report: { batchId: 'SB-20260918-USD', instructionCount: 4, settlementCurrency: 'USD' },
   };
 
@@ -332,6 +334,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     delete process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET;
     delete process.env.NEXEN_ALERT_USERNAME;
     delete process.env.NEXEN_SEV1_CHANNEL_ID;
+    process.env.DD_VERSION = 'current-run-sha';
     delete process.env.PUBLIC_BASE_URL;
     process.env.SLACK_BOT_TOKEN = 'test-slack-token';
     delete process.env.NEXEN_PERSONAS;
@@ -353,13 +356,13 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     jest.restoreAllMocks();
   });
 
-  test('alerts in #pershing-access-alerts with the settlement directive', async () => {
+  test('alerts in #pershing-sev1 with the settlement directive', async () => {
+    process.env.NEXEN_SEV1_CHANNEL_ID = FIXED_SEV1_CHANNEL_ID;
     const { sessionPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await sessionPromise;
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.slackChannelId).toBe('C0CJPN2C5D5');
-    expect(alert.slackChannelId).toBe(SETTLEMENT.slackChannelId);
+    expect(alert.slackChannelId).toBe(FIXED_SEV1_CHANNEL_ID);
     expect(alert.slackPoster).toEqual({
       username: 'NEXEN Monitoring',
       icon_emoji: ':satellite_antenna:',
@@ -368,6 +371,13 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(alert.culprit).toContain('frontend/src/domain/settlement.ts');
     expect(alert.tags).toEqual(expect.arrayContaining([{ key: 'scenario', value: 'settlement-batch-release' }]));
     expect(postAlertToSlack).not.toHaveBeenCalled();
+  });
+
+  test('falls back to SETTLEMENT.slackChannelId when the fixed channel is unset', async () => {
+    process.env.NEXEN_SEV1_CHANNEL_ID = 'off';
+    const { sessionPromise } = reportAppFailure(SETTLEMENT_REPORT);
+    await sessionPromise;
+    expect(createSessionAndAlert.mock.calls[0][0].slackChannelId).toBe('C0CJPN2C5D5');
   });
 
   test.each(['', 'off', ' OFF '])('omits the alert poster when NEXEN_ALERT_USERNAME is %j', async (username) => {
@@ -414,7 +424,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(postAlertToSlack).toHaveBeenCalledTimes(1);
     const alert = postAlertToSlack.mock.calls[0][0];
     expect(postAlertToSlack).toHaveBeenCalledWith(alert, 'oncall-test-token');
-    expect(alert.customerConfig.slackChannelId).toBe('C0CJPN2C5D5');
+    expect(alert.slackChannelId).toBe(FIXED_SEV1_CHANNEL_ID);
+    expect(alert.customerConfig.slackChannelId).toBe(FIXED_SEV1_CHANNEL_ID);
     expect(alert.promptAppendix).toBe(SETTLEMENT_REMEDIATION_DIRECTIVE);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
@@ -432,24 +443,32 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       expect.any(Object),
     );
     const page = sendDevinSessionMessage.mock.calls[0][1];
-    expect(page).toContain('C0CJPN2C5D5');
+    expect(page).toContain(`#pershing-sev1 (channel id ${FIXED_SEV1_CHANNEL_ID})`);
     expect(page).toContain('1712345678.000100');
+    expect(page).toContain('*Failure at:* 2026-11-20T08:00:00.000Z (Nov 20, 2026, 3:00:00 AM EST)');
+    expect(page).toContain('*Version:* current-run-sha');
+    expect(page).not.toContain('8f125ca');
     expect(page).toContain('publicId=412');
     expect(page).toContain('nexen-settlement-');
     expect(page).toContain('service=nexen-settlement');
     expect(page).toContain('Join this SEV-1 channel and act as the incident responder there.');
     expect(page).toContain('Stay in the scenario');
-    expect(page).toContain('This page comes from the alert the NEXEN monitoring app raised');
+    expect(page).toContain('This page comes from the NEXEN Monitoring alert in #pershing-sev1');
     expect(page).toContain('SEV-1 declared: NEXEN: USD settlement batch release failing');
     expect(page).toContain('Datadog incident #412');
     expect(page).toContain('https://us5.datadoghq.com/incidents/412');
     expect(page).toContain('search_datadog_logs');
     expect(page).toContain('service:customer-9bfabd45-web status:error');
+    expect(page).toContain('from = failure_at minus 60 seconds');
+    expect(page).toContain('to = now');
+    expect(page).toContain('at or after failure_at');
+    expect(page).toContain('retry once after about 15 seconds');
+    expect(page).toContain('1 error (this alert, Datadog indexing pending)');
     expect(page).toContain('Evidence pulled from Datadog');
     expect(page).toContain('Source: Datadog (logs + incident #412)');
     expect(page).toContain(`<@${OWNER.slackMemberId}>`);
     expect(page).toContain(`<@${OWNER.slackMemberId}> you're on call for NEXEN web`);
-    expect(page).toContain(`<#${FIXED_SEV1_CHANNEL_ID}>`);
+    expect(page).toContain('top-level message in #pershing-sev1:');
     expect(page).toContain('RCA-TEMPLATE.md');
     expect(page).toContain('rca-template.html');
     expect(page).not.toMatch(/#sev-1-incident-/);
@@ -457,6 +476,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(page).toContain(SETTLEMENT_REMEDIATION_DIRECTIVE);
     expect(page).toContain('SB-20260918-USD');
     expect(page).toContain('Never merge or roll back without a human.');
+    expect(page).not.toContain('C0CJPN2C5D5');
+    expect(page).not.toContain('pershing-access-alerts');
     expect(postPersonaMessage).toHaveBeenCalledTimes(7);
     expect(postPersonaMessage.mock.calls.every((call) => call[3] !== 'NEXEN Incident Bot')).toBe(true);
     expect(postPersonaMessage.mock.calls[0][2]).toBe(
@@ -505,18 +526,36 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
         source: 'devindemos.com',
         incident: SETTLEMENT.incidentTitle,
         reference: expect.any(String),
-        slack_channel_id: "C0CJPN2C5D5",
+        slack_channel_id: FIXED_SEV1_CHANNEL_ID,
         slack_thread_ts: '1712345678.000100',
-        alert_channel_id: 'C0CJPN2C5D5',
+        alert_channel_id: FIXED_SEV1_CHANNEL_ID,
         sev1_channel_id: FIXED_SEV1_CHANNEL_ID,
         datadog_incident_id: 412,
         datadog_incident_url: 'https://us5.datadoghq.com/incidents/412',
+        failure_at: '2026-11-20T08:00:00.000Z',
       }),
       expect.objectContaining({
         headers: expect.objectContaining({ 'X-Webhook-Secret': 'unit-test-secret' }),
       }),
     );
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
+  });
+
+  test('uses server receive time when the report has no timestamp', async () => {
+    process.env.NEXEN_SRE_BOT_ID = BOT_ID;
+    delete process.env.NEXEN_SRE_BOT_WEBHOOK_URL;
+    process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET = 'unit-test-secret';
+    process.env.NEXEN_PERSONAS = 'off';
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-20T08:15:00.000Z'));
+    const report = { ...SETTLEMENT_REPORT };
+    delete report.timestamp;
+
+    const { incidentPromise } = reportAppFailure(report);
+    await incidentPromise;
+
+    const webhookPayload = axios.post.mock.calls[0][1];
+    expect(webhookPayload.failure_at).toBe('2026-11-20T08:15:00.000Z');
+    expect(webhookPayload.message).toContain('*Failure at:* 2026-11-20T08:15:00.000Z (Nov 20, 2026, 3:15:00 AM EST)');
   });
 
   test('skips webhook paging and logs an error when the webhook secret is missing', async () => {
@@ -801,7 +840,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await incidentPromise;
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    expect(createSessionAndAlert.mock.calls[0][0].slackChannelId).toBe(SETTLEMENT.slackChannelId);
+    expect(createSessionAndAlert.mock.calls[0][0].slackChannelId).toBe(FIXED_SEV1_CHANNEL_ID);
     expect(postAlertToSlack).not.toHaveBeenCalled();
     expect(createChannel).not.toHaveBeenCalled();
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
