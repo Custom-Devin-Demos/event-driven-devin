@@ -64,7 +64,7 @@ describe('Pershing Access KPI posts', () => {
     expect(botId).toBe('bot-59656379ddc5470281166b1458334c2c');
     expect(page).toContain('thread_ts 1795000000.000100');
     expect(page).toContain('metrics/events_sample.csv');
-    expect(page).toContain('@Jordan Ellis, can you jump in and look deeper?');
+    expect(page).toContain("I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?");
     expect(page).toContain('HTML report');
 
     getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: 'Jordan owns this flow, so the analysis below covers the confirm step.' }]);
@@ -83,6 +83,14 @@ describe('Pershing Access KPI posts', () => {
     });
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(3);
     expect(sendDevinSessionMessage.mock.calls[1][1]).toContain('Jordan Ellis');
+  });
+
+  test('the Bot tagging Hannah starts the personas', async () => {
+    getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, <@U0B2YAUPSHL>, can you jump in and look deeper?" }]);
+    await kpis.seed();
+    await kpis.nextDay();
+    await jest.advanceTimersByTimeAsync(5000 + 12000);
+    expect(postPersonaMessage.mock.calls.filter((c) => c[5] === '1795000000.000100').length).toBeGreaterThan(0);
   });
 
   test('a plain-text hand-off that names Jordan also starts the personas', async () => {

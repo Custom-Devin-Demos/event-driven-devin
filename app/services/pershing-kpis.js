@@ -118,6 +118,7 @@ function buildBotPage({ date, threadTs, analysis }) {
   const ch = channelId();
   const { day, baseline, dropPts } = analysis;
   const expert = personaScript.personas.find((p) => p.id === personaScript.handoff.persona);
+  const { tag } = personaScript.handoff;
   return [
     `KPI alert from #bny-pershing-access-android-app-metrics (Slack channel ${ch}). Investigate it in that post's thread: channel ${ch}, thread_ts ${threadTs}. Reply only in that thread.`,
     '',
@@ -131,7 +132,9 @@ function buildBotPage({ date, threadTs, analysis }) {
     `2. Find which segment carries the drop and why. The data and app are in ${ANDROID_REPO} on branch \`${ANDROID_BRANCH}\`, app \`apps/b113a373\` (Pershing Access): daily KPIs in \`metrics/daily_kpis.csv\`, the per-session transfer funnel in \`metrics/events_sample.csv\` (segment by app_version and os_version), and the transfer flow code (start with the confirm step and the 2.4.0 changes).`,
     '3. Post your analysis in the thread as a short prose write-up, the way a teammate would: two or three plain-language paragraphs, no bullet lists or bold headings. Cover the segment, its share of Android sessions, how much of the drop it explains, the root cause with file and line, and the proposed fix.',
     '4. Follow up on your own analysis: check it a second way (for example, recompute Android completion without the affected segment and compare it with web and the pre-2.4.0 baseline) and post what that confirms. With that follow-up, attach a polished, self-contained HTML report of the analysis to the thread: a daily completion trend by platform, the funnel by OS version for 2.4.0, the root cause with the code excerpt, and the proposed fix.',
-    `5. Then hand it to the expert in its own message, using exactly this line: "I've done this analysis, @${expert.username}, can you jump in and look deeper?" In the same message, on a new line, loop in the other relevant teammates by name with one sentence each on what you need from them (for example @Marcus Chen for the rollout decision, @Sofia Alvarez for the business and support message).`,
+    tag
+      ? `5. Then hand it to ${tag.name}, the subject-matter expert (a real Slack user, ${tag.slackUserId}), in its own message, using exactly this line with a real Slack mention: "I've done this analysis, <@${tag.slackUserId}>, can you jump in and look deeper?" In the same message, on a new line, loop in the other relevant teammates by name with one sentence each on what you need from them (for example @${expert.username} on the confirm-flow code, @Marcus Chen for the rollout decision, @Sofia Alvarez for the business and support message).`
+      : `5. Then hand it to the expert in its own message, using exactly this line: "I've done this analysis, @${expert.username}, can you jump in and look deeper?" In the same message, on a new line, loop in the other relevant teammates by name with one sentence each on what you need from them (for example @Marcus Chen for the rollout decision, @Sofia Alvarez for the business and support message).`,
     '6. Questions from the team are forwarded to you here as they are posted. Answer each person by name in the thread.',
     `7. If you are asked for the fix, open a PR against \`${ANDROID_BRANCH}\` with a regression test for Android 12 and link it in the thread. Never merge it; the planted bug must stay on that branch for the demo.`,
     '',
@@ -165,13 +168,14 @@ function playScript(token, channel, threadTs) {
 
 const HANDOFF_WORDS = /look deeper|jump in|hand(ing|ed)? (this|it) (over |off )?to you|over to you|take it from here/i;
 
-function botHandedOff(messages, expertName) {
+function botHandedOff(messages, expertName, tagSlackId) {
   const first = expertName.split(' ')[0];
   const mention = new RegExp(`@[*_\\s]*${first}`, 'i');
   const named = new RegExp(`\\b${first}\\b`, 'i');
+  const tagged = (text) => Boolean(tagSlackId) && text.includes(`<@${tagSlackId}>`);
   return messages.some((m) => {
     const text = m.text || '';
-    return m.user === botSlackId() && (mention.test(text) || (named.test(text) && HANDOFF_WORDS.test(text)));
+    return m.user === botSlackId() && (tagged(text) || mention.test(text) || (named.test(text) && HANDOFF_WORDS.test(text)));
   });
 }
 
@@ -185,7 +189,7 @@ function schedulePersonas(token, channel, threadTs) {
   const poll = async () => {
     let handedOff = false;
     try {
-      handedOff = botHandedOff(await getThreadReplies(token, channel, threadTs), expert.username);
+      handedOff = botHandedOff(await getThreadReplies(token, channel, threadTs), expert.username, personaScript.handoff.tag?.slackUserId);
     } catch (err) {
       logger.warn('Pershing KPI thread poll failed', { error: err.message });
     }
