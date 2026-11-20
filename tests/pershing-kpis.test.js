@@ -10,7 +10,7 @@ jest.mock('../app/services/devin-api', () => ({
   sendDevinSessionMessage: jest.fn(() => Promise.resolve({ sessionId: 'bot-59656379ddc5470281166b1458334c2c', url: 'https://app.devin.ai/bots/x' })),
 }));
 
-jest.mock('axios', () => ({ post: jest.fn(() => Promise.resolve({ status: 200 })) }));
+jest.mock('axios', () => ({ post: jest.fn(() => Promise.resolve({ status: 200, data: { ok: true, ts: '1795000000.000100' } })) }));
 
 const axios = require('axios');
 const {
@@ -50,7 +50,8 @@ describe('Pershing Access KPI posts', () => {
   test('seed posts Nov 9-15 without paging the Bot', async () => {
     const run = await kpis.seed();
     expect(run.posts.map((p) => p.date)).toEqual(['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15']);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(7);
+    expect(axios.post.mock.calls.filter((c) => c[0].endsWith('chat.postMessage'))).toHaveLength(7);
+    expect(axios.post.mock.calls[0][1].blocks[1].image_url).toBe('https://devindemos.com/pershing/kpi/2026-11-09.png');
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
     expect(kpis.getState().nextDate).toBe('2026-11-16');
   });
@@ -68,12 +69,12 @@ describe('Pershing Access KPI posts', () => {
 
     getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: 'Jordan owns this flow, so the analysis below covers the confirm step.' }]);
     await jest.advanceTimersByTimeAsync(30000);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(0);
 
     getThreadReplies.mockResolvedValue([{ user: 'U0CK6TNG7T3', text: "I've done this analysis, @Jordan Ellis, can you jump in and look deeper?" }]);
     await jest.advanceTimersByTimeAsync(5000);
     await jest.advanceTimersByTimeAsync(10000);
-    const replies = postPersonaMessage.mock.calls.slice(1);
+    const replies = postPersonaMessage.mock.calls;
     expect(replies.map((c) => c[3])).toEqual(['Jordan Ellis', 'Marcus Chen', 'Sofia Alvarez']);
     replies.forEach((call) => {
       expect(call[5]).toBe('1795000000.000100');
@@ -89,14 +90,14 @@ describe('Pershing Access KPI posts', () => {
     await kpis.nextDay({ date: '2026-11-16' });
     await jest.advanceTimersByTimeAsync(5000);
     await jest.advanceTimersByTimeAsync(10000);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(4);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(3);
   });
 
   test('personas start after the timeout when the Bot never hands off', async () => {
     getThreadReplies.mockResolvedValue([]);
     await kpis.nextDay({ date: '2026-11-16' });
     await jest.advanceTimersByTimeAsync(375000);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(4);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(3);
   });
 
   test('pages through the Bot-owned webhook with the thread when one is configured', async () => {
@@ -105,7 +106,7 @@ describe('Pershing Access KPI posts', () => {
     const run = await kpis.nextDay({ date: '2026-11-16' });
     expect(run.posts[0].investigation).toMatchObject({ paged: true, via: 'webhook' });
     expect(sendDevinSessionMessage).not.toHaveBeenCalled();
-    const [url, body, config] = axios.post.mock.calls[0];
+    const [url, body, config] = axios.post.mock.calls.find((c) => c[0] === 'https://example.test/hook');
     expect(url).toBe('https://example.test/hook');
     expect(body).toMatchObject({ slack_channel_id: 'C0CKGCDNJ2V', slack_thread_ts: '1795000000.000100', bot_id: 'bot-59656379ddc5470281166b1458334c2c' });
     expect(config.headers['X-Webhook-Secret']).toBe('shh');
@@ -119,7 +120,7 @@ describe('Pershing Access KPI posts', () => {
 
   test('rejects an overlapping run until the current one finishes', async () => {
     let release;
-    postPersonaMessage.mockImplementationOnce(() => new Promise((r) => { release = () => r('1795000000.000300'); }));
+    axios.post.mockImplementationOnce(() => new Promise((r) => { release = () => r({ status: 200, data: { ok: true, ts: '1795000000.000300' } }); }));
     const first = kpis.nextDay({ date: '2026-11-12' });
     await expect(kpis.nextDay({ date: '2026-11-13' })).rejects.toMatchObject({ status: 429 });
     release();
@@ -129,7 +130,7 @@ describe('Pershing Access KPI posts', () => {
 
   test('clear deletes KPI posts and persona replies and asks the Bot to clean up its own', async () => {
     getChannelHistory.mockResolvedValue([
-      { ts: '1.0', username: 'Pershing Access Metrics' },
+      { ts: '1.0', username: 'KPI Bot' },
       { ts: '2.0', username: 'Pershing Access Metrics', reply_count: 3 },
       { ts: '3.0', user: 'U0B2YAUPSHL', text: 'someone else' },
     ]);
@@ -158,7 +159,7 @@ describe('Pershing Access KPI posts', () => {
     getChannelHistory.mockResolvedValue([]);
     await kpis.clearChannel();
     await jest.advanceTimersByTimeAsync(20000);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(0);
   });
 
   test('a continuing drop day does not page the Bot again', async () => {
