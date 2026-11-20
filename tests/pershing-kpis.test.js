@@ -39,12 +39,16 @@ describe('Pershing Access KPI posts', () => {
     expect(analysis.isDrop).toBe(false);
   });
 
-  test('keeps Mon-Wed Nov 16-18 normal, flags Thu Nov 19 as a new drop and Nov 20 as continuing', () => {
-    ['2026-11-16', '2026-11-17', '2026-11-18'].forEach((d) => expect(kpis.analyzeDay(d).isDrop).toBe(false));
-    const drop = kpis.analyzeDay('2026-11-19');
-    expect(drop.isNewDrop).toBe(true);
-    expect(drop.dropPts).toBeCloseTo(6.2, 1);
-    expect(kpis.renderDay('2026-11-19').text).toContain('Android transfer completion is 6.2 pts below');
+  test('keeps Nov 5-18 green and flags Thu Nov 19 transfer screen load creep (not an incident)', () => {
+    ['2026-11-11', '2026-11-12', '2026-11-16', '2026-11-18'].forEach((d) => expect(kpis.analyzeDay(d).isDrop).toBe(false));
+    const flag = kpis.analyzeDay('2026-11-19');
+    expect(flag.isNewDrop).toBe(true);
+    expect(flag.creepPct).toBeCloseTo(46.4, 1);
+    const { text } = kpis.renderDay('2026-11-19');
+    expect(text).toMatch(/^:large_yellow_circle:/);
+    expect(text).toContain('Android transfer screen load is 46% above its pre-2.4.0 baseline (1.10 s)');
+    expect(text).toContain('transfer completion is healthy');
+    expect(kpis.renderDay('2026-11-12').text).toContain('on 10% of Android sessions, staged rollout started today');
     expect(kpis.analyzeDay('2026-11-20').isDrop).toBe(true);
     expect(kpis.analyzeDay('2026-11-20').isNewDrop).toBe(false);
   });
@@ -99,7 +103,7 @@ describe('Pershing Access KPI posts', () => {
     const [botId, page] = sendDevinSessionMessage.mock.calls[0];
     expect(botId).toBe('bot-3a43e8d41c194bbe82bdaed7f6af36e2');
     expect(page).toContain('thread_ts 1795000000.000100');
-    expect(page).toContain('metrics/events_sample.csv');
+    expect(page).toContain('metrics/screen_loads_sample.csv');
     expect(page).toContain("I've done this analysis, @Jordan Ellis, can you jump in and look deeper?");
     expect(page).toContain('HTML report');
 

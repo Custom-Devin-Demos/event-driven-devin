@@ -11,7 +11,6 @@ const DEFAULT_CHANNEL_ID = 'C0CKGCDNJ2V';
 const DEFAULT_BOT_ID = 'bot-3a43e8d41c194bbe82bdaed7f6af36e2';
 const DEFAULT_BOT_SLACK_ID = 'U0CLC4SR91N';
 const DEFAULT_SEED = { from: '2026-11-05', to: '2026-11-18' };
-const DROP_THRESHOLD_PTS = 2;
 const BASELINE_DAYS = 7;
 const DEFAULT_BOT_WEBHOOK_URL = 'https://devin-gtm.devinenterprise.com/api/webhooks/automations/org_69IXJFLrljx8zSAw/auto-2203779474c643fb9262f44c8fd61791';
 const ANDROID_REPO = 'COG-GTM/android-demos';
@@ -49,22 +48,31 @@ function combined(day) {
   };
 }
 
-function androidBaseline(i) {
-  const window = days.slice(Math.max(0, i - BASELINE_DAYS), i).filter((d) => d.android.appVersion !== '2.4.0');
-  if (!window.length) return null;
-  return window.reduce((sum, d) => sum + d.android.completionRate, 0) / window.length;
+const { release } = kpiData;
+
+// Android transfer screen p95 load over the 7 days before the 2.4.0 rollout; null before the rollout.
+function screenBaseline(i) {
+  const releaseIdx = dayIndex(release.rolledOut);
+  if (i < releaseIdx) return null;
+  const window = days.slice(Math.max(0, releaseIdx - BASELINE_DAYS), releaseIdx);
+  return window.reduce((sum, d) => sum + d.android.transferScreenP95Ms, 0) / window.length;
 }
 
+const creepAt = (i) => {
+  const baseline = screenBaseline(i);
+  return baseline == null ? 0 : (days[i].android.transferScreenP95Ms / baseline - 1) * 100;
+};
+
+// A day is flagged when Android transfer screen load is watchPct% over its pre-2.4.0 baseline.
 function analyzeDay(date) {
   const i = dayIndex(date);
   const day = days[i];
   const prev = i > 0 ? days[i - 1] : null;
-  const baseline = androidBaseline(i);
-  const dropPts = baseline == null ? 0 : (baseline - day.android.completionRate) * 100;
-  const prevBaseline = prev ? androidBaseline(i - 1) : null;
-  const prevDropPts = prev && prevBaseline != null ? (prevBaseline - prev.android.completionRate) * 100 : 0;
-  const isDrop = dropPts >= DROP_THRESHOLD_PTS;
-  return { date, day, prev, baseline, dropPts, isDrop, isNewDrop: isDrop && prevDropPts < DROP_THRESHOLD_PTS };
+  const baseline = screenBaseline(i);
+  const creepPct = creepAt(i);
+  const isDrop = creepPct >= release.watchPct;
+  const wasFlagged = i > 0 && creepAt(i - 1) >= release.watchPct;
+  return { date, day, prev, baseline, creepPct, isDrop, isNewDrop: isDrop && !wasFlagged };
 }
 
 const pct = (v) => `${(v * 100).toFixed(1)}%`;
@@ -79,6 +87,12 @@ function ptsDelta(cur, prev) {
   const d = (cur - prev) * 100;
   if (Math.abs(d) < 0.05) return ' (flat)';
   return ` (${d > 0 ? '▲' : '▼'}${Math.abs(d).toFixed(1)} pts DoD)`;
+}
+const secs = (ms) => `${(ms / 1000).toFixed(2)} s`;
+function secDelta(cur, prev) {
+  if (prev == null) return '';
+  const d = (cur - prev) / 1000;
+  return Math.abs(d) < 0.005 ? ' (flat)' : ` (${d > 0 ? '+' : ''}${d.toFixed(2)} s DoD)`;
 }
 function msDelta(cur, prev) {
   if (prev == null) return '';
@@ -96,7 +110,8 @@ function renderDay(date) {
   const { day, prev } = a;
   const c = combined(day);
   const pc = prev ? combined(prev) : null;
-  const status = a.isDrop ? ':red_circle:' : ':large_green_circle:';
+  const status = a.isDrop ? ':large_yellow_circle:' : ':large_green_circle:';
+  const rollout = day.android.rollout240Pct;
   const lines = [
     `${status} *Pershing Access daily KPIs: ${dateLabel(date)}*`,
     `• DAU *${thousands(c.dau)}*${relDelta(c.dau, pc && pc.dau)} (Android ${thousands(day.android.dau)}, web ${thousands(day.web.dau)})`,
@@ -104,10 +119,11 @@ function renderDay(date) {
     `• Transfer completion: web *${pct(day.web.completionRate)}*${ptsDelta(day.web.completionRate, prev && prev.web.completionRate)}, `
       + `Android *${pct(day.android.completionRate)}*${ptsDelta(day.android.completionRate, prev && prev.android.completionRate)}`,
     `• Crash-free sessions *${pct(c.crashFree)}* · p95 API latency *${Math.round(c.p95LatencyMs)} ms*${msDelta(c.p95LatencyMs, pc && pc.p95LatencyMs)}`,
-    `• Android build ${day.android.appVersion}${day.date === kpiData.release.rolledOut ? ` (2.4.0 rollout started today)` : ''}`,
+    `• Android transfer screen load (p95) *${secs(day.android.transferScreenP95Ms)}*${secDelta(day.android.transferScreenP95Ms, prev && prev.android.transferScreenP95Ms)}`,
+    `• Android build ${day.android.appVersion}${rollout ? ` (on ${rollout}% of Android sessions${day.date === release.rolledOut ? ', staged rollout started today' : ''})` : ''}`,
   ];
   if (a.isDrop) {
-    lines.push(`:warning: *Android transfer completion is ${a.dropPts.toFixed(1)} pts below its 7-day pre-2.4.0 average (${pct(a.baseline)})*; web is flat.`);
+    lines.push(`:mag: *Android transfer screen load is ${Math.round(a.creepPct)}% above its pre-2.4.0 baseline (${secs(a.baseline)})*; still under the ${secs(release.screenSloMs)} SLO, and transfer completion is healthy.`);
   }
   return { text: lines.join('\n'), analysis: a };
 }
@@ -118,27 +134,27 @@ function orgChart() {
 
 function buildBotPage({ date, threadTs, analysis }) {
   const ch = channelId();
-  const { day, baseline, dropPts } = analysis;
+  const { day, baseline, creepPct } = analysis;
   const expert = personaScript.personas.find((p) => p.id === personaScript.handoff.persona);
   const { tag } = personaScript.handoff;
   return [
     `KPI alert from #bny-pershing-access-android-app-metrics (Slack channel ${ch}). Investigate it in that post's thread: channel ${ch}, thread_ts ${threadTs}. Reply only in that thread.`,
     '',
-    `The daily Pershing Access KPI post for ${date} shows Android transfer completion at ${pct(day.android.completionRate)}, ${dropPts.toFixed(1)} pts below its 7-day pre-release average of ${pct(baseline)}. Web is flat at ${pct(day.web.completionRate)}. Android 2.4.0 started rolling out on ${kpiData.release.rolledOut}.`,
+    `The daily Pershing Access KPI post for ${date} shows Android transfer screen load (p95) at ${secs(day.android.transferScreenP95Ms)}, ${Math.round(creepPct)}% above its pre-2.4.0 baseline of ${secs(baseline)} and still under the ${secs(release.screenSloMs)} SLO. Transfer completion is healthy (Android ${pct(day.android.completionRate)}, web ${pct(day.web.completionRate)}). Android 2.4.0 started a staged rollout on ${release.rolledOut} and is on ${day.android.rollout240Pct}% of Android sessions.`,
     '',
     `Your team (they post through a Slack app, so they are not Slack users you can @mention; write their names as plain text): ${orgChart()}`,
     '',
     'What to do:',
     '1. Post a one-line note in the thread that you are looking into it.',
     '1b. Then post a short prose summary of the past week of KPI trends (DAU, transfers, completion by platform, crash-free sessions, p95 latency; the daily dashboard image on each post shows them) and say which one warrants investigation and why.',
-    `2. Find which segment carries the drop and why. The data and app are in ${ANDROID_REPO} on branch \`${ANDROID_BRANCH}\`, app \`apps/b113a373\` (Pershing Access): daily KPIs in \`metrics/daily_kpis.csv\`, the per-session transfer funnel in \`metrics/events_sample.csv\` (segment by app_version and os_version), and the transfer flow code (start with the confirm step and the 2.4.0 changes).`,
-    '3. Post your analysis in the thread as a short prose write-up, the way a teammate would: two or three plain-language paragraphs, no bullet lists or bold headings. Cover the segment, its share of Android sessions, how much of the drop it explains, the root cause with file and line, and the proposed fix.',
-    '4. Follow up on your own analysis: check it a second way (for example, recompute Android completion without the affected segment and compare it with web and the pre-2.4.0 baseline) and post what that confirms. With that follow-up, attach a polished, self-contained HTML report of the analysis to the thread: a daily completion trend by platform, the funnel by OS version for 2.4.0, the root cause with the code excerpt, and the proposed fix.',
+    `2. Find what makes the screen slower. The data and app are in ${ANDROID_REPO} on branch \`${ANDROID_BRANCH}\`, app \`apps/b113a373\` (Pershing Access): daily KPIs in \`metrics/daily_kpis.csv\`, transfer screen opens in \`metrics/screen_loads_sample.csv\` (load split into account fetch and render, with the account cache result, by app_version), and the transfer screen code (start with the 2.4.0 changes).`,
+    '3. Post your analysis in the thread as a short prose write-up, the way a teammate would: two or three plain-language paragraphs, no bullet lists or bold headings. Cover how the load time tracks the rollout, which part of the load grew, the root cause with file and line, and the proposed fix.',
+    '4. Follow up on your own analysis: check it a second way (for example, recompute p95 load for 2.4.0 opens without the account fetch and compare it with 2.3.8) and post what that confirms. With that follow-up, attach a polished, self-contained HTML report: the daily load trend against the rollout, the load breakdown by build, the root cause with the code excerpt, and the proposed fix.',
     tag
       ? `5. Then hand it to ${tag.name}, the subject-matter expert (a real Slack user, ${tag.slackUserId}), in its own message, using exactly this line with a real Slack mention: "I've done this analysis, <@${tag.slackUserId}>, can you jump in and look deeper?" In the same message, on a new line, loop in the other relevant teammates by name with one sentence each on what you need from them (for example @${expert.username} on the confirm-flow code, @Marcus Chen for the rollout decision, @Sofia Alvarez for the business and support message).`
       : `5. Then hand it to the expert in its own message, using exactly this line: "I've done this analysis, @${expert.username}, can you jump in and look deeper?" In the same message, on a new line, loop in the other relevant teammates by name with one sentence each on what you need from them (for example @Marcus Chen for the rollout decision, @Sofia Alvarez for the business and support message).`,
     '6. Questions from the team are forwarded to you here as they are posted. Answer each person by name in the thread.',
-    `7. If you are asked for the fix, open a PR against \`${ANDROID_BRANCH}\` with a regression test for Android 12 and link it in the thread. Never merge it; the planted bug must stay on that branch for the demo.`,
+    `7. If you are asked for the fix, open a PR against \`${ANDROID_BRANCH}\` with a regression test and link it in the thread. Never merge it; the planted regression must stay on that branch for the demo.`,
     '',
     'This is a demo with synthetic data; treat it as real and do not mention that it is staged.',
   ].join('\n');
@@ -222,7 +238,7 @@ async function postDay(date, { trigger = true } = {}) {
   const { text, analysis } = renderDay(date);
   const ts = await postKpiPost(token, channel, text, date);
   state.lastDate = date;
-  const result = { date, ts, drop: analysis.isDrop, dropPts: Number(analysis.dropPts.toFixed(2)), investigation: null };
+  const result = { date, ts, drop: analysis.isDrop, creepPct: Number(analysis.creepPct.toFixed(1)), investigation: null };
   if (!trigger || !analysis.isNewDrop) return result;
 
   const id = botId();

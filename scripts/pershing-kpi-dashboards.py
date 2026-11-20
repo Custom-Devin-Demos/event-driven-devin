@@ -22,10 +22,11 @@ ROLLOUT = CONFIG['release']['rolledOut']
 OUT = ROOT / 'app/public/pershing/kpi'
 WINDOW = 14
 BASELINE = 7
-DROP_PTS = 2
+RELEASE = CONFIG['release']
 
 INK, MUTED, LINE, BG, CARD = '#0B1F3A', '#6B7A90', '#E3E8EF', '#F3F5F9', '#FFFFFF'
 TEAL, ANDROID, WEB, RED, GREEN, AMBER = '#1F6FEB', '#2DA44E', '#5B5BD6', '#D1242F', '#1A7F37', '#9A6700'
+AMBER_ALERT = '#D97706'
 
 
 def total(key):
@@ -46,7 +47,7 @@ ROWS = [
     ('TRANSFER COMPLETION', [
         ('Android', lambda d: d['android']['completionRate'] * 100, 'pct', ANDROID, 'up'),
         ('Web', lambda d: d['web']['completionRate'] * 100, 'pct', WEB, 'up'),
-        ('Android vs web gap', lambda d: (d['android']['completionRate'] - d['web']['completionRate']) * 100, 'gap', AMBER, 'up'),
+        ('Android transfer screen p95', lambda d: d['android']['transferScreenP95Ms'] / 1000, 's', AMBER, 'down'),
     ]),
     ('RELIABILITY & PERFORMANCE', [
         ('Crash-free sessions', weighted('crashFree', 100), 'pct2', TEAL, 'up'),
@@ -58,7 +59,7 @@ ROWS = [
 
 def fmt(v, kind):
     return {'k': f'{v / 1000:.1f}k', 'pct': f'{v:.1f}%', 'pct2': f'{v:.2f}%',
-            'gap': f'{v:+.1f} pts', 'ms': f'{v:.0f} ms'}[kind]
+            'gap': f'{v:+.1f} pts', 'ms': f'{v:.0f} ms', 's': f'{v:.2f} s'}[kind]
 
 
 def delta(cur, prev, kind):
@@ -68,12 +69,15 @@ def delta(cur, prev, kind):
     if kind == 'ms':
         d = cur - prev
         return d, f'{d:+.0f} ms'
+    if kind == 's':
+        d = cur - prev
+        return d, f'{d:+.2f} s'
     d = cur - prev
     return d, f'{d:+.2f} pts' if kind == 'pct2' else f'{d:+.1f} pts'
 
 
 def chip_color(d, kind, better):
-    flat = {'k': 0.6, 'ms': 3, 'pct2': 0.02}.get(kind, 0.2)
+    flat = {'k': 0.6, 'ms': 3, 'pct2': 0.02, 's': 0.005}.get(kind, 0.2)
     if abs(d) < flat or better is None:
         return MUTED, '#EEF1F5'
     good = (d > 0) == (better == 'up')
@@ -85,6 +89,14 @@ def card(fig, x, y, w, h):
                                       transform=fig.transFigure, facecolor=CARD, edgecolor=LINE, linewidth=1, zorder=-2))
 
 
+def screen_baseline(target):
+    r = next(n for n, d in enumerate(DAYS) if d['date'] == ROLLOUT)
+    if next(n for n, d in enumerate(DAYS) if d['date'] == target) < r:
+        return None
+    pre = DAYS[r - BASELINE:r]
+    return sum(d['android']['transferScreenP95Ms'] for d in pre) / len(pre) / 1000
+
+
 def panel(fig, x, y, w, h, spec, window, labels, rollout_idx):
     title, fn, kind, color, better = spec
     card(fig, x, y, w, h)
@@ -92,17 +104,20 @@ def panel(fig, x, y, w, h, spec, window, labels, rollout_idx):
     cur, prev = values[-1], values[-2]
     base = values[-1 - BASELINE:-1]
     base_avg = sum(base) / len(base)
-    alert = title == 'Android' and base_avg - cur >= DROP_PTS
-    line = RED if alert else color
+    screen_base = screen_baseline(window[-1]['date']) if kind == 's' else None
+    alert = screen_base is not None and cur >= screen_base * (1 + RELEASE['watchPct'] / 100)
+    if screen_base is not None:
+        base_avg = screen_base
+    line = AMBER_ALERT if alert else color
     d, dtxt = delta(cur, prev, kind)
     fg, bg = chip_color(d, kind, better)
 
     fig.text(x + 0.014, y + h - 0.032, title, fontsize=12.5, color=MUTED, fontweight='bold')
-    fig.text(x + 0.014, y + h - 0.082, fmt(cur, kind), fontsize=24, color=RED if alert else INK, fontweight='bold')
+    fig.text(x + 0.014, y + h - 0.082, fmt(cur, kind), fontsize=24, color=AMBER_ALERT if alert else INK, fontweight='bold')
     fig.text(x + w - 0.014, y + h - 0.030, f'{dtxt} DoD', fontsize=10.5, color=fg, ha='right', va='center',
              fontweight='bold', bbox=dict(boxstyle='round,pad=0.35,rounding_size=0.6', fc=bg, ec='none'))
     if alert:
-        fig.text(x + w - 0.014, y + h - 0.072, f'{cur - base_avg:+.1f} pts vs 7-day avg', fontsize=10, color=RED,
+        fig.text(x + w - 0.014, y + h - 0.072, f'+{(cur / base_avg - 1) * 100:.0f}% vs pre-2.4.0', fontsize=10, color=AMBER_ALERT,
                  ha='right', va='center')
 
     ax = fig.add_axes([x + 0.03, y + 0.03, w - 0.045, h - 0.135])
@@ -158,10 +173,10 @@ def render(target):
             alerts += panel(fig, margin + j * (w + gap), y, w, row_h, spec, window, labels, rollout_idx)
         top = y - 0.022
 
-    pill = ('1 KPI needs attention', '#FFFFFF', RED) if alerts else ('All KPIs within range', '#FFFFFF', GREEN)
+    pill = ('1 KPI worth a look', '#FFFFFF', AMBER_ALERT) if alerts else ('All KPIs within range', '#FFFFFF', GREEN)
     fig.text(0.97, 0.930, pill[0], fontsize=12.5, color=pill[1], ha='right', va='center', fontweight='bold',
              bbox=dict(boxstyle='round,pad=0.55,rounding_size=0.9', fc=pill[2], ec='none'))
-    fig.text(0.97, 0.898, f'Trailing {len(window)} days · Android + web · dashed line = 7-day avg',
+    fig.text(0.97, 0.898, f'Trailing {len(window)} days · Android + web · dashed line = 7-day avg (screen load: pre-2.4.0)',
              fontsize=10, color='#C9D6EA', ha='right', va='center')
     fig.text(1 - margin, 0.018, 'KPI Bot · Pershing Access', fontsize=9, color=MUTED, ha='right')
 

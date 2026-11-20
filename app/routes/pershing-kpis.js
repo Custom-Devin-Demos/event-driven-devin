@@ -15,7 +15,7 @@ router.get('/api/pershing-kpis/state', (_req, res) => res.json(kpis.getState()))
 router.get('/api/pershing-kpis/preview/:date', (req, res) => {
   try {
     const { text, analysis } = kpis.renderDay(req.params.date);
-    res.json({ text, drop: analysis.isDrop, newDrop: analysis.isNewDrop, dropPts: analysis.dropPts });
+    res.json({ text, drop: analysis.isDrop, newDrop: analysis.isNewDrop, creepPct: analysis.creepPct });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
