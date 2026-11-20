@@ -968,22 +968,25 @@ describe('TN3270 batch console presentation', () => {
   });
 });
 
-test('deployment accepts only the specified five secret formats and stages all five Actions secrets', () => {
+test('deployment accepts only the specified six secret formats and stages all six Actions secrets', () => {
   const script = fs.readFileSync(path.join(__dirname, '../scripts/deploy-ec2.sh'), 'utf8');
   const workflow = fs.readFileSync(path.join(__dirname, '../.github/workflows/deploy.yml'), 'utf8');
   const functions = script.slice(script.indexOf('ENV_SYNC_KEYS=('), script.indexOf('if [ -n "${ENV_SYNC_FILE:-}"'));
-  for (const [key, good, bad] of [
+  for (const [key, good, bad, actionsSecret = key] of [
     ['BATCH_PD_ROUTING_KEY_MFT', 'a'.repeat(32), ['a'.repeat(31), 'a'.repeat(33), '_'.repeat(32)]],
     ['BATCH_PD_ROUTING_KEY_SQL', 'B'.repeat(32), ['B'.repeat(31)]],
     ['BATCH_PD_ROUTING_KEY_MF', '1'.repeat(32), ['1'.repeat(33)]],
     ['BATCH_PD_API_TOKEN', 'aB01_+-'.repeat(4), ['a'.repeat(19), 'a'.repeat(65), 'a'.repeat(20) + '!']],
     ['BATCH_PD_WEBHOOK_SECRET', 'aB01_-'.repeat(4), ['a'.repeat(15), 'a'.repeat(129), 'a'.repeat(20) + '+']],
+    ['NEXEN_SRE_BOT_WEBHOOK_SECRET', 'x'.repeat(256), ['x'.repeat(257), 'contains space', 'contains\ttab'], 'MAIN_NEXEN_SRE_BOT_WEBHOOK_SECRET'],
   ]) {
-    expect(workflow).toContain(`${key}: \u0024{{ secrets.${key} }}`);
+    expect(workflow).toContain(`${key}: \u0024{{ secrets.${actionsSecret} }}`);
     const check = (value) => spawnSync('bash', ['-c', `${functions}\nis_env_sync_key "$TEST_KEY" && env_sync_value_ok "$TEST_KEY" "$TEST_VALUE"`], {
       env: { ...process.env, TEST_KEY: key, TEST_VALUE: value },
     }).status;
     expect(check(good)).toBe(0);
-    for (const value of [...bad, '', good + '\nINJECT=1', good + ';']) expect(check(value)).not.toBe(0);
+    const invalidValues = [...bad, '', good + '\nINJECT=1'];
+    if (key !== 'NEXEN_SRE_BOT_WEBHOOK_SECRET') invalidValues.push(good + ';');
+    for (const value of invalidValues) expect(check(value)).not.toBe(0);
   }
 });

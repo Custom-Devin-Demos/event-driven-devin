@@ -89,6 +89,7 @@ jobs:
       #     (On-Call skins with teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI')
       #   MAIN_ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE -> ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE
       #     (PBM, payer, and life-sciences On-Call scenario alerts)
+      #   MAIN_BNY_IOS_BOT_WEBHOOK_SECRET -> BNY_IOS_BOT_WEBHOOK_SECRET (BNY iOS Engineer Bot webhook)
       # deploy-ec2.sh applies them under the deploy lock, after its .env backup.
       # Skipped when neither secret is set.
       - name: Stage Teams webhooks for host .env
@@ -98,6 +99,7 @@ jobs:
           LOWES_TEAMS_WEBHOOK_URL: ${{ secrets.LOWES_TEAMS_WEBHOOK_URL }}
           ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI: ${{ secrets.MAIN_ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI }}
           ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE: ${{ secrets.MAIN_ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE }}
+          BNY_IOS_BOT_WEBHOOK_SECRET: ${{ secrets.MAIN_BNY_IOS_BOT_WEBHOOK_SECRET }}
         run: |
           sync=""
           if [ -n "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
@@ -114,6 +116,9 @@ jobs:
           fi
           if [ -n "$ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE" ]; then
             sync+="ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE=$ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE"$'\n'
+          fi
+          if [ -n "$BNY_IOS_BOT_WEBHOOK_SECRET" ]; then
+            sync+="BNY_IOS_BOT_WEBHOOK_SECRET=$BNY_IOS_BOT_WEBHOOK_SECRET"$'\n'
           fi
           if [ -z "$sync" ]; then
             echo "No Teams webhook secrets set; host .env left unchanged"; exit 0
@@ -142,6 +147,19 @@ jobs:
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
             'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
+      # Optional: BNY demo Bot webhook secrets (Actions secret MAIN_<NAME>),
+      # used by devindemos.com to wake the iOS Engineer Bot without a v3 message.
+      - name: Stage BNY Bot webhook secrets for host .env
+        env:
+          BNY_IOS_BOT_WEBHOOK_SECRET: ${{ secrets.MAIN_BNY_IOS_BOT_WEBHOOK_SECRET }}
+        run: |
+          if [ -z "$BNY_IOS_BOT_WEBHOOK_SECRET" ]; then
+            echo "No BNY Bot webhook secrets set; host .env left unchanged"; exit 0
+          fi
+          printf 'BNY_IOS_BOT_WEBHOOK_SECRET=%s\n' "$BNY_IOS_BOT_WEBHOOK_SECRET" | \
+            ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+
       # Optional: Field CTO reservations Slack app (/fcto) credentials, staged the
       # same way. Actions secrets FCTO_SLACK_SIGNING_SECRET / FCTO_SLACK_BOT_TOKEN
       # map to the same .env keys; FCTO_CHANNEL_ID is the #exec-field-requests ID
@@ -158,6 +176,22 @@ jobs:
           fi
           printf 'FCTO_SLACK_SIGNING_SECRET=%s\nFCTO_SLACK_BOT_TOKEN=%s\nFCTO_CHANNEL_ID=%s\n' \
             "$FCTO_SLACK_SIGNING_SECRET" "$FCTO_SLACK_BOT_TOKEN" "$FCTO_CHANNEL_ID" | \
+            ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+
+      # Optional NEXEN SRE Bot automation webhook secret; unset leaves the host
+      # .env value unchanged.
+      - name: Stage NEXEN SRE Bot webhook secret for host .env
+        env:
+          NEXEN_SRE_BOT_WEBHOOK_SECRET: ${{ secrets.MAIN_NEXEN_SRE_BOT_WEBHOOK_SECRET }}
+        run: |
+          if [ -z "$NEXEN_SRE_BOT_WEBHOOK_SECRET" ]; then
+            echo "MAIN_NEXEN_SRE_BOT_WEBHOOK_SECRET not set; host .env key left unchanged"; exit 0
+          fi
+          if [[ ! "$NEXEN_SRE_BOT_WEBHOOK_SECRET" =~ ^[^[:space:]]{1,256}$ ]]; then
+            echo "MAIN_NEXEN_SRE_BOT_WEBHOOK_SECRET has an unexpected format; host .env key left unchanged"; exit 0
+          fi
+          printf 'NEXEN_SRE_BOT_WEBHOOK_SECRET=%s\n' "$NEXEN_SRE_BOT_WEBHOOK_SECRET" | \
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
             'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 

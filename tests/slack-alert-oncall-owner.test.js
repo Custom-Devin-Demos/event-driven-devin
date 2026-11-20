@@ -5,6 +5,7 @@ const {
   buildAlertBlocks,
   onCallText,
   resolveOnCallMember,
+  postAlertToSlack,
   postBugReportToTriage,
 } = require('../app/services/slack');
 
@@ -133,6 +134,25 @@ describe('alert card On-Call owner', () => {
       const body = JSON.stringify(axios.post.mock.calls[0][1]);
       expect(body).toContain(`<@${SHAWN}>`);
       expect(body).not.toContain(ONCALL_UNASSIGNED_TEXT);
+    });
+
+    test('postAlertToSlack accepts an alternate token and retains the default token', async () => {
+      axios.get.mockResolvedValue({ data: { ok: true, user: { id: SHAWN } } });
+      axios.post.mockResolvedValue({ data: { ok: true, ts: '1.0' } });
+      const alert = {
+        ...ALERT,
+        devinEmail: 'shawn@example.com',
+        customerConfig: { slackChannelId: 'C-ALERTS' },
+      };
+
+      await expect(postAlertToSlack(alert, 'oncall-test-token')).resolves.toBe('1.0');
+      expect(axios.get.mock.calls[0][1].headers.Authorization).toBe('Bearer oncall-test-token');
+      expect(axios.post.mock.calls[0][2].headers.Authorization).toBe('Bearer oncall-test-token');
+
+      axios.post.mockReset();
+      axios.post.mockResolvedValue({ data: { ok: true, ts: '2.0' } });
+      await expect(postAlertToSlack(alert)).resolves.toBe('2.0');
+      expect(axios.post.mock.calls[0][2].headers.Authorization).toBe('Bearer xoxb-test');
     });
   });
 });

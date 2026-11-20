@@ -94,6 +94,10 @@
  * 5xx rate. The page must show a calm "try again later" message on failure.
  * failAfterMs: <ms> (banking only) ends that hang with the 504 after roughly
  * <ms> instead of the default ~9s.
+ * deployTrigger: { path, body } fires the skin's failing request and its alert
+ * once the skin-creating PR has auto-merged and deployed (PR label
+ * `oncall-skin:auto-merge`, .github/workflows/oncall-skin-automerge.yml,
+ * scripts/oncall-deploy-trigger.js).
  *
  * Skins are direct-URL only: the stock /oncall hub never lists customers,
  * and each skin is reachable solely by its own /oncall/c/<slug> URL. Skins on a
@@ -3351,6 +3355,32 @@ const ONCALL_SKINS = {
       impact: 'Multi-location operators at period close cannot post approved AP batches (e.g. 1,284 invoices across 40 locations) to the general ledger, so the period cannot be closed and P&L reports are incomplete.',
     },
     disclaimer: 'NOT ACTUALLY A RESTAURANT365 SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Restaurant365 product.',
+  },
+  'c83477cf': {
+    slug: 'c83477cf',
+    company: 'Fenics Market Data',
+    vertical: 'banking',
+    oncallOnly: true,
+    failAfterHang: true,
+    page: { file: 'c83477cf.html', title: 'EOD Snapshot Publish | Fenics MarketData' },
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    alertCard: {
+      title: 'Failure rate increase — Fenics MarketData: EOD snapshot publish',
+      release: 'fmd-snapshot-publisher@2026.11.2',
+      team: 'fenics-marketdata-oncall',
+      metricValue: '504 on ~100% of EOD snapshot publish requests',
+      threshold: '> 5% error rate per 5m',
+      baseline: '<0.1% (7-day)',
+      symptom: 'Publish EOD snapshot on the Fenics MarketData delivery console hangs ~9s and then fails with 504 Gateway Timeout. No snapshot is released to subscriber feeds; the 17:00 NY close stays Staged – Not Delivered. Latency on the request path is elevated.',
+      impact: 'Subscribers (B-PIPE, LSEG DataScope, ICE Connect, client OMS/risk) do not receive the 17:00 NY close FX options vol surfaces and UST curves, so end-of-day marks, VaR and client valuations run on stale prior-day data.',
+    },
+    deployTrigger: {
+      path: '/api/oncall/banking/transfer',
+      body: { fromAccount: 'FMD-FXV-EOD', toAccount: 'DIST-ALL-SUBSCRIBERS', amount: 18432, accountTier: 'standard' },
+    },
+    disclaimer: 'NOT ACTUALLY A CANTOR FITZGERALD / BGC / FENICS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Fenics Market Data product.',
   },
   '2179350e': {
     slug: '2179350e',
@@ -10029,6 +10059,38 @@ const ONCALL_SKINS = {
     supportCenter: 'JD Sports Customer Care',
     disclaimer: 'NOT ACTUALLY A JD SPORTS SITE — internal demo only, not affiliated with, endorsed by, or a real JD Sports product.',
   },
+  '8594be9a': {
+    slug: '8594be9a',
+    company: 'Larkwell',
+    brandMark: 'L',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    page: { file: '8594be9a.html', title: 'Checkout | Larkwell UK' },
+    alertCard: {
+      title: 'p95 latency \u2014 Checkout: Place order & pay',
+      service: 'checkout-api',
+      release: 'checkout-web@2026.11.4',
+      team: 'ecommerce-checkout-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.1s',
+      threshold: '> 2s',
+      baseline: '~420ms (7-day p95, before checkout-web@2026.11.4)',
+      symptom: 'Place order & pay hangs ~9s after the shopper selects it before the order confirmation appears. Error rate is normal \u2014 orders eventually complete.',
+      impact: 'Every Black Friday shopper paying by card waits about 9 seconds on a spinner; some refresh or leave before the confirmation and abandon a discounted bag.',
+    },
+    theme: {
+      '--accent': '#0A78A8',
+      '--ink': '#131517',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0B0B0C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Larkwell Customer Care',
+    disclaimer: 'NOT ACTUALLY A LARKWELL SITE \u2014 internal demo only. Larkwell is a fictional retailer, not affiliated with, endorsed by, or a real product of any retailer.',
+  },
   'a48c4d64': {
     slug: 'a48c4d64',
     company: 'Endava',
@@ -10257,6 +10319,8 @@ const ONCALL_SKINS = {
     slug: '5a3928aa',
     company: 'StoreForce',
     vertical: 'hightech',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: {
       file: '5a3928aa.html',
       title: 'StoreForce | Retail Workforce Management Software',

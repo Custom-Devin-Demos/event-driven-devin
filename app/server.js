@@ -134,6 +134,7 @@ app.use(sentryWebhookRoutes);
 app.use(devinUsersRoutes);
 app.use(webinarRoutes);
 app.use(oncallRoutes);
+app.use(require('./routes/pershing-kpis'));
 app.use(oncallVerticalRoutes);
 app.use('/api/oncall/assessmentscheduling', oncallVerticalRoutes.assessmentSchedulingBodyErrorHandler);
 app.use(internalJobsRoutes);

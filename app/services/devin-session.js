@@ -347,7 +347,8 @@ async function createSessionAndAlert(alertData) {
   }
   try {
     // Resolve per-customer Devin configuration
-    const config = getCustomerConfig(alertData.customer);
+    let config = getCustomerConfig(alertData.customer);
+    if (alertData.slackChannelId) config = { ...config, slackChannelId: alertData.slackChannelId };
 
     // Attach config to alertData so downstream functions (e.g. buildAlertBlocks)
     // can use it without additional parameters

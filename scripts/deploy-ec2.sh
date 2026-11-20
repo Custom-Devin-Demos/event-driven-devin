@@ -104,19 +104,22 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 # The staged file holds one `KEY=value` line per allowlisted key; each value
 # must match its key's format (Teams webhooks: single-line https URL; FCTO
 # Slack app: signing secret, xoxb- bot token, channel ID; PIF PoC: 4–12 char
-# access code, LLM API keys). Invalid or duplicate
+# access code, LLM API keys; NEXEN webhook secret: non-empty, no whitespace,
+# at most 256 characters). Invalid or duplicate
 # lines are logged and skipped; a file with more lines than allowlisted keys is
 # ignored entirely (deploy continues with the current .env).
 ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI
   ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE LOWES_TEAMS_WEBHOOK_URL
   FCTO_SLACK_SIGNING_SECRET FCTO_SLACK_BOT_TOKEN FCTO_CHANNEL_ID
   PIF_ACCESS_CODE PIF_OPENAI_API_KEY PIF_FIREWORKS_API_KEY
-  BATCH_PD_ROUTING_KEY_MFT BATCH_PD_ROUTING_KEY_SQL BATCH_PD_ROUTING_KEY_MF BATCH_PD_API_TOKEN BATCH_PD_WEBHOOK_SECRET)
+  BATCH_PD_ROUTING_KEY_MFT BATCH_PD_ROUTING_KEY_SQL BATCH_PD_ROUTING_KEY_MF BATCH_PD_API_TOKEN BATCH_PD_WEBHOOK_SECRET
+  NEXEN_SRE_BOT_WEBHOOK_SECRET BNY_IOS_BOT_WEBHOOK_SECRET)
 env_sync_value_ok() {
   case "$1" in
+    NEXEN_SRE_BOT_WEBHOOK_SECRET) [[ -n "$2" && ${#2} -le 256 && "$2" != *[[:space:]]* ]] ;;
     BATCH_PD_ROUTING_KEY_MFT|BATCH_PD_ROUTING_KEY_SQL|BATCH_PD_ROUTING_KEY_MF) [[ "$2" =~ ^[A-Za-z0-9]{32}$ ]] ;;
     BATCH_PD_API_TOKEN) [[ "$2" =~ ^[A-Za-z0-9_+-]{20,64}$ ]] ;;
-    BATCH_PD_WEBHOOK_SECRET) [[ "$2" =~ ^[A-Za-z0-9_-]{16,128}$ ]] ;;
+    BATCH_PD_WEBHOOK_SECRET|BNY_IOS_BOT_WEBHOOK_SECRET) [[ "$2" =~ ^[A-Za-z0-9_-]{16,128}$ ]] ;;
     FCTO_SLACK_SIGNING_SECRET) [[ "$2" =~ ^[A-Za-z0-9]{16,128}$ ]] ;;
     FCTO_SLACK_BOT_TOKEN) [[ "$2" =~ ^xoxb-[A-Za-z0-9-]{10,250}$ ]] ;;
     FCTO_CHANNEL_ID) [[ "$2" =~ ^[CG][A-Z0-9]{6,20}$ ]] ;;

@@ -6,6 +6,7 @@ const {
   isAppReport,
   reportAppFailure,
 } = require('../../services/verticals/9bfabd45');
+const { startPdlcRun, stopPdlcRun, getPdlcState } = require('../../services/verticals/9bfabd45-pdlc');
 
 const router = express.Router();
 
@@ -63,6 +64,31 @@ router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {
     sessionRequested: true,
     receivedAt: new Date().toISOString(),
   });
+});
+
+// BNY demo 1 (PDLC): personas discuss price alerts on Holdings in
+// #pershing-access-product and the iOS Engineer Bot joins unprompted.
+const PDLC_PAGE = path.join(__dirname, '..', '..', 'public', 'verticals', '9bfabd45-pdlc.html');
+for (const entry of ['/9bfabd45/pdlc', '/bny-pdlc']) {
+  router.get(entry, (_req, res) => res.sendFile(PDLC_PAGE));
+}
+
+function pdlcKeyOk(req) {
+  const key = process.env.BNY_PDLC_TRIGGER_KEY;
+  return !key || req.get('x-demo-key') === key || (req.body && req.body.key === key);
+}
+
+router.get('/api/9bfabd45/pdlc/state', (_req, res) => res.json(getPdlcState()));
+
+router.post('/api/9bfabd45/pdlc/run', (req, res) => {
+  if (!pdlcKeyOk(req)) return res.status(403).json({ started: false, reason: 'bad_key' });
+  const { started, reason, state } = startPdlcRun({ triggeredBy: req.get('x-demo-user') || 'web' });
+  return res.status(started ? 202 : 409).json({ started, reason: reason || null, state });
+});
+
+router.post('/api/9bfabd45/pdlc/stop', (req, res) => {
+  if (!pdlcKeyOk(req)) return res.status(403).json({ stopped: false, reason: 'bad_key' });
+  return res.json({ stopped: true, state: stopPdlcRun() });
 });
 
 module.exports = router;

@@ -311,13 +311,13 @@ function buildAlertText(alertData) {
  */
 const pendingOnCallLookups = new WeakMap();
 
-async function resolveOnCallMember(alertData) {
+async function resolveOnCallMember(alertData, token = process.env.SLACK_BOT_TOKEN) {
   if (alertData.slackMemberId) return alertData.slackMemberId;
 
   if (alertData.devinEmail) {
     let lookup = pendingOnCallLookups.get(alertData);
     if (!lookup) {
-      lookup = lookupSlackUserByEmail(process.env.SLACK_BOT_TOKEN, alertData.devinEmail);
+      lookup = lookupSlackUserByEmail(token, alertData.devinEmail);
       pendingOnCallLookups.set(alertData, lookup);
     }
     const memberId = await lookup;
@@ -345,9 +345,9 @@ async function resolveOnCallMember(alertData) {
  * Post the initial alert to Slack and return the thread timestamp.
  * If alertData.devinEmail is set, resolves the email to a Slack member ID
  * and @mentions the user in the alert so they get a notification.
+ * An optional token overrides SLACK_BOT_TOKEN for the post and member lookup.
  */
-async function postAlertToSlack(alertData) {
-  const token = process.env.SLACK_BOT_TOKEN;
+async function postAlertToSlack(alertData, token = process.env.SLACK_BOT_TOKEN) {
   const channel = (alertData.customerConfig && alertData.customerConfig.slackChannelId)
     || process.env.SLACK_CHANNEL_ID;
 
@@ -357,7 +357,7 @@ async function postAlertToSlack(alertData) {
   }
 
   try {
-    await resolveOnCallMember(alertData);
+    await resolveOnCallMember(alertData, token);
 
     const text = buildAlertText(alertData);
     const blocks = buildAlertBlocks(alertData);
@@ -727,13 +727,15 @@ async function inviteToChannel(token, channelId, userIds) {
  * an emoji shortcode (`:wrench:`) or an image URL, which Slack fetches and
  * renders like a real profile picture.
  */
-async function postPersonaMessage(token, channel, text, username, icon) {
+async function postPersonaMessage(token, channel, text, username, icon, threadTs) {
   const image = /^https?:\/\//.test(icon || '');
   const response = await axios.post(`${SLACK_API_BASE}/chat.postMessage`, {
     channel,
     text,
     username,
+    ...(threadTs ? { thread_ts: threadTs } : {}),
     ...(image ? { icon_url: icon } : { icon_emoji: icon }),
+    ...(threadTs ? { thread_ts: threadTs } : {}),
   }, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -813,6 +815,21 @@ async function getChannelHistory(token, channelId, options = {}) {
 }
 
 /**
+ * Read a thread (parent first, then replies). Requires `channels:history`.
+ */
+async function getThreadReplies(token, channelId, threadTs, options = {}) {
+  const response = await axios.get(`${SLACK_API_BASE}/conversations.replies`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { channel: channelId, ts: threadTs, limit: options.limit || 200 },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+  return response.data.messages || [];
+}
+
+/**
  * Delete a Slack message. Used to clean up the @Devin trigger message
  * after Devin has acknowledged it (slack trigger mode only).
  */
@@ -856,4 +873,6 @@ module.exports = {
   createChannel,
   archiveChannel,
   getChannelHistory,
+  getThreadReplies,
+  deleteMessage,
 };
