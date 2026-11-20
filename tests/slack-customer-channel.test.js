@@ -2,7 +2,7 @@
 
 jest.mock('axios');
 const axios = require('axios');
-const { postAlertToSlack } = require('../app/services/slack');
+const { postAlertToSlack, postPersonaMessage } = require('../app/services/slack');
 const { getCustomerConfig } = require('../config/customers');
 
 const ALERT = {
@@ -84,6 +84,24 @@ describe('per-customer Slack channel override', () => {
     expect(axios.post.mock.calls[0][1]).toMatchObject({
       username: 'NEXEN Monitoring',
       icon_emoji: ':satellite_antenna:',
+    });
+  });
+
+  test('posts persona replies with the supplied thread timestamp', async () => {
+    await postPersonaMessage(
+      'xoxb-test',
+      'C0CJQDXKD9D',
+      'persona reply',
+      'Maya Okafor',
+      'https://example.test/maya.png',
+      '1712345678.000100',
+    );
+
+    expect(axios.post.mock.calls[0][1]).toMatchObject({
+      channel: 'C0CJQDXKD9D',
+      text: 'persona reply',
+      thread_ts: '1712345678.000100',
+      username: 'Maya Okafor',
     });
   });
 

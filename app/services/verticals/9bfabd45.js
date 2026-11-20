@@ -13,6 +13,7 @@ const {
   createChannel,
   inviteToChannel,
   findChannelByNameFragment,
+  getChannelHistory,
   joinChannel,
   postPersonaMessage,
 } = require('../slack');
@@ -88,8 +89,8 @@ const APP_REMEDIATION_DIRECTIVE = [
 
 /**
  * Second scenario: Release batch on Transactions fails in the browser before
- * any instruction leaves NEXEN. It alerts in the fixed #pershing-sev1 channel,
- * declares a Datadog SEV-1, and pages the SRE Bot.
+ * any instruction leaves NEXEN. It declares a Datadog SEV-1 and pages the SRE
+ * Bot, whose declaration anchors #pershing-sev1 without an app-posted alert.
  */
 const SETTLEMENT = Object.freeze({
   action: 'release_settlement_batch',
@@ -112,8 +113,8 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
   '- Batch data: `settlementBatch` in `frontend/src/api/fixtures.ts`, served by `frontend/src/api/fixtureClient.ts`',
   '',
   'The same failure declared a Datadog SEV-1, and the whole incident runs in the fixed `#pershing-sev1` Slack channel.',
-  'Reply with triage in the thread of the declaration or the NEXEN Monitoring alert in `#pershing-sev1`.',
-  'Post the root cause, incident report, fix PR link, RCA, incident updates, and final status update in `#pershing-sev1`.',
+  'The SRE Bot declaration is the first top-level message. Reply with triage and root cause in its thread, then post a short top-level copy of each with the permalink of its thread reply.',
+  'Post the incident report, fix PR link, RCA, incident updates, and final status update as replies in the declaration thread, never as new top-level messages or in another channel.',
   '',
   'Steps:',
   '1. Reproduce first: `cd frontend && npm install && npm run dev`, open Transactions and click Release batch.',
@@ -126,17 +127,20 @@ const SETTLEMENT_REMEDIATION_DIRECTIVE = [
   '   `npx tsc -b`, `npx oxlint`, `npm run build` and `./gradlew test` must pass.',
   `   Do not change the incident reporting identity in \`frontend/src/lib/incident.ts\` (\`${APP_SERVICE}\`).`,
   '4. Re-run the reproduction on the fix commit: Release batch completes and shows the released count and USD total.',
-  '5. Open a pull request against `main`, request Devin Review, post the root cause and PR link in `#pershing-sev1`,',
-  '   and STOP for human approval.',
+  '5. Open a pull request against `main`, request Devin Review, post the root cause and PR link as replies in the SRE Bot',
+  '   declaration thread in `#pershing-sev1`, include its permalink in the short root-cause top-level copy, and STOP for human approval.',
   `6. After approval, refresh the hosted build: \`npx vite build --base=${APP_WEB_PATH}/\` on the fix commit, copy`,
   `   \`frontend/dist/\` into \`app/public/verticals/${CUSTOMER}-app/\` in \`COG-GTM/event-driven-devin\`, and open a PR there.`,
 ].join('\n');
 
 const DEFAULT_NEXEN_SRE_BOT_ID = 'bot-998a62ccfc0a483d8204ff78372b96d3';
+const DEFAULT_NEXEN_SRE_BOT_SLACK_ID = 'U0CJZC8RZBM';
 const DEFAULT_NEXEN_SRE_BOT_WEBHOOK_URL = 'https://devin-gtm.devinenterprise.com/api/webhooks/automations/org_69IXJFLrljx8zSAw/auto-3e9cab1507444129b9cf3f56344d8ee9';
 const DEFAULT_NEXEN_SEV1_CHANNEL_ID = 'C0CJQDXKD9D';
 const DATADOG_CHANNEL_LOOKUP_INTERVAL_MS = 15000;
 const DATADOG_CHANNEL_LOOKUP_TIMEOUT_MS = 5 * 60 * 1000;
+const SETTLEMENT_DECLARATION_POLL_INTERVAL_MS = 5000;
+const SETTLEMENT_DECLARATION_POLL_TIMEOUT_MS = 6 * 60 * 1000;
 
 let settlementIncident = null;
 
@@ -151,7 +155,7 @@ function nexenSreBotId() {
 }
 
 function nexenSreBotSlackId() {
-  if (process.env.NEXEN_SRE_BOT_SLACK_ID === undefined) return 'U0CJZC8RZBM';
+  if (process.env.NEXEN_SRE_BOT_SLACK_ID === undefined) return DEFAULT_NEXEN_SRE_BOT_SLACK_ID;
   const configured = process.env.NEXEN_SRE_BOT_SLACK_ID.trim();
   return configured.toLowerCase() === 'off' ? '' : configured;
 }
@@ -261,7 +265,7 @@ async function createNexenSettlementChannel(token, publicId) {
   return null;
 }
 
-function scheduleSettlementPersonas(token, channelId, createdAt) {
+function scheduleSettlementPersonas(token, channelId, createdAt, threadTs = null) {
   if ((process.env.NEXEN_PERSONAS || '').toLowerCase() === 'off') return;
   const personasById = Object.fromEntries(settlementPersonas.personas.map((persona) => [persona.id, persona]));
   for (const line of settlementPersonas.script) {
@@ -274,7 +278,7 @@ function scheduleSettlementPersonas(token, channelId, createdAt) {
       ? `${(process.env.PUBLIC_BASE_URL || 'https://devindemos.com').replace(/\/$/, '')}${persona.icon}`
       : persona.icon;
     setTimeout(() => {
-      postPersonaMessage(token, channelId, text, persona.username, icon)
+      postPersonaMessage(token, channelId, text, persona.username, icon, threadTs)
         .catch((err) => logger.warn('NEXEN settlement persona message failed', {
           channelId,
           persona: persona.id,
@@ -282,6 +286,106 @@ function scheduleSettlementPersonas(token, channelId, createdAt) {
         }));
     }, Math.max(0, line.atMs - (Date.now() - createdAt))).unref();
   }
+}
+
+function isMissingSlackHistoryScope(error) {
+  return error.code === 'missing_scope' || /missing_scope/.test(error.message || '');
+}
+
+async function getSettlementPersonaHistory(tokens, channelId, failedAt) {
+  let lastError = null;
+  for (const token of tokens) {
+    try {
+      const messages = await getChannelHistory(token, channelId, {
+        oldest: (Date.parse(failedAt) / 1000).toFixed(6),
+      });
+      return { token, messages };
+    } catch (error) {
+      lastError = error;
+      if (!isMissingSlackHistoryScope(error)) throw error;
+    }
+  }
+  throw lastError || new Error('No Slack token is configured for persona history');
+}
+
+function locateFixedChannelDeclarationAndSchedulePersonas(token, channelId, failedAt) {
+  if (!token || (process.env.NEXEN_PERSONAS || '').toLowerCase() === 'off') return;
+
+  const historyTokens = [...new Set([
+    token,
+    process.env.SLACK_ONCALL_BOT_TOKEN,
+    process.env.SLACK_BOT_TOKEN,
+  ].filter(Boolean))];
+  const failedAtMs = Date.parse(failedAt);
+  const botSlackId = nexenSreBotSlackId() || DEFAULT_NEXEN_SRE_BOT_SLACK_ID;
+  const deadline = Date.now() + SETTLEMENT_DECLARATION_POLL_TIMEOUT_MS;
+  let historyToken = token;
+  let warned = false;
+
+  const warnOnce = (message, details) => {
+    if (warned) return;
+    warned = true;
+    logger.warn(message, details);
+  };
+
+  const scheduleNextPoll = () => {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
+      warnOnce('NEXEN settlement SRE Bot declaration was not found before persona timeout', {
+        channelId,
+        failedAt,
+      });
+      return;
+    }
+    const timer = setTimeout(poll, Math.min(SETTLEMENT_DECLARATION_POLL_INTERVAL_MS, remainingMs));
+    if (timer.unref) timer.unref();
+  };
+
+  const poll = async () => {
+    let messages;
+    try {
+      const history = await getSettlementPersonaHistory([
+        historyToken,
+        ...historyTokens.filter((candidate) => candidate !== historyToken),
+      ], channelId, failedAt);
+      historyToken = history.token;
+      messages = history.messages;
+    } catch (error) {
+      if (isMissingSlackHistoryScope(error)) {
+        warnOnce('NEXEN settlement persona history unavailable; no token has channels:history', {
+          channelId,
+          error: error.message,
+        });
+        return;
+      }
+      warnOnce('NEXEN settlement persona history poll failed', {
+        channelId,
+        error: error.message,
+      });
+      scheduleNextPoll();
+      return;
+    }
+
+    const declaration = messages
+      .filter((message) => (
+        message.type === 'message'
+        && !message.subtype
+        && !message.thread_ts
+        && message.user === botSlackId
+        && (message.text || '').includes('SEV-1 declared')
+        && Number(message.ts) * 1000 > failedAtMs
+      ))
+      .sort((a, b) => Number(a.ts) - Number(b.ts))[0];
+
+    if (declaration) {
+      scheduleSettlementPersonas(token, channelId, Number(declaration.ts) * 1000, declaration.ts);
+      return;
+    }
+
+    scheduleNextPoll();
+  };
+
+  scheduleNextPoll();
 }
 
 function locateDatadogSettlementPersonas(token, publicId) {
@@ -376,10 +480,12 @@ function buildSettlementSreBotPage({
     'This is a live customer demo of a fictional NEXEN production system. Stay in the scenario: treat it as a real production SEV-1, describe impact using the facts in this page (batch, instruction count, cutoff at risk, no payments released), and do not say in Slack that the data is fixture-backed or synthetic, that the defect was planted, or that the severity should be downgraded.',
     '',
     fixedSev1Channel
-      ? 'This page comes from the NEXEN Monitoring alert in #pershing-sev1. No human has asked you to respond; take ownership and announce the incident yourself.'
+      ? 'No alert was posted in Slack: you are the first to see this. Your first Slack action, within about a minute, is the declaration in #pershing-sev1; the declaration is your first top-level message, and your only other top-level posts are the two short copies. Include the Datadog evidence block and the on-call tag for Hannah in the declaration.'
       : 'This page comes from the NEXEN Monitoring alert in the configured channel below. No human has asked you to respond; take ownership and announce the incident yourself.',
-    `*NEXEN Monitoring channel:* ${alertChannel}`,
-    `*NEXEN Monitoring thread ts:* ${alertThread}`,
+    ...(fixedSev1Channel ? [] : [
+      `*NEXEN Monitoring channel:* ${alertChannel}`,
+      `*NEXEN Monitoring thread ts:* ${alertThread}`,
+    ]),
     `*Failure at:* ${failedAt} (${formatNexenFailureTimeEt(failedAt)})`,
     ...(runtimeVersion ? [`*Version:* ${runtimeVersion}`] : []),
   ];
@@ -394,31 +500,43 @@ function buildSettlementSreBotPage({
       `*Datadog incident #${incident.publicId}:* ${datadogIncidentUrl}`,
       `*SEV-1 channel:* ${channelName}`,
       '',
-      `Use the Datadog MCP immediately to pull the evidence, then within about one minute make your first Slack action a top-level message in ${responseChannel}: "SEV-1 declared: ${SETTLEMENT.incidentTitle}" before triage or any other Slack update.`,
+      fixedSev1Channel
+        ? `Pull the Datadog evidence immediately, then within about one minute make your first Slack action the only opening top-level declaration in #pershing-sev1: "SEV-1 declared: ${SETTLEMENT.incidentTitle}" with the Datadog evidence block and the on-call tag for Hannah.`
+        : `Use the Datadog MCP immediately to pull the evidence, then within about one minute make your first Slack action a top-level message in ${responseChannel}: "SEV-1 declared: ${SETTLEMENT.incidentTitle}" before triage or any other Slack update.`,
       `Run the Datadog MCP \`search_datadog_logs\` for \`service:customer-9bfabd45-web status:error\` with from = failure_at minus 60 seconds and to = now. Report only matching errors at or after failure_at: the error count, first and last seen, newest error message, version, and the Logs Explorer link returned by the tool.`,
       'If no matching errors are indexed yet, retry once after about 15 seconds. If there are still none, report exactly "1 error (this alert, Datadog indexing pending)" and use failure_at as both first and last seen. Never cite earlier runs’ times or versions.',
       ...(runtimeVersion ? ['Use the Version value above as this run’s version; do not substitute a version from an older log record.'] : []),
       `Say plainly "Evidence pulled from Datadog" and label it "Source: Datadog (logs + incident #${incident.publicId})"; include Datadog incident #${incident.publicId} at ${datadogIncidentUrl} and tag <@${OWNER.slackMemberId}> as the on-call engineer: "<@${OWNER.slackMemberId}> you're on call for NEXEN web".`,
       '',
       fixedSev1Channel
-        ? `After the declaration, reply in its thread or in the thread of the NEXEN Monitoring alert in #pershing-sev1 with a short triage (route, error, start time, failure rate, likely change, owner). Tag <@${OWNER.slackMemberId}> as the on-call engineer who approves rollback vs forward-fix, and name the owners below; keep all incident response in #pershing-sev1:`
+        ? `Reply with a short triage (route, error, start time, failure rate, likely change, owner) in the declaration thread, then post a one- or two-line top-level copy in #pershing-sev1 with that reply's permalink: "Triage: … — details in thread <permalink>". Reply with the root cause in the same thread, then post its one- or two-line top-level copy with the reply's permalink: "Root cause: … — details in thread <permalink>". Tag <@${OWNER.slackMemberId}> as the on-call engineer who approves rollback vs forward-fix, and name the owners below.`
         : `Then, in the alert thread, post a short triage (route, error, start time, failure rate, likely change, owner), tag <@${OWNER.slackMemberId}> as the on-call engineer who approves rollback vs forward-fix, and name the owners below:`,
       '- Daniel Reyes: settlement platform engineer; owns the Settlement Batch panel (the suspected change).',
       '- Maya Okafor: incident commander; head of settlement operations.',
       '- Priya Natarajan: client service for institutional custody clients; needs a plain-language status for ABC Global Investors.',
       '',
-      'Join this SEV-1 channel and act as the incident responder there. Investigate in Datadog first, post the initial root cause, and post an incident report with impact: '
+      (fixedSev1Channel
+        ? 'Do the incident work yourself in this session. If you delegate to a child session and it fails to start or errors, take the work back immediately; a stalled thread is a demo failure. Post everything else (incident report, fix PR link, updates, final status, and RCA) as replies in the declaration thread, never as new top-level messages and never in another channel. The incident personas (Maya, Priya, Daniel) reply in that thread; answer them there. Investigate in Datadog first and post an incident report with impact: '
+        : 'Join this SEV-1 channel and act as the incident responder there. Investigate in Datadog first, post the initial root cause, and post an incident report with impact: ')
         + `batch ${batchId}, ${instructionCount} instructions, the cutoff is at risk, and no payments have been released.`,
-      'Open the fix PR against COG-GTM/bny per the remediation directive below, then post the root cause, PR link, incident report, and final status update in #pershing-sev1.',
-      `After establishing the root cause, optionally call \`create_datadog_notebook\` to create a notebook titled "${SETTLEMENT.incidentTitle}" with the log query, then link it in #pershing-sev1.`,
-      'Answer the people in the channel. Never merge or roll back without a human.',
-      'When asked for an RCA (e.g. "Can you generate an RCA report in Markdown format for this incident?"): follow `docs/incidents/RCA-TEMPLATE.md` in COG-GTM/bny and post the Markdown in the #pershing-sev1 thread. Include the timeline, root cause, impact, what went well, and action items, each with an owner and due date. Then follow through: offer to open each action item as a ticket or PR and do it once a human says go.',
-      'Also render the same RCA as a self-contained HTML report using `docs/incidents/rca-template.html` in COG-GTM/bny as the layout, and upload it to the #pershing-sev1 thread as an .html file. Commit the RCA to `docs/incidents/` in COG-GTM/bny only after human approval.',
+      fixedSev1Channel
+        ? 'Open the fix PR against COG-GTM/bny per the remediation directive below, then post the PR link, incident report, and final status update as replies in the declaration thread.'
+        : 'Open the fix PR against COG-GTM/bny per the remediation directive below, then post the root cause, PR link, incident report, and final status update in #pershing-sev1.',
+      fixedSev1Channel
+        ? `After establishing the root cause, optionally call \`create_datadog_notebook\` to create a notebook titled "${SETTLEMENT.incidentTitle}" with the log query, then link it in the declaration thread.`
+        : `After establishing the root cause, optionally call \`create_datadog_notebook\` to create a notebook titled "${SETTLEMENT.incidentTitle}" with the log query, then link it in #pershing-sev1.`,
+      `Answer the people ${fixedSev1Channel ? 'in the declaration thread' : 'in the channel'}. Never merge or roll back without a human.`,
+      fixedSev1Channel
+        ? 'When asked for an RCA (e.g. "Can you generate an RCA report in Markdown format for this incident?"): follow `docs/incidents/RCA-TEMPLATE.md` in COG-GTM/bny and post the Markdown as a reply in the declaration thread. Include the timeline, root cause, impact, what went well, and action items, each with an owner and due date. Then follow through: offer to open each action item as a ticket or PR and do it once a human says go.'
+        : 'When asked for an RCA (e.g. "Can you generate an RCA report in Markdown format for this incident?"): follow `docs/incidents/RCA-TEMPLATE.md` in COG-GTM/bny and post the Markdown in the #pershing-sev1 thread. Include the timeline, root cause, impact, what went well, and action items, each with an owner and due date. Then follow through: offer to open each action item as a ticket or PR and do it once a human says go.',
+      fixedSev1Channel
+        ? 'Also render the same RCA as a self-contained HTML report using `docs/incidents/rca-template.html` in COG-GTM/bny as the layout, and upload it as a reply in the declaration thread as an .html file. Commit the RCA to `docs/incidents/` in COG-GTM/bny only after human approval.'
+        : 'Also render the same RCA as a self-contained HTML report using `docs/incidents/rca-template.html` in COG-GTM/bny as the layout, and upload it to the #pershing-sev1 thread as an .html file. Commit the RCA to `docs/incidents/` in COG-GTM/bny only after human approval.',
     );
   } else {
     lines.push(
       fixedSev1Channel
-        ? 'If Datadog could not declare the incident, reply in the NEXEN Monitoring thread in #pershing-sev1 with the triage, root cause, PR link, and final status update.'
+        ? 'If Datadog could not declare the incident, post one top-level SEV-1 declaration in #pershing-sev1, then reply with triage and root cause in its thread and post a short top-level copy of each with the reply permalink. Keep all remaining incident work in that thread.'
         : 'Triage the failure in the alert thread and open the fix PR against COG-GTM/bny per the remediation directive below. Post the root cause and PR link in the alert thread.',
     );
   }
@@ -546,7 +664,11 @@ async function handleNexenSettlementBotIncident({
   });
   await pageNexenSreBot(botId, page, reference, { alert, incidentChannel, incident, failedAt });
   if (incidentChannel) {
-    scheduleSettlementPersonas(personaToken, incidentChannel.id, channelCreatedAt);
+    if (nexenSev1ChannelId()) {
+      locateFixedChannelDeclarationAndSchedulePersonas(personaToken, incidentChannel.id, failedAt);
+    } else {
+      scheduleSettlementPersonas(personaToken, incidentChannel.id, channelCreatedAt);
+    }
   }
 }
 
@@ -615,6 +737,7 @@ function reportAppFailure(report) {
   const failedAt = nexenFailureAt(report);
   const action = clip(report.action || 'load_allocation_chart', 64);
   const isSettlement = action === SETTLEMENT.action;
+  const fixedSev1ChannelId = isSettlement ? nexenSev1ChannelId() : null;
   if (isSettlement && settlementIncident
     && Date.now() - settlementIncident.openedAt < SETTLEMENT.incidentWindowMs) {
     logger.info('NEXEN settlement failure folded into the open incident', { reference: settlementIncident.reference });
@@ -735,6 +858,9 @@ function reportAppFailure(report) {
         logger.info('Legacy alert pipeline suppressed (on-call mode request)', { issueTitle: error.message });
         return null;
       }
+      if (fixedSev1ChannelId) {
+        return { channelId: fixedSev1ChannelId, threadTs: null };
+      }
       const devinUserId = needsLookup
         ? await resolveUserIdByEmail(devinEmail, report.devinOrgId)
         : report.devinUserId;
@@ -746,16 +872,18 @@ function reportAppFailure(report) {
       });
       return null;
     })
-    : (needsLookup
-      ? resolveUserIdByEmail(devinEmail, report.devinOrgId)
-        .then((userId) => raiseAlert(userId || undefined))
-      : raiseAlert(report.devinUserId)
-    ).catch((err) => {
-      logger.error('Failed to create Devin session for NEXEN failure report', {
-        error: err.message,
-        reference,
-      });
-    });
+    : (isSettlement && fixedSev1ChannelId
+      ? Promise.resolve(null)
+      : (needsLookup
+        ? resolveUserIdByEmail(devinEmail, report.devinOrgId)
+          .then((userId) => raiseAlert(userId || undefined))
+        : raiseAlert(report.devinUserId)
+      ).catch((err) => {
+        logger.error('Failed to create Devin session for NEXEN failure report', {
+          error: err.message,
+          reference,
+        });
+      }));
 
   if (!isSettlement) return { reference, sessionPromise };
 
