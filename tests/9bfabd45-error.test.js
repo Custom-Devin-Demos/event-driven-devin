@@ -439,8 +439,16 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(page).toContain('service=nexen-settlement');
     expect(page).toContain('Join this SEV-1 channel and act as the incident responder there.');
     expect(page).toContain('Stay in the scenario');
-    expect(page).toContain('Nobody will @mention you');
+    expect(page).toContain('This page comes from the alert the NEXEN monitoring app raised');
+    expect(page).toContain('SEV-1 declared: NEXEN: USD settlement batch release failing');
+    expect(page).toContain('Datadog incident #412');
+    expect(page).toContain('https://us5.datadoghq.com/incidents/412');
+    expect(page).toContain('search_datadog_logs');
+    expect(page).toContain('service:customer-9bfabd45-web status:error');
+    expect(page).toContain('Evidence pulled from Datadog');
+    expect(page).toContain('Source: Datadog (logs + incident #412)');
     expect(page).toContain(`<@${OWNER.slackMemberId}>`);
+    expect(page).toContain(`<@${OWNER.slackMemberId}> you're on call for NEXEN web`);
     expect(page).toContain(`<#${FIXED_SEV1_CHANNEL_ID}>`);
     expect(page).toContain('RCA-TEMPLATE.md');
     expect(page).toContain('rca-template.html');
@@ -449,17 +457,13 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(page).toContain(SETTLEMENT_REMEDIATION_DIRECTIVE);
     expect(page).toContain('SB-20260918-USD');
     expect(page).toContain('Never merge or roll back without a human.');
-    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
-    expect(postPersonaMessage).toHaveBeenNthCalledWith(
-      1,
-      'incident-test-token',
-      FIXED_SEV1_CHANNEL_ID,
-      expect.stringMatching(/^:rotating_light: \*SEV-1 declared\* — NEXEN: USD settlement batch release failing · Datadog incident #412 · ref nexen-settlement-/),
-      'NEXEN Incident Bot',
-      ':rotating_light:',
+    expect(postPersonaMessage).toHaveBeenCalledTimes(7);
+    expect(postPersonaMessage.mock.calls.every((call) => call[3] !== 'NEXEN Incident Bot')).toBe(true);
+    expect(postPersonaMessage.mock.calls[0][2]).toBe(
+      `thanks <@${BOT_SLACK_ID}>, taking IC. USD batch SB-20260918-USD is stuck with 4 instructions queued and a 16:00 ET cutoff`,
     );
-    expect(postPersonaMessage.mock.calls.slice(1).every((call) => call[1] === FIXED_SEV1_CHANNEL_ID)).toBe(true);
-    postPersonaMessage.mock.calls.slice(1).forEach((call) => {
+    expect(postPersonaMessage.mock.calls.every((call) => call[1] === FIXED_SEV1_CHANNEL_ID)).toBe(true);
+    postPersonaMessage.mock.calls.forEach((call) => {
       expect(call[4]).toMatch(/^https:\/\/devindemos\.com\/bny\/avatars\/(maya-okafor|daniel-reyes|priya-natarajan)\.png$/);
     });
   });
@@ -479,7 +483,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     ]);
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
     expect(sendDevinSessionMessage.mock.calls[0][1]).toContain(`channel id ${FIXED_SEV1_CHANNEL_ID}`);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(7);
+    expect(postPersonaMessage.mock.calls.every((call) => call[3] !== 'NEXEN Incident Bot')).toBe(true);
     expect(createChannel).not.toHaveBeenCalled();
     expect(queueIncidentChannelInvites).not.toHaveBeenCalled();
   });
@@ -504,6 +509,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
         slack_thread_ts: '1712345678.000100',
         alert_channel_id: 'C0CJPN2C5D5',
         sev1_channel_id: FIXED_SEV1_CHANNEL_ID,
+        datadog_incident_id: 412,
+        datadog_incident_url: 'https://us5.datadoghq.com/incidents/412',
       }),
       expect.objectContaining({
         headers: expect.objectContaining({ 'X-Webhook-Secret': 'unit-test-secret' }),
@@ -601,7 +608,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await jest.advanceTimersByTimeAsync(15000);
     expect(findChannelByNameFragment).toHaveBeenCalledTimes(2);
     expect(joinChannel).toHaveBeenCalledWith('test-slack-token', 'C_DD');
-    await jest.advanceTimersByTimeAsync(300000);
+    await jest.advanceTimersByTimeAsync(330000);
 
     expect(postPersonaMessage).toHaveBeenCalledTimes(7);
     expect(postPersonaMessage.mock.calls.every((call) => call[1] === 'C_DD')).toBe(true);
@@ -629,8 +636,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     await incidentPromise;
     await jest.runAllTimersAsync();
 
-    expect(postPersonaMessage).toHaveBeenCalledTimes(8);
-    expect(postPersonaMessage.mock.calls.slice(1).map((call) => call[3])).toEqual([
+    expect(postPersonaMessage).toHaveBeenCalledTimes(7);
+    expect(postPersonaMessage.mock.calls.map((call) => call[3])).toEqual([
       'Maya Okafor',
       'Priya Natarajan',
       'Daniel Reyes',
@@ -640,10 +647,9 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       'Maya Okafor',
     ]);
     const mentions = postPersonaMessage.mock.calls
-      .slice(1)
       .map((call) => call[2])
       .filter((text) => text.includes(`<@${BOT_SLACK_ID}>`));
-    expect(mentions).toHaveLength(1);
+    expect(mentions).toHaveLength(2);
     expect(mentions.every((text) => !text.includes('{sre_bot}'))).toBe(true);
   });
 
@@ -654,42 +660,41 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
     const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await incidentPromise;
-    await jest.advanceTimersByTimeAsync(0);
+    await jest.advanceTimersByTimeAsync(90000);
 
-    expect(postPersonaMessage.mock.calls[1][4]).toMatch(/^https:\/\/demo\.example\.test\/bny\/avatars\/[a-z-]+\.png$/);
+    expect(postPersonaMessage.mock.calls[0][4]).toMatch(/^https:\/\/demo\.example\.test\/bny\/avatars\/[a-z-]+\.png$/);
   });
 
-  test('posts five persona lines within 15 seconds and does not mention SRE Bot before 240 seconds', async () => {
+  test('starts the persona script at 90 seconds with SRE Bot mentioned in the first line', async () => {
     process.env.NEXEN_SRE_BOT_ID = BOT_ID;
     jest.useFakeTimers();
 
     const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await incidentPromise;
+    await jest.advanceTimersByTimeAsync(89999);
+    expect(postPersonaMessage).not.toHaveBeenCalled();
+
+    await jest.advanceTimersByTimeAsync(1);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
+    expect(postPersonaMessage.mock.calls[0][2]).toBe(
+      `thanks <@${BOT_SLACK_ID}>, taking IC. USD batch SB-20260918-USD is stuck with 4 instructions queued and a 16:00 ET cutoff`,
+    );
+
     await jest.advanceTimersByTimeAsync(14999);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(4);
+    expect(postPersonaMessage.mock.calls.slice(1).every((call) => (
+      !call[2].includes(`<@${BOT_SLACK_ID}>`)
+    ))).toBe(true);
+
+    await jest.advanceTimersByTimeAsync(1);
+    expect(postPersonaMessage).toHaveBeenCalledTimes(5);
+
+    await jest.advanceTimersByTimeAsync(164999);
     expect(postPersonaMessage).toHaveBeenCalledTimes(5);
 
     await jest.advanceTimersByTimeAsync(1);
     expect(postPersonaMessage).toHaveBeenCalledTimes(6);
-    expect(postPersonaMessage.mock.calls.slice(1).map((call) => call[3])).toEqual([
-      'Maya Okafor',
-      'Priya Natarajan',
-      'Daniel Reyes',
-      'Priya Natarajan',
-      'Maya Okafor',
-    ]);
-    expect(postPersonaMessage.mock.calls.slice(1).every((call) => (
-      !call[2].includes(`<@${BOT_SLACK_ID}>`)
-    ))).toBe(true);
-
-    await jest.advanceTimersByTimeAsync(224999);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(6);
-    expect(postPersonaMessage.mock.calls.slice(1).every((call) => (
-      !call[2].includes(`<@${BOT_SLACK_ID}>`)
-    ))).toBe(true);
-
-    await jest.advanceTimersByTimeAsync(1);
-    expect(postPersonaMessage).toHaveBeenCalledTimes(7);
-    expect(postPersonaMessage.mock.calls[6][2]).toContain(`<@${BOT_SLACK_ID}>`);
+    expect(postPersonaMessage.mock.calls[5][2]).toContain(`<@${BOT_SLACK_ID}>`);
   });
 
   test.each(['', 'off'])('when the SRE Bot Slack ID is %p, invites only the owner and uses plain persona text', async (slackId) => {
@@ -715,8 +720,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
     const { incidentPromise } = reportAppFailure(SETTLEMENT_REPORT);
     await incidentPromise;
-    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
-    expect(postPersonaMessage.mock.calls[0][3]).toBe('NEXEN Incident Bot');
+    expect(postPersonaMessage).not.toHaveBeenCalled();
   });
 
   test('repeat releases inside the window reuse the open incident', async () => {
@@ -740,7 +744,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(postAlertToSlack).toHaveBeenCalledTimes(1);
     expect(sendDevinSessionMessage).toHaveBeenCalledTimes(1);
     expect(createChannel).not.toHaveBeenCalled();
-    expect(postPersonaMessage).toHaveBeenCalledTimes(1);
+    expect(postPersonaMessage).not.toHaveBeenCalled();
   });
 
   test('legacy alert suppression also suppresses direct alerts and SRE Bot pages', async () => {

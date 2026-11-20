@@ -331,6 +331,11 @@ function locateDatadogSettlementPersonas(token, publicId) {
   void locate();
 }
 
+function nexenDatadogIncidentUrl(incident) {
+  if (!incident || incident.publicId == null) return null;
+  return incident.url || `https://us5.datadoghq.com/incidents/${incident.publicId}`;
+}
+
 function buildSettlementSreBotPage({
   reference,
   alertChannelId,
@@ -342,19 +347,14 @@ function buildSettlementSreBotPage({
 }) {
   const alertThread = alertThreadTs || 'unavailable (the alert could not be posted)';
   const incidentChannelMention = incidentChannel ? `<#${incidentChannel.id}>` : '#pershing-sev1';
+  const datadogIncidentUrl = nexenDatadogIncidentUrl(incident);
   const lines = [
     `:rotating_light: NEXEN settlement batch failure — ${reference}`,
     'This is a live customer demo of a fictional NEXEN production system. Stay in the scenario: treat it as a real production SEV-1, describe impact using the facts in this page (batch, instruction count, cutoff at risk, no payments released), and do not say in Slack that the data is fixture-backed or synthetic, that the defect was planted, or that the severity should be downgraded.',
     '',
-    'Nobody will @mention you: this page comes from the alert the NEXEN monitoring app just raised in #pershing-access-alerts. Pick it up on your own, as you would any alert another bot raises.',
-    `Pull the right people in. In the alert thread, post a short triage (route, error, start time, failure rate, likely change, owner), then tag <@${OWNER.slackMemberId}> as the human incident lead for approvals and name the owners below, pointing them to ${incidentChannelMention}:`,
-    '- Daniel Reyes: on-call engineer for NEXEN web; owns Transactions and the Settlement Batch panel (the suspected change).',
-    '- Maya Okafor: incident commander; head of settlement operations; decides roll back vs forward-fix.',
-    '- Priya Natarajan: client service for institutional custody clients; needs a plain-language status for ABC Global Investors.',
-    '',
+    'This page comes from the alert the NEXEN monitoring app raised in #pershing-access-alerts. No human has asked you to respond; take ownership and announce the incident yourself.',
     `*Alert channel:* ${alertChannelId || SETTLEMENT.slackChannelId}`,
     `*Alert thread ts:* ${alertThread}`,
-    `Triage the failure in the alert channel/thread and open the fix PR against COG-GTM/bny per the remediation directive below. Post the root cause and PR link in the alert thread.`,
   ];
 
   if (incident && incident.status === 'declared') {
@@ -364,12 +364,29 @@ function buildSettlementSreBotPage({
     lines.push(
       '',
       `*Datadog incident:* publicId=${incident.publicId}, runRef=${incident.runRef}, service=${SETTLEMENT.service}`,
+      `*Datadog incident #${incident.publicId}:* ${datadogIncidentUrl}`,
       `*SEV-1 channel:* ${channelName}`,
+      '',
+      `Use the Datadog MCP immediately to pull the evidence, then within about one minute make your first Slack action a top-level message in ${incidentChannelMention}: "SEV-1 declared: ${SETTLEMENT.incidentTitle}" before triage or any other Slack update.`,
+      'Use the Datadog MCP `search_datadog_logs` for `service:customer-9bfabd45-web status:error` over the last 30 minutes. Include the error count, first and last seen, newest error message, version, and the Logs Explorer link returned by the tool.',
+      `Say plainly "Evidence pulled from Datadog" and label it "Source: Datadog (logs + incident #${incident.publicId})"; include Datadog incident #${incident.publicId} at ${datadogIncidentUrl} and tag <@${OWNER.slackMemberId}> as the on-call engineer: "<@${OWNER.slackMemberId}> you're on call for NEXEN web".`,
+      '',
+      `Then, in the alert thread, post a short triage (route, error, start time, failure rate, likely change, owner), tag <@${OWNER.slackMemberId}> as the on-call engineer who approves rollback vs forward-fix, and name the owners below, pointing them to ${incidentChannelMention}:`,
+      '- Daniel Reyes: settlement platform engineer; owns the Settlement Batch panel (the suspected change).',
+      '- Maya Okafor: incident commander; head of settlement operations.',
+      '- Priya Natarajan: client service for institutional custody clients; needs a plain-language status for ABC Global Investors.',
+      '',
       'Join this SEV-1 channel and act as the incident responder there. Investigate in Datadog first, post the initial root cause, and post an incident report with impact: '
         + `batch ${batchId}, ${instructionCount} instructions, the cutoff is at risk, and no payments have been released.`,
+      'Open the fix PR against COG-GTM/bny per the remediation directive below, then post the root cause and PR link in the alert thread.',
+      `After establishing the root cause, optionally call \`create_datadog_notebook\` to create a notebook titled "${SETTLEMENT.incidentTitle}" with the log query, then link it in #pershing-sev1.`,
       'Answer the people in the channel. Never merge or roll back without a human.',
       'When asked for an RCA (e.g. "Can you generate an RCA report in Markdown format for this incident?"): follow `docs/incidents/RCA-TEMPLATE.md` in COG-GTM/bny and post the Markdown in the thread. Include the timeline, root cause, impact, what went well, and action items, each with an owner and due date. Then follow through: offer to open each action item as a ticket or PR and do it once a human says go.',
       'Also render the same RCA as a self-contained HTML report using `docs/incidents/rca-template.html` in COG-GTM/bny as the layout, and upload it to the thread as an .html file. Commit the RCA to `docs/incidents/` in COG-GTM/bny only after human approval.',
+    );
+  } else {
+    lines.push(
+      'Triage the failure in the alert channel/thread and open the fix PR against COG-GTM/bny per the remediation directive below. Post the root cause and PR link in the alert thread.',
     );
   }
 
@@ -377,7 +394,7 @@ function buildSettlementSreBotPage({
   return lines.join('\n');
 }
 
-async function pageNexenSreBot(botId, page, reference, { alert, incidentChannel } = {}) {
+async function pageNexenSreBot(botId, page, reference, { alert, incidentChannel, incident } = {}) {
   const webhookUrl = nexenSreBotWebhookUrl();
   const webhookSecret = process.env.NEXEN_SRE_BOT_WEBHOOK_SECRET;
   if (webhookUrl && !webhookSecret) {
@@ -401,6 +418,8 @@ async function pageNexenSreBot(botId, page, reference, { alert, incidentChannel 
         slack_thread_ts: (alert && alert.threadTs) || null,
         alert_channel_id: alertChannelId,
         sev1_channel_id: sev1ChannelId,
+        datadog_incident_id: incident && incident.status === 'declared' ? incident.publicId : null,
+        datadog_incident_url: nexenDatadogIncidentUrl(incident),
       },
     });
     if (!response) {
@@ -418,7 +437,6 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
   let incidentChannel = null;
   let personaToken = null;
   let channelCreatedAt = null;
-  let fixedSev1Channel = false;
   if (incident.status === 'declared') {
     const token = process.env.INCIDENT_LAB_SLACK_BOT_TOKEN
       || process.env.SLACK_ONCALL_BOT_TOKEN
@@ -427,7 +445,6 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
       const fixedChannelId = nexenSev1ChannelId();
       if (fixedChannelId) {
         incidentChannel = { id: fixedChannelId, name: 'pershing-sev1' };
-        fixedSev1Channel = true;
       } else {
         try {
           incidentChannel = await createNexenSettlementChannel(token, incident.publicId);
@@ -458,19 +475,6 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
           error: err.message,
         });
       }
-      if (fixedSev1Channel) {
-        const openingMessage = `:rotating_light: *SEV-1 declared* — ${SETTLEMENT.incidentTitle} · Datadog incident #${incident.publicId} · ref ${incident.runRef}`;
-        try {
-          await postPersonaMessage(token, incidentChannel.id, openingMessage, 'NEXEN Incident Bot', ':rotating_light:');
-        } catch (err) {
-          logger.warn('NEXEN settlement opening message failed; continuing incident response', {
-            reference,
-            publicId: incident.publicId,
-            channelId: incidentChannel.id,
-            error: err.message,
-          });
-        }
-      }
     } else {
       try {
         queueIncidentChannelInvites({
@@ -497,7 +501,7 @@ async function handleNexenSettlementBotIncident({ botId, alert, incident, refere
     batchId,
     instructionCount,
   });
-  await pageNexenSreBot(botId, page, reference, { alert, incidentChannel });
+  await pageNexenSreBot(botId, page, reference, { alert, incidentChannel, incident });
   if (incidentChannel) {
     scheduleSettlementPersonas(personaToken, incidentChannel.id, channelCreatedAt);
   }
