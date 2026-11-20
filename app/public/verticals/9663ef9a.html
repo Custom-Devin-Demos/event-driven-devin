@@ -9,39 +9,71 @@
 </style>
 <style>
 td:last-child{white-space:normal}.pill{max-width:140px;line-height:1.4}.grid{grid-template-columns:minmax(0,2.6fr) minmax(280px,1fr)}@media(max-width:1050px){.grid{grid-template-columns:1fr}}
+.workflow{margin-bottom:24px}.workflow-body{padding:24px}.steps{font-size:12px;color:#666}.steps strong{color:#111}.site-options{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.site-option{border:1px solid #ccc;padding:18px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;line-height:1.6}.site-option:has(input:checked){border-color:#a58300;background:#fffbed}.site-option input{accent-color:#8b6f00;margin-top:5px}.site-option small{display:block;color:#666}.release{padding:18px;background:#f7f7f5;border-left:3px solid #ffcd11;line-height:1.7}.release p{margin:4px 0;color:#555}.controls{display:flex;align-items:center;justify-content:space-between;margin-top:20px;gap:16px}.primary{background:#ffcd11;border:0;padding:14px 22px;font-weight:bold}.secondary{background:white;border:1px solid #bbb;padding:13px 20px}.primary:disabled{opacity:.45;cursor:not-allowed}.scope-summary{display:flex;gap:40px;margin:22px 0;line-height:1.8}.scope-summary strong{font-size:23px}.scope-summary small{display:block;color:#666}.scope-table{max-height:290px;overflow:auto;border:1px solid #ddd}dialog{width:540px;max-width:90vw;border:1px solid #bbb;padding:28px;line-height:1.6}dialog::backdrop{background:#0008}dialog h2{font-size:22px}dialog p{color:#555}.deployment-status{display:flex;justify-content:space-between;align-items:center;margin:0 0 18px;font-size:12px;color:#555}.fleet-panel{overflow:auto}@media(max-width:900px){.site-options{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <header><img src="https://s7d2.scene7.com/is/image/Caterpillar/CM20160629-33279-63115?fmt=png-alpha" alt="Cat" onerror="this.onerror=null;this.src='/verticals/assets/9663ef9a/logo.svg'"><div><strong>MineStar™ Health</strong><small>Fleet health &amp; condition monitoring</small></div><a href="/">← All Demos</a></header>
-<div class="nav"><span class="active">Fleet overview</span><span>Health events</span><span>Maintenance planning</span><span>Site performance</span></div>
+<div class="nav"><span>Fleet overview</span><span class="active">Firmware deployments</span><span>Maintenance planning</span><span>Site performance</span></div>
 <main>
-<div class="intro"><div><div class="eyebrow">OPERATIONS / FLEET HEALTH</div><h1>Copper Ridge Mine</h1><p>Every truck. Every shift. One view of fleet health.</p></div><div class="site"><strong>Surface operations · North pit</strong><br>Day shift / Latest telemetry batch<br>Fictional site · Demonstration data</div></div>
+<div class="intro"><div><div class="eyebrow">COPPER RIDGE OPERATIONS / SOFTWARE MANAGEMENT</div><h1>OEM firmware deployment</h1><p>Select sites, review the fleet scope and authorize a release.</p></div><div class="site"><strong>Copper Ridge Operations</strong><br>4 mine sites · 10 haul trucks<br>Fictional operation · Demonstration data</div></div>
 <section class="cards"><div class="card"><label>Trucks running</label><div class="value" id="running">—</div><small>Unaffected trucks keep operating</small></div><div class="card"><label>Autonomous trucks</label><div class="value" id="autonomous">—</div><small>Third-party OEM autonomy kits</small></div><div class="card"><label>Safe-stopped</label><div class="value" id="stopped">—</div><small>Telemetry unavailable</small></div><div class="card"><label>Fleet availability</label><div class="value" id="availability">—</div><small>Available assets / 10 trucks</small></div></section>
-<div class="grid"><section class="panel"><div class="panelhead"><h2>Haul truck fleet</h2><small>10 assets / Mixed fleet</small></div><table><thead><tr><th>Asset / Model</th><th>Operation</th><th>SMU hours</th><th>Payload</th><th>Coolant</th><th>Status</th></tr></thead><tbody id="fleet"></tbody></table></section><section class="panel"><div class="panelhead"><h2>OEM firmware rollout</h2><small>4 targets</small></div><div class="event"><strong>Autonomy kit · Release 4.8</strong><p>Update the four mixed-OEM autonomous trucks through the site telemetry adapter.</p><small>Six operator-driven trucks are outside this rollout.</small></div><div id="events"></div><div class="event"><strong>Operating safeguard</strong><p>Autonomous trucks safe-stop when telemetry is unavailable. Unaffected trucks continue operating.</p><small>Demonstration data · No live equipment control</small></div></section></div>
-<section class="action"><div><h2>OEM firmware update <span class="badge" id="badge">READY</span></h2><p>Roll out release 4.8 to the four third-party autonomous trucks.</p><p>Rollout status: <strong id="status">Ready</strong><button id="reset" hidden title="Restore the pre-rollout fleet state">Reset</button></p></div><button id="run">Roll out OEM firmware update →</button></section>
+<section class="panel workflow"><div class="panelhead"><h2>New deployment</h2><div class="steps" id="steps"><strong>1 · Select sites</strong> / 2 · Review scope / 3 · Confirm</div></div><div class="workflow-body">
+<div class="release"><strong>Autonomy telemetry firmware · 4.8</strong><p>Updated vehicle telemetry reporting and connection diagnostics for the operation's haul-truck fleet.</p><small>Deployment applies only to trucks at selected sites. Autonomous trucks safe-stop if telemetry is unavailable.</small></div>
+<div id="site-step"><div class="site-options" id="sites"></div><div class="controls"><span id="selection-count">No sites selected</span><button class="primary" id="review" disabled>Review scope →</button></div></div>
+<div id="scope-step" hidden><div class="scope-summary"><div><strong id="scope-count">0</strong><small>Trucks in scope</small></div><div><strong id="scope-sites">0</strong><small>Sites selected</small></div><div id="breakdown"></div></div><div class="scope-table"><table><thead><tr><th>Truck</th><th>Site</th><th>OEM / Model</th><th>Operation</th><th>Current firmware</th><th>Target</th></tr></thead><tbody id="scope-fleet"></tbody></table></div><div class="controls"><button class="secondary" id="back">← Change sites</button><button class="primary" id="confirm">Continue to confirmation</button></div></div>
+</div></section>
+<div class="deployment-status"><span>Deployment status: <strong id="status">Ready</strong><button id="reset" hidden title="Restore the pre-rollout fleet and site selection">Reset</button></span><span>Fleet status across all four sites</span></div>
 <div id="error" class="result error" role="alert" hidden></div><div id="success" class="result success" role="status" hidden></div>
+<section class="panel fleet-panel"><div class="panelhead"><h2>Operation fleet</h2><small>10 assets · Live deployment status</small></div><table><thead><tr><th>Asset / Model</th><th>Site</th><th>Operation</th><th>SMU hours</th><th>Firmware</th><th>Status</th></tr></thead><tbody id="fleet"></tbody></table></section>
+<dialog id="confirmation" aria-labelledby="confirm-title"><h2 id="confirm-title">Confirm deployment</h2><p id="confirm-copy"></p><p id="confirm-sites"></p><p>This deploys autonomy telemetry firmware 4.8 to the reviewed scope. Trucks outside the selected sites are not updated.</p><small>Demonstration environment · No live equipment control</small><div class="controls"><button class="secondary" id="cancel">Cancel</button><button class="primary" id="deploy">Deploy firmware 4.8</button></div></dialog>
 <div class="bottom"><span>CATERPILLAR / MINESTAR HEALTH · DEMONSTRATION CONSOLE</span><span>SMU = engine service hours · Payload in metric tonnes</span></div>
 </main>
 <script>
 const base='/api/9663ef9a';
 const el=id=>document.getElementById(id);
+let overview;
+let selectedSiteIds=[];
+let initialized=false;
+function scopedFleet(){return overview.fleet.filter(truck=>selectedSiteIds.includes(truck.siteId));}
+function siteName(id){return overview.sites.find(site=>site.id===id).name;}
+function renderSelection(){
+ el('sites').innerHTML=overview.sites.map(site=>`<label class="site-option"><input type="checkbox" value="${site.id}" ${selectedSiteIds.includes(site.id)?'checked':''}><span><strong>${site.name}</strong><small>${site.truckCount} haul trucks</small></span></label>`).join('');
+ el('selection-count').textContent=`${selectedSiteIds.length} sites selected · ${scopedFleet().length} trucks in scope`;
+ el('review').disabled=!selectedSiteIds.length;
+}
+function renderScope(){
+ const fleet=scopedFleet();
+ el('scope-count').textContent=fleet.length;el('scope-sites').textContent=selectedSiteIds.length;
+ const groups={};for(const truck of fleet){const key=truck.oem+' / '+truck.model;groups[key]=(groups[key]||0)+1;}
+ el('breakdown').innerHTML=Object.entries(groups).map(([model,count])=>`<small>${model} · <b>${count}</b></small>`).join('');
+ el('scope-fleet').innerHTML=fleet.map(t=>`<tr><td><strong>${t.id}</strong></td><td>${siteName(t.siteId)}</td><td>${t.oem} / ${t.model}</td><td>${t.autonomous?'Autonomous':'Operator driven'}</td><td>${t.firmware}</td><td>4.8</td></tr>`).join('');
+}
+function showSites(){el('site-step').hidden=false;el('scope-step').hidden=true;el('steps').textContent='1 · Select sites / 2 · Review scope / 3 · Confirm';}
 const identityReady=fetch('/api/config').then(r=>r.json()).then(config=>{if(config.lockOrg&&config.defaultOrgId)localStorage.setItem('devinOrgId',config.defaultOrgId);if(config.lockUser&&config.defaultUserId)localStorage.setItem('devinUserId',config.defaultUserId);if(config.defaultEmail&&!localStorage.getItem('devinEmail'))localStorage.setItem('devinEmail',config.defaultEmail);}).catch(()=>{});
 function headers(){const h={'Content-Type':'application/json'};const secret=localStorage.getItem('sessionSecret');if(secret)h['x-session-secret']=secret;return h;}
 function identity(){return Object.fromEntries(['devinUserId','devinOrgId','devinEmail'].map(key=>[key,localStorage.getItem(key)||'']));}
 async function load(){
  const response=await fetch(base+'/overview');if(!response.ok)throw new Error('Unable to load fleet overview');const data=await response.json();
+ overview=data;if(!initialized){selectedSiteIds=[...data.selectedSiteIds];initialized=true;}renderSelection();renderScope();
  for(const key of ['running','autonomous','stopped','availability'])el(key).textContent=data.kpis[key]+(key==='availability'?'%':'');
- el('fleet').innerHTML=data.fleet.map(t=>`<tr><td><strong>${t.id}</strong><span class="mode">${t.autonomous?'':'Cat '}${t.model}</span></td><td>${t.autonomous?'Autonomous':'Operator driven'}<span class="mode">${t.autonomous?'OEM autonomy kit · ':''}FW ${t.firmware}</span></td><td>${t.smu.toLocaleString()}</td><td>${t.payload} t</td><td>${t.coolant} °C</td><td><span class="pill ${t.status!=='Running'?'attention':''}">${t.status}</span></td></tr>`).join('');
- el('events').innerHTML=data.fleet.filter(t=>t.autonomous).map(t=>`<div class="event"><strong>${t.id}</strong><p>Firmware ${t.firmware}</p><small>${t.status}</small></div>`).join('');
- el('badge').textContent=data.status.toUpperCase();el('status').textContent=data.status;el('reset').hidden=data.status!=='Failed';el('error').hidden=!data.error;el('error').textContent=data.error||'';
+ el('fleet').innerHTML=data.fleet.map(t=>`<tr><td><strong>${t.id}</strong><span class="mode">${t.oem} / ${t.model}</span></td><td>${siteName(t.siteId)}</td><td>${t.autonomous?'Autonomous':'Operator driven'}<span class="mode">${t.autonomous?'OEM autonomy kit':'Site fleet'}</span></td><td>${t.smu.toLocaleString()}</td><td>${t.firmware}</td><td><span class="pill ${t.status!=='Running'?'attention':''}">${t.status}</span></td></tr>`).join('');
+ el('status').textContent=data.status;el('reset').hidden=data.status!=='Failed';el('error').hidden=!data.error;el('error').textContent=data.error||'';
 }
-el('run').addEventListener('click',async()=>{
- el('run').disabled=true;el('error').hidden=true;el('success').hidden=true;
- try{await identityReady;const r=await fetch(base+'/rollout',{method:'POST',headers:headers(),body:JSON.stringify(identity())});const data=await r.json();await load();if(!r.ok)throw new Error(data.error);el('success').textContent='OEM firmware rollout completed · Four autonomous trucks updated · Fleet running.';el('success').hidden=false;}
+el('sites').addEventListener('change',()=>{selectedSiteIds=Array.from(el('sites').querySelectorAll('input:checked'),input=>input.value);renderSelection();});
+el('review').addEventListener('click',()=>{renderScope();el('site-step').hidden=true;el('scope-step').hidden=false;el('steps').textContent='1 · Select sites / 2 · Review scope / 3 · Confirm';});
+el('back').addEventListener('click',showSites);
+el('confirm').addEventListener('click',()=>{el('confirm-copy').textContent=`Deploy firmware 4.8 to ${scopedFleet().length} trucks across ${selectedSiteIds.length} sites?`;el('confirm-sites').textContent=selectedSiteIds.map(siteName).join(' · ');el('confirmation').showModal();});
+el('cancel').addEventListener('click',()=>el('confirmation').close());
+el('confirmation').addEventListener('cancel',event=>{if(el('deploy').disabled)event.preventDefault();});
+el('deploy').addEventListener('click',async()=>{
+ if(el('deploy').disabled)return;
+ el('deploy').disabled=true;el('cancel').disabled=true;el('error').hidden=true;el('success').hidden=true;
+ try{await identityReady;const r=await fetch(base+'/rollout',{method:'POST',headers:headers(),body:JSON.stringify({...identity(),siteIds:[...selectedSiteIds]})});const data=await r.json();await load();if(!r.ok)throw new Error(data.error);el('success').textContent=`Firmware 4.8 deployed to ${scopedFleet().length} trucks across ${selectedSiteIds.length} sites. Fleet telemetry available.`;el('success').hidden=false;}
  catch(error){el('error').textContent=error.message;el('error').hidden=false;}
- finally{el('run').disabled=false;}
+ finally{el('deploy').disabled=false;el('cancel').disabled=false;el('confirmation').close();showSites();el('status').scrollIntoView({block:'center',behavior:'smooth'});}
 });
-el('reset').addEventListener('click',async()=>{try{const r=await fetch(base+'/rollout/reset',{method:'POST',headers:headers()});if(!r.ok)throw new Error('Reset failed');el('success').hidden=true;await load();}catch(error){el('error').textContent=error.message;el('error').hidden=false;}});
+el('reset').addEventListener('click',async()=>{try{const r=await fetch(base+'/rollout/reset',{method:'POST',headers:headers()});if(!r.ok)throw new Error('Reset failed');selectedSiteIds=[];el('success').hidden=true;await load();showSites();}catch(error){el('error').textContent=error.message;el('error').hidden=false;}});
 load().catch(error=>{el('error').textContent=error.message;el('error').hidden=false;});
 </script>
 <script src="/session-cap-banner.js"></script>

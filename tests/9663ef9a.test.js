@@ -21,7 +21,8 @@ test('overview is clean and contains ten trucks with four autonomous assets', ()
   expect(overview.fleet.filter(t => t.autonomous)).toHaveLength(4);
   expect(overview).toMatchObject({ status: 'Ready', error: null, kpis: { running: 10, stopped: 0, availability: 100 } });
   expect(overview.fleet.every(truck => truck.status === 'Running')).toBe(true);
-  expect(overview.targets).toEqual(['HT-220', 'HT-221', 'HT-222', 'HT-223']);
+  expect(overview.sites.map(site => site.truckCount)).toEqual([3, 3, 2, 2]);
+  expect(overview.selectedSiteIds).toEqual([]);
   expect(createSessionAndAlert).not.toHaveBeenCalled();
 });
 
@@ -38,7 +39,7 @@ test.each([undefined, 'slack', 'teams'])('rollout preserves untargeted trucks an
   const initial = service.getOverview();
   let result;
   try {
-    result = await runWithAlertDestination(destination, () => service.runRollout({ devinEmail: 'operator@example.com' }));
+    result = await runWithAlertDestination(destination, () => service.runRollout({ siteIds: initial.sites.map(site => site.id), devinEmail: 'operator@example.com' }));
   } catch (error) {
     expect(error.cause).toBeInstanceOf(Error);
     const cause = { name: error.cause.name, message: error.cause.message, stack: error.cause.stack };
@@ -64,7 +65,34 @@ test.each([undefined, 'slack', 'teams'])('rollout preserves untargeted trucks an
     expect(result).toMatchObject({ success: true, status: 'Completed', kpis: { running: 10, stopped: 0 } });
     expect(result.fleet.filter(truck => truck.autonomous).every(truck => truck.firmware === '4.8')).toBe(true);
   }
-  expect(service.getOverview().fleet.filter(truck => !truck.autonomous)).toEqual(initial.fleet.filter(truck => !truck.autonomous));
+  expect(service.getOverview().fleet.filter(truck => !truck.autonomous).every(truck => truck.status === 'Running')).toBe(true);
   expect(service.resetRollout()).toMatchObject({ success: true, ...initial });
   expect(service.getOverview()).toEqual(initial);
+});
+
+test.each([undefined, null, [], 'north', ['unknown'], ['north', 'north'], [null], ['north', 1]])('invalid scope %p does not change state or dispatch', async siteIds => {
+  const initial = service.getOverview();
+  await expect(service.runRollout({ siteIds })).rejects.toMatchObject({ statusCode: 400 });
+  expect(service.getOverview()).toEqual(initial);
+  expect(createSessionAndAlert).not.toHaveBeenCalled();
+  expect(Sentry.captureException).not.toHaveBeenCalled();
+});
+
+test('operator-driven site deploys successfully without alerts', async () => {
+  const initial = service.getOverview();
+  const result = await service.runRollout({ siteIds: ['north'] });
+  expect(result).toMatchObject({ success: true, status: 'Completed', selectedSiteIds: ['north'], kpis: { running: 10, stopped: 0 } });
+  expect(result.fleet.filter(truck => truck.siteId === 'north').every(truck => truck.firmware === '4.8')).toBe(true);
+  expect(result.fleet.filter(truck => truck.siteId !== 'north')).toEqual(initial.fleet.filter(truck => truck.siteId !== 'north'));
+  expect(createSessionAndAlert).not.toHaveBeenCalled();
+});
+
+test('partial scope leaves all out-of-scope trucks unchanged', async () => {
+  const initial = service.getOverview();
+  try { await service.runRollout({ siteIds: ['east'] }); } catch {}
+  const result = service.getOverview();
+  expect(result.selectedSiteIds).toEqual(['east']);
+  expect(result.fleet.filter(truck => truck.siteId !== 'east')).toEqual(initial.fleet.filter(truck => truck.siteId !== 'east'));
+  expect(result.fleet.filter(truck => truck.siteId === 'east').every(truck => truck.firmware === '4.8')).toBe(true);
+  expect(createSessionAndAlert.mock.calls.length).toBeLessThanOrEqual(1);
 });

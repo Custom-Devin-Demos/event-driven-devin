@@ -8,7 +8,7 @@ router.post('/api/9663ef9a/rollout', verifySessionSecret, async (req, res) => {
   try {
     res.json(await runRollout(req.body || {}));
   } catch (error) {
-    res.status(500).json({ error: error.message, errorType: error.name });
+    res.status(error.statusCode || 500).json({ error: error.message, errorType: error.name });
   }
 });
 router.post('/api/9663ef9a/rollout/reset', verifySessionSecret, (_req, res) => res.json(resetRollout()));
