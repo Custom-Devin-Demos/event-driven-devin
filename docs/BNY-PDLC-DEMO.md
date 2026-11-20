@@ -24,3 +24,9 @@ Three personas (Rachel Kim, PM; Sofia Alvarez, designer; Tom Nguyen, Android lea
 | `BNY_PDLC_ASSET_BASE_URL` | `https://devindemos.com` (host of the persona icon `/verticals/9bfabd45-person-outline.png`, which Slack must reach) |
 
 Script: `config/nexen/pdlc-personas.json` (persona messages land 3-4 s apart; every persona uses the same person-outline icon). The page asks the Bot for phone-framed wireframes plus a self-contained HTML artifact, and for the build preview as an emulator video inside a phone frame plus an HTML summary. Service: `app/services/verticals/9bfabd45-pdlc.js`.
+
+## Bot setup (one time, after a take, not during one)
+
+Pages carry only the Slack lines (`#channel · Name: text`; the join page adds the thread link and the four discussion lines), so the Bot's chat reads like Slack. The Bot needs its standing instructions in its own memory first:
+1. Ask the iOS Engineer Bot to save `docs/BNY-PDLC-BOT-INSTRUCTIONS.md` (rendered by `buildBotInstructions()`; a test keeps them in sync) as its standing instructions for `#bny-pershing-access-android-app`.
+2. Ask it to change its `webhook:incoming` automation prompt to: "New Slack lines from a Pershing Access thread you follow; the payload names the channel and thread. Reply in that thread as a teammate, following your standing instructions for that channel and anything the lines ask." The KPI demo shares this automation, so keep the prompt neutral.

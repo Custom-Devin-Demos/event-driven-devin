@@ -80,8 +80,8 @@ test('plays the discussion, pages the Bot without an @mention and follows its re
 
   expect(pages).toHaveLength(3);
   expect(pages.every((p) => p.botId === 'bot-59656379ddc5470281166b1458334c2c')).toBe(true);
-  expect(pages[0].message).toContain('Nobody @mentioned you');
-  expect(pages[0].message).toContain(`thread_ts ${posted[0].ts}`);
+  expect(pages[0].message).toContain(`p${posted[0].ts.replace('.', '')}`);
+  expect(pages[0].message).toContain(`Rachel Kim: ${script.discussion[0].text}`);
   expect(pages[1].message).toContain(script.changeRequest.text);
   expect(pages[2].message).toContain(script.goAhead.text);
 });
@@ -158,10 +158,20 @@ test('treats an HTML wireframe artifact as the Bot\'s wireframes', () => {
   expect(pdlc.hasImages({ files: [{ name: 'notes.txt', mimetype: 'text/plain' }] })).toBe(false);
 });
 
-test('the join page has the Bot file a Jira ticket and tag the engineering owner', () => {
-  const page = pdlc.buildJoinPage({ channelId: 'C123', threadTs: '1.2' });
-  expect(page).toContain(`project ${script.jira.projectKey}`);
-  expect(page).toContain(`assignee ${script.engineeringOwner.name}`);
-  expect(page).toContain(`<@${script.engineeringOwner.slackId}>`);
-  expect(page).toMatch(/title starts with the Jira key/);
+test('pages carry only the Slack lines; the Jira and owner steps live in the standing instructions', () => {
+  const join = pdlc.buildJoinPage({ channelId: 'C123', threadTs: '1.2' });
+  const relay = pdlc.buildRelayPage({ persona: script.personas[1], text: 'hi' });
+  expect(join.split('\n')).toHaveLength(script.discussion.length + 1);
+  expect(relay).toBe('#bny-pershing-access-android-app · Sofia Alvarez: hi');
+  for (const page of [join, relay]) expect(page).not.toMatch(/demo|forwarded|relay|Answer it/i);
+  const instructions = pdlc.buildBotInstructions();
+  expect(instructions).toContain(`project ${script.jira.projectKey}`);
+  expect(instructions).toContain(`assignee ${script.engineeringOwner.name}`);
+  expect(instructions).toContain(`<@${script.engineeringOwner.slackId}>`);
+  expect(instructions).toMatch(/title starts with the Jira key/);
+});
+
+test('docs/BNY-PDLC-BOT-INSTRUCTIONS.md matches the standing instructions', () => {
+  const doc = require('fs').readFileSync(require('path').join(__dirname, '..', 'docs', 'BNY-PDLC-BOT-INSTRUCTIONS.md'), 'utf8');
+  expect(doc).toBe(pdlc.buildBotInstructions());
 });
