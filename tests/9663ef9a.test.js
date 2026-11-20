@@ -46,6 +46,11 @@ test.each([undefined, 'slack', 'teams'])('rollout preserves untargeted trucks an
     expect(logger.error).toHaveBeenCalledWith('OEM firmware rollout failed', expect.objectContaining({ cause }));
     expect(Sentry.captureException).toHaveBeenCalledWith(error, expect.objectContaining({ extra: expect.objectContaining({ cause }) }));
     expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({ extra: expect.objectContaining({ cause }) }));
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.errorValue).toContain(error.message);
+    expect(alert.errorValue).toContain(`${cause.name}: ${cause.message}`);
+    expect(alert.errorValue).toContain(cause.stack.split('\n')[1]);
+    expect(service.getOverview().error).toBe(error.message);
     expect(service.getOverview()).toMatchObject({ status: 'Failed', kpis: { running: 6, stopped: 4 } });
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ tags: { service: '9663ef9a-api', alert_path: 'instant' } }));

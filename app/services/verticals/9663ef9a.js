@@ -51,6 +51,9 @@ async function runRollout(data = {}) {
     return { success: true, requestId, ...getOverview() };
   } catch (error) {
     const cause = error.cause ? { name: error.cause.name, message: error.cause.message, stack: error.cause.stack } : undefined;
+    const errorValue = cause
+      ? `${error.message}\nCaused by ${cause.name}: ${cause.message}\n${(cause.stack || '').split('\n').slice(1, 4).join('\n')}`
+      : error.message;
     state = { ...state, status: 'Failed', error: error.message };
     incrementMetric('9663ef9a.rollout.failure', { service: SERVICE });
     logger.error('OEM firmware rollout failed', { service: SERVICE, requestId, error: error.message, stack: error.stack, cause });
@@ -60,7 +63,7 @@ async function runRollout(data = {}) {
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/`,
       culprit: 'app/services/verticals/9663ef9a.js — runRollout',
-      errorType: error.name, errorValue: error.message,
+      errorType: error.name, errorValue,
       devinUserId: data.devinUserId, devinOrgId: data.devinOrgId, devinEmail: data.devinEmail,
       service: SERVICE, verticalLabel: 'Surface mine fleet health',
       promptAppendix: 'Investigate the root cause, implement the fix, and include a regression test in the PR. Verify the firmware rollout and unaffected fleet at /9663ef9a. Do not deploy.',
