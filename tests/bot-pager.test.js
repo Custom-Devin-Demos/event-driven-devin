@@ -68,6 +68,8 @@ describe('pageBot', () => {
     expect(logger.error).toHaveBeenCalledWith('Bot webhook page failed', {
       botId: 'bot-123',
       status: undefined,
+      body: 'null',
+      error: 'network failure',
     });
   });
 

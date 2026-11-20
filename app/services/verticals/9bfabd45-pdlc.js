@@ -28,6 +28,8 @@ const DEFAULT_IOS_BOT_WEBHOOK_URL =
 const APP_REPO = 'COG-GTM/android-demos';
 const APP_MODULE = 'apps/b113a373';
 const POLL_INTERVAL_MS = 10000;
+const PAGE_ATTEMPTS = 4;
+const PAGE_RETRY_MS = 20000;
 const STAGE_TIMEOUT_MS = 30 * 60 * 1000;
 const BUILD_TIMEOUT_MS = 90 * 60 * 1000;
 const RUN_COOLDOWN_MS = 2 * 60 * 1000;
@@ -160,14 +162,21 @@ async function page(run, deps, message, label) {
     logger.warn('BNY PDLC Bot page skipped: no BNY_IOS_BOT_WEBHOOK_SECRET and BNY_PDLC_BOT_ID is not a bot id', { runId: run.id, label });
     return null;
   }
-  const response = await deps.pageBot({
-    botId: run.botId,
-    message,
-    webhookUrl,
-    webhookSecret,
-    identity: sessionIdentity(),
-    context: { channel_id: run.channelId, thread_ts: run.threadTs, event: label },
-  });
+  let response = null;
+  for (let attempt = 1; attempt <= PAGE_ATTEMPTS && !response; attempt += 1) {
+    if (attempt > 1) {
+      logger.warn('BNY PDLC Bot page retrying', { runId: run.id, label, attempt });
+      await deps.sleep(PAGE_RETRY_MS);
+    }
+    response = await deps.pageBot({
+      botId: run.botId,
+      message,
+      webhookUrl,
+      webhookSecret,
+      identity: sessionIdentity(),
+      context: { channel_id: run.channelId, thread_ts: run.threadTs, event: label },
+    });
+  }
   if (!response) {
     run.pageFailures.push(label);
     logger.error('BNY PDLC Bot page failed', { runId: run.id, label, botId: run.botId });

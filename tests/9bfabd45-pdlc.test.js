@@ -111,6 +111,16 @@ test('records a failed page and keeps playing the discussion', async () => {
   await run.done;
   expect(posted).toHaveLength(script.discussion.length);
   expect(run.pageFailures).toEqual(['join']);
+  expect(deps.pageBot).toHaveBeenCalledTimes(4);
+});
+
+test('retries a failed page before giving up', async () => {
+  const { deps } = fakeDeps({ botReplies: [] });
+  deps.pageBot.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValue({ via: 'webhook', status: 200 });
+  const { run } = pdlc.startPdlcRun({}, deps);
+  await run.done;
+  expect(run.pageFailures).toEqual([]);
+  expect(deps.pageBot).toHaveBeenCalledTimes(3);
 });
 
 test('detects Bot messages by member or app bot id and image attachments', () => {

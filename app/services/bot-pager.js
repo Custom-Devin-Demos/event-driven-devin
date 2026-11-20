@@ -28,9 +28,12 @@ async function pageBot({
       });
       return { via: 'webhook', status: response.status };
     } catch (err) {
+      const body = err.response?.data;
       logger.error('Bot webhook page failed', {
         botId,
         status: err.response?.status,
+        body: typeof body === 'string' ? body.slice(0, 500) : JSON.stringify(body ?? null).slice(0, 500),
+        error: err.code || err.message,
       });
       return null;
     }
