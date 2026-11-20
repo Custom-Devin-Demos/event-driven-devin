@@ -26,8 +26,10 @@ let state = { status: 'Ready', error: null, fleet: FLEET, selectedSiteIds: [] };
 
 function getOverview() {
   const stopped = state.fleet.filter(truck => truck.status !== 'Running').length;
+  const canReset = state.status === 'Failed' || state.fleet.some(truck =>
+    truck.status !== 'Running' || truck.firmware !== FLEET.find(initial => initial.id === truck.id).firmware);
   const sites = SITES.map(site => ({ ...site, truckCount: FLEET.filter(truck => truck.siteId === site.id).length }));
-  return { ...state, sites, kpis: { running: 10 - stopped, autonomous: 4, stopped, availability: (10 - stopped) * 10 } };
+  return { ...state, sites, canReset, kpis: { running: 10 - stopped, autonomous: 4, stopped, availability: (10 - stopped) * 10 } };
 }
 
 function resetRollout() {

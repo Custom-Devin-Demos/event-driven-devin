@@ -58,7 +58,7 @@ async function load(){
  overview=data;if(!initialized){selectedSiteIds=[...data.selectedSiteIds];initialized=true;}renderSelection();renderScope();
  for(const key of ['running','autonomous','stopped','availability'])el(key).textContent=data.kpis[key]+(key==='availability'?'%':'');
  el('fleet').innerHTML=data.fleet.map(t=>`<tr><td><strong>${t.id}</strong><span class="mode">${t.oem} / ${t.model}</span></td><td>${siteName(t.siteId)}</td><td>${t.autonomous?'Autonomous':'Operator driven'}<span class="mode">${t.autonomous?'OEM autonomy kit':'Site fleet'}</span></td><td>${t.smu.toLocaleString()}</td><td>${t.firmware}</td><td><span class="pill ${t.status!=='Running'?'attention':''}">${t.status}</span></td></tr>`).join('');
- el('status').textContent=data.status;el('reset').hidden=data.status!=='Failed';el('error').hidden=!data.error;el('error').textContent=data.error||'';
+ el('status').textContent=data.status;el('reset').hidden=!data.canReset;el('error').hidden=!data.error;el('error').textContent=data.error||'';
 }
 el('sites').addEventListener('change',()=>{selectedSiteIds=Array.from(el('sites').querySelectorAll('input:checked'),input=>input.value);renderSelection();});
 el('review').addEventListener('click',()=>{renderScope();el('site-step').hidden=true;el('scope-step').hidden=false;el('steps').textContent='1 · Select sites / 2 · Review scope / 3 · Confirm';});

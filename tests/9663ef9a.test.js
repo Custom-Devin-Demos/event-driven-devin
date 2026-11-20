@@ -23,6 +23,7 @@ test('overview is clean and contains ten trucks with four autonomous assets', ()
   expect(overview.fleet.every(truck => truck.status === 'Running')).toBe(true);
   expect(overview.sites.map(site => site.truckCount)).toEqual([3, 3, 2, 2]);
   expect(overview.selectedSiteIds).toEqual([]);
+  expect(overview.canReset).toBe(false);
   expect(createSessionAndAlert).not.toHaveBeenCalled();
 });
 
@@ -81,7 +82,7 @@ test.each([undefined, null, [], 'north', ['unknown'], ['north', 'north'], [null]
 test('operator-driven site deploys successfully without alerts', async () => {
   const initial = service.getOverview();
   const result = await service.runRollout({ siteIds: ['north'] });
-  expect(result).toMatchObject({ success: true, status: 'Completed', selectedSiteIds: ['north'], kpis: { running: 10, stopped: 0 } });
+  expect(result).toMatchObject({ success: true, status: 'Completed', canReset: true, selectedSiteIds: ['north'], kpis: { running: 10, stopped: 0 } });
   expect(result.fleet.filter(truck => truck.siteId === 'north').every(truck => truck.firmware === '4.8')).toBe(true);
   expect(result.fleet.filter(truck => truck.siteId !== 'north')).toEqual(initial.fleet.filter(truck => truck.siteId !== 'north'));
   expect(createSessionAndAlert).not.toHaveBeenCalled();
@@ -95,4 +96,15 @@ test('partial scope leaves all out-of-scope trucks unchanged', async () => {
   expect(result.fleet.filter(truck => truck.siteId !== 'east')).toEqual(initial.fleet.filter(truck => truck.siteId !== 'east'));
   expect(result.fleet.filter(truck => truck.siteId === 'east').every(truck => truck.firmware === '4.8')).toBe(true);
   expect(createSessionAndAlert.mock.calls.length).toBeLessThanOrEqual(1);
+});
+
+test('reset remains available after successive scoped deployments', async () => {
+  const initial = service.getOverview();
+  try { await service.runRollout({ siteIds: ['east'] }); } catch {}
+  const eastFleet = service.getOverview().fleet.filter(truck => truck.siteId === 'east');
+  const result = await service.runRollout({ siteIds: ['north'] });
+  expect(result).toMatchObject({ status: 'Completed', canReset: true });
+  expect(result.fleet.filter(truck => truck.siteId === 'east')).toEqual(eastFleet);
+  service.resetRollout();
+  expect(service.getOverview()).toEqual(initial);
 });
