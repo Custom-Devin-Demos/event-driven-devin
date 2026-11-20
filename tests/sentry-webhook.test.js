@@ -25,7 +25,7 @@ describe('Sentry customer identity mapping', () => {
   test('recognizes fleet health events tagged as instant-path alerts', () => {
     expect(isInstantPathEvent({
       tags: [['alert_path', 'instant'], ['service', '9663ef9a-api']],
-      culprit: 'app/services/verticals/9663ef9a.js — runSweep',
+      culprit: 'app/services/verticals/9663ef9a.js — runRollout',
     })).toBe(true);
   });
 
