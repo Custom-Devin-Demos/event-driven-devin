@@ -441,6 +441,13 @@ function nexenDatadogIncidentUrl(incident) {
   return incident.url || `https://us5.datadoghq.com/incidents/${incident.publicId}`;
 }
 
+function nexenDatadogLogsUrl(failedAt) {
+  const failedMs = Date.parse(failedAt);
+  if (!Number.isFinite(failedMs)) return null;
+  const query = encodeURIComponent(`service:${APP_SERVICE} status:error`);
+  return `https://us5.datadoghq.com/logs?query=${query}&from_ts=${failedMs - 60000}&to_ts=${failedMs + 900000}&live=false`;
+}
+
 function nexenFailureAt(report, receivedAt = new Date()) {
   const timestamp = report && typeof report.timestamp === 'string' ? Date.parse(report.timestamp) : NaN;
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : receivedAt.toISOString();
@@ -474,6 +481,7 @@ function buildSettlementSreBotPage({
     ? `#pershing-sev1 (channel id ${fixedSev1ChannelId})`
     : alertChannelId || SETTLEMENT.slackChannelId;
   const datadogIncidentUrl = nexenDatadogIncidentUrl(incident);
+  const datadogLogsUrl = nexenDatadogLogsUrl(failedAt);
   const runtimeVersion = process.env.DD_VERSION?.trim() || process.env.APP_VERSION?.trim();
   const lines = [
     `:rotating_light: NEXEN settlement batch failure — ${reference}`,
@@ -498,15 +506,19 @@ function buildSettlementSreBotPage({
       '',
       `*Datadog incident:* publicId=${incident.publicId}, runRef=${incident.runRef}, service=${SETTLEMENT.service}`,
       `*Datadog incident #${incident.publicId}:* ${datadogIncidentUrl}`,
+      ...(datadogLogsUrl ? [`*Datadog Logs Explorer:* ${datadogLogsUrl}`] : []),
       `*SEV-1 channel:* ${channelName}`,
       '',
       fixedSev1Channel
         ? `Pull the Datadog evidence immediately, then within about one minute make your first Slack action the only opening top-level declaration in #pershing-sev1: "SEV-1 declared: ${SETTLEMENT.incidentTitle}" with the Datadog evidence block and the on-call tag for Hannah.`
         : `Use the Datadog MCP immediately to pull the evidence, then within about one minute make your first Slack action a top-level message in ${responseChannel}: "SEV-1 declared: ${SETTLEMENT.incidentTitle}" before triage or any other Slack update.`,
-      `Run the Datadog MCP \`search_datadog_logs\` for \`service:customer-9bfabd45-web status:error\` with from = failure_at minus 60 seconds and to = now. Report only matching errors at or after failure_at: the error count, first and last seen, newest error message, version, and the Logs Explorer link returned by the tool.`,
+      `Run the Datadog MCP \`search_datadog_logs\` for \`service:customer-9bfabd45-web status:error\` with from = failure_at minus 60 seconds and to = now. Report only matching errors at or after failure_at: the error count, first and last seen, newest error message, and version.`,
       'If no matching errors are indexed yet, retry once after about 15 seconds. If there are still none, report exactly "1 error (this alert, Datadog indexing pending)" and use failure_at as both first and last seen. Never cite earlier runs’ times or versions.',
+      ...(datadogLogsUrl && datadogIncidentUrl ? [
+        `The declaration must always end its evidence block with these two links, copied exactly in Slack link syntax (angle brackets and a pipe; never Markdown [label](url), which Slack does not render), even when Datadog indexing is pending: <${datadogLogsUrl}|Datadog Logs Explorer> and <${datadogIncidentUrl}|Datadog incident #${incident.publicId}>.`,
+      ] : []),
       ...(runtimeVersion ? ['Use the Version value above as this run’s version; do not substitute a version from an older log record.'] : []),
-      `Say plainly "Evidence pulled from Datadog" and label it "Source: Datadog (logs + incident #${incident.publicId})"; include Datadog incident #${incident.publicId} at ${datadogIncidentUrl} and tag <@${OWNER.slackMemberId}> as the on-call engineer: "<@${OWNER.slackMemberId}> you're on call for NEXEN web".`,
+      `Say plainly "Evidence pulled from Datadog" and label it "Source: Datadog (logs + incident #${incident.publicId})"; include the two Datadog links above and tag <@${OWNER.slackMemberId}> as the on-call engineer: "<@${OWNER.slackMemberId}> you're on call for NEXEN web".`,
       '',
       fixedSev1Channel
         ? `Reply with a short triage (route, error, start time, failure rate, likely change, owner) in the declaration thread, then post a one- or two-line top-level copy in #pershing-sev1 with that reply's permalink: "Triage: … — details in thread <permalink>". Reply with the root cause in the same thread, then post its one- or two-line top-level copy with the reply's permalink: "Root cause: … — details in thread <permalink>". Tag <@${OWNER.slackMemberId}> as the on-call engineer who approves rollback vs forward-fix, and name the owners below.`
@@ -935,6 +947,7 @@ module.exports = {
   SCENARIO,
   SETTLEMENT,
   SETTLEMENT_REMEDIATION_DIRECTIVE,
+  nexenDatadogLogsUrl,
   isAppReport,
   isAppSource,
   reportAppFailure,

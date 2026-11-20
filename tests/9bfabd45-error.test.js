@@ -1,3 +1,5 @@
+/* global describe, expect, test, jest, beforeEach, afterEach, beforeAll, afterAll */
+
 jest.mock('../app/services/datadog-incidents', () => ({
   declareDatadogIncident: jest.fn(() => Promise.resolve({ id: 'inc-uuid', publicId: 412 })),
 }));
@@ -86,11 +88,23 @@ const {
   APP_REMEDIATION_DIRECTIVE,
   SETTLEMENT,
   SETTLEMENT_REMEDIATION_DIRECTIVE,
+  nexenDatadogLogsUrl,
   OWNER,
 } = require('../app/services/verticals/9bfabd45');
 const router = require('../app/routes/verticals/9bfabd45');
 const { getCustomerConfig } = require('../config/customers');
 const { applyCustomerIdentity, isInstantPathEvent } = require('../app/routes/sentry-webhook');
+
+describe('NEXEN Datadog Logs Explorer URL', () => {
+  test('builds a bounded URL from the failure timestamp and rejects invalid timestamps', () => {
+    const failedAt = '2026-11-20T08:00:00.000Z';
+    const failedMs = Date.parse(failedAt);
+    expect(nexenDatadogLogsUrl(failedAt)).toBe(
+      `https://us5.datadoghq.com/logs?query=service%3Acustomer-9bfabd45-web%20status%3Aerror&from_ts=${failedMs - 60000}&to_ts=${failedMs + 900000}&live=false`,
+    );
+    expect(nexenDatadogLogsUrl(null)).toBeNull();
+  });
+});
 
 const ORG_ID = 'org_69IXJFLrljx8zSAw';
 
@@ -456,6 +470,8 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
       expect.any(Object),
     );
     const page = sendDevinSessionMessage.mock.calls[0][1];
+    const failedMs = Date.parse(SETTLEMENT_REPORT.timestamp);
+    const logsUrl = `https://us5.datadoghq.com/logs?query=service%3Acustomer-9bfabd45-web%20status%3Aerror&from_ts=${failedMs - 60000}&to_ts=${failedMs + 900000}&live=false`;
     expect(page).toContain(`#pershing-sev1 (channel id ${FIXED_SEV1_CHANNEL_ID})`);
     expect(page).toContain('*Failure at:* 2026-11-20T08:00:00.000Z (Nov 20, 2026, 3:00:00 AM EST)');
     expect(page).toContain('*Version:* current-run-sha');
@@ -476,7 +492,10 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
     expect(page).not.toContain('*NEXEN Monitoring thread ts:*');
     expect(page).toContain('SEV-1 declared: NEXEN: USD settlement batch release failing');
     expect(page).toContain('Datadog incident #412');
-    expect(page).toContain('https://us5.datadoghq.com/incidents/412');
+    expect(page).toContain(`<https://us5.datadoghq.com/incidents/412|Datadog incident #412>`);
+    expect(page).toContain(`*Datadog Logs Explorer:* ${logsUrl}`);
+    expect(page).toContain(`<${logsUrl}|Datadog Logs Explorer>`);
+    expect(page).not.toContain('returned by the tool');
     expect(page).toContain('search_datadog_logs');
     expect(page).toContain('service:customer-9bfabd45-web status:error');
     expect(page).toContain('from = failure_at minus 60 seconds');
@@ -828,7 +847,7 @@ describe('BNY NEXEN settlement batch release (9bfabd45)', () => {
 
     expect(inviteToChannel).toHaveBeenCalledWith('test-slack-token', FIXED_SEV1_CHANNEL_ID, [OWNER.slackMemberId]);
     const personaTexts = postPersonaMessage.mock.calls.map((call) => call[2]);
-    const placeholderLines = personaTexts.filter((text) => text.includes('saw your root cause'));
+    const placeholderLines = personaTexts.filter((text) => text.includes('reviewing your fix PR now'));
     expect(placeholderLines).toHaveLength(1);
     expect(placeholderLines.every((text) => (
       text.includes('SRE Bot') && !text.includes('<@') && !text.includes('{sre_bot}')
