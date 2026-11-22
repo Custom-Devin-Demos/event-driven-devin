@@ -18,7 +18,7 @@ Stack shown: Java 21 + Spring Boot 3.3 + Spring Kafka, Kafka (KRaft), Docker Com
 2. Check the defect is live: `curl -s 'localhost:8081/api/inventory/ops/store-stock?storeId=store-0001&sku=402771-HGRY-M'` → `posOnHand: 5`, `available: 0`, `stall.eventType: RETURN_RESTOCKED`.
 3. For a live alert, run checkout-api with Slack/Devin credentials and start the inventory service with `ONCALL_INCIDENT_URL=http://host.docker.internal:3000/api/b8d844e5/incident` (hosted: already wired). Set your identity once in the browser console so the session lands in your account: `localStorage.devinUserId='user-1b1f980e05fc48cda0522576f88742d9'; localStorage.devinOrgId='org_69IXJFLrljx8zSAw'` (a Devin user ID is required; an email alone does not set the session owner).
 4. Open Slack `#oncall-alerts`, the storefront, and Devin in three tabs.
-5. Preflight (found in the dry run): the shared demo Slack responder (automation `auto-3a0fd471570643e498aadb9d0558c5f6`) also reacts to `#oncall-alerts` and starts a second fix session/PR. Ask its owner to pause or exclude these alerts, or point `SLACK_ONCALL_ALERTS_CHANNEL_ID` at a dedicated channel.
+5. Preflight (found in the dry run): the shared demo Slack responder (automation `auto-3a0fd471570643e498aadb9d0558c5f6`) also reacts to `#oncall-alerts` and starts a second fix session/PR. Ask its owner to pause or exclude these alerts, or set `B8D844E5_SLACK_CHANNEL_ID` to a dedicated channel (it only affects this demo; leave the shared `SLACK_ONCALL_ALERTS_CHANNEL_ID` alone).
 6. Make sure DeepWiki has indexed `COG-GTM/inventory-availability-service` (add it in Devin repo settings); in the dry run it was not indexed yet, so the DeepWiki step fell back to reading code.
 
 ## Run sheet
@@ -34,7 +34,7 @@ Stack shown: Java 21 + Spring Boot 3.3 + Spring Kafka, Kafka (KRaft), Docker Com
 | 7 | "And the proof that matters to the shopper." | Devin's browser: same store, **Place order** → "Ready for pickup at Nordstrom Downtown Seattle". |
 | 8 | "That session was started by one API call — that's what your PDLC platform would do." | Show the `POST /v3/organizations/{org}/sessions` call in the bridge (`app/services/verticals/b8d844e5.js`). Devin is the worker your PDLC Agents Platform dispatches; you keep the routing, policy and audit. |
 
-Who merges and deploys: the service owner reviews and merges the PR; the hosted stack redeploys from `main` via the existing event-driven-devin deploy workflow. Devin never merges.
+Who merges and deploys: the service owner reviews and merges the PR in `COG-GTM/inventory-availability-service`. That merge does not trigger a deploy: an event-driven-devin maintainer then runs the **Deploy to EC2** workflow manually (workflow_dispatch), which rebuilds `/b8d844e5/` from the service's `main`. Devin never merges or deploys.
 
 ## Objections
 
@@ -49,6 +49,6 @@ Ask Devin to fan out: one child session per sibling consumer (e.g. fulfillment, 
 ## Reset (2 min)
 
 1. Close (don't merge) any fix PR; delete its branch.
-2. `cd inventory-availability-service && docker compose down -v && docker compose up -d --build` (hosted: redeploy `main`). The topic and projection rebuild from the seed with the defect.
+2. `cd inventory-availability-service && docker compose down -v && docker compose up -d --build` (hosted: on the host run `docker compose --profile b8d844e5 rm -sfv b8d844e5-kafka b8d844e5-pos b8d844e5-inventory`, then run **Deploy to EC2**, so Kafka starts with an empty topic). The topic and projection rebuild from the seed with the defect.
 3. Alert dedupe clears after 10 min, or restart checkout-api.
 4. Re-run step 2 of "Before the meeting".
