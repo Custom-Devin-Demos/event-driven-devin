@@ -83,6 +83,7 @@ function reportIncident(body, now = Date.now()) {
   const pos = report.posOnHand === undefined ? 'unknown' : report.posOnHand;
   const sessionPromise = runWithAlertDestination('slack', () => createSessionAndAlert({
     customer: 'b8d844e5',
+    omitPlaybookMacro: true,
     verticalLabel: 'b8d844e5 demo',
     issueTitle: `Order Pickup rejected with stock on hand — ${report.service} consumer stalled on ${report.topic}`,
     culprit: `${report.method} ${report.path}`,

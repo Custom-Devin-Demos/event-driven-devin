@@ -219,6 +219,7 @@ function postTeamsFollowUp(teamsUrl, alertData, { title, facts, actionTitle, url
  * the standardized investigation & remediation workflow automatically.
  * Only the essential alert context is included — the playbook handles
  * the investigation steps, Sentry/Datadog queries, and fix process.
+ * Set `omitPlaybookMacro` for incidents with no Sentry/Datadog telemetry.
  */
 function buildPrompt(alertData) {
   const {
@@ -231,8 +232,8 @@ function buildPrompt(alertData) {
   // Build a compact, scannable prompt.
   // Use null as skip sentinel so intentional blank-line separators ('') are preserved.
   const lines = [
-    '!sentry_investigation',
-    '',
+    alertData.omitPlaybookMacro ? null : '!sentry_investigation',
+    alertData.omitPlaybookMacro ? null : '',
     `*${t.error}:* ${issueTitle}`,
     culprit ? `*${t.location}:* \`${culprit}\`` : null,
     errorType ? `*${t.type}:* ${errorType}` : null,
