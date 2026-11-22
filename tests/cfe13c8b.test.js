@@ -94,6 +94,7 @@ test('routes one scoped alert to Teams until an explicit verified reset', async 
   expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({
     skipVulnerablePr: true,
+    customer: 'cfe13c8b',
     devinEmail: 'presenter@example.com',
     errorType: 'TypeError',
     extra: expect.objectContaining({ feedBatch: 'PEO-8821', feedVersion: '2.1', branchId: 'peoria', partNumber: '465-6505' }),

@@ -36,6 +36,7 @@ function reportFailure(error, context, presenter) {
     culprit: 'app/services/verticals/cfe13c8b-inventory.js — readAvailability',
     errorType: error.name,
     errorValue: `${error.message}\nBranch: ${context.branchId} · Part: ${context.partNumber} · Work order: ${context.workOrder}\nFeed batch: ${context.feedBatch} (v${context.feedVersion}) · Request: ${context.requestId}`,
+    customer: 'cfe13c8b',
     ...presenter,
     service: SERVICE,
     verticalLabel: 'Dealer Parts Availability',
