@@ -28,7 +28,7 @@ const STRINGS = {
 };
 const INTEGERS = ['status', 'requested', 'available', 'partition', 'lag', 'stalledOffset', 'retryAttempts'];
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/;
-const EXCEPTION_CLASS = /^[A-Za-z_$][\w$.]{0,199}/;
+const EXCEPTION_CLASS = /^(?:[A-Za-z_$][\w$]*\.){0,20}(?:[A-Za-z_$][\w$]{0,99})?(?:Exception|Error)\b/;
 const OPTIONAL_IDS = { devinUserId: /^[\w-]{1,80}$/, devinOrgId: /^[\w-]{1,80}$/, devinEmail: /^[^\s@]{1,64}@[^\s@]{1,190}$/ };
 
 function validateReport(body) {

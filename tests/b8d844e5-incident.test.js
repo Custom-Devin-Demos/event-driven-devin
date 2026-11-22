@@ -99,5 +99,6 @@ describe('b8d844e5 stale-stock incident bridge', () => {
   test('multi-line stalled error is flattened before reaching the prompt', async () => {
     await post({ ...REPORT, stalledError: 'line one\nline two' });
     expect(slack.postAlertToSlack.mock.calls[0][0].extra.stalledError).toBe('line one line two');
+    expect(slack.postAlertToSlack.mock.calls[0][0].errorValue).toContain('Exception: unknown');
   });
 });
