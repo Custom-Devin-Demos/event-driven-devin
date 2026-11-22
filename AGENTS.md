@@ -8,6 +8,8 @@ A Node.js/Express application with integrated observability (Sentry + Datadog) a
 
 ## Industry Verticals
 
+**Dealer parts availability** (`/cfe13c8b`, unlisted): machine-down work order, Peoria lookup fails with HTTP 503 from the inventory feed, Decatur returns stock and pickup. Keep the fixture regression. `GET /api/cfe13c8b/work-order`, `POST /api/cfe13c8b/availability`, `POST /api/cfe13c8b/availability/reset`. Default page is rehearsal-only; `?reports=on` opts in to one alert attempt per run through Teams (shared Slack fallback); an authorized live reset re-arms it without fixing the data. No live provider or customer inventory involved.
+
 The app hosts 10 verticals, each accessible at its own URL:
 
 | Vertical | URL Path | Frontend | API Endpoint | Service File |
