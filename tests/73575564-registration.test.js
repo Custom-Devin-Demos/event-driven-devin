@@ -140,6 +140,8 @@ describe('on-call latency track (73575564)', () => {
     expect(prompt).toContain('p95レイテンシ上昇中 — イベント参加申込（Merge Tokyo 2026）');
     expect(prompt).toContain('event-registration@2.4.0');
     expect(prompt).toContain('日本語で回答してください');
+    expect(prompt).toContain('見出しも本文もすべて日本語');
+    expect(prompt).toContain('「What I recommend」→「推奨対応」');
     expect(prompt).toContain('POST /api/oncall/licenses/provision');
     expect(prompt).not.toContain('novasoft');
   });
