@@ -46,7 +46,7 @@ PROTECTED_APP=(routes/verticals public/verticals services/verticals)
 PROTECTED_CONFIG=(customers)
 # Host-only top-level entries that must never be replaced even if a staging
 # tree happens to contain them.
-NEVER_TOUCH=(.env .env.example.local .ssh certbot docker-compose.override.yml archive releases node_modules .git data avature-src f2ec3d90-src)
+NEVER_TOUCH=(.env .env.example.local .ssh certbot docker-compose.override.yml archive releases node_modules .git data avature-src f2ec3d90-src b8d844e5-src)
 
 CRITICAL_PATHS=(/ /health /retail /api/verticals /oncall /publix /qbe /4f645972)
 
@@ -499,6 +499,30 @@ if compose build resort-inventory >/dev/null 2>"$AV_ERR" \
   log "resort-inventory: built and started"
 else
   log "warning: resort-inventory build/start failed — /90ccfbb2 will report inventory unavailable"
+  tail -5 "$AV_ERR" | log_lines '   '
+fi
+
+# ── 5d. b8d844e5 store-pickup inventory stack (separate repo, best effort) ──
+# Kafka + POS simulator + inventory-availability + storefront from private COG-GTM/inventory-availability-service
+# (fetched with GITHUB_PAT via avature_git).
+# A failure only affects /b8d844e5/.
+B8D844E5_SRC="$APP_DIR/b8d844e5-src"
+B8D844E5_REF=${B8D844E5_REF:-$(env_value B8D844E5_REF)}; B8D844E5_REF=${B8D844E5_REF:-main}
+b8d844e5_sync() {
+  if [ ! -d "$B8D844E5_SRC/.git" ]; then
+    mkdir -p "$B8D844E5_SRC" && git -C "$B8D844E5_SRC" init -q \
+      && git -C "$B8D844E5_SRC" remote add origin https://github.com/COG-GTM/inventory-availability-service.git || return 1
+  fi
+  avature_git -C "$B8D844E5_SRC" fetch -q --depth 1 origin "$B8D844E5_REF" \
+    && git -C "$B8D844E5_SRC" checkout -q --detach FETCH_HEAD \
+    && B8D844E5_GIT_SHA=$(git -C "$B8D844E5_SRC" rev-parse --short HEAD) && export B8D844E5_GIT_SHA
+}
+if b8d844e5_sync 2>"$AV_ERR" \
+   && compose --profile b8d844e5 build b8d844e5-pos b8d844e5-inventory b8d844e5-storefront >/dev/null 2>>"$AV_ERR" \
+   && compose --profile b8d844e5 up -d --no-deps b8d844e5-kafka b8d844e5-pos b8d844e5-inventory b8d844e5-storefront >/dev/null 2>>"$AV_ERR"; then
+  log "b8d844e5: built $B8D844E5_GIT_SHA from $B8D844E5_REF and started"
+else
+  log "warning: b8d844e5 sync/build/start failed — /b8d844e5/ left as-is"
   tail -5 "$AV_ERR" | log_lines '   '
 fi
 
