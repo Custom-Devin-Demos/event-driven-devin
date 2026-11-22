@@ -87,16 +87,18 @@ test('requires the configured secret for alerting and re-arming', async () => {
 });
 
 test('routes one scoped alert to Teams until an explicit verified reset', async () => {
-  const fire = () => post('/availability', { ...lookup, reports: 'on' }, auth);
+  const fire = () => post('/availability', { ...lookup, reports: 'on', devinEmail: 'presenter@example.com' }, auth);
   const responses = await Promise.all([fire(), fire()]);
   expect(responses.map(response => response.status)).toEqual([503, 503]);
   const requestIds = await Promise.all(responses.map(async response => (await response.json()).requestId));
   expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({
     skipVulnerablePr: true,
+    devinEmail: 'presenter@example.com',
     errorType: 'TypeError',
     extra: expect.objectContaining({ feedBatch: 'PEO-8821', feedVersion: '2.1', branchId: 'peoria', partNumber: '465-6505' }),
   }));
+  expect(createSessionAndAlert.mock.calls[0][0]).not.toHaveProperty('slackMemberId');
   expect(requestIds).toContain(createSessionAndAlert.mock.calls[0][0].extra.requestId);
   await expect(createSessionAndAlert.mock.results[0].value).resolves.toEqual({ destination: 'teams' });
   expect(Sentry.captureException).toHaveBeenCalledTimes(1);

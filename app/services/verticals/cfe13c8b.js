@@ -37,7 +37,6 @@ function reportFailure(error, context, presenter) {
     errorType: error.name,
     errorValue: `${error.message}\nBranch: ${context.branchId} · Part: ${context.partNumber} · Work order: ${context.workOrder}\nFeed batch: ${context.feedBatch} (v${context.feedVersion}) · Request: ${context.requestId}`,
     ...presenter,
-    slackMemberId: 'U0BDHHQUM24',
     service: SERVICE,
     verticalLabel: 'Dealer Parts Availability',
     skipVulnerablePr: true,
