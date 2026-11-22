@@ -3666,6 +3666,57 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A MACHI-PORTAL SITE — まちポータル／ひだまり市 are fictional; demo only, not affiliated with, endorsed by, or a product of any real municipality or e-application service. ／ 実在する自治体・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
+  '73575564': {
+    slug: '73575564',
+    company: 'Merge Tokyo 2026',
+    brandMark: 'M',
+    vertical: 'hightech',
+    locale: 'ja',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        '顧客コンテキスト: このアラートは上記リンクの「Merge Tokyo 2026」イベントサイトの「参加申込」フォームから発生しています。「この内容で申し込む」ボタンは上記エンドポイントに参加申込を送信するため、そのエンドポイントがこのインシデントのバックエンドです。',
+        'あなたはイベントサイトを運用する event-registration-oncall チームのオンコール担当エンジニアです。スレッド上のインシデント表示は「p95レイテンシ上昇中 — イベント参加申込（Merge Tokyo 2026）」です。参加申込の送信は遅く、リクエストのたびにさらに遅くなります。申込締切（11月23日 17:00）の直前で申込が集中している時間帯です。',
+        'コードを読む前にテレメトリ（モニター、APMトレース、インシデント参照前後のログ）から調査し、確認したシグナル、除外した仮説、根本原因、影響をまとめた根拠ベースの調査サマリーを書いてください。',
+        'スレッドへの返信、PRのタイトル、PRの説明では「Merge Tokyo 2026」「参加申込」「この内容で申し込む」という表現を使ってください。デプロイやマージは行わないでください。',
+      ].join('\n'),
+    },
+    page: {
+      // Japanese event top page for Merge Tokyo 2026 (the organiser's own
+      // event site; partner and customer logos are plain text names). The
+      // 参加申込 panel reuses the hightech provisioning ids so the shared shim
+      // reroutes and degrades it with no backend changes. Two tracks share
+      // the one file: /oncall/c/73575564 is the shimmed latency alert, and
+      // the bare /73575564 posts to its own registration API
+      // (app/routes/verticals/73575564.js → /api/73575564/register) whose
+      // failure runs the legacy error track (Sentry → Slack → Devin).
+      file: '73575564.html',
+      title: 'Merge Tokyo 2026',
+    },
+    theme: {
+      '--accent': '#ffffff',
+      '--ink': '#ffffff',
+      '--surface': '#000000',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    alertCard: {
+      title: 'p95レイテンシ上昇中 — イベント参加申込（Merge Tokyo 2026）',
+      team: 'event-registration-oncall',
+      // Display labels only: the request, monitor query and repro URL stay on
+      // the real hightech on-call endpoint so Devin's telemetry search works.
+      service: 'event-registration-api',
+      endpointLabel: 'POST /api/oncall/licenses/provision（参加申込 API）',
+      release: 'event-registration@2.4.0',
+      metricValue: '6.8秒（上昇中）',
+      threshold: '> 2秒',
+      baseline: '~350ms（7日間p95）',
+      symptom: 'Merge Tokyo 2026 の参加申込の送信が遅く、リクエストのたびにさらに遅くなっています。プロセスのRSSも同時に増加しています。',
+      impact: '参加申込を送信するすべての方が、送信のたびに長く待たされ、申込を完了できていません。申込締切（11月23日 17:00）直前の申込集中時間帯が最も大きな影響を受けています。',
+    },
+    disclaimer: 'NOT ACTUALLY A MERGE TOKYO SITE — demo only; this page is a demo copy and registrations made here are not real. ／ 実際の Merge Tokyo 2026 公式サイトではありません（デモ用）。',
+  },
   'd886be88': {
     slug: 'd886be88',
     company: 'SB C&S',
