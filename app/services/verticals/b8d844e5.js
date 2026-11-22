@@ -27,6 +27,8 @@ const STRINGS = {
   gitSha: /^[\w.-]{1,64}$/,
 };
 const INTEGERS = ['status', 'requested', 'available', 'partition', 'lag', 'stalledOffset', 'retryAttempts'];
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/;
+const EXCEPTION_CLASS = /^[A-Za-z_$][\w$.]{0,199}/;
 const OPTIONAL_IDS = { devinUserId: /^[\w-]{1,80}$/, devinOrgId: /^[\w-]{1,80}$/, devinEmail: /^[^\s@]{1,64}@[^\s@]{1,190}$/ };
 
 function validateReport(body) {
@@ -37,7 +39,7 @@ function validateReport(body) {
   if (!Object.entries(OPTIONAL_IDS).every(([key, pattern]) => body[key] === undefined || (typeof body[key] === 'string' && pattern.test(body[key])))) return false;
   return body.status >= 400 && body.status <= 599
     && typeof body.stalledError === 'string' && body.stalledError.length <= 1000
-    && [body.occurredAt, body.stalledSince].every((value) => typeof value === 'string' && value.length <= 64 && Number.isFinite(Date.parse(value)));
+    && [body.occurredAt, body.stalledSince].every((value) => typeof value === 'string' && ISO_TIMESTAMP.test(value) && Number.isFinite(Date.parse(value)));
 }
 
 function pick(body) {
@@ -49,9 +51,14 @@ function pick(body) {
   return report;
 }
 
-// Free-text error messages stay on the Slack card; the prompt only gets validated identifiers and numbers.
+// The prompt gets only validated identifiers and numbers: the exception class, never its free-text message.
+function exceptionClass(report) {
+  const match = EXCEPTION_CLASS.exec(report.stalledError);
+  return match ? match[0] : 'unknown';
+}
+
 function promptEvidence(report) {
-  const evidence = { ...report };
+  const evidence = { ...report, stalledException: exceptionClass(report) };
   delete evidence.stalledError;
   return evidence;
 }
@@ -99,6 +106,7 @@ function reportIncident(body, now = Date.now()) {
       `Store: ${report.storeName} (${report.storeId})  SKU: ${report.sku}`,
       `POS on hand: ${pos}  Availability service: ${report.available}`,
       `Consumer group ${report.consumerGroup} stuck on partition ${report.partition} offset ${report.stalledOffset} (${report.stalledEventType}), lag ${report.lag}, ${report.retryAttempts} retries`,
+      `Exception: ${exceptionClass(report)}`,
       `Request ID: ${report.requestId}  Version: ${report.gitSha}`,
     ].join('\n'),
     service: report.service,
