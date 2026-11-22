@@ -518,8 +518,10 @@ b8d844e5_sync() {
     && B8D844E5_GIT_SHA=$(git -C "$B8D844E5_SRC" rev-parse --short HEAD) && export B8D844E5_GIT_SHA
 }
 if b8d844e5_sync 2>"$AV_ERR" \
-   && compose --profile b8d844e5 build b8d844e5-pos b8d844e5-inventory b8d844e5-storefront >/dev/null 2>>"$AV_ERR" \
-   && compose --profile b8d844e5 up -d --no-deps b8d844e5-kafka b8d844e5-pos b8d844e5-inventory b8d844e5-storefront >/dev/null 2>>"$AV_ERR"; then
+   && compose --profile b8d844e5 build b8d844e5-pos >/dev/null 2>>"$AV_ERR" \
+   && compose --profile b8d844e5 build b8d844e5-inventory >/dev/null 2>>"$AV_ERR" \
+   && compose --profile b8d844e5 build b8d844e5-storefront >/dev/null 2>>"$AV_ERR" \
+   && compose --profile b8d844e5 up -d --wait --wait-timeout 180 b8d844e5-kafka b8d844e5-pos b8d844e5-inventory b8d844e5-storefront >/dev/null 2>>"$AV_ERR"; then
   log "b8d844e5: built $B8D844E5_GIT_SHA from $B8D844E5_REF and started"
 else
   log "warning: b8d844e5 sync/build/start failed — /b8d844e5/ left as-is"
