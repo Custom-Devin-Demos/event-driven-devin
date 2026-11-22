@@ -18,6 +18,8 @@ Stack shown: Java 21 + Spring Boot 3.3 + Spring Kafka, Kafka (KRaft), Docker Com
 2. Check the defect is live: `curl -s 'localhost:8081/api/inventory/ops/store-stock?storeId=store-0001&sku=402771-HGRY-M'` → `posOnHand: 5`, `available: 0`, `stall.eventType: RETURN_RESTOCKED`.
 3. For a live alert, run checkout-api with Slack/Devin credentials and start the inventory service with `ONCALL_INCIDENT_URL=http://host.docker.internal:3000/api/b8d844e5/incident` (hosted: already wired). Set your identity once in the browser console so the session lands in your account: `localStorage.devinEmail='ian.hodge@cognition.ai'`.
 4. Open Slack `#oncall-alerts`, the storefront, and Devin in three tabs.
+5. Preflight (found in the dry run): the shared demo Slack responder (automation `auto-3a0fd471570643e498aadb9d0558c5f6`) also reacts to `#oncall-alerts` and starts a second fix session/PR. Ask its owner to pause or exclude these alerts, or point `SLACK_ONCALL_ALERTS_CHANNEL_ID` at a dedicated channel.
+6. Make sure DeepWiki has indexed `COG-GTM/inventory-availability-service` (add it in Devin repo settings); in the dry run it was not indexed yet, so the DeepWiki step fell back to reading code.
 
 ## Run sheet
 
