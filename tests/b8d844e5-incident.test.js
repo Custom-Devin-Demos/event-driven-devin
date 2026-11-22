@@ -56,7 +56,7 @@ describe('b8d844e5 stale-stock incident bridge', () => {
     const card = JSON.stringify(slack.buildAlertBlocks(alert));
     for (const value of [REPORT.storeName, REPORT.sku, REPORT.topic, 'RETURN_RESTOCKED', 'POS on hand: 2']) expect(card).toContain(value);
     const prompt = devin.createDevinSession.mock.calls[0][0];
-    for (const value of ['COG-GTM/inventory-availability-service', 'do NOT change COG-GTM/event-driven-devin', 'DeepWiki', 'docker compose up', 'X-Demo-Alerts: off', 'regression test', 'Do not merge', REPORT.stalledEventId]) expect(prompt).toContain(value);
+    for (const value of ['COG-GTM/inventory-availability-service', 'do NOT change COG-GTM/event-driven-devin', 'do not query Sentry, Datadog', 'DeepWiki', 'docker compose up', 'X-Demo-Alerts: off', 'regression test', 'Do not merge', REPORT.stalledEventId]) expect(prompt).toContain(value);
   });
 
   test('passes the presenter identity through to session creation', async () => {

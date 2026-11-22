@@ -53,6 +53,7 @@ function buildDirective(report) {
   return [
     `Investigate and fix the \`inventory-availability\` service in ${TARGET_REPO}. Change only that repository; do NOT change COG-GTM/event-driven-devin.`,
     `Start with DeepWiki for ${TARGET_REPO} (ask how inventory events flow from the store POS simulator through Kafka into the availability projection), then read its AGENTS.md.`,
+    'This service has no Sentry or Datadog telemetry: do not query Sentry, Datadog or any production system. All evidence comes from the code, DeepWiki and your local Kafka reproduction.',
     'Reproduce on your machine with Kafka running: `docker compose up -d --build`, then call the pickup API for the SKU and store below and inspect `GET /api/inventory/ops/consumer`. Send header `X-Demo-Alerts: off` while reproducing so testing creates no more alerts or sessions.',
     'Find the root cause, fix it, and add a regression test (unit and embedded-Kafka). Run `mvn -B -s maven-settings.xml verify` with Java 21.',
     `Open a PR against main in ${TARGET_REPO} and request Devin Review. Do not merge. After the fix, rebuild the stack, open the storefront at http://localhost:8080/?reports=off in your browser and place the Order Pickup for the same store, and post the confirmation screenshot plus the PR link in this Slack thread.`,
