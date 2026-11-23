@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Economist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E3120B; --red-dark: #B50E09; --ink: #0D0D0D; --ink-2: #333; --muted: #6B6B6B;
+    --rule: #E5E5E5; --paper: #FFFFFF; --canvas: #F5F4EF; --chrome: #121212;
+    --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --display: 'Playfair Display', Georgia, serif;
+    --sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: var(--sans); color: var(--ink); background: radial-gradient(ellipse at top, #2a2a2a 0%, #0b0b0b 70%); display: flex; align-items: center; justify-content: center; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .stage { display: flex; gap: 48px; align-items: center; padding: 24px; }
+  .side { color: #bdbdbd; max-width: 260px; font-size: 13px; line-height: 1.55; }
+  .side h1 { font-family: var(--display); color: #fff; font-size: 26px; line-height: 1.15; margin-bottom: 10px; }
+  .side .tag { display: inline-block; background: var(--red); color: #fff; font-weight: 700; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; margin-bottom: 14px; }
+  .side kbd { background: #2b2b2b; border: 1px solid #444; border-radius: 4px; padding: 1px 5px; font-size: 11px; color: #eee; }
+  .side .disc { margin-top: 16px; font-size: 11px; color: #8a8a8a; }
+  .phone { width: 402px; height: 860px; border-radius: 58px; background: #000; padding: 12px; box-shadow: 0 0 0 2px #3a3a3a, 0 40px 90px rgba(0,0,0,.6); position: relative; flex-shrink: 0; }
+  .screen { width: 100%; height: 100%; border-radius: 46px; overflow: hidden; background: var(--paper); position: relative; display: flex; flex-direction: column; }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 122px; height: 34px; background: #000; border-radius: 20px; z-index: 50; }
+  .status { height: 52px; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 30px 6px 36px; font-weight: 600; font-size: 15px; background: var(--paper); z-index: 5; }
+  .status .icons { display: flex; gap: 6px; align-items: center; }
+  @media (max-width: 760px) { .side { display: none; } .stage { padding: 0; } .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; } .screen { border-radius: 0; } .island { display: none; } }
+
+  .appbar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 18px 10px; border-bottom: 1px solid var(--rule); background: var(--paper); }
+  .logo { background: var(--red); color: #fff; font-family: var(--display); font-weight: 700; font-size: 15px; line-height: 1; padding: 7px 9px 8px; letter-spacing: -.01em; }
+  .logo.sm { font-size: 11px; padding: 5px 6px 6px; }
+  .appbar .actions { display: flex; gap: 16px; }
+  .appbar .actions svg { width: 22px; height: 22px; }
+  .content { flex: 1; overflow-y: auto; overflow-x: hidden; background: var(--paper); scrollbar-width: none; }
+  .content::-webkit-scrollbar { display: none; }
+  .view { display: none; padding-bottom: 24px; }
+  .view.active { display: block; }
+
+  .tabbar { flex-shrink: 0; display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--rule); background: var(--paper); padding: 6px 4px 24px; }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; color: var(--muted); font-weight: 500; }
+  .tab svg { width: 24px; height: 24px; }
+  .tab.active { color: var(--ink); font-weight: 700; }
+  .tab.active svg { color: var(--red); }
+
+  .datehead { padding: 16px 18px 4px; font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+  .h-section { display: flex; align-items: baseline; justify-content: space-between; padding: 18px 18px 10px; }
+  .h-section h2 { font-family: var(--serif); font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+  .h-section h2::before { content: ''; display: block; width: 28px; height: 4px; background: var(--red); margin-bottom: 8px; }
+  .h-section a { font-size: 13px; color: var(--red); font-weight: 600; text-decoration: none; }
+  .carousel { display: flex; gap: 12px; overflow-x: auto; padding: 0 18px 4px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .carousel::-webkit-scrollbar { display: none; }
+  .brief { flex: 0 0 280px; scroll-snap-align: start; background: var(--canvas); padding: 16px; border-top: 3px solid var(--ink); min-height: 168px; display: flex; flex-direction: column; }
+  .brief .n { font-family: var(--display); font-size: 30px; color: var(--red); line-height: 1; margin-bottom: 8px; }
+  .brief p { font-family: var(--serif); font-size: 15px; line-height: 1.42; color: var(--ink-2); }
+  .brief .listen { margin-top: auto; padding-top: 10px; font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; font-weight: 600; }
+
+  .story { display: grid; grid-template-columns: 1fr 104px; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--rule); cursor: pointer; text-align: left; width: 100%; }
+  .story.lead { display: block; }
+  .fly { font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: .02em; margin-bottom: 4px; }
+  .hl { font-family: var(--serif); font-weight: 700; font-size: 18px; line-height: 1.22; letter-spacing: -.01em; }
+  .lead .hl { font-size: 25px; line-height: 1.15; }
+  .rub { font-family: var(--serif); font-size: 14.5px; line-height: 1.4; color: var(--ink-2); margin-top: 6px; }
+  .meta { font-size: 11.5px; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; align-items: center; }
+  .thumb { width: 104px; height: 78px; position: relative; overflow: hidden; }
+  .lead .thumb { width: 100%; height: 196px; margin-bottom: 12px; }
+  .art { position: absolute; inset: 0; }
+
+  .reels { display: flex; gap: 10px; overflow-x: auto; padding: 0 18px; scrollbar-width: none; }
+  .reels::-webkit-scrollbar { display: none; }
+  .reel { flex: 0 0 132px; height: 232px; position: relative; overflow: hidden; color: #fff; text-align: left; }
+  .reel .cap { position: absolute; left: 10px; right: 10px; bottom: 10px; font-family: var(--serif); font-weight: 700; font-size: 14px; line-height: 1.2; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+  .reel .dur { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.55); font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  .reel .play { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.88); display: grid; place-items: center; }
+
+  .games { margin: 4px 18px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .game { background: var(--canvas); padding: 14px; text-align: left; }
+  .game b { font-family: var(--serif); font-size: 16px; display: block; margin: 8px 0 2px; }
+  .game span { font-size: 12px; color: var(--muted); }
+
+  /* Weekly */
+  .wk-top { padding: 14px 18px 0; display: flex; justify-content: space-between; align-items: center; }
+  .wk-top h1 { font-family: var(--serif); font-size: 26px; font-weight: 700; }
+  .wk-top button { font-size: 13px; color: var(--red); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .cover-wrap { display: flex; gap: 16px; padding: 16px 18px 6px; }
+  .cover { width: 168px; height: 222px; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 10px 24px rgba(0,0,0,.25); background: #111; color: #fff; }
+  .cover .logo { position: absolute; top: 10px; left: 10px; font-size: 11px; padding: 5px 6px 6px; z-index: 3; }
+  .cover .date { position: absolute; top: 12px; right: 10px; font-size: 7.5px; font-weight: 600; z-index: 3; opacity: .85; }
+  .cover .line { position: absolute; left: 10px; right: 10px; bottom: 14px; font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.02; z-index: 3; text-shadow: 0 2px 10px rgba(0,0,0,.45); }
+  .cover-side { display: flex; flex-direction: column; min-width: 0; }
+  .cover-side .d { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .cover-side .t { font-family: var(--serif); font-weight: 700; font-size: 20px; line-height: 1.18; margin: 6px 0; }
+  .cover-side .s { font-family: var(--serif); font-size: 14px; color: var(--ink-2); line-height: 1.35; }
+  .cover-side .n { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .wk-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 18px 4px; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; font-weight: 600; font-size: 14px; border-radius: 22px; }
+  .btn svg { width: 18px; height: 18px; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-red:active { background: var(--red-dark); }
+  .btn-line { border: 1.5px solid var(--ink); }
+  .btn[disabled] { opacity: .85; cursor: default; }
+  .btn.done { background: #fff; color: var(--ink); border: 1.5px solid var(--rule); }
+  .ring { width: 20px; height: 20px; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 3; }
+  .ring .bg { stroke: rgba(255,255,255,.35); }
+  .ring .fg { stroke: #fff; stroke-linecap: round; transition: stroke-dashoffset .2s; }
+  .wk-note { padding: 6px 18px 0; font-size: 12px; color: var(--muted); min-height: 18px; }
+  .sec { border-top: 1px solid var(--rule); margin: 0 18px; }
+  .sec-h { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px 0; text-align: left; }
+  .sec-h b { font-family: var(--serif); font-size: 17px; font-weight: 700; }
+  .sec-h span { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+  .sec-h .chev { transition: transform .2s; }
+  .sec.open .chev { transform: rotate(90deg); }
+  .sec-b { display: none; padding-bottom: 8px; }
+  .sec.open .sec-b { display: block; }
+  .sec-b .story { padding: 10px 0; grid-template-columns: 1fr; border-bottom: 0; border-top: 1px dashed var(--rule); }
+  .sec-b .hl { font-size: 16px; }
+  .sec-b .rub { font-size: 13.5px; }
+  .tq { background: #0f1f3a; color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .06em; padding: 2px 6px; text-transform: uppercase; }
+
+  /* Podcasts / video / saved */
+  .pod { display: flex; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--rule); align-items: center; text-align: left; width: 100%; }
+  .pod .art-sq { width: 64px; height: 64px; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-family: var(--display); font-weight: 800; font-size: 9.5px; text-align: center; line-height: 1.1; padding: 4px; overflow: hidden; overflow-wrap: anywhere; }
+  .pod b { font-family: var(--serif); font-size: 16px; display: block; }
+  .pod span { font-size: 12.5px; color: var(--muted); display: block; margin-top: 2px; }
+  .pod .pbtn { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--ink); display: grid; place-items: center; flex-shrink: 0; }
+  .vgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 18px; }
+  .vgrid .reel { flex: none; width: 100%; height: 270px; }
+  .empty { padding: 28px 18px; text-align: center; color: var(--muted); font-size: 14px; font-family: var(--serif); }
+  .dl-row { display: flex; gap: 12px; padding: 12px 18px; align-items: center; border-bottom: 1px solid var(--rule); }
+  .dl-row .mini { width: 46px; height: 60px; position: relative; overflow: hidden; background: #111; }
+  .dl-row b { font-family: var(--serif); font-size: 15px; display: block; }
+  .dl-row span { font-size: 12px; color: var(--muted); }
+
+  /* Overlays */
+  .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.4); z-index: 30; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .sheet-bg.show { opacity: 1; pointer-events: auto; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--paper); border-radius: 18px 18px 0 0; z-index: 31; transform: translateY(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); padding: 10px 20px 34px; max-height: 82%; overflow-y: auto; }
+  .sheet.show { transform: translateY(0); }
+  .sheet .grab { width: 38px; height: 5px; border-radius: 3px; background: #d5d5d5; margin: 0 auto 14px; }
+  .sheet h3 { font-family: var(--serif); font-size: 21px; margin-bottom: 8px; }
+  .sheet p { font-family: var(--serif); font-size: 15px; line-height: 1.45; color: var(--ink-2); }
+  .err-ico { width: 44px; height: 44px; border-radius: 50%; background: #FDECEB; color: var(--red); display: grid; place-items: center; margin-bottom: 12px; }
+  .ref { margin-top: 14px; background: var(--canvas); padding: 10px 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; line-height: 1.6; color: #444; word-break: break-word; }
+  .sheet .btn { margin-top: 16px; width: 100%; }
+  .ed-row { display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid var(--rule); align-items: center; width: 100%; text-align: left; }
+  .ed-row .mini { width: 52px; height: 68px; position: relative; overflow: hidden; background: #111; flex-shrink: 0; }
+  .ed-row b { font-family: var(--serif); font-size: 16px; display: block; }
+  .ed-row span { font-size: 12px; color: var(--muted); }
+  .ed-row.cur b::after { content: 'Current'; margin-left: 8px; font-family: var(--sans); font-size: 10px; background: var(--red); color: #fff; padding: 2px 6px; vertical-align: 2px; font-weight: 700; }
+
+  .reader { position: absolute; inset: 0; background: var(--paper); z-index: 20; transform: translateX(100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; }
+  .reader.show { transform: translateX(0); }
+  .reader .rbar { height: 96px; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px 10px; border-bottom: 1px solid var(--rule); }
+  .reader .rbar .acts { display: flex; gap: 18px; }
+  .reader .rbody { flex: 1; overflow-y: auto; padding: 18px 20px 120px; scrollbar-width: none; }
+  .reader .rbody::-webkit-scrollbar { display: none; }
+  .reader .r-fly { font-size: 13px; font-weight: 700; color: var(--red); margin-bottom: 8px; }
+  .reader h1 { font-family: var(--serif); font-size: 30px; line-height: 1.12; letter-spacing: -.015em; margin-bottom: 10px; }
+  .reader .r-rub { font-family: var(--serif); font-size: 18px; line-height: 1.35; color: var(--ink-2); margin-bottom: 14px; }
+  .reader .r-meta { font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 10px 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .reader .r-listen { display: flex; gap: 8px; align-items: center; font-weight: 600; color: var(--ink); font-size: 13px; }
+  .reader .r-art { height: 210px; position: relative; overflow: hidden; margin: 0 -20px 16px; }
+  .reader p.body { font-family: var(--serif); font-size: 17.5px; line-height: 1.6; color: #1a1a1a; margin-bottom: 16px; }
+  .reader p.body:first-of-type::first-letter { font-family: var(--display); float: left; font-size: 54px; line-height: .9; padding: 4px 8px 0 0; color: var(--ink); font-weight: 700; }
+  .reader .r-foot { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; }
+
+  .player { position: absolute; left: 8px; right: 8px; bottom: 82px; z-index: 25; background: var(--chrome); color: #fff; border-radius: 12px; display: none; align-items: center; gap: 12px; padding: 8px 10px; box-shadow: 0 10px 30px rgba(0,0,0,.3); overflow: hidden; }
+  .player.show { display: flex; }
+  .player .pa { width: 40px; height: 40px; background: var(--red); display: grid; place-items: center; font-family: var(--display); font-weight: 800; flex-shrink: 0; }
+  .player .pt { flex: 1; min-width: 0; }
+  .player .pt b { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player .pt span { font-size: 11px; color: #aaa; }
+  .player .pp { width: 34px; height: 34px; display: grid; place-items: center; }
+  .player .prog { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--red); width: 0; }
+  .toast { position: absolute; left: 50%; bottom: 140px; transform: translateX(-50%) translateY(20px); background: var(--chrome); color: #fff; padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; opacity: 0; transition: all .25s; z-index: 40; white-space: nowrap; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="side">
+    <span class="tag">Customer demo</span>
+    <h1>The Economist app</h1>
+    <p>iOS reader experience: Home with The world in brief, the Weekly edition, Video, Podcasts and Saved.</p>
+    <p style="margin-top:10px">Weekly &rarr; <b>Download</b> this week's edition for offline reading. Older editions download normally.</p>
+    <p style="margin-top:10px"><kbd>Alt</kbd>+<kbd>R</kbd> resets the demo. <code>?reports=off</code> rehearses without alerting.</p>
+    <p class="disc">NOT ACTUALLY AN ECONOMIST PRODUCT &mdash; internal demo only, not affiliated with or endorsed by The Economist Group. Synthetic headlines.</p>
+  </aside>
+
+  <div class="phone">
+    <div class="island"></div>
+    <div class="screen" id="screen">
+      <div class="status"><span id="clock">9:41</span><span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#000"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#000"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="#000"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#000"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.5c2.3 0 4.4.9 6 2.4l1.2-1.3C13.3 1.8 10.8.7 8 .7S2.7 1.8.8 3.6L2 4.9c1.6-1.5 3.7-2.4 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3C11.4 5 9.8 4.3 8 4.3S4.6 5 3.4 6.1l1.2 1.3C5.5 6.6 6.7 6.1 8 6.1zM8 9.6l2-2.1c-.5-.5-1.2-.8-2-.8s-1.5.3-2 .8z" fill="#000"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" stroke="#000" opacity=".4" fill="none"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#000"/><path d="M25 4.5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2z" fill="#000" opacity=".4"/></svg>
+      </span></div>
+
+      <div class="appbar">
+        <div class="logo">The<br>Economist</div>
+        <div class="actions">
+          <button aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+          <button aria-label="Account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="content" id="content">
+        <!-- HOME -->
+        <section class="view active" id="view-home">
+          <div class="datehead" id="today"></div>
+          <div class="h-section"><h2>The world in brief</h2><a href="#" data-noop>See all</a></div>
+          <div class="carousel" id="briefs"></div>
+          <div class="h-section"><h2>Top stories</h2></div>
+          <div id="stories"></div>
+          <div class="h-section"><h2>Watch</h2><a href="#" data-tab="video">More videos</a></div>
+          <div class="reels" id="reels"></div>
+          <div class="h-section"><h2>Play</h2></div>
+          <div class="games">
+            <button class="game" data-toast="Mini crossword opens in the full app"><svg width="28" height="28" viewBox="0 0 28 28"><rect width="28" height="28" fill="#0D0D0D"/><rect x="2" y="2" width="7" height="7" fill="#fff"/><rect x="10.5" y="2" width="7" height="7" fill="#fff"/><rect x="19" y="2" width="7" height="7" fill="#fff"/><rect x="2" y="10.5" width="7" height="7" fill="#fff"/><rect x="19" y="10.5" width="7" height="7" fill="#fff"/><rect x="2" y="19" width="7" height="7" fill="#fff"/><rect x="10.5" y="19" width="7" height="7" fill="#fff"/><rect x="19" y="19" width="7" height="7" fill="#E3120B"/></svg><b>Mini crossword</b><span>Today &middot; 5 clues</span></button>
+            <button class="game" data-toast="News quiz opens in the full app"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="14" fill="#E3120B"/><text x="14" y="19.5" font-family="Georgia" font-weight="700" font-size="16" fill="#fff" text-anchor="middle">?</text></svg><b>The weekly quiz</b><span>Test your news IQ</span></button>
+          </div>
+        </section>
+
+        <!-- WEEKLY -->
+        <section class="view" id="view-weekly">
+          <div class="wk-top"><h1>Weekly edition</h1><button id="browseBtn">All editions <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 6 6 6-6 6"/></svg></button></div>
+          <div class="cover-wrap">
+            <div class="cover" id="cover"></div>
+            <div class="cover-side">
+              <div class="d" id="edDate"></div>
+              <div class="t" id="edLine"></div>
+              <div class="s" id="edSub"></div>
+              <div class="n" id="edCount"></div>
+            </div>
+          </div>
+          <div class="wk-actions">
+            <button class="btn btn-red" id="dlBtn"></button>
+            <button class="btn btn-line" id="listenEd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>Listen</button>
+          </div>
+          <div class="wk-note" id="dlNote"></div>
+          <div class="h-section" style="padding-top:10px"><h2>In this issue</h2></div>
+          <div id="sections"></div>
+        </section>
+
+        <!-- VIDEO -->
+        <section class="view" id="view-video">
+          <div class="h-section"><h2>Video</h2></div>
+          <div class="vgrid" id="vgrid"></div>
+        </section>
+
+        <!-- PODCASTS -->
+        <section class="view" id="view-podcasts">
+          <div class="h-section"><h2>Podcasts</h2></div>
+          <div id="pods"></div>
+        </section>
+
+        <!-- SAVED -->
+        <section class="view" id="view-saved">
+          <div class="h-section"><h2>Bookmarks</h2></div>
+          <div id="savedList"></div>
+          <div class="h-section"><h2>Downloads</h2></div>
+          <div id="dlList"></div>
+        </section>
+      </div>
+
+      <nav class="tabbar">
+        <button class="tab active" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Home</button>
+        <button class="tab" data-tab="weekly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2.5" width="14" height="19" rx="1"/><path d="M8.5 7h7M8.5 11h7M8.5 15h4"/></svg>Weekly</button>
+        <button class="tab" data-tab="video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2.5" width="12" height="19" rx="2"/><path d="m10.5 9.5 4 2.5-4 2.5z" fill="currentColor"/></svg>Video</button>
+        <button class="tab" data-tab="podcasts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></svg>Podcasts</button>
+        <button class="tab" data-tab="saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>Saved</button>
+      </nav>
+
+      <div class="player" id="player">
+        <div class="pa">E</div>
+        <div class="pt"><b id="pTitle"></b><span id="pSub"></span></div>
+        <button class="pp" id="pToggle" aria-label="Play/pause"></button>
+        <button class="pp" id="pClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <div class="prog" id="pProg"></div>
+      </div>
+
+      <div class="reader" id="reader">
+        <div class="rbar">
+          <button id="rBack" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 5-7 7 7 7"/></svg></button>
+          <div class="acts">
+            <button id="rSize" aria-label="Text size" style="font-family:var(--serif);font-weight:700;font-size:17px">Aa</button>
+            <button id="rSave" aria-label="Bookmark"></button>
+            <button aria-label="Share" data-toast="Share sheet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v13M7 8l5-5 5 5M5 14v6h14v-6"/></svg></button>
+          </div>
+        </div>
+        <div class="rbody" id="rBody"></div>
+      </div>
+
+      <div class="sheet-bg" id="sheetBg"></div>
+      <div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const qs = new URLSearchParams(location.search);
+  const REPORTS_OFF = qs.get('reports') === 'off';
+  const KEY_DEMO = 'econ:demoId', KEY_READ = 'econ:read', KEY_SAVED = 'econ:saved';
+
+  if (!localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', '');
+  if (!localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', '');
+  let demoId = localStorage.getItem(KEY_DEMO);
+  if (!demoId) { demoId = 'econ-' + Math.random().toString(36).slice(2, 10); localStorage.setItem(KEY_DEMO, demoId); }
+
+  const api = (url, opts = {}) => fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', 'x-demo-id': demoId, ...(opts.headers || {}) } }).then((r) => r.json());
+  const getList = (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } };
+  const setList = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+  const ICON = {
+    download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="#1a7f37" stroke-width="2.6"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+    headphones: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>',
+    play: '<svg width="16" height="16" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>',
+    pause: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4.5" width="4" height="15"/><rect x="14" y="4.5" width="4" height="15"/></svg>',
+    chev: '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 6 6 6-6 6"/></svg>',
+    bm: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
+    bmOn: '<svg width="22" height="22" viewBox="0 0 24 24" fill="#E3120B" stroke="#E3120B" stroke-width="2"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
+    alert: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>',
+  };
+
+  // Abstract editorial illustrations (CSS/SVG, no external imagery)
+  const ART = {
+    agents: '<svg class="art" viewBox="0 0 200 260" preserveAspectRatio="xMidYMid slice"><rect width="200" height="260" fill="#0B1E3F"/><g fill="none" stroke="#3FA9F5" stroke-width="1.2" opacity=".55">' + Array.from({ length: 9 }, (_, i) => '<path d="M0 ' + (40 + i * 22) + ' Q100 ' + (10 + i * 22) + ' 200 ' + (40 + i * 22) + '"/>').join('') + '</g><circle cx="100" cy="90" r="40" fill="#E3120B"/><circle cx="100" cy="90" r="26" fill="#0B1E3F"/><circle cx="90" cy="85" r="4.5" fill="#fff"/><circle cx="110" cy="85" r="4.5" fill="#fff"/><rect x="88" y="98" width="24" height="3.5" fill="#fff"/><g fill="#F2C14E"><rect x="22" y="36" width="10" height="10"/><rect x="164" y="60" width="8" height="8"/><rect x="150" y="170" width="12" height="12"/><rect x="34" y="176" width="7" height="7"/></g></svg>',
+    debt: '<svg class="art" viewBox="0 0 200 260" preserveAspectRatio="xMidYMid slice"><rect width="200" height="260" fill="#1D1D1B"/><g fill="#C9A227">' + Array.from({ length: 7 }, (_, i) => '<ellipse cx="100" cy="' + (200 - i * 16) + '" rx="46" ry="9"/>').join('') + '</g><path d="M10 230 L60 180 L90 196 L140 120 L190 60" stroke="#E3120B" stroke-width="5" fill="none"/></svg>',
+    vote: '<svg class="art" viewBox="0 0 200 260" preserveAspectRatio="xMidYMid slice"><rect width="200" height="260" fill="#F4F1EA"/><rect x="0" y="0" width="100" height="260" fill="#1F3A93"/><rect x="100" y="0" width="100" height="260" fill="#C0392B"/><rect x="62" y="96" width="76" height="90" fill="#fff"/><rect x="80" y="84" width="40" height="16" fill="#111"/></svg>',
+    globe: '<svg class="art" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice"><rect width="200" height="150" fill="#E8E2D4"/><circle cx="100" cy="75" r="52" fill="#2F5D8A"/><path d="M60 60c14-10 26 4 38-4s20 10 34 2M56 88c18 6 30-6 46 2s22-4 40 2" stroke="#9BC1A0" stroke-width="10" fill="none" stroke-linecap="round"/></svg>',
+    chip: '<svg class="art" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice"><rect width="200" height="150" fill="#101820"/><rect x="70" y="40" width="60" height="60" fill="#E3120B"/><g stroke="#E3C26B" stroke-width="3">' + Array.from({ length: 6 }, (_, i) => '<path d="M' + (76 + i * 10) + ' 40v-18M' + (76 + i * 10) + ' 100v18"/>').join('') + '</g></svg>',
+    bank: '<svg class="art" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice"><rect width="200" height="150" fill="#F2EBDD"/><path d="M40 60h120L100 28z" fill="#3B3B3B"/>' + Array.from({ length: 5 }, (_, i) => '<rect x="' + (50 + i * 22) + '" y="64" width="10" height="50" fill="#3B3B3B"/>').join('') + '<rect x="36" y="116" width="128" height="8" fill="#3B3B3B"/><circle cx="160" cy="34" r="12" fill="#E3120B"/></svg>',
+    ship: '<svg class="art" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice"><rect width="200" height="150" fill="#7FB3D5"/><rect y="100" width="200" height="50" fill="#1F4E79"/><path d="M30 100h140l-18 22H48z" fill="#222"/><g>' + ['#E3120B', '#F2C14E', '#2E8B57', '#E3120B', '#3B5BA9'].map((c, i) => '<rect x="' + (44 + i * 23) + '" y="80" width="21" height="20" fill="' + c + '"/>').join('') + '</g></svg>',
+    city: '<svg class="art" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice"><rect width="200" height="150" fill="#F28C28"/><circle cx="150" cy="44" r="20" fill="#FFD27F"/>' + [[10, 70], [38, 50], [64, 84], [92, 40], [126, 66], [156, 58], [182, 80]].map(([x, y]) => '<rect x="' + x + '" y="' + y + '" width="24" height="' + (150 - y) + '" fill="#2B1B17"/>').join('') + '</svg>',
+  };
+  const coverArt = (theme) => ART[theme] || ART.agents;
+
+  const BRIEFS = [
+    'America\u2019s Federal Reserve held interest rates steady, but signalled that cuts could come early next year as inflation cooled to 2.4%.',
+    'European leaders agreed a \u20ac90bn joint fund for air defence, the largest common defence borrowing in the bloc\u2019s history.',
+    'Japan\u2019s economy grew by an annualised 1.9% in the third quarter, beating forecasts on the back of stronger consumer spending.',
+    'A ceasefire between rival factions in Sudan held for a fourth day, allowing aid convoys to reach Darfur for the first time since June.',
+    'Shares in chipmakers rallied after a large cloud provider said it would double its spending on AI data centres in 2027.',
+  ];
+  const STORIES = [
+    { fly: 'Artificial intelligence', hl: 'The machine-made economy', rub: 'AI agents are starting to do real work. Firms and governments are not ready', art: 'agents', mins: 5, section: 'Leaders' },
+    { fly: 'Free exchange', hl: 'The return of the productivity optimists', rub: 'Economists are revising their forecasts upward\u2014cautiously', art: 'bank', mins: 4, section: 'Finance & economics' },
+    { fly: 'Global trade', hl: 'Shipping lanes are rerouting, again', rub: 'Insurers and freight firms brace for another expensive winter', art: 'ship', mins: 6, section: 'International' },
+    { fly: 'Semiconductors', hl: 'The race for the next chip fab', rub: 'Governments are spending big. Will it pay off?', art: 'chip', mins: 7, section: 'Business' },
+    { fly: 'Cities', hl: 'Why the world\u2019s megacities keep growing', rub: 'Despite remote work, urban cores are filling up again', art: 'city', mins: 5, section: 'International' },
+  ];
+  const REELS = [
+    { cap: 'Why AI agents could upend office work', d: '1:12', bg: 'linear-gradient(160deg,#0B1E3F,#1E5AA8)' },
+    { cap: 'The world\u2019s debt problem, explained', d: '0:58', bg: 'linear-gradient(160deg,#1D1D1B,#8C6D1F)' },
+    { cap: 'Inside Europe\u2019s defence boom', d: '1:34', bg: 'linear-gradient(160deg,#3B3B3B,#9E2A2B)' },
+    { cap: 'How fusion could finally work', d: '1:05', bg: 'linear-gradient(160deg,#2B0F3A,#E3120B)' },
+    { cap: 'What GLP-1 drugs mean for food firms', d: '0:49', bg: 'linear-gradient(160deg,#0E4D4B,#4FB3A9)' },
+    { cap: 'China\u2019s housing slump in 60 seconds', d: '1:00', bg: 'linear-gradient(160deg,#5A1E0E,#F28C28)' },
+  ];
+  const PODS = [
+    { name: 'The Intelligence', ep: 'Agents of change: AI goes to work', len: '24 min', bg: '#E3120B' },
+    { name: 'Money Talks', ep: 'Is the bond market losing patience?', len: '31 min', bg: '#1F4E79' },
+    { name: 'Babbage', ep: 'A star in a jar, nearly', len: '38 min', bg: '#2E8B57' },
+    { name: 'Checks and Balance', ep: 'The midterm hangover', len: '42 min', bg: '#3B5BA9' },
+    { name: 'Drum Tower', ep: 'What Chinese students think now', len: '35 min', bg: '#9E2A2B' },
+    { name: 'The Weekend Intelligence', ep: 'The ocean-floor mapmaker', len: '28 min', bg: '#111' },
+  ];
+  const BODY = [
+    'For most of the past three years the promise of artificial intelligence has run well ahead of its delivery. That is beginning to change. Across banks, insurers, law firms and software houses, systems that can plan, act and check their own work are being handed real tasks, with real budgets attached.',
+    'The early evidence is striking. Firms that have put such tools to work report that routine engineering and back-office jobs are completed in a fraction of the time. Yet the gains are uneven, and the organisations reaping them have something in common: they have rethought how work flows, not merely bolted a chatbot onto the old process.',
+    'That is the harder part. Managers must decide which decisions can be delegated, how mistakes are caught and who is accountable when software acts on its own. Regulators, too, are only beginning to grapple with the questions. Getting the answers right will determine whether this boom lifts productivity or merely shuffles costs around.',
+    'History offers some comfort. Electricity took decades to transform factories, because owners first had to redesign their floors around it. This time the redesign may be faster. But it will not happen by itself.',
+  ];
+
+  let editions = [], current = null, viewingId = null, readerArticle = null;
+
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
+    $('content').scrollTop = 0;
+    if (name === 'saved') renderSaved();
+  }
+
+  function renderHome() {
+    const d = new Date();
+    $('today').textContent = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    $('briefs').innerHTML = BRIEFS.map((b, i) => '<div class="brief"><div class="n">' + (i + 1) + '</div><p>' + esc(b) + '</p><div class="listen">' + ICON.headphones + ' Listen &middot; 0:' + (20 + i * 4) + '</div></div>').join('');
+    $('stories').innerHTML = STORIES.map((s, i) => '<button class="story' + (i === 0 ? ' lead' : '') + '" data-story="' + i + '">' +
+      (i === 0 ? '<div class="thumb">' + ART[s.art] + '</div>' : '') +
+      '<div><div class="fly">' + esc(s.fly) + '</div><div class="hl">' + esc(s.hl) + '</div><div class="rub">' + esc(s.rub) + '</div><div class="meta">' + ICON.headphones + ' ' + s.mins + ' min read</div></div>' +
+      (i === 0 ? '' : '<div class="thumb">' + ART[s.art] + '</div>') + '</button>').join('');
+    const reel = (r) => '<button class="reel" style="background:' + r.bg + '" data-toast="Playing video"><span class="dur">' + r.d + '</span><span class="play">' + ICON.play + '</span><span class="cap">' + esc(r.cap) + '</span></button>';
+    $('reels').innerHTML = REELS.map(reel).join('');
+    $('vgrid').innerHTML = REELS.map(reel).join('');
+    $('pods').innerHTML = PODS.map((p, i) => '<button class="pod" data-pod="' + i + '"><div class="art-sq" style="background:' + p.bg + '">' + esc(p.name) + '</div><div><b>' + esc(p.name) + '</b><span>' + esc(p.ep) + '</span><span>' + p.len + '</span></div><span class="pbtn">' + ICON.play + '</span></button>').join('');
+  }
+
+  function edMini(ed) { return '<div class="mini">' + coverArt(ed.coverTheme) + '</div>'; }
+
+  function renderWeekly() {
+    const ed = current;
+    $('cover').innerHTML = coverArt(ed.coverTheme) + '<div class="logo">The<br>Economist</div><div class="date">' + esc(ed.date.toUpperCase()) + '</div><div class="line">' + esc(ed.coverLine) + '</div>';
+    $('edDate').textContent = ed.date;
+    $('edLine').textContent = ed.coverLine;
+    $('edSub').textContent = ed.coverSub;
+    $('edCount').textContent = ed.articleCount + ' articles \u00b7 ' + ed.sections.length + ' sections';
+    renderDownloadState(ed.download ? 'done' : 'idle', ed.download);
+    $('sections').innerHTML = ed.sections.map((s) => '<div class="sec" data-sec="' + esc(s.id) + '"><button class="sec-h"><b>' + esc(s.title) + (s.id === 'technology-quarterly' ? ' <span class="tq">Special</span>' : '') + '</b><span>' + s.articles.length + ' ' + ICON.chev + '</span></button><div class="sec-b">' +
+      s.articles.map((art) => '<button class="story" data-article="' + esc(art.id) + '"><div><div class="fly">' + esc(art.flytitle) + '</div><div class="hl">' + esc(art.headline) + '</div>' + (art.rubric ? '<div class="rub">' + esc(art.rubric) + '</div>' : '') + '<div class="meta">' + art.readMinutes + ' min read' + (art.audioSeconds ? ' &middot; ' + ICON.headphones + ' ' + Math.round(art.audioSeconds / 60) + ' min' : '') + '</div></div></button>').join('') + '</div></div>').join('');
+  }
+
+  function renderDownloadState(state, info, pct) {
+    const b = $('dlBtn'), note = $('dlNote');
+    b.disabled = state === 'busy' || state === 'done';
+    b.classList.toggle('done', state === 'done');
+    b.classList.toggle('btn-red', state !== 'done');
+    if (state === 'idle') { b.innerHTML = ICON.download + 'Download'; note.textContent = 'Download the full edition, including audio, to read offline.'; }
+    if (state === 'busy') {
+      const c = 2 * Math.PI * 8, off = c * (1 - (pct || 0) / 100);
+      b.innerHTML = '<svg class="ring" viewBox="0 0 20 20"><circle class="bg" cx="10" cy="10" r="8"/><circle class="fg" cx="10" cy="10" r="8" stroke-dasharray="' + c + '" stroke-dashoffset="' + off + '"/></svg>Downloading ' + Math.round(pct || 0) + '%';
+      note.textContent = 'Preparing articles, images and audio\u2026';
+    }
+    if (state === 'done') { b.innerHTML = ICON.check + 'Downloaded'; note.textContent = 'Available offline' + (info && info.sizeMb ? ' \u00b7 ' + info.sizeMb + ' MB' : ''); }
+  }
+
+  async function startDownload() {
+    const ed = current; let pct = 0;
+    renderDownloadState('busy', null, 0);
+    const tick = setInterval(() => { pct = Math.min(88, pct + 4 + Math.random() * 7); renderDownloadState('busy', null, pct); }, 120);
+    let d;
+    try {
+      d = await api('/api/43e4e1fb/editions/' + encodeURIComponent(ed.id) + '/download', {
+        method: 'POST',
+        body: JSON.stringify({
+          reports: REPORTS_OFF ? 'off' : undefined,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      });
+    } catch (e) { d = { success: false, error: 'Network error', code: 'NETWORK' }; }
+    clearInterval(tick);
+    if (d && d.success) {
+      renderDownloadState('busy', null, 100);
+      setTimeout(() => { ed.download = { status: 'downloaded', sizeMb: d.sizeMb }; renderDownloadState('done', ed.download); toast('Edition downloaded \u00b7 ' + d.articles + ' articles, ' + d.audioTracks + ' audio tracks'); }, 250);
+      return;
+    }
+    renderDownloadState('idle');
+    openSheet('<div class="err-ico">' + ICON.alert + '</div><h3>Download failed</h3><p>We couldn\u2019t download the ' + esc(ed.date) + ' edition. Your existing downloads are unaffected, and you can still read this edition online.</p><p style="margin-top:10px">Our team has been notified and is looking into it.</p>' +
+      '<div class="ref">Ref ' + esc(d.jobId || '\u2014') + ' &middot; ' + esc(d.code || 'ERROR') + '<br>' + esc((d.errorClass ? d.errorClass + ': ' : '') + (d.error || 'Unexpected error')) + '</div>' +
+      '<button class="btn btn-red" data-close>OK</button>');
+  }
+
+  function openSheet(html) { $('sheetBody').innerHTML = html; $('sheetBg').classList.add('show'); $('sheet').classList.add('show'); }
+  function closeSheet() { $('sheetBg').classList.remove('show'); $('sheet').classList.remove('show'); }
+
+  function openEditionPicker() {
+    openSheet('<h3>All editions</h3>' + editions.map((e) => '<button class="ed-row' + (e.id === editions[0].id ? ' cur' : '') + '" data-edition="' + esc(e.id) + '">' + edMini(e) + '<div><b>' + esc(e.date) + '</b><span>' + esc(e.coverLine) + ' &middot; ' + e.articleCount + ' articles' + (e.download ? ' &middot; Downloaded' : '') + '</span></div></button>').join(''));
+  }
+
+  async function loadEdition(id) {
+    const d = await api('/api/43e4e1fb/editions/' + encodeURIComponent(id));
+    current = d.edition; viewingId = id; renderWeekly();
+  }
+
+  function findArticle(id) {
+    for (const s of current.sections) for (const a of s.articles) if (a.id === id) return a;
+    return null;
+  }
+
+  function openReader(article) {
+    readerArticle = article;
+    const read = getList(KEY_READ);
+    if (article.id && !read.includes(article.id)) { read.push(article.id); setList(KEY_READ, read); }
+    const mins = article.audioSeconds ? Math.max(1, Math.round(article.audioSeconds / 60)) : null;
+    $('rBody').innerHTML = '<div class="r-fly">' + esc(article.sectionTitle) + ' | ' + esc(article.flytitle) + '</div><h1>' + esc(article.headline) + '</h1>' + (article.rubric ? '<div class="r-rub">' + esc(article.rubric) + '</div>' : '') +
+      '<div class="r-meta"><span>' + esc(article.date || (current && current.date) || '') + ' &middot; ' + article.readMinutes + ' min read</span>' + (mins ? '<button class="r-listen" id="rListen">' + ICON.play + ' Listen &middot; ' + mins + ' min</button>' : '') + '</div>' +
+      (article.art ? '<div class="r-art">' + ART[article.art] + '</div>' : '') +
+      BODY.map((p) => '<p class="body">' + esc(p) + '</p>').join('') +
+      '<p class="r-foot">This article appeared in the ' + esc(article.sectionTitle) + ' section of the print edition under the headline \u201c' + esc(article.headline) + '\u201d</p>';
+    renderSaveBtn();
+    $('rBody').scrollTop = 0;
+    $('reader').classList.add('show');
+  }
+  function renderSaveBtn() { const saved = getList(KEY_SAVED).some((s) => s.id === readerArticle.id); $('rSave').innerHTML = saved ? ICON.bmOn : ICON.bm; }
+
+  function renderSaved() {
+    const saved = getList(KEY_SAVED);
+    $('savedList').innerHTML = saved.length ? saved.map((s) => '<button class="story" data-saved="' + esc(s.id) + '" style="grid-template-columns:1fr"><div><div class="fly">' + esc(s.flytitle) + '</div><div class="hl">' + esc(s.headline) + '</div><div class="meta">' + s.readMinutes + ' min read</div></div></button>').join('') : '<div class="empty">Tap the bookmark on any article to save it here.</div>';
+    const dl = editions.filter((e) => e.download || (current && current.id === e.id && current.download));
+    $('dlList').innerHTML = dl.length ? dl.map((e) => '<div class="dl-row">' + edMini(e) + '<div><b>' + esc(e.date) + '</b><span>' + esc(e.coverLine) + ' &middot; ' + esc(((e.download || current.download) || {}).sizeMb || '') + ' MB</span></div></div>').join('') : '<div class="empty">Downloaded editions appear here for offline reading.</div>';
+  }
+
+  // Audio player
+  let playing = false, prog = 0, pTimer = null;
+  function playAudio(title, sub) {
+    $('pTitle').textContent = title; $('pSub').textContent = sub; $('player').classList.add('show');
+    prog = 0; playing = true; renderPlayer();
+    clearInterval(pTimer); pTimer = setInterval(() => { if (playing) { prog = Math.min(100, prog + 0.6); $('pProg').style.width = prog + '%'; } }, 300);
+  }
+  function renderPlayer() { $('pToggle').innerHTML = playing ? ICON.pause : '<span style="color:#fff">' + ICON.play + '</span>'; }
+
+  document.addEventListener('click', async (e) => {
+    const t = e.target.closest('button, a'); if (!t) return;
+    if (t.dataset.noop !== undefined) { e.preventDefault(); return; }
+    if (t.dataset.tab) { e.preventDefault(); switchTab(t.dataset.tab); return; }
+    if (t.dataset.toast) { toast(t.dataset.toast); return; }
+    if (t.dataset.close !== undefined) { closeSheet(); return; }
+    if (t.dataset.story !== undefined) { const s = STORIES[+t.dataset.story]; openReader({ id: 'home-' + t.dataset.story, flytitle: s.fly, headline: s.hl, rubric: s.rub, sectionTitle: s.section, readMinutes: s.mins, audioSeconds: s.mins * 60, art: s.art, date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }); return; }
+    if (t.dataset.article) { const a = findArticle(t.dataset.article); if (a) openReader(a); return; }
+    if (t.dataset.saved) { const s = getList(KEY_SAVED).find((x) => x.id === t.dataset.saved); if (s) openReader(s); return; }
+    if (t.dataset.edition) { closeSheet(); await loadEdition(t.dataset.edition); return; }
+    if (t.dataset.pod !== undefined) { const p = PODS[+t.dataset.pod]; playAudio(p.ep, p.name); return; }
+    if (t.classList.contains('sec-h')) { t.parentElement.classList.toggle('open'); return; }
+    if (t.id === 'dlBtn') { startDownload(); return; }
+    if (t.id === 'browseBtn') { const d = await api('/api/43e4e1fb/editions'); editions = d.editions; openEditionPicker(); return; }
+    if (t.id === 'listenEd') { playAudio(current.coverLine, 'The Economist \u00b7 ' + current.date + ' audio edition'); return; }
+    if (t.id === 'rBack') { $('reader').classList.remove('show'); return; }
+    if (t.id === 'rListen') { playAudio(readerArticle.headline, readerArticle.sectionTitle); return; }
+    if (t.id === 'rSave') {
+      let saved = getList(KEY_SAVED);
+      if (saved.some((s) => s.id === readerArticle.id)) { saved = saved.filter((s) => s.id !== readerArticle.id); toast('Removed from bookmarks'); }
+      else { saved.unshift(readerArticle); toast('Saved to bookmarks'); }
+      setList(KEY_SAVED, saved); renderSaveBtn(); return;
+    }
+    if (t.id === 'rSize') { const b = $('rBody'); b.classList.toggle('big'); b.querySelectorAll('p.body').forEach((p) => { p.style.fontSize = b.classList.contains('big') ? '20px' : ''; }); return; }
+    if (t.id === 'pToggle') { playing = !playing; renderPlayer(); return; }
+    if (t.id === 'pClose') { playing = false; clearInterval(pTimer); $('player').classList.remove('show'); return; }
+  });
+  $('sheetBg').addEventListener('click', closeSheet);
+
+  async function resetDemo() {
+    await api('/api/43e4e1fb/editions/reset', { method: 'POST', body: '{}' });
+    [KEY_READ, KEY_SAVED].forEach((k) => localStorage.removeItem(k));
+    location.href = location.pathname + (REPORTS_OFF ? '?reports=off' : '');
+  }
+  document.addEventListener('keydown', (e) => { if (e.altKey && (e.key === 'r' || e.key === 'R' || e.code === 'KeyR')) { e.preventDefault(); resetDemo(); } });
+
+  async function init() {
+    if (qs.get('reset') === '1') return resetDemo();
+    renderHome();
+    const d = await api('/api/43e4e1fb/editions');
+    editions = d.editions;
+    await loadEdition(editions[0].id);
+    if (qs.get('tab')) switchTab(qs.get('tab'));
+  }
+  init();
+})();
+</script>
+</body>
+</html>

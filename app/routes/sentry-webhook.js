@@ -165,6 +165,7 @@ INSTANT_PATH_SLUGS.push('nourish/mobile', 'nourish-mobile');
 INSTANT_PATH_SLUGS.push('c03fbe3d');
 INSTANT_PATH_SLUGS.push('cfe13c8b');
 INSTANT_PATH_SLUGS.push('7c3e9a52');
+INSTANT_PATH_SLUGS.push('43e4e1fb');
 // Verticals where only one code path alerts directly: every term must appear in the culprit.
 const INSTANT_PATH_CULPRIT_SIGNATURES = [['86a0a4f9', 'buildactivation'], ['/api/86a0a4f9/savings-card'], ['4d820a2b'], ['nordstrom-gift-finder', 'reservationservice.reserve'], ['20c2fe38'], ['22ab3789'], ['verticals/2fbca1a9', 'reportlatencybreach']];
 
