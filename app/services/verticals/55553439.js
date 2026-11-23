@@ -100,6 +100,7 @@ const CHANNELS = Object.freeze([
   { id: "abc13-houston", name: 'ABC13 Houston', onNow: "3:00 am - 3:30 am ABC13 EYEWITNESS NEWS AT 9PM", adPolicy: 'fast-news-v3', image: "https://images.sr.roku.com/idType/roku-trc/context/trc/id/a29b3851293f5dab92a694af758f3822/rokuFeed/assets/21dab7461d50568ebecdfab68aa049c2.jpg/magic/fit-in/440x480/filters:format(webp)" },
   { id: "yo-gabba-gabba", name: 'Yo Gabba Gabba!', onNow: "TVY \u2022 3:06 am - 3:31 am GREEN \u2022 S2:E11", adPolicy: 'fast-kids-v2', image: "https://images.sr.roku.com/idType/roku-trc/context/trc/id/99a7477e0d38503d9b5456f07c1cf520/https%3A%2F%2Fimage.roku.com%2Fbh-uploads%2Fproduction%2Fassets%2Fposter%2F16_9%2FNone%2F1674685413519_gabba.jpg/magic/fit-in/440x480/filters:format(webp)" },
   { id: "all-out-alaska", name: 'All-Out Alaska', onNow: "TV14 \u2022 2:24 am - 3:12 am HOMESTEAD FOR THE HOLIDAY", adPolicy: 'fast-entertainment-v2', image: "https://images.sr.roku.com/idType/roku-trc/context/trc/id/4fa77475640f5ab63700634c235d89a5/rokuFeed/assets/73d5a903a3fe53aaa419c971735c5d04.jpg/magic/fit-in/440x480/filters:format(webp)" },
+  { id: 'law-order', name: 'Law & Order', onNow: 'TV14 \u2022 Live on The Roku Channel', adPolicy: 'fast-entertainment-v2', image: 'https://images.sr.roku.com/idType/roku-trc/context/trc/id/0e8076d22d4711f94cd261087500576a/rokuFeed/assets/11a78bfb85c851608f7a72dd86e8b63a.jpg' },
 ]);
 
 const CHANNELS_BY_ID = new Map(CHANNELS.map((c) => [c.id, c]));
