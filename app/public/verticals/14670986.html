@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Click to Pay | Mastercard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --orange: #CF4500; --ink: #141413; --muted: #696969; --cream: #F3F0EE; --line: #D9D4D0; --paper: #FFFFFF; --red: #EB001B; --yellow: #F79E1B; }
+    * { box-sizing: border-box; } html, body { margin: 0; }
+    body { font-family: "Sofia Sans", Arial, sans-serif; font-size: 16px; line-height: 1.5; color: var(--ink); background: var(--cream); }
+    a { color: var(--ink); }
+    .hdr { padding: 16px 24px 0; }
+    .hdr .bar { max-width: 1280px; margin: 0 auto; background: var(--paper); border-radius: 40px; display: flex; align-items: center; gap: 20px; padding: 8px 12px 8px 22px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .mark { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; font-weight: 700; font-size: 18px; }
+    .mark svg { flex: none; }
+    .hdr nav { display: flex; gap: 4px; margin: 0 auto; }
+    .hdr nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; text-decoration: none; font-size: 16px; border-radius: 22px; }
+    .hdr nav a.on { font-weight: 700; }
+    .hdr .tools { display: flex; gap: 8px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border-radius: 20px; border: 2px solid var(--ink); background: var(--ink); color: #fff; font: 700 16px "Sofia Sans", Arial, sans-serif; text-decoration: none; cursor: pointer; }
+    .pill.ghost { background: transparent; color: var(--ink); }
+    .pill:disabled { opacity: .6; cursor: progress; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 36px 24px 72px; }
+    .eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .14em; color: var(--orange); margin: 0 0 8px; }
+    h1 { font-size: 56px; line-height: 1.05; font-weight: 500; letter-spacing: -.02em; margin: 0 0 12px; }
+    .lede { font-size: 20px; max-width: 640px; margin: 0 0 32px; color: #333; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 28px; align-items: start; }
+    .card { background: var(--paper); border-radius: 40px; padding: 32px; }
+    .card + .card { margin-top: 20px; }
+    .merchant { display: flex; align-items: center; gap: 12px; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .merchant .m { width: 44px; height: 44px; border-radius: 50%; background: var(--cream); display: grid; place-items: center; font-weight: 800; }
+    .merchant small { display: block; color: var(--muted); font-size: 14px; }
+    .ctp { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin-left: auto; background: var(--cream); border-radius: 20px; padding: 6px 12px; }
+    h2 { font-size: 28px; font-weight: 500; margin: 0 0 4px; letter-spacing: -.01em; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 48px; border: 1px solid #BDB7B2; border-radius: 20px; background: #fff; padding: 0 16px; font: 400 16px "Sofia Sans", Arial, sans-serif; color: var(--ink); }
+    .field input[readonly] { background: var(--cream); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .field small { display: block; color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .secure { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; margin-top: 16px; }
+    .pill:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+    .sw-label { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .sw-value { font-size: 28px; font-weight: 700; }
+    .stopwatch.done .sw-value { color: var(--orange); }
+    .result-box { border-radius: 20px; }
+    .result-box.success { background: #EAF4EC; } .result-box.notice { background: #FBE9E2; }
+    .sum dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 10px; }
+    .sum dt { color: var(--muted); } .sum dd { margin: 0; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sum .tot { font-size: 20px; color: var(--ink); padding-top: 12px; border-top: 1px solid var(--line); }
+    .steps { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+    .steps li { counter-increment: s; display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 10px 0; }
+    .steps li::before { content: counter(s); width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font-weight: 700; }
+    .cards { margin: 0; padding: 0; list-style: none; }
+    .cards li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .cards li:last-child { border-bottom: 0; }
+    .cards .chip { width: 46px; height: 30px; border-radius: 5px; background: var(--ink); display: grid; place-items: center; flex: none; }
+    .cards b { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .hero-img { width: 100%; border-radius: 40px; display: block; aspect-ratio: 16 / 9; object-fit: cover; background: #E6E0DB; }
+    footer { background: var(--ink); color: #D6D2CE; }
+    footer .in { max-width: 1280px; margin: 0 auto; padding: 32px 24px; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; }
+    footer a { color: #fff; display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: minmax(0, 1fr); } .hdr nav { display: none; } .hdr .tools { margin-left: auto; } }
+    @media (max-width: 600px) {
+      .hdr { padding: 10px 12px 0; } .hdr .bar { padding: 6px 8px 6px 14px; gap: 8px; } .hdr .tools .ghost { display: none; }
+      .wrap { padding: 24px 14px 48px; } h1 { font-size: 40px; } .lede { font-size: 18px; }
+      .card { padding: 22px 16px; border-radius: 28px; } .actions .pill { flex: 1 1 100%; }
+      .ctp { display: none; } footer .in { padding: 22px 14px; }
+    }
+
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; font-size: 15px; }
+    .result-box b { display: block; margin-bottom: 2px; }
+    .result-box.success, .result-box.notice { display: block; }
+  </style>
+</head>
+<body>
+  <header class="hdr"><div class="bar">
+    <a class="mark" href="#" aria-label="Mastercard home"><svg width="38" height="24" viewBox="0 0 38 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#EB001B"/><circle cx="26" cy="12" r="11" fill="#F79E1B"/><path d="M19 3.6a11 11 0 0 1 0 16.8a11 11 0 0 1 0-16.8z" fill="#FF5F00"/></svg><span>mastercard</span></a>
+    <nav aria-label="Main"><a href="#" class="on">For you</a><a href="#">For business</a><a href="#">For the world</a><a href="#">For innovators</a><a href="#">News and trends</a></nav>
+    <div class="tools"><a class="pill ghost" href="#">Sign out</a></div>
+  </div></header>
+  <main class="wrap">
+    <p class="eyebrow">CLICK TO PAY</p>
+    <h1>A faster, more secure way to pay online</h1>
+    <p class="lede">Your saved cards are ready. Check out with Click to Pay, no card number or password to type.</p>
+    <div class="grid">
+      <section class="card" aria-labelledby="payHead">
+        <div class="merchant"><span class="m" aria-hidden="true">N</span><div><b>Northwind Outfitters</b><small>northwind-outfitters.example</small></div><span class="ctp"><svg width="28" height="18" viewBox="0 0 38 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#EB001B"/><circle cx="26" cy="12" r="11" fill="#F79E1B"/><path d="M19 3.6a11 11 0 0 1 0 16.8a11 11 0 0 1 0-16.8z" fill="#FF5F00"/></svg> Click to Pay</span></div>
+        <h2 id="payHead">Pay with Click to Pay</h2>
+        <p class="sub">Signed in as m.lopez@example.com</p>
+        <form id="transferForm" novalidate aria-labelledby="payHead">
+          <div class="field">
+            <label for="fromAccount">Card</label>
+            <select id="fromAccount">
+              <option value="CTP-MC-WORLD-5521" data-name="Mastercard World Elite ···5521" data-balance="4280.00" selected>Mastercard World Elite ending 5521</option>
+              <option value="CTP-MC-DEBIT-1093" data-name="Mastercard Debit ···1093" data-balance="935.40">Mastercard Debit ending 1093</option>
+            </select>
+            <small id="fromBal">&nbsp;</small>
+          </div>
+          <div class="field">
+            <label for="toAccount">Order</label>
+            <select id="toAccount">
+              <option value="MRC-NWO-30418" data-name="Northwind Outfitters" data-total="184.50" selected>Northwind Outfitters · order 30418</option>
+              <option value="MRC-CTR-77102" data-name="Contoso Travel" data-total="642.00">Contoso Travel · booking 77102</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="amount">Amount (USD)</label>
+            <input type="number" id="amount" value="184.50" min="1" step="0.01" readonly>
+            <small>Total set by the merchant, including tax and shipping</small>
+          </div>
+          <input type="hidden" id="accountTier" value="standard">
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="pill">Continue</button>
+            <button type="reset" id="resetBtn" class="pill ghost">Cancel</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Checkout time</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="secure"><svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><rect x="1" y="8" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 8V5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Encrypted payment information</p>
+        </form>
+      </section>
+      <div>
+        <section class="card sum" aria-labelledby="sumHead">
+          <h2 id="sumHead">Summary</h2>
+          <dl>
+            <dt>Merchant</dt><dd id="sTo">&mdash;</dd>
+            <dt>Card</dt><dd id="sFrom">&mdash;</dd>
+            <dt>Order total</dt><dd id="sAmt">&mdash;</dd>
+            <dt>Click to Pay fee</dt><dd id="sFee">&mdash;</dd>
+            <dt class="tot">You pay</dt><dd class="tot" id="sTot">&mdash;</dd>
+          </dl>
+        </section>
+        <section class="card" aria-labelledby="walletHead">
+          <h2 id="walletHead">Saved cards</h2>
+          <ul class="cards">
+            <li><span class="chip" aria-hidden="true"><svg width="26" height="16" viewBox="0 0 38 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#EB001B"/><circle cx="26" cy="12" r="11" fill="#F79E1B"/><path d="M19 3.6a11 11 0 0 1 0 16.8a11 11 0 0 1 0-16.8z" fill="#FF5F00"/></svg></span><span>World Elite ···5521</span><b id="bal-CTP-MC-WORLD-5521"></b></li>
+            <li><span class="chip" aria-hidden="true"><svg width="26" height="16" viewBox="0 0 38 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#EB001B"/><circle cx="26" cy="12" r="11" fill="#F79E1B"/><path d="M19 3.6a11 11 0 0 1 0 16.8a11 11 0 0 1 0-16.8z" fill="#FF5F00"/></svg></span><span>Debit ···1093</span><b id="bal-CTP-MC-DEBIT-1093"></b></li>
+          </ul>
+        </section>
+        <section class="card" aria-labelledby="howHead">
+          <h2 id="howHead">Checking out is as easy as 1, 2, 3</h2>
+          <ol class="steps"><li>Look for the Click to Pay icon at checkout.</li><li>Confirm it's you with a one-time code or your device.</li><li>Choose a saved card and pay.</li></ol>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer><div class="in"><span>© Mastercard</span><a href="#">Privacy notice</a><a href="#">Terms of use</a><a href="#">Cookie preferences</a><a href="#">Contact us</a><span>Sample data.</span></div></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const fromAccount = $('fromAccount'); const toAccount = $('toAccount');
+      const amountInput = $('amount'); const accountTier = $('accountTier'); const btn = $('submitBtn'); const resetBtn = $('resetBtn');
+      const result = $('result'); const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const balances = {};
+      [...fromAccount.options].forEach((o) => { balances[o.value] = Number(o.dataset.balance); });
+      const dues = {};
+      [...toAccount.options].forEach((o) => { if (o.dataset.due) dues[o.value] = Number(o.dataset.due); });
+      const postedSelects = new Set(['fromAccount', 'toAccount']);
+      let pending = false; let ticker = null;
+      const opt = (s) => s.options[s.selectedIndex];
+      const secs = (ms) => `${(ms / 1000).toFixed(1)}s`;
+      const amount = () => { const raw = amountInput.value.trim(); return /^\d+(\.\d{1,2})?$/.test(raw) ? parseFloat(raw) : NaN; };
+      const feeFor = () => 0;
+      const cents = (v) => Math.round(v * 100);
+      const setTotal = () => { amountInput.value = Number(opt(toAccount).dataset.total).toFixed(2); };
+      function render() {
+        Object.keys(balances).forEach((k) => { const el = $(`bal-${k}`); if (el) el.textContent = money.format(balances[k]); });
+        Object.keys(dues).forEach((k) => { const el = $(`due-${k}`); if (el) el.textContent = dues[k] > 0 ? money.format(dues[k]) : 'Paid'; });
+        $('fromBal').textContent = `Available: ${money.format(balances[fromAccount.value])}`;
+        $('sFrom').textContent = opt(fromAccount).dataset.name; $('sTo').textContent = opt(toAccount).dataset.name;
+        const a = amount(); const ok = Number.isFinite(a) && a >= 1;
+        $('sAmt').textContent = ok ? money.format(a) : '\u2014';
+        $('sFee').textContent = ok ? money.format(feeFor(a)) : '\u2014';
+        $('sTot').textContent = ok ? money.format(a + feeFor(a)) : '\u2014';
+      }
+      function show(kind, title, body) {
+        result.className = `result-box ${kind}`; result.textContent = '';
+        const b = document.createElement('b'); b.textContent = title; result.appendChild(b); result.appendChild(document.createTextNode(body));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function clearStale() { if (pending) return; result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = secs(0); }
+      function onEdit(e) { if (e.target.tagName === 'SELECT' && !postedSelects.has(e.target.id)) return; if (e.target === toAccount) setTotal(); clearStale(); render(); }
+      form.addEventListener('input', onEdit);
+      form.addEventListener('change', onEdit);
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { accountTier.value = 'standard'; setTotal(); clearStale(); render(); });
+      });
+      setTotal();
+      render();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        const a = amount();
+        if (!Number.isFinite(a) || a < 1) { show('notice', 'Nothing to pay', 'This order has no amount due. Go back to the merchant and try again.'); return; }
+        if (cents(a) + cents(feeFor(a)) > cents(balances[fromAccount.value])) { show('notice', 'Card declined', `${opt(fromAccount).dataset.name} doesn\u2019t have enough available for this order. Choose another card.`); fromAccount.focus(); return; }
+        const from = fromAccount.value; const to = toAccount.value; const toName = opt(toAccount).dataset.name; const fee = feeFor(a);
+        const locked = [btn, resetBtn, fromAccount, toAccount];
+        pending = true; locked.forEach((el) => { el.disabled = true; });
+        btn.textContent = 'Processing\u2026'; result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = secs(performance.now() - started); };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        let response = null;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim()),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          tick(); stopTimer(true);
+          if (!response.ok || !data.success) throw new Error('not completed');
+          const charged = a + fee;
+          const ref = String(data.transferId || '').replace(/-/g, '').slice(-8).toUpperCase();
+          if (data.duplicate) { show('success', 'Already paid', `This order with ${toName} is already paid. Your card was charged once.${ref ? ' Reference ' + ref + '.' : ''}`); return; }
+          balances[from] -= charged; if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
+          
+          render();
+          show('success', 'Payment complete', `${money.format(a + fee)} paid to ${toName} with ${opt(fromAccount).dataset.name}.${ref ? ' Reference ' + ref + '.' : ''}`);
+        } catch (_err) {
+          stopTimer(true);
+          if (response) show('notice', 'We couldn\u2019t complete your payment', 'Something went wrong. Your card was not charged. Try again, or go back to the merchant to choose another way to pay.');
+          else show('notice', 'We couldn\u2019t complete your payment', 'We couldn\u2019t reach Click to Pay. Check your connection and try again.');
+        } finally {
+          pending = false; locked.forEach((el) => { el.disabled = false; });
+          btn.textContent = 'Continue';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
