@@ -6,72 +6,22 @@
  * the guide lineup, resolve its server-side ad insertion (SSAI) policy, build
  * the ad pod schedule for the first hour and hand back a session + stream URL.
  *
- * Failures are reported to this customer's own Sentry project (SENTRY_DSN_55553439)
- * tagged environment=roku-web-live-tv / platform=web so they never mix with the
- * tvOS playback API events in the same project.
+ * Failures go to the shared Sentry project and raise one Devin On-Call alert
+ * card in the shared on-call alerts channel (scenario '55553439' in oncall.js).
  */
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { createSessionAndAlert } = require('../devin-session');
+const { postOncallAlert } = require('../oncall');
+const { selectedAlertDestination } = require('../alert-destination');
 
 const CUSTOMER = '55553439';
-const SENTRY_ENV_SUFFIX = '55553439';
-const SERVICE = 'roku-web-live-tv';
+const SERVICE = 'customer-55553439-live-tv';
 const ROUTE = '/api/55553439/playback';
-const RELEASE = 'roku-web-live@2026.11.3';
-const SENTRY_ENVIRONMENT = process.env.SENTRY_ENVIRONMENT_55553439 || 'roku-web-live-tv';
-const SENTRY_TAGS = Object.freeze({
-  platform: 'web',
-  surface: 'the-roku-channel-web',
-  service: SERVICE,
-  customer: CUSTOMER,
-});
+const ALERT_COOLDOWN_MS = Number(process.env.ALERT_COOLDOWN_MS_55553439) || 60 * 1000;
 
-let customerSentryScope;
-function getCustomerSentryScope() {
-  if (customerSentryScope !== undefined) return customerSentryScope;
-  const dsn = process.env[`SENTRY_DSN_${SENTRY_ENV_SUFFIX}`];
-  if (!dsn || typeof Sentry.NodeClient !== 'function') {
-    customerSentryScope = null;
-    return customerSentryScope;
-  }
-  const client = new Sentry.NodeClient({
-    dsn,
-    environment: SENTRY_ENVIRONMENT,
-    release: RELEASE,
-    transport: Sentry.makeNodeTransport,
-    stackParser: Sentry.defaultStackParser,
-    integrations: [],
-  });
-  client.init();
-  customerSentryScope = new Sentry.Scope();
-  customerSentryScope.setClient(client);
-  customerSentryScope.setTags(SENTRY_TAGS);
-  return customerSentryScope;
-}
-
-function capturePlaybackError(error, context) {
-  const scope = getCustomerSentryScope();
-  if (scope) {
-    scope.captureException(error, { captureContext: context });
-    return;
-  }
-  Sentry.captureException(error, { ...context, tags: { ...SENTRY_TAGS, ...context.tags } });
-}
-
-function flushCustomerSentry(timeoutMs = 2000) {
-  const scope = getCustomerSentryScope();
-  const client = scope && scope.getClient();
-  return client ? client.flush(timeoutMs) : Promise.resolve(true);
-}
-
-function sentryIssueUrl() {
-  const org = process.env[`SENTRY_ORG_SLUG_${SENTRY_ENV_SUFFIX}`] || process.env.SENTRY_ORG_SLUG || 'sentry-org';
-  const project = process.env[`SENTRY_PROJECT_ID_${SENTRY_ENV_SUFFIX}`] || process.env.SENTRY_PROJECT_ID || '';
-  return `https://${org}.sentry.io/issues/?project=${project}&environment=${SENTRY_ENVIRONMENT}&query=is%3Aunresolved`;
-}
+let lastAlertAt = 0;
 
 // Guide lineup as served by the guide feed (v3). adPolicy keys the SSAI
 // policy registry below.
@@ -152,6 +102,29 @@ function listLineup() {
   return CHANNELS.map(({ id, name, onNow, image }) => ({ id, name, onNow, image }));
 }
 
+function raiseAlert(requestId, data) {
+  const now = Date.now();
+  if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
+    logger.warn('Live playback alert suppressed by cooldown', { requestId, cooldownMs: ALERT_COOLDOWN_MS });
+    return;
+  }
+  lastAlertAt = now;
+
+  postOncallAlert(CUSTOMER, {
+    destination: selectedAlertDestination(),
+    devinEmail: data.viewerEmail,
+  }).then((result) => {
+    if (!(result && result.ok) && lastAlertAt === now) lastAlertAt = 0;
+  }).catch((alertError) => {
+    if (lastAlertAt === now) lastAlertAt = 0;
+    logger.error('Failed to raise alert for live playback failure', { error: alertError.message, requestId });
+  });
+}
+
+function resetAlertCooldown() {
+  lastAlertAt = 0;
+}
+
 async function startLivePlayback(data) {
   const requestId = `RKW-${uuidv4().slice(0, 8).toUpperCase()}`;
   const start = Date.now();
@@ -165,8 +138,8 @@ async function startLivePlayback(data) {
     const policy = resolveAdPolicy(channel);
     const adPods = buildAdPodSchedule(policy);
     const sessionId = `RLS-${uuidv4().slice(0, 8).toUpperCase()}`;
-    recordTiming('roku_web_live.playback_start.duration', Date.now() - start, [`channel:${channel.id}`]);
-    incrementMetric('roku_web_live.playback_start.success', [`channel:${channel.id}`]);
+    recordTiming('live_tv.web.playback_start.duration', Date.now() - start, [`channel:${channel.id}`]);
+    incrementMetric('live_tv.web.playback_start.success', [`channel:${channel.id}`]);
     logger.info('Live playback session started', { requestId, customer: CUSTOMER, service: SERVICE, channelId: channel.id, sessionId });
     return {
       success: true,
@@ -178,7 +151,7 @@ async function startLivePlayback(data) {
     };
   } catch (error) {
     const durationMs = Date.now() - start;
-    incrementMetric('roku_web_live.playback_start.failure', [`channel:${channel.id}`, `ad_policy:${channel.adPolicy}`]);
+    incrementMetric('live_tv.web.playback_start.failure', [`channel:${channel.id}`, `ad_policy:${channel.adPolicy}`]);
     logger.error('Live playback start failed', {
       requestId,
       customer: CUSTOMER,
@@ -190,43 +163,19 @@ async function startLivePlayback(data) {
       adPolicy: channel.adPolicy,
     });
 
-    capturePlaybackError(error, {
+    Sentry.captureException(error, {
       tags: {
         route: ROUTE,
+        service: SERVICE,
+        customer: CUSTOMER,
+        alert_path: 'instant',
         channel_id: channel.id,
         ad_policy: channel.adPolicy,
-        error_code: 'PLAYBACK_START_FAILED',
-        request_id: requestId,
       },
-      fingerprint: ['roku-web-live-playback-start', error.name, channel.adPolicy],
-      extra: { requestId, channelId: channel.id, adPolicy: channel.adPolicy, release: RELEASE },
+      extra: { requestId, channelId: channel.id, adPolicy: channel.adPolicy },
     });
-    await flushCustomerSentry();
 
-    createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: sentryIssueUrl(),
-      culprit: 'app/services/verticals/55553439.js \u2014 buildAdPodSchedule',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: data.viewerUserId,
-      devinOrgId: data.viewerOrgId,
-      devinEmail: data.viewerEmail,
-      service: SERVICE,
-      verticalLabel: 'Live TV Playback Start',
-      customer: CUSTOMER,
-      tags: [
-        { key: 'route', value: ROUTE },
-        { key: 'service', value: SERVICE },
-        { key: 'environment', value: SENTRY_ENVIRONMENT },
-        { key: 'platform', value: 'web' },
-        { key: 'channel_id', value: channel.id },
-        { key: 'ad_policy', value: channel.adPolicy },
-      ],
-      extra: { requestId, ticketPrefix: 'RKW', channelId: channel.id },
-    }).catch((alertError) => {
-      logger.warn('Alert pipeline failed', { requestId, error: alertError.message });
-    });
+    raiseAlert(requestId, data);
 
     const wrapped = playbackError(error.message, 'PLAYBACK_START_FAILED', 500);
     wrapped.name = error.name;
@@ -242,4 +191,5 @@ module.exports = {
   resolveAdPolicy,
   buildAdPodSchedule,
   startLivePlayback,
+  resetAlertCooldown,
 };
