@@ -8709,6 +8709,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A VODAFONE SITE — internal demo only, not affiliated with, endorsed by, or a real Vodafone product.',
   },
+  '0a213d2c': {
+    slug: '0a213d2c',
+    company: 'Vodafone',
+    vertical: 'telco',
+    page: { file: '0a213d2c.html', title: 'Our best broadband deals | Award winning | Vodafone UK' },
+    disclaimer: 'NOT ACTUALLY A VODAFONE SITE — internal demo only, not affiliated with, endorsed by, or a real Vodafone product.',
+  },
   '5d588732': {
     slug: '5d588732',
     company: 'Aviva',
