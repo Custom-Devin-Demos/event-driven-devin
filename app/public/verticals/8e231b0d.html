@@ -216,10 +216,10 @@
             <div class="field">
               <label for="fromAccount">Pay from</label>
               <select id="fromAccount">
-                <option value="ACCT-1001" data-name="Sterling Current Account ··4417" data-ccy="GBP" data-sym="£" selected>Sterling Current Account ··4417 · £1,284,620.18</option>
-                <option value="ACCT-1002" data-name="US Dollar Current Account ··9023" data-ccy="USD" data-sym="$">US Dollar Current Account ··9023 · $842,105.77</option>
-                <option value="ACCT-1003" data-name="Euro Current Account ··3108" data-ccy="EUR" data-sym="€">Euro Current Account ··3108 · €516,440.02</option>
-                <option value="ACCT-1004" data-name="Swiss Franc Current Account ··7761" data-ccy="CHF" data-sym="CHF ">Swiss Franc Current Account ··7761 · CHF 212,930.55</option>
+                <option value="ACCT-1001" data-balance="1284620.18" data-name="Sterling Current Account ··4417" data-ccy="GBP" data-sym="£" selected>Sterling Current Account ··4417 · £1,284,620.18</option>
+                <option value="ACCT-1002" data-balance="842105.77" data-name="US Dollar Current Account ··9023" data-ccy="USD" data-sym="$">US Dollar Current Account ··9023 · $842,105.77</option>
+                <option value="ACCT-1003" data-balance="516440.02" data-name="Euro Current Account ··3108" data-ccy="EUR" data-sym="€">Euro Current Account ··3108 · €516,440.02</option>
+                <option value="ACCT-1004" data-balance="212930.55" data-name="Swiss Franc Current Account ··7761" data-ccy="CHF" data-sym="CHF ">Swiss Franc Current Account ··7761 · CHF 212,930.55</option>
               </select>
             </div>
             <div class="field">
@@ -410,6 +410,13 @@
       if (!Number.isFinite(n)) {
         result.className = 'result-box notice';
         result.textContent = 'Enter an amount between 1 and 250,000, with up to two decimal places.';
+        status.textContent = IDLE_STATUS;
+        amount.focus();
+        return;
+      }
+      if (n > parseFloat(selected(from).dataset.balance)) {
+        result.className = 'result-box notice';
+        result.textContent = `This amount is more than the available balance in your ${selected(from).dataset.name}.`;
         status.textContent = IDLE_STATUS;
         amount.focus();
         return;
