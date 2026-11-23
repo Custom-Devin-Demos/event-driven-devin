@@ -10569,6 +10569,23 @@ const ONCALL_SKINS = {
     page: { file: '3c0cacaa.html', title: 'AI-Powered LMS for Transformational Teaching & Learning | Blackboard' },
     disclaimer: 'NOT ACTUALLY A BLACKBOARD SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blackboard product.',
   },
+  '9fc10037': {
+    slug: '9fc10037',
+    company: 'Hex',
+    vertical: 'hightech',
+    oncallOnly: true,
+    ribbonSide: 'left',
+    page: { file: '9fc10037.html', title: 'Q3 2026 Renewal Forecast · Hex' },
+    alertCard: {
+      title: 'p95 latency trending up — App publish requests',
+      release: 'app-publish@2026.11.2',
+      team: 'apps-platform-oncall',
+      baseline: '~400ms (7-day p95, before app-publish@2026.11.2)',
+      symptom: 'After app-publish@2026.11.2, Publish version takes several seconds and gets slower with every publish. Process RSS trends up alongside it. Error rate is normal.',
+      impact: 'Every author publishing an App waits longer with each new version, and the wait keeps growing under sustained traffic.',
+    },
+    disclaimer: 'NOT ACTUALLY A HEX SITE — internal demo only, not affiliated with, endorsed by, or a real Hex product.',
+  },
   '45588e9e': {
     slug: '45588e9e',
     company: 'DataHub',
