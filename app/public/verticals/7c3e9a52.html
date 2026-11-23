@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Embedded Payments Platform for ISOs &amp; SaaS | NMI</title>
+  <link rel="icon" href="https://www.nmi.com/wp-content/themes/nmi/images/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1c083b; --plum: #32165d; --plum-2: #291647; --plum-card: #33175f; --lilac: #b6acce;
+      --mint: #5cddad; --cyan: #7cecf8; --violet: #bd8dff; --mist: #f5f8fb; --line: #e3dcef;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Public Sans', sans-serif; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    .eyebrow { color: var(--mint); font-weight: 800; font-size: 15px; letter-spacing: -0.1px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; font-weight: 800; font-size: 15px; padding: 12px 34px; border: 2px solid var(--mint); background: var(--mint); color: var(--ink); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; font-family: inherit; }
+    .pill:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(92, 221, 173, .35); }
+    .pill.ghost { background: transparent; color: var(--mint); padding: 6px 14px; font-size: 12px; }
+    .pill.ghost.dark { color: var(--ink); }
+
+    /* header */
+    header.site { position: sticky; top: 0; z-index: 50; background: var(--ink); }
+    header.site .wrap { display: flex; align-items: center; height: 54px; gap: 28px; }
+    .logo img { height: 20px; }
+    .logo .fallback { display: none; color: #fff; font-weight: 900; font-size: 20px; }
+    nav.main { display: flex; gap: 20px; flex: 1; padding-left: 60px; }
+    nav.main a { color: #fff; font-weight: 800; font-size: 12px; }
+    nav.main a:hover { color: var(--mint); }
+    .hdr-right { display: flex; align-items: center; gap: 20px; }
+    .hdr-right .pill.ghost { color: var(--mint); font-size: 12px; padding: 6px 14px; }
+    .hdr-right .signin { color: #fff; font-weight: 800; font-size: 12px; }
+    .hdr-right svg { width: 18px; height: 18px; stroke: #fff; }
+
+    .view { display: none; }
+    .view.on { display: block; }
+
+    /* home hero */
+    .hero { position: relative; background: var(--ink) url('https://www.nmi.com/wp-content/uploads/2024/03/XAgEzs33pe.png') right center / auto 100% no-repeat; padding: 86px 0 0; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #1c083b 38%, rgba(28, 8, 59, .55) 62%, rgba(28, 8, 59, .1) 100%); }
+    .hero .wrap { position: relative; }
+    .hero h1 { color: #fff; font-weight: 800; font-size: 60px; line-height: 1.12; letter-spacing: -2px; margin: 24px 0 52px; max-width: 520px; }
+    .hero p.lead { color: #fff; font-size: 15px; line-height: 1.6; max-width: 580px; margin-bottom: 36px; }
+    .feature-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 18px; position: relative; top: 1px; }
+    .fcard { background: var(--plum-card); border-radius: 10px 10px 10px 10px; padding: 28px 24px 30px; position: relative; overflow: hidden; min-height: 300px; }
+    .fcard .tag { color: var(--mint); font-weight: 800; font-size: 11px; letter-spacing: .6px; }
+    .fcard h3 { color: #fff; font-weight: 800; font-size: 25px; letter-spacing: -.6px; line-height: 1.2; margin: 10px 0 20px; max-width: 260px; }
+    .fcard p { color: var(--lilac); font-size: 14px; line-height: 1.55; max-width: 260px; margin-bottom: 30px; }
+    .fcard img { position: absolute; right: 8px; top: 40px; width: 230px; }
+    .home-intro { background: #fff; text-align: center; padding: 22px 0 60px; }
+    .home-intro h2 { color: var(--plum); font-weight: 800; font-size: 48px; letter-spacing: -1.6px; line-height: 1.1; margin: 40px auto 34px; }
+    .home-intro p { max-width: 700px; margin: 0 auto; font-size: 14px; line-height: 1.7; }
+    .home-intro p a { color: #0a6cff; }
+    .products { background: #fafafa; padding: 50px 0 54px; }
+    .products .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .pcard { background: #fff; border-radius: 16px; padding: 40px 34px 60px; box-shadow: 0 0 0 1px #f0eef4; }
+    .pcard img { width: 56px; height: 56px; margin-bottom: 30px; }
+    .pcard h3 { color: var(--plum); font-weight: 800; font-size: 24px; letter-spacing: -.6px; line-height: 1.2; margin-bottom: 26px; }
+    .pcard p { font-size: 14px; line-height: 1.7; margin-bottom: 36px; min-height: 165px; }
+    .pcard p a { color: #0a6cff; }
+    .pcard .pill.ghost.c2 { border-color: var(--cyan); }
+    .pcard .pill.ghost.c3 { border-color: var(--violet); }
+
+    .why { background: var(--ink); color: #fff; padding: 70px 0 30px; }
+    .why .cols { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 50px 34px; margin-top: 30px; }
+    .why h2 { font-weight: 800; font-size: 50px; letter-spacing: -1.8px; line-height: 1.05; margin-bottom: 40px; }
+    .why .intro p { color: var(--lilac); font-size: 14px; line-height: 1.7; max-width: 340px; }
+    .why .item img { width: 52px; height: 52px; margin-bottom: 18px; }
+    .why .item h3 { font-weight: 800; font-size: 22px; letter-spacing: -.5px; line-height: 1.2; margin-bottom: 14px; }
+    .why .item p { color: var(--lilac); font-size: 14px; line-height: 1.7; }
+    .solid { background: var(--ink); padding: 120px 0 130px; }
+    .solid .wrap { display: flex; align-items: center; justify-content: center; gap: 48px; }
+    .solid h2 { color: #fff; font-weight: 900; font-size: 64px; letter-spacing: -2.4px; }
+    .solid h2 span { color: var(--mint); }
+    .serve { background: var(--ink); color: #fff; padding: 20px 0 100px; }
+    .serve .row { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 60px; }
+    .serve .row img { border-radius: 14px; width: 100%; height: 330px; object-fit: cover; }
+    .serve h2 { font-weight: 800; font-size: 50px; letter-spacing: -1.8px; line-height: 1.05; margin: 24px 0 26px; }
+    .serve p { color: var(--lilac); font-size: 14px; line-height: 1.7; margin-bottom: 26px; max-width: 420px; }
+    .serve h3 { font-weight: 800; font-size: 25px; letter-spacing: -.6px; margin-bottom: 20px; }
+
+    /* talk view */
+    .talk { position: relative; background: var(--plum); overflow: hidden; padding: 150px 0 86px; }
+    .talk::before { content: ''; position: absolute; width: 760px; height: 760px; border-radius: 50%; background: #46306e; left: -260px; top: -260px; }
+    .talk::after { content: ''; position: absolute; width: 900px; height: 900px; border-radius: 50%; background: #46306e; right: -330px; bottom: -700px; }
+    .talk .wrap { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 570px; gap: 70px; max-width: 1340px; }
+    .talk h1 { color: #fff; font-weight: 800; font-size: 50px; line-height: 1.28; letter-spacing: -.5px; margin-bottom: 58px; max-width: 560px; }
+    .talk h1 span { color: var(--mint); }
+    .benefit { display: grid; grid-template-columns: 90px 1fr; gap: 58px; margin-bottom: 52px; color: #fff; }
+    .benefit svg { width: 88px; height: 88px; stroke: var(--mint); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .benefit h3 { font-weight: 800; font-size: 20px; margin-bottom: 4px; }
+    .benefit p { font-size: 17px; line-height: 1.4; color: #efeaf8; font-weight: 300; }
+    .form-card { background: #fff; border-radius: 22px; padding: 58px 38px 48px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); align-self: start; margin-top: -40px; }
+    .form-card h2 { text-align: center; font-weight: 700; font-size: 28px; margin-bottom: 36px; color: #111; }
+    .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px; }
+    .fgrid .full { grid-column: 1 / -1; }
+    .field input, .field select, .field textarea { width: 100%; font-family: inherit; font-size: 17px; font-weight: 300; color: #333; border: 1.4px solid #8d8d95; border-radius: 9px; padding: 9px 11px; background: #fff; outline: none; }
+    .field select { appearance: none; background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0h10L5 6z' fill='%23999'/></svg>") right 12px center no-repeat; padding-right: 30px; }
+    .field textarea { min-height: 100px; resize: vertical; font-size: 16px; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--plum); box-shadow: 0 0 0 3px rgba(50, 22, 93, .12); }
+    .field.bad input, .field.bad select { border-color: #dc3545; }
+    .phone { display: flex; align-items: center; border: 1.4px solid #8d8d95; border-radius: 9px; overflow: hidden; }
+    .phone .flag { padding: 0 8px 0 10px; font-size: 13px; color: #666; display: flex; align-items: center; gap: 4px; }
+    .phone .flag i { display: inline-block; width: 18px; height: 12px; background: linear-gradient(#b22234 0 15%, #fff 15% 30%, #b22234 30% 45%, #fff 45% 60%, #b22234 60% 75%, #fff 75% 90%, #b22234 90%); position: relative; }
+    .phone .flag i::before { content: ''; position: absolute; left: 0; top: 0; width: 8px; height: 7px; background: #3c3b6e; }
+    .phone input { border: 0; border-radius: 0; }
+    .submit-row { text-align: center; margin: 40px 0 26px; }
+    .submit-row button { background: var(--mint); color: #fff; border: 0; border-radius: 999px; font-family: inherit; font-weight: 800; letter-spacing: 2.4px; font-size: 15px; width: 190px; height: 44px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+    .submit-row button[disabled] { opacity: .85; cursor: progress; }
+    .spinner { width: 16px; height: 16px; border: 2.5px solid rgba(255, 255, 255, .45); border-top-color: #fff; border-radius: 50%; display: none; animation: spin .8s linear infinite; }
+    button.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .wait { display: none; text-align: center; font-size: 13px; color: var(--plum); margin-top: -12px; margin-bottom: 18px; }
+    .wait.on { display: block; }
+    .legal { text-align: center; font-size: 11px; color: #222; }
+    .legal u { cursor: pointer; }
+    .thanks { display: none; }
+    .thanks .check { width: 64px; height: 64px; border-radius: 50%; background: var(--mint); margin: 0 auto 18px; display: grid; place-items: center; }
+    .thanks .check svg { width: 30px; height: 30px; stroke: #fff; stroke-width: 3; fill: none; }
+    .thanks h2 { margin-bottom: 12px; }
+    .thanks .copy { text-align: center; font-size: 15px; color: #444; line-height: 1.5; margin-bottom: 24px; }
+    .thanks dl { display: grid; grid-template-columns: 150px 1fr; gap: 10px 14px; font-size: 14px; border-top: 1px solid #eee; padding-top: 20px; }
+    .thanks dt { color: #777; font-weight: 600; }
+    .thanks dd { color: #111; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .chips span { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #e7f9f1; color: #137a52; }
+    .chips span.no { background: #f3f1f6; color: #8a8199; text-decoration: line-through; }
+    .thanks .again { display: block; margin: 26px auto 0; background: none; border: 0; color: var(--plum); font-family: inherit; font-weight: 800; font-size: 14px; text-decoration: underline; cursor: pointer; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; padding: 50px 56px 0; color: #fff; }
+    .stats b { display: block; font-size: 30px; font-weight: 800; }
+    .stats span { font-size: 15px; font-weight: 300; line-height: 1.4; }
+    .case { background: #fbfbfd; padding: 80px 0 90px; }
+    .case h2 { text-align: center; font-weight: 800; font-size: 42px; line-height: 1.2; letter-spacing: -.5px; max-width: 980px; margin: 0 auto 70px; }
+    .case h2 span { color: var(--mint); }
+    .case-card { max-width: 1140px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 10px 40px rgba(28, 8, 59, .08); overflow: hidden; }
+    .case-card .top { display: grid; grid-template-columns: 485px 1fr; gap: 80px; align-items: center; }
+    .case-card .top img { width: 100%; height: 400px; object-fit: cover; }
+    .case-card .top p { font-size: 19px; line-height: 1.6; color: #222; font-weight: 300; padding-right: 60px; margin-bottom: 34px; }
+    .case-card .learn { background: var(--plum); color: #fff; border-radius: 999px; padding: 12px 30px; font-weight: 800; letter-spacing: 2px; font-size: 15px; display: inline-block; }
+    .case-card blockquote { background: #f3f1f6; padding: 50px 60px 40px; font-weight: 800; font-size: 26px; line-height: 1.5; color: #111; }
+    .case-card cite { display: block; margin-top: 26px; font-style: normal; font-weight: 700; font-size: 13px; letter-spacing: 2.4px; color: #777; }
+
+    /* footer */
+    footer.site { background: var(--mist); color: var(--plum); padding: 100px 0 40px; }
+    footer.site .cols { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 34px; }
+    footer.site .flogo img { width: 136px; }
+    footer.site h4 { font-weight: 800; font-size: 18px; margin-bottom: 16px; }
+    footer.site ul { list-style: none; }
+    footer.site li { font-size: 14px; margin-bottom: 11px; }
+    footer.site .sub li { padding-left: 15px; }
+    footer.site .row2 { grid-column: 2 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 34px; margin-top: 40px; }
+    footer.site .bottom { display: flex; align-items: center; gap: 60px; margin: 70px 0 0 286px; font-size: 14px; }
+    footer.site .social { display: flex; gap: 22px; }
+    footer.site .social img { width: 22px; height: 22px; }
+    .demo-note { background: var(--mist); text-align: center; font-size: 11px; color: #8a8199; padding: 0 0 24px; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 99; background: #fff; border-left: 5px solid #dc3545; box-shadow: 0 10px 30px rgba(0, 0, 0, .2); border-radius: 10px; padding: 16px 20px; max-width: 380px; transform: translateY(150%); opacity: 0; visibility: hidden; transition: transform .3s ease, opacity .3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; visibility: visible; }
+    .toast strong { display: block; color: #dc3545; font-size: 15px; margin-bottom: 4px; }
+    .toast span { font-size: 14px; color: #333; }
+
+    @media (max-width: 960px) {
+      nav.main { display: none; }
+      .hero h1 { font-size: 42px; }
+      .feature-cards, .products .grid, .why .cols, .serve .row, .talk .wrap, .case-card .top, footer.site .cols { grid-template-columns: 1fr; }
+      .solid .wrap { flex-direction: column; } .solid h2 { font-size: 42px; }
+      .talk h1 { font-size: 36px; }
+      footer.site .bottom { margin-left: 0; flex-wrap: wrap; gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="logo" href="/nmi" aria-label="NMI home">
+        <img src="https://www.nmi.com/wp-content/themes/nmi/images/NMI_White_Logo_Small.webp" alt="NMI" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="fallback">nmi</span>
+      </a>
+      <nav class="main">
+        <a href="#">Products</a><a href="#">Solutions</a><a href="#">Who We Serve</a><a href="#">Developers</a><a href="#">Resources</a><a href="#">Blog</a><a href="#">About Us</a>
+      </nav>
+      <div class="hdr-right">
+        <a class="pill ghost" id="hdr-get-in-touch" href="/nmi/talk-to-our-team/">Get In Touch</a>
+        <a class="signin" href="#">Sign In</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="M16 16l6 6"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <main class="view" id="view-home">
+    <section class="hero">
+      <div class="wrap">
+        <div class="eyebrow">Unrivaled Embedded Payments Solutions</div>
+        <h1>Powering Every Possibility in Payments</h1>
+        <p class="lead">Unlock your growth potential and foster innovation by delivering the powerful, unified, scalable embedded payment solutions that your customers need to thrive in the modern financial landscape. Let’s build the future of fintech together.</p>
+        <a class="pill" id="hero-get-in-touch" href="/nmi/talk-to-our-team/">Get In Touch</a>
+        <div class="feature-cards">
+          <div class="fcard">
+            <div class="tag">From Sign-Up to Pay Out</div>
+            <h3>NMI Acquires Dwolla</h3>
+            <p>More ways to accept, manage and move money through card, bank and real-time payment rails — all in one platform.</p>
+            <a class="pill ghost" href="#">Press Release Here</a>
+            <img src="https://www.nmi.com/wp-content/uploads/2026/11/Group-16786.webp" alt="" onerror="this.style.display='none'">
+          </div>
+          <div class="fcard">
+            <div class="tag">Intelligence Behind Every Deal</div>
+            <h3>NMI Acquires Fee Navigator</h3>
+            <p>AI-Powered Pricing Intelligence.</p>
+            <a class="pill ghost" href="#">Press Release Here</a>
+            <img src="https://www.nmi.com/wp-content/uploads/2026/11/Group-16784.webp" alt="" onerror="this.style.display='none'">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-intro">
+      <div class="wrap">
+        <div class="eyebrow" style="margin-top:20px">Modularity. Flexibility. Choice.</div>
+        <h2>Your Fully Integrated<br>Payments Ecosystem</h2>
+        <p>Drive new revenue streams and unprecedented payments opportunities for yourself, your partners and the customers they serve. With our flexible, modular approach to providing a completely integrated set of <a href="#">embedded payment solutions</a>, we meet you wherever you are.</p>
+      </div>
+    </section>
+
+    <section class="products">
+      <div class="grid">
+        <div class="pcard">
+          <img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON-NMI-payments.svg" alt="" onerror="this.style.visibility='hidden'">
+          <h3>Payments</h3>
+          <p>Easily integrate and begin accepting payments with our comprehensive, all-in-one payments solution that empowers you to find, qualify, acquire and onboard merchants—all while sharing in the net payment revenue.</p>
+          <a class="pill ghost dark" href="#">Explore More</a>
+        </div>
+        <div class="pcard">
+          <img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON-Merchant-Relationship-Management.svg" alt="" onerror="this.style.visibility='hidden'">
+          <h3>Merchant<br>Central</h3>
+          <p>Manage the full life cycle of your merchants more efficiently and get the insights you need. With our combined CRM and underwriting tools, it’s easier than ever to underwrite, forecast and onboard merchants in minutes.</p>
+          <a class="pill ghost dark c2" href="#">Explore More</a>
+        </div>
+        <div class="pcard">
+          <img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON-Payment-Gateway.svg" alt="" onerror="this.style.visibility='hidden'">
+          <h3>Payment<br>Gateway</h3>
+          <p>Accept payments securely, easily and reliably with our feature-rich, white label <a href="#">payment gateway solution</a> that empowers organizations of all sizes to grow by delivering payment capabilities anywhere your customers want to pay.</p>
+          <a class="pill ghost dark c3" href="#">Explore More</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="why">
+      <div class="wrap">
+        <div class="eyebrow">Why NMI</div>
+        <div class="cols">
+          <div class="intro">
+            <h2>Solid and Scalable Payments Solutions</h2>
+            <p>We’re simplifying the complexities of payments and operating at the speed of business to deliver what no other competitor can—a solid-yet-flexible payments platform that best serves your customers as they scale.</p>
+          </div>
+          <div class="item"><img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON_Revenue-Streams.svg" alt="" onerror="this.style.visibility='hidden'"><h3>New Revenue<br>Streams</h3><p>Create the ability to make more money for yourself by accepting different payment methods. Monetization through differentiation means more ways to get paid.</p></div>
+          <div class="item"><img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON_Payment-Support.svg" alt="" onerror="this.style.visibility='hidden'"><h3>New-to-Payments<br>Support</h3><p>Provide your customers with an unparalleled payments experience that’s easy to navigate. Our intuitive, user-friendly solutions ensure a successful implementation for all.</p></div>
+          <div></div>
+          <div class="item"><img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON_Modularity.svg" alt="" onerror="this.style.visibility='hidden'"><h3>Flexibility via<br>Modularity</h3><p>Let our payments solutions meet you wherever you are to enhance your organization and technology, as well as create stickiness with the merchants and customers you serve.</p></div>
+          <div class="item"><img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON_Strategy.svg" alt="" onerror="this.style.visibility='hidden'"><h3>Payments as a<br>Strategy</h3><p>Treat your payments as more than just simple, transactional services. With us as your strategic partner, they won’t operate as discrete parts, but as an interconnected whole.</p></div>
+          <div></div>
+          <div class="item"><img src="https://www.nmi.com/wp-content/uploads/2024/02/ICON_Speed.svg" alt="" onerror="this.style.visibility='hidden'"><h3>Speed &amp; Scale</h3><p>Get to market faster—and continue to grow—without ever having to rip-and-replace your payments technology. It’s the best of both worlds, without sacrificing either.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="solid">
+      <div class="wrap">
+        <h2>Ready to <span>Build</span> Solid?</h2>
+        <a class="pill" id="get-started" href="/nmi/talk-to-our-team/" style="padding:12px 46px">Get Started</a>
+      </div>
+    </section>
+
+    <section class="serve">
+      <div class="wrap">
+        <div class="eyebrow">Who We Serve</div>
+        <div class="row">
+          <div>
+            <h2>Delivering Payments Support You Need</h2>
+            <p>As payments technology has evolved, so have merchant demands. Consequently, our partners expect more, and we’ve not only stayed ahead of the curve, but we’re ready to usher in a new reality run by a world of embedded finance for ISOs and software vendors.</p>
+          </div>
+          <img src="https://www.nmi.com/wp-content/uploads/2024/02/CompositeLayer-2.jpg" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="row">
+          <img src="https://www.nmi.com/wp-content/uploads/2024/02/Independent_Sales_img.jpg" alt="" onerror="this.style.display='none'">
+          <div>
+            <h3>Independent Sales Organizations</h3>
+            <p>We built our omnichannel payments platform to help ISOs like yours drive value and maximize revenue. Get full flexibility and total control to run your organization—and serve your customers—in exactly the ways you want.</p>
+            <a class="pill ghost" href="#">See Payment Solutions</a>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <h3>Software Vendors</h3>
+            <p>You build with your clients in mind, and so do we. Our modular, feature-rich embedded payments platform empowers you to build innovative software solutions that earn more, monetize payments better and retain customers longer.</p>
+            <a class="pill ghost" href="#">See Payment Solutions</a>
+          </div>
+          <img src="https://www.nmi.com/wp-content/uploads/2024/02/Software_vendors_img.jpg" alt="" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- TALK TO OUR TEAM -->
+  <main class="view" id="view-talk">
+    <section class="talk">
+      <div class="wrap">
+        <div>
+          <h1>Don’t just turn on payments, <span>transform</span> the way you do business</h1>
+          <div class="benefit">
+            <svg viewBox="0 0 64 64"><rect x="3" y="18" width="46" height="34" rx="3"/><circle cx="26" cy="35" r="10"/><path d="M29 31c-1-1.5-5-2-6 .2-1 2.6 6 2.4 6 5.3 0 2.4-4.4 2.6-6 .8M26 27.5v2M26 41v2"/><circle cx="50" cy="15" r="10"/><path d="M45.5 15l3 3 6-6"/></svg>
+            <div><h3>Generate New Revenue</h3><p>By adding or expanding payment offerings to your solution, you can start earning higher monthly and transaction-based recurring revenue.</p></div>
+          </div>
+          <div class="benefit">
+            <svg viewBox="0 0 64 64"><rect x="4" y="6" width="30" height="12" rx="2"/><path d="M4 18h30v14H4z"/><path d="M10 25h2M16 25h2M22 25h2"/><rect x="9" y="36" width="16" height="22" rx="2"/><path d="M9 44h16"/><rect x="40" y="22" width="20" height="36" rx="2"/><rect x="44" y="27" width="12" height="8"/><path d="M45 41h2M50 41h2M55 41h0M45 46h2M50 46h2M45 51h2M50 51h2"/></svg>
+            <div><h3>Offer the Power of Choice</h3><p>Allow merchants to choose from 125+ shopping cart integrations and 150+ processor connections to streamline their onboarding.</p></div>
+          </div>
+          <div class="benefit">
+            <svg viewBox="0 0 64 64"><circle cx="22" cy="36" r="14"/><circle cx="40" cy="36" r="14"/><path d="M10 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM54 6l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM32 50l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/></svg>
+            <div><h3>Seamless White Labeling</h3><p>Make the platform an extension of your brand by adding your logo, colors and customizing your URL.</p></div>
+          </div>
+        </div>
+        <div>
+          <div class="form-card">
+            <form id="talk-form" novalidate>
+              <h2>Talk to Our Team</h2>
+              <div class="fgrid">
+                <div class="field"><input id="firstName" placeholder="First Name*" autocomplete="given-name"></div>
+                <div class="field"><input id="lastName" placeholder="Last Name*" autocomplete="family-name"></div>
+                <div class="field"><input id="company" placeholder="Company*" autocomplete="organization"></div>
+                <div class="field"><input id="email" placeholder="Email Address*" autocomplete="email"></div>
+                <div class="field full"><div class="phone"><span class="flag"><i></i> &#9662;</span><input id="phone" placeholder="e.g.(201) 555-0123" autocomplete="tel"></div></div>
+                <div class="field"><select id="businessType"><option value="">Business Type*</option></select></div>
+                <div class="field"><select id="productInterest"><option value="">Product Interest*</option></select></div>
+                <div class="field full"><textarea id="message" placeholder="Tell us more about your needs! Are you looking to sign up merchants, accept payments, or something else? Providing details helps us assist you faster."></textarea></div>
+              </div>
+              <div class="submit-row"><button type="submit" id="submit-btn"><span class="spinner"></span><span id="submit-label">SUBMIT</span></button></div>
+              <div class="wait" id="wait">Matching you with the right NMI team…</div>
+              <p class="legal">By submitting your information, you agree to NMI's <u>Privacy Policy</u> &amp; <u>Terms and Conditions</u></p>
+            </form>
+            <div class="thanks" id="thanks">
+              <div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+              <h2 id="thanks-title">Thank you!</h2>
+              <p class="copy" id="thanks-copy"></p>
+              <dl id="thanks-dl"></dl>
+              <button type="button" class="again" id="again">Submit another request</button>
+            </div>
+          </div>
+          <div class="stats">
+            <div><b>~235K</b><span>Connected devices</span></div>
+            <div><b>300+</b><span>EMV device certifications</span></div>
+            <div><b>$700+</b><span>Billion Annual Payments Volume</span></div>
+            <div><b>6.5+</b><span>Billion Annual Transactions</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="case">
+      <div class="wrap">
+        <h2><span>IntegralPay Elevates</span> Its High-Risk Merchant Services With <span>NMI’s White-Label Solutions</span></h2>
+        <div class="case-card">
+          <div class="top">
+            <img src="https://www.nmi.com/wp-content/uploads/2024/09/case_study_09_30.jpg" alt="" onerror="this.style.display='none'">
+            <div>
+              <p>IntegralPay chose NMI to provide its new white-label gateway as well as a variety of other value-added merchant services. With NMI, IntegralPay got a gateway and a true partner — enjoying all the benefits of having the industry’s most reliable team in its corner.</p>
+              <a class="learn" href="#">LEARN MORE</a>
+            </div>
+          </div>
+          <blockquote>“In a lot of cases we didn’t even have access to things like reporting and the tech side, which we needed in order to be able to help our clients effectively. That obviously wasn’t cutting it, so we decided we needed our own gateway so we could simplify things and improve the experience.”<cite>— JEFFREY ALAMI, INTEGRALPAY CHIEF TECHNOLOGY OFFICER</cite></blockquote>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="cols">
+        <div class="flogo"><img src="https://www.nmi.com/wp-content/themes/nmi/images/NMI_Logo_Primary.webp" alt="NMI" onerror="this.style.display='none'"></div>
+        <div><h4>Products</h4><ul><li>Payments</li><li>Merchant Central</li></ul><ul class="sub"><li>Pipeline Management</li><li>Fee Navigator</li><li>Sign-Up &amp; Onboarding</li><li>Merchant Underwriting</li><li>Merchant Boarding</li><li>Reporting &amp; Insights</li><li>Residuals Management</li></ul><ul><li>Payment Gateway &amp; Value Added Solutions</li></ul></div>
+        <div><h4>Solutions</h4><ul><li>Ecommerce Payments</li><li>In-Person Payments</li><li>Mobile Payments</li><li>Unattended &amp; Self-service</li><li>Fraud Prevention Suite</li></ul></div>
+        <div><h4>Developers</h4><ul><li>Integration Portal</li><li>Documentation</li><li>SDKs + APIs</li><li>EMV Kernels</li><li>Processors &amp; Devices</li><li>Security</li></ul></div>
+        <div><h4>Who We Serve</h4><ul><li>Independent Sales Organizations (ISOs)</li><li>Software Companies / SaaS Platforms</li><li>Banks</li><li>Payment Facilitators</li><li>Industry Verticals</li></ul></div>
+        <div class="row2">
+          <div><h4>Resources</h4><ul><li>Blog</li><li>Case Studies</li><li>eBooks</li><li>Podcasts</li><li>Whitepapers</li><li>Webinars</li></ul></div>
+          <div><h4>About Us</h4><ul><li>Who We Are</li><li>Leadership</li><li>News</li><li>Events</li><li>Careers</li><li>Contact Us</li></ul></div>
+          <div><h4>Talk To Our Team</h4><ul><li><a href="/nmi/talk-to-our-team/">Talk to Sales</a></li><li>Contact Us</li><li>Support Hub</li></ul></div>
+          <div><h4>Policy</h4><ul><li>Terms and Policies</li><li>Privacy</li><li>Legal Process Guidelines</li></ul></div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="social">
+          <img src="https://www.nmi.com/wp-content/themes/nmi/images/youtube-black.svg" alt="YouTube" onerror="this.style.display='none'">
+          <img src="https://www.nmi.com/wp-content/themes/nmi/images/x-black.svg" alt="X" onerror="this.style.display='none'">
+          <img src="https://www.nmi.com/wp-content/themes/nmi/images/linkedin-black.svg" alt="LinkedIn" onerror="this.style.display='none'">
+          <img src="https://www.nmi.com/wp-content/themes/nmi/images/facebook-black.svg" alt="Facebook" onerror="this.style.display='none'">
+          <img src="https://www.nmi.com/wp-content/themes/nmi/images/instagram-black.svg" alt="Instagram" onerror="this.style.display='none'">
+        </div>
+        <span>&copy; 2026 NMI</span>
+        <span>Trading in the UK as Network Merchants Ltd.<br>Reg.No.: 3295353 VAT No: 125 4619 22</span>
+      </div>
+    </div>
+  </footer>
+  <div class="demo-note">NOT AN NMI SITE — internal demo only, not affiliated with or endorsed by NMI.</div>
+
+  <div class="toast" id="toast" role="alert"><strong>We couldn't submit your request</strong><span id="toast-copy"></span></div>
+
+  <script>
+    var API = '/api/7c3e9a52';
+    var isTalk = /talk-to-our-team\/?$/.test(location.pathname) || location.hash === '#talk-to-our-team';
+    document.getElementById(isTalk ? 'view-talk' : 'view-home').classList.add('on');
+    if (isTalk) document.title = 'Contact NMI: Transform Your Payment Processing Today';
+
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var form = document.getElementById('talk-form');
+    var required = ['firstName', 'lastName', 'company', 'email', 'businessType', 'productInterest'];
+    var fields = required.concat(['phone', 'message']);
+
+    function fillSelect(id, items) {
+      var sel = document.getElementById(id);
+      items.forEach(function (item) {
+        var opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.label;
+        sel.appendChild(opt);
+      });
+    }
+
+    function showToast(msg) {
+      document.getElementById('toast-copy').textContent = msg;
+      var t = document.getElementById('toast');
+      t.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(function () { t.classList.remove('show'); }, 6000);
+    }
+
+    if (isTalk) {
+      fetch(API + '/config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          var opts = cfg.options || {};
+          fillSelect('businessType', opts.businessTypes || []);
+          fillSelect('productInterest', opts.productInterests || []);
+          var prefill = cfg.prefill || {};
+          fields.forEach(function (f) { if (prefill[f] !== undefined) document.getElementById(f).value = prefill[f]; });
+        })
+        .catch(function () { showToast('The form could not be loaded. Please refresh the page.'); });
+    }
+
+    function row(dl, k, v) {
+      var dt = document.createElement('dt'); dt.textContent = k;
+      var dd = document.createElement('dd');
+      if (typeof v === 'string') dd.textContent = v; else dd.appendChild(v);
+      dl.appendChild(dt); dl.appendChild(dd);
+    }
+
+    document.getElementById('again').addEventListener('click', function () {
+      document.getElementById('thanks').style.display = 'none';
+      form.style.display = 'block';
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = {};
+      var missing = [];
+      fields.forEach(function (f) {
+        var el = document.getElementById(f);
+        el.closest('.field').classList.remove('bad');
+        body[f] = el.value.trim();
+        if (required.indexOf(f) !== -1 && !body[f]) { el.closest('.field').classList.add('bad'); missing.push(f); }
+      });
+      if (missing.length) { showToast('Please complete all required fields.'); return; }
+
+      var btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.classList.add('busy');
+      document.getElementById('submit-label').textContent = 'SUBMITTING';
+      document.getElementById('wait').classList.add('on');
+
+      identityReady.then(function () {
+        body.devinUserId = localStorage.getItem('devinUserId') || '';
+        body.devinOrgId = localStorage.getItem('devinOrgId') || '';
+        body.devinEmail = localStorage.getItem('devinEmail') || '';
+        return fetch(API + '/contact-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, data: j }; }); })
+        .then(function (res) {
+          if (!res.ok || !res.data.success) {
+            var err = res.data || {};
+            var badField = { INVALID_EMAIL: 'email', INVALID_PHONE: 'phone', INVALID_BUSINESS_TYPE: 'businessType', INVALID_PRODUCT_INTEREST: 'productInterest' }[err.code];
+            if (badField) document.getElementById(badField).closest('.field').classList.add('bad');
+            throw new Error(err.error || 'Something went wrong. Please try again.');
+          }
+          var req = res.data.request || {};
+          var to = req.routedTo || {};
+          var dl = document.getElementById('thanks-dl');
+          dl.innerHTML = '';
+          row(dl, 'Reference', req.id || res.data.requestId || '');
+          row(dl, 'Business type', req.businessTypeLabel || '');
+          row(dl, 'Product interest', req.productInterestLabel || '');
+          if (to.name) row(dl, 'Your NMI contact', to.name + (to.title ? ', ' + to.title : ''));
+          if (to.email) row(dl, 'Email', to.email);
+          var coverage = req.processorCoverage || [];
+          if (coverage.length) {
+            var chips = document.createElement('div');
+            chips.className = 'chips';
+            coverage.forEach(function (c) {
+              var s = document.createElement('span');
+              s.textContent = c.processor;
+              if (!c.certified) s.className = 'no';
+              chips.appendChild(s);
+            });
+            row(dl, 'Pre-certified processors (' + (req.certifiedProcessors || 0) + '/' + coverage.length + ')', chips);
+          }
+          document.getElementById('thanks-copy').textContent = req.nextStep || '';
+          window.__contactRequest = res.data;
+          form.style.display = 'none';
+          document.getElementById('thanks').style.display = 'block';
+        })
+        .catch(function (err) { showToast(err.message || 'Network error. Please try again.'); })
+        .then(function () {
+          btn.disabled = false;
+          btn.classList.remove('busy');
+          document.getElementById('submit-label').textContent = 'SUBMIT';
+          document.getElementById('wait').classList.remove('on');
+        });
+    });
+  </script>
+</body>
+</html>

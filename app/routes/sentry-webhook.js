@@ -164,6 +164,7 @@ const INSTANT_PATH_SLUGS = ['d44fc556', 'b539e9d4', 'gap/pdp', 'gap/web', 'gap/i
 INSTANT_PATH_SLUGS.push('nourish/mobile', 'nourish-mobile');
 INSTANT_PATH_SLUGS.push('c03fbe3d');
 INSTANT_PATH_SLUGS.push('cfe13c8b');
+INSTANT_PATH_SLUGS.push('7c3e9a52');
 // Verticals where only one code path alerts directly: every term must appear in the culprit.
 const INSTANT_PATH_CULPRIT_SIGNATURES = [['86a0a4f9', 'buildactivation'], ['/api/86a0a4f9/savings-card'], ['4d820a2b'], ['nordstrom-gift-finder', 'reservationservice.reserve'], ['20c2fe38'], ['22ab3789'], ['verticals/2fbca1a9', 'reportlatencybreach']];
 
@@ -174,6 +175,7 @@ const DIRECT_ALERT_PATHS = ['instant', 'latency'];
 // Latency-budget breaches alert directly; their issue webhooks carry no event
 // tags, so match the LatencyBudgetExceeded title/type against these routes.
 const LATENCY_DIRECT_ALERT_ROUTES = ['/api/d44fc556/', '/api/ef51d258/', '/api/a6fe3aeb/', '/api/f887d0be/', '/api/d708940c/', '/api/04525b56/', '/api/fd043af6/', '/api/fe97a788/', '/api/37b90289/', '/api/8f970d35/', '/api/924f5ec9/', '/api/2ecabf0c/', '/api/b1e1bd35/', '/api/f6f7a1d9/', '/api/532a696f/', '/api/3c9e1f7a/', '/api/5ac6319f/', '/api/e9838029/', '/api/947c7934/', '/api/b62bfb77/', '/api/98cd161c/', '/api/85bedc75/', '/api/5d0fd49b/', '/api/0166f378/', '/api/53cfb2d5/', '/api/4ea2d7f6/', '/api/f3e617ec/', '/api/2fbca1a9/', '/api/65ee9e8f/', '/api/2717ffdc/'];
+LATENCY_DIRECT_ALERT_ROUTES.push('/api/7c3e9a52/');
 
 function isInstantPathEvent(alertData) {
   const isDirectAlertError = typeof alertData.issueTitle === 'string'
