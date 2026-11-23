@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SmartChat seats | T-Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #E20074;
+      --ink: #262626;
+      --surface: #FFFFFF;
+      --chrome-bg: #262626;
+      --chrome-text: #FFFFFF;
+      --muted: color-mix(in srgb, var(--ink) 62%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --panel: color-mix(in srgb, var(--ink) 4%, var(--surface));
+      --accent-dark: color-mix(in srgb, var(--accent) 82%, #000);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Figtree', 'Helvetica Neue', Arial, sans-serif; color: var(--ink); background: var(--surface); font-size: 18px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+
+    .ts-header { display: flex; align-items: stretch; height: 90px; border-bottom: 1px solid var(--line); background: var(--surface); }
+    .ts-logo { display: flex; align-items: center; gap: 10px; background: var(--accent); color: #fff; padding: 0 36px 0 30px; min-width: 253px; font-size: 38px; font-weight: 600; letter-spacing: -0.5px; }
+    .ts-logo .mark { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 44px; font-size: 46px; font-weight: 600; line-height: 1; }
+    .ts-nav { display: flex; align-items: center; gap: 4px; padding-left: 40px; flex: 1; }
+    .ts-nav a { font-size: 16px; font-weight: 500; padding: 12px 28px 12px 0; min-height: 44px; display: inline-flex; align-items: center; }
+    .ts-nav a:hover { color: var(--accent); }
+    .ts-util { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 6px; padding-right: 30px; font-size: 14px; }
+    .ts-util .row { display: flex; gap: 24px; align-items: center; }
+    .ts-util .contact { font-size: 16px; font-weight: 600; }
+    .ts-burger { display: none; align-items: center; justify-content: center; width: 52px; background: none; border: 0; color: var(--ink); cursor: pointer; margin-left: auto; }
+
+    .crumbs { display: flex; flex-wrap: wrap; gap: 6px 0; font-size: 16px; padding: 46px 0 34px; }
+    .crumbs a::after { content: '\203A'; margin: 0 12px; color: var(--accent); }
+    .crumbs span { color: var(--accent); }
+
+    .hero { display: grid; grid-template-columns: 600px 1fr; gap: 60px; align-items: center; padding-bottom: 72px; }
+    .hero-img { width: 100%; aspect-ratio: 3 / 2; border-radius: 32px; object-fit: cover; background: var(--panel); display: block; }
+    .hero-img.img-fallback { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 30%, var(--surface)), var(--panel)); }
+    .eyebrow { font-size: 16px; color: var(--muted); margin-bottom: 10px; }
+    h1 { font-size: 48px; font-weight: 500; line-height: 1.1; margin-bottom: 22px; }
+    .lead { font-size: 22px; line-height: 1.4; margin-bottom: 28px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 47px; padding: 7px 24px; border-radius: 24px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font: inherit; font-size: 20px; cursor: pointer; }
+    .btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+    .btn[disabled] { opacity: .7; cursor: progress; }
+    .btn-outline { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn-outline:hover { background: var(--panel); border-color: var(--ink); }
+
+    .band { background: var(--panel); padding: 72px 0; }
+    h2 { font-size: 32px; font-weight: 500; line-height: 1.1; margin-bottom: 14px; }
+    .band .intro { font-size: 20px; color: var(--muted); max-width: 780px; margin-bottom: 36px; }
+    .order { display: grid; grid-template-columns: 1.35fr 1fr; gap: 28px; align-items: start; }
+    .card { background: var(--surface); border-radius: 24px; padding: 36px; }
+    .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    label { font-size: 16px; font-weight: 600; }
+    select, input[type=number] { width: 100%; min-height: 48px; padding: 10px 14px; font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--surface)); border-radius: 8px; }
+    .hint { font-size: 14px; color: var(--muted); }
+    .actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; }
+    .result-box { display: none; margin-top: 22px; padding: 16px 18px; border-radius: 12px; font-size: 16px; line-height: 1.45; }
+    .result-box .title { font-weight: 600; margin-bottom: 2px; }
+    .result-box.success { display: block; background: #E6F4EA; border: 1px solid #9ED3AE; color: #1C5E2F; }
+    .result-box.error { display: block; background: #FDECEF; border: 1px solid #F3A6B6; color: #9B1C33; }
+
+    .summary h3 { font-size: 22px; font-weight: 500; margin-bottom: 18px; }
+    .summary dl { display: grid; grid-template-columns: auto 1fr; gap: 12px 18px; font-size: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { text-align: right; font-weight: 500; }
+    .summary ul { list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
+    .summary li { padding-left: 26px; position: relative; }
+    .summary li::before { content: ''; position: absolute; left: 4px; top: 6px; width: 10px; height: 6px; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
+
+    .suite { padding: 72px 0; }
+    .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 28px; }
+    .tile { border: 1px solid var(--line); border-radius: 24px; padding: 30px; display: flex; flex-direction: column; gap: 12px; }
+    .tile h3 { font-size: 24px; font-weight: 500; }
+    .tile p { font-size: 17px; color: var(--muted); flex: 1; }
+    .tile a { color: var(--accent); font-weight: 600; font-size: 16px; min-height: 44px; display: inline-flex; align-items: center; }
+
+    .ts-footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 34px 0 32px; }
+    .ts-footer .social { display: flex; justify-content: center; gap: 40px; font-size: 15px; padding-bottom: 24px; border-bottom: 1px solid color-mix(in srgb, var(--chrome-text) 30%, var(--chrome-bg)); }
+    .ts-footer .flogo { font-size: 30px; font-weight: 600; margin: 18px 0 14px; letter-spacing: -0.4px; }
+    .ts-footer .links { display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 15px; }
+    .ts-footer .links a { min-height: 44px; display: inline-flex; align-items: center; }
+    .ts-footer .copy { font-size: 13px; margin-top: 6px; opacity: .9; }
+
+    @media (max-width: 1100px) {
+      .hero { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .ts-nav a { padding-right: 18px; }
+    }
+    @media (max-width: 860px) {
+      body { font-size: 17px; }
+      .wrap { padding: 0 20px; }
+      .ts-header { height: 52px; }
+      .ts-logo { min-width: 0; font-size: 26px; padding: 0 16px; gap: 6px; }
+      .ts-logo .mark { width: 26px; height: 30px; font-size: 32px; }
+      .ts-nav, .ts-util .row.top { display: none; }
+      .ts-util { padding-right: 4px; margin-left: auto; }
+      .ts-burger { display: inline-flex; margin-left: 0; }
+      .crumbs { font-size: 14px; padding: 24px 0 18px; }
+      .crumbs a::after { margin: 0 8px; }
+      .hero { grid-template-columns: 1fr; gap: 24px; padding-bottom: 44px; }
+      .hero-img { border-radius: 12px; }
+      h1 { font-size: 34px; }
+      .lead { font-size: 18px; }
+      .hero .btn { width: 100%; }
+      .band, .suite { padding: 44px 0; }
+      h2 { font-size: 26px; }
+      .band .intro { font-size: 17px; }
+      .order, .tiles { grid-template-columns: 1fr; }
+      .row2 { grid-template-columns: 1fr; gap: 0; }
+      .card { padding: 22px; border-radius: 16px; }
+      .actions .btn { width: 100%; }
+      .ts-footer .social { gap: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="ts-header">
+    <a class="ts-logo" href="#" aria-label="T-Systems home"><span class="mark" aria-hidden="true">T</span><span>Systems</span></a>
+    <nav class="ts-nav" aria-label="Main">
+      <a href="#">Services</a>
+      <a href="#">Industries</a>
+      <a href="#">References</a>
+      <a href="#">Insights</a>
+      <a href="#">Company</a>
+    </nav>
+    <div class="ts-util">
+      <div class="row top"><span>Great Britain</span><span>EN</span></div>
+      <div class="row"><a class="contact" href="#">Contact</a></div>
+    </div>
+    <button type="button" class="ts-burger" aria-label="Open menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="#">Homepage</a><a href="#">Services</a><a href="#">Artificial Intelligence</a><a href="#">AI Foundation Services</a><span aria-current="page">AI SmartChat</span>
+      </nav>
+
+      <section class="hero" aria-label="AI SmartChat">
+        <img class="hero-img" src="https://www.t-systems.com/resource/image/1019672/ratio3x2/639/426/8cfaee20870e589f0b74192ff78fe7a0/87C8AF4EB7F35045C7C9B271582C57CF/im-ai-foundation-services.webp" width="600" height="400" alt="Hands typing on a laptop keyboard" onerror="this.onerror=null;this.removeAttribute('src');this.alt='';this.classList.add('img-fallback')">
+        <div>
+          <p class="eyebrow">AI Foundation Services</p>
+          <h1>AI SmartChat</h1>
+          <p class="lead">Universal chat application. Switch among top AI models and build custom assistants and prompt templates &ndash; hosted on T Cloud in European data centres.</p>
+          <a class="btn" href="#add-seats">Add seats for your team</a>
+        </div>
+      </section>
+    </div>
+
+    <section class="band" id="add-seats" aria-label="Add seats">
+      <div class="wrap">
+        <h2>Add AI SmartChat seats</h2>
+        <p class="intro">Give more colleagues access to AI SmartChat. New seats are added to your organisation&rsquo;s existing tenant and can be assigned to users straight away.</p>
+        <div class="order">
+          <form id="provisionForm" class="card" novalidate>
+            <div class="field">
+              <label for="product">Service</label>
+              <select id="product">
+                <option value="enterprise_suite">AI SmartChat</option>
+                <option value="analytics_cloud">AI SmartChat with Retrieval-Augmented Generation (RAG)</option>
+                <option value="devops_platform">AI SmartChat with fine-tuned models</option>
+                <option value="security_gateway">LLM Serving &ndash; API access</option>
+              </select>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="seats">Additional seats</label>
+                <input type="number" id="seats" value="25" min="1" max="250" inputmode="numeric">
+              </div>
+              <div class="field">
+                <label for="planTier">Contract</label>
+                <select id="planTier">
+                  <option value="enterprise">Enterprise</option>
+                  <option value="business">Business</option>
+                  <option value="starter">Team</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="region">Data centre</label>
+              <select id="region">
+                <option value="eu-west">Germany &ndash; Magdeburg / Biere</option>
+                <option value="eu-nl">Netherlands &ndash; Amsterdam</option>
+              </select>
+              <span class="hint">Your data stays in the selected EU location.</span>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn" id="submitBtn">Add seats</button>
+              <button type="reset" class="btn btn-outline">Reset</button>
+            </div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+
+          <aside class="card summary" aria-label="Your order">
+            <h3>Your order</h3>
+            <dl>
+              <dt>Service</dt><dd id="sumProduct"></dd>
+              <dt>Additional seats</dt><dd id="sumSeats"></dd>
+              <dt>Contract</dt><dd id="sumPlan"></dd>
+              <dt>Data centre</dt><dd id="sumRegion"></dd>
+            </dl>
+            <ul>
+              <li>Enterprise-ready, customizable, scalable</li>
+              <li>Future-proof design</li>
+              <li>Compliant with strict regulations</li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="suite" aria-label="AI Foundation solutions">
+      <div class="wrap">
+        <h2>Explore our suite of AI Foundation solutions</h2>
+        <div class="tiles">
+          <article class="tile">
+            <h3>LLM Serving</h3>
+            <p>Choose from over 15 open- and closed-source LLMs served by three cloud providers through a unified API.</p>
+            <a href="#">Contact us</a>
+          </article>
+          <article class="tile">
+            <h3>Retrieval-Augmented Generation (RAG)</h3>
+            <p>Ground AI in your context. Leverage organizational knowledge and data to simplify processes and boost efficiency.</p>
+            <a href="#">Contact us</a>
+          </article>
+          <article class="tile">
+            <h3>Fine tuning</h3>
+            <p>Help AI learn to speak your language. Fine-tune AI models for domain- and task-specific applications.</p>
+            <a href="#">Contact us</a>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="ts-footer">
+    <div class="wrap">
+      <div class="social"><a href="#">Facebook</a><a href="#">YouTube</a><a href="#">X</a><a href="#">LinkedIn</a></div>
+      <div class="flogo">T Systems</div>
+      <div class="links">
+        <a href="#">Newsletter</a><a href="#">Blog</a><a href="#">News</a><a href="#">Imprint</a><a href="#">Contact</a><a href="#">Data Privacy</a><a href="#">Disclaimer</a><a href="#">Modern Slavery Act</a><a href="#">Tax Strategy</a><a href="#">Compliance/Supply Chain</a>
+      </div>
+      <p class="copy">&copy; 2026 T-Systems International GmbH. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('provisionForm');
+      const product = document.getElementById('product');
+      const seats = document.getElementById('seats');
+      const planTier = document.getElementById('planTier');
+      const region = document.getElementById('region');
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const label = (sel) => sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+
+      function renderSummary() {
+        document.getElementById('sumProduct').textContent = label(product);
+        const n = parseInt(seats.value, 10);
+        document.getElementById('sumSeats').textContent = Number.isFinite(n) && n > 0 ? String(n) : '\u2013';
+        document.getElementById('sumPlan').textContent = label(planTier);
+        document.getElementById('sumRegion').textContent = label(region);
+      }
+      form.addEventListener('input', renderSummary);
+      form.addEventListener('change', renderSummary);
+      form.addEventListener('reset', () => {
+        result.className = 'result-box';
+        result.textContent = '';
+        setTimeout(renderSummary, 0);
+      });
+      renderSummary();
+
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '';
+        const t = document.createElement('div');
+        t.className = 'title';
+        t.textContent = title;
+        const b = document.createElement('div');
+        b.textContent = body;
+        result.append(t, b);
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true; btn.textContent = 'Adding seats\u2026';
+        result.className = 'result-box';
+        result.textContent = '';
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orgName: product.value, planName: planTier.value, seats: parseInt(seats.value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            const msg = res.status === 504 && data.error ? data.error : 'Please try again in a few minutes. If the problem persists, contact T-Systems Support.';
+            show('error', 'Seats could not be added', msg);
+          } else {
+            const added = data.seatsAdded || parseInt(seats.value, 10);
+            show('success', 'Seats added', added + ' seats for ' + label(product) + ' are now available in your tenant (' + label(region) + '). You can assign them to users straight away.');
+          }
+        } catch (err) {
+          show('error', 'Seats could not be added', 'We could not reach the service. Please check your connection and try again.');
+        } finally { btn.disabled = false; btn.textContent = 'Add seats'; }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
