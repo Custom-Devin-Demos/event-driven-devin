@@ -1,16 +1,12 @@
-/* global document, window, localStorage, location, fetch, URLSearchParams */
+/* global document, window, location, fetch, URLSearchParams */
 (function () {
   'use strict';
   var REPORTS_ON = new URLSearchParams(location.search).get('reports') !== 'off';
   var VIEWS = ['home', 'spread'];
   var SYMBOL = { ILS: '₪', USD: '$', EUR: '€', THB: '฿', GBP: '£' };
-  var state = { account: null, chargeId: null, payments: 12, step: 1, busy: false };
+  var state = { account: null, chargeId: null, payments: 12, step: 1, busy: false, spread: {} };
   var $ = function (id) { return document.getElementById(id); };
 
-  function presenter() {
-    var get = function (k) { try { return localStorage.getItem(k) || undefined; } catch { return undefined; } };
-    return { devinUserId: get('devinUserId'), devinOrgId: get('devinOrgId'), devinEmail: get('devinEmail') };
-  }
   function money(n, cur) {
     var digits = cur === 'ILS' || n % 1 ? 2 : 0;
     return (SYMBOL[cur] || cur + ' ') + Number(n).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: 2 });
@@ -33,22 +29,29 @@
     document.querySelectorAll('[data-bind]').forEach(function (el) { el.textContent = vals[el.getAttribute('data-bind')]; });
   }
 
-  function renderCharges() {
+  function eligible(c) { return !(c.currency === 'ILS' && c.amount < state.account.minSpread) && !state.spread[c.id]; }
+  function firstEligible() { var c = state.account.charges.find(eligible); return c ? c.id : null; }
+
+  function renderCharges(focus) {
     $('charges').innerHTML = state.account.charges.map(function (c) {
-      var tooSmall = c.currency === 'ILS' && c.amount < state.account.minSpread;
+      var done = Boolean(state.spread[c.id]);
+      var tooSmall = !done && !eligible(c);
       var fx = c.currency !== 'ILS' ? '<span class="fx">' + c.currency + '</span>' : '';
-      var note = c.currency !== 'ILS' ? '<div class="note">יומר לשקלים ביום החיוב</div>' : tooSmall ? '<div class="note">מתחת לסכום המינימלי לפריסה</div>' : '';
-      return '<tr class="row' + (c.id === state.chargeId ? ' sel' : '') + (tooSmall ? ' dis' : '') + '" data-id="' + c.id + '">' +
-        '<td><input type="radio" name="charge" aria-label="' + esc(c.merchant) + '"' + (c.id === state.chargeId ? ' checked' : '') + (tooSmall ? ' disabled' : '') + '></td>' +
+      var note = done ? '<div class="note">נפרסה · ' + esc(state.spread[c.id]) + '</div>' : c.currency !== 'ILS' ? '<div class="note">יומר לשקלים ביום החיוב</div>' : tooSmall ? '<div class="note">מתחת לסכום המינימלי לפריסה</div>' : '';
+      return '<tr class="row' + (c.id === state.chargeId ? ' sel' : '') + (tooSmall || done ? ' dis' : '') + '" data-id="' + c.id + '">' +
+        '<td><input type="radio" name="charge" aria-label="' + esc(c.merchant) + '"' + (c.id === state.chargeId ? ' checked' : '') + (tooSmall || done ? ' disabled' : '') + '></td>' +
         '<td><b>' + esc(c.merchant) + '</b><div class="note">' + esc(c.city) + '</div></td><td>' + date(c.date) + '</td><td>' + esc(c.category) + '</td>' +
         '<td class="amt">' + fx + money(c.amount, c.currency) + note + '</td></tr>';
     }).join('');
+    $('to-2').disabled = !state.chargeId;
+    if (focus) { var sel = document.querySelector('#charges tr.sel input'); if (sel) sel.focus(); }
   }
 
-  function renderOpts() {
+  function renderOpts(focus) {
     $('opts').innerHTML = state.account.paymentOptions.map(function (n) {
       return '<button type="button" data-n="' + n + '" class="' + (n === state.payments ? 'on' : '') + '">' + n + '<span>תשלומים</span></button>';
     }).join('');
+    if (focus) { var on = document.querySelector('#opts button.on'); if (on) on.focus(); }
   }
 
   function renderSummary() {
@@ -56,11 +59,12 @@
     $('summary').innerHTML = [
       ['בית העסק', esc(c.merchant)], ['סכום העסקה', money(c.amount, c.currency)],
       ['מספר תשלומים', state.payments], ['תשלום ראשון', date(state.account.card.billingDate)],
-      ['כרטיס', state.account.card.product + ' •••• ' + state.account.card.last4], ['המרה', c.currency === 'ILS' ? 'ללא' : 'לפי שער יציג ביום החיוב'],
+      ['כרטיס', state.account.card.product + ' •••• ' + state.account.card.last4], ['המרה', c.currency === 'ILS' ? 'ללא' : 'לפי שער ההמרה ביום החיוב'],
     ].map(function (r) { return '<div><span>' + r[0] + '</span><b>' + r[1] + '</b></div>'; }).join('');
   }
 
   function go(step) {
+    if (step > 1 && !(state.account && state.chargeId)) return;
     state.step = step;
     [1, 2, 3].forEach(function (n) { $('step-' + n).hidden = n !== step; });
     document.querySelectorAll('#steps li').forEach(function (li) { li.classList.toggle('on', Number(li.getAttribute('data-step')) <= step); });
@@ -81,13 +85,16 @@
     state.busy = true;
     var btn = $('submit');
     btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> מחשבים את הפריסה…';
-    var payload = Object.assign({ chargeId: state.chargeId, payments: state.payments }, presenter());
+    var payload = { chargeId: state.chargeId, payments: state.payments };
     if (!REPORTS_ON) payload.reports = 'off';
     fetch('/api/1fc7edc2/installment-plans', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, body: j }; }); })
       .then(function (res) {
         var b = res.body;
         if (res.ok && b.success) {
+          state.spread[b.chargeId] = b.planId;
+          state.chargeId = firstEligible();
+          renderCharges();
           showResult('<h2>הפריסה אושרה</h2><p>העסקה ב־' + esc(b.merchant) + ' תיפרס ל־' + b.payments + ' תשלומים חודשיים.</p>' +
             '<div class="sum"><div><span>סכום לחיוב</span><b>' + money(b.billingAmount, 'ILS') + '</b></div><div><span>תשלום חודשי</span><b>' + money(b.monthlyPayment, 'ILS') + '</b></div>' +
             '<div><span>ריבית שנתית</span><b>' + b.annualRate + '%</b></div><div><span>סך עלות האשראי</span><b>' + money(b.totalInterest, 'ILS') + '</b></div></div>' +
@@ -106,9 +113,9 @@
 
   document.addEventListener('click', function (e) {
     var row = e.target.closest('#charges tr.row');
-    if (row && !row.classList.contains('dis')) { state.chargeId = row.getAttribute('data-id'); renderCharges(); return; }
+    if (row && !row.classList.contains('dis')) { state.chargeId = row.getAttribute('data-id'); renderCharges(true); return; }
     var opt = e.target.closest('#opts button');
-    if (opt) { state.payments = Number(opt.getAttribute('data-n')); renderOpts(); return; }
+    if (opt) { state.payments = Number(opt.getAttribute('data-n')); renderOpts(true); return; }
     var back = e.target.closest('[data-back]');
     if (back) { go(Number(back.getAttribute('data-back'))); return; }
     if (e.target.closest('[data-restart]')) { go(1); return; }

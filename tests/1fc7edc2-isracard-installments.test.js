@@ -1,7 +1,8 @@
+let mockAlertDestination;
 jest.mock('@sentry/node', () => ({ captureException: jest.fn() }));
 jest.mock('../app/services/devin-session', () => ({
   ...jest.requireActual('../app/services/devin-session'),
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ sessionId: 'devin-test' })),
+  createSessionAndAlert: jest.fn(() => { mockAlertDestination = require('../app/services/alert-destination').currentAlertDestination(); return Promise.resolve({ sessionId: 'devin-test' }); }),
 }));
 jest.mock('../app/telemetry/logger', () => ({ info: jest.fn(), error: jest.fn(), warn: jest.fn() }));
 
@@ -35,7 +36,7 @@ describe('registration and assets', () => {
     expect(html).toContain('פריסת חיובים');
     expect(html).not.toMatch(/src="https?:/);
     const js = fs.readFileSync(path.join(ASSETS, 'spread.js'), 'utf8');
-    for (const key of ['devinUserId', 'devinOrgId', 'devinEmail']) expect(js).toContain(`'${key}'`);
+    for (const key of ['devinUserId', 'devinOrgId', 'devinEmail', 'localStorage']) expect(js).not.toContain(key);
     expect(js).toContain("'/api/1fc7edc2/installment-plans'");
     expect(js).toContain("get('reports') !== 'off'");
     for (const f of ['OpenSansHebrew-Regular.woff2', 'OpenSansHebrew-Bold.woff2', 'OpenSansHebrew-ExtraBold.woff2']) {
@@ -84,13 +85,22 @@ describe('THB conversion failure', () => {
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert).toMatchObject({ customer: '1fc7edc2', service: svc.SERVICE, culprit: svc.CULPRIT, devinUserId: 'user-test', devinOrgId: 'org-test', devinEmail: 'demo@example.com', extra: { currency: 'THB', payments: 12 } });
+    expect(alert).toMatchObject({ customer: '1fc7edc2', service: svc.SERVICE, culprit: svc.CULPRIT, skipVulnerablePr: true, extra: { currency: 'THB', payments: 12 } });
+    expect(alert).not.toHaveProperty('devinUserId');
+    expect(mockAlertDestination).toBe('slack');
     expect(JSON.stringify(alert)).not.toMatch(/דנה כהן/);
     expect(isInstantPathEvent(alert)).toBe(true);
     expect(buildPrompt(alert)).toContain('1fc7edc2');
     expect(alert.promptAppendix).toContain('COG-GTM/event-driven-devin');
     expect(alert.promptAppendix).toContain('never merge or deploy');
     expect(alert.promptAppendix).toContain('request Devin Review');
+  });
+
+  test('alerts stay on Slack when the hub picked Teams', async () => {
+    const { runWithAlertDestination } = require('../app/services/alert-destination');
+    await runWithAlertDestination('teams', () => expect(svc.requestPlan({ chargeId: THB, payments: 12 })).rejects.toMatchObject({ status: 500 }));
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(mockAlertDestination).toBe('slack');
   });
 
   test('a second failure inside the cooldown is captured but does not alert again', async () => {
@@ -136,7 +146,8 @@ describe('HTTP contract', () => {
   test('500 on THB, 200 otherwise, 400 on invalid input, 404 on unknown plans', async () => {
     expect(await call('POST', '/api/1fc7edc2/installment-plans', { chargeId: THB, payments: 12, devinUserId: 'route-user', devinOrgId: 'route-org' }))
       .toMatchObject({ status: 500, body: { success: false, code: 'ISR-INS-4221', errorClass: 'TypeError', reference: expect.stringMatching(/^IC-/) } });
-    expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({ devinUserId: 'route-user', devinOrgId: 'route-org' }));
+    expect(createSessionAndAlert.mock.calls[0][0]).not.toHaveProperty('devinUserId');
+    expect(createSessionAndAlert.mock.calls[0][0]).not.toHaveProperty('devinOrgId');
     jest.clearAllMocks(); svc.resetAlertCooldown();
     expect(await call('POST', '/api/1fc7edc2/installment-plans', { chargeId: THB, payments: 12, reports: 'off' })).toMatchObject({ status: 500 });
     expect(createSessionAndAlert).not.toHaveBeenCalled();

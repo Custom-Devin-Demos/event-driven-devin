@@ -6,7 +6,6 @@ const router = express.Router();
 // `reports: 'off'` (or `?reports=off` on the page) keeps the failure but skips Sentry alerting/Slack/Devin; `x-synthetic` is local-only.
 const alertsSuppressed = req => (req.body && req.body.reports === 'off')
   || (Boolean(req.headers['x-synthetic']) && process.env.NODE_ENV !== 'production');
-const str = v => (typeof v === 'string' && v ? v : undefined);
 
 function sendError(req, res, error, fallbackCode) {
   res.status(error.status || 500).json({
@@ -22,7 +21,6 @@ router.post('/api/1fc7edc2/installment-plans', async (req, res) => {
   try {
     res.json(await requestPlan({
       chargeId: body.chargeId, payments: body.payments, suppressAlerts: alertsSuppressed(req),
-      devinUserId: str(body.devinUserId), devinOrgId: str(body.devinOrgId), devinEmail: str(body.devinEmail),
     }));
   } catch (error) {
     sendError(req, res, error, 'INSTALLMENT_PLAN_FAILED');

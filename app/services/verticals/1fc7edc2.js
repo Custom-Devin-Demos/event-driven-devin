@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const Sentry = require('@sentry/node');
 const { createSessionAndAlert } = require('../devin-session');
+const { runWithAlertDestination } = require('../alert-destination');
 const logger = require('../../telemetry/logger');
 
 const CUSTOMER = '1fc7edc2';
@@ -126,16 +127,17 @@ function reportFailure(error, context, data) {
   }
   lastAlertAt = now;
   logger.info('Posting alert and triggering Devin', { service: SERVICE, planId: context.planId });
-  createSessionAndAlert({
+  // Isracard alerts always go to #oncall-alerts, whatever destination the hub cookie picked.
+  runWithAlertDestination('slack', () => createSessionAndAlert({
     issueTitle: `${error.name}: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: CULPRIT, errorType: error.name, errorValue: error.message,
     customer: CUSTOMER, service: SERVICE, verticalLabel: VERTICAL_LABEL,
     level: 'error', platform: 'node', release: 'installment-plans@2026.11.4', environment: process.env.DD_ENV || 'prod',
-    devinUserId: data.devinUserId, devinOrgId: data.devinOrgId, devinEmail: data.devinEmail,
+    skipVulnerablePr: true,
     promptAppendix: `Incident Ref: ${context.planId}\n${REMEDIATION_DIRECTIVE}`,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })), extra: context,
-  }).catch(err => logger.error('Failed to create Devin session for installment plan failure', { error: err.message, planId: context.planId }));
+  })).catch(err => logger.error('Failed to create Devin session for installment plan failure', { error: err.message, planId: context.planId }));
 }
 
 async function requestPlan(data = {}, now = new Date()) {
