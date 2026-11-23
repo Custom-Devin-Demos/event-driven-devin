@@ -562,6 +562,86 @@ services:
         limits:
           memory: 1536M
 
+  # ─── b8d844e5 demo: store pickup inventory (Java 21 / Spring Boot / Kafka, separate repo COG-GTM/inventory-availability-service, checked out to ./b8d844e5-src by scripts/deploy-ec2.sh step 5d) ───
+  # Profile-gated; nginx resolves the storefront lazily so only /b8d844e5/ is affected when absent.
+  b8d844e5-kafka:
+    profiles: ["b8d844e5"]
+    image: apache/kafka:3.9.0
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://b8d844e5-kafka:9092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_HEAP_OPTS=-Xms128m -Xmx320m
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 5s
+      retries: 30
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 640M
+
+  b8d844e5-pos:
+    profiles: ["b8d844e5"]
+    build:
+      context: ./b8d844e5-src
+      args:
+        MODULE: store-pos-simulator
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=b8d844e5-kafka:9092
+      - JAVA_OPTS=-Xms64m -Xmx192m -XX:+UseSerialGC
+    depends_on:
+      b8d844e5-kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+
+  b8d844e5-inventory:
+    profiles: ["b8d844e5"]
+    build:
+      context: ./b8d844e5-src
+      args:
+        MODULE: inventory-availability
+        GIT_SHA: ${B8D844E5_GIT_SHA:-unknown}
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=b8d844e5-kafka:9092
+      - POS_BASE_URL=http://b8d844e5-pos:8082
+      - ONCALL_INCIDENT_URL=http://checkout-api:3000/api/b8d844e5/incident
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseSerialGC
+    depends_on:
+      b8d844e5-kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 448M
+
+  b8d844e5-storefront:
+    profiles: ["b8d844e5"]
+    build:
+      context: ./b8d844e5-src/storefront
+    environment:
+      - INVENTORY_UPSTREAM=http://b8d844e5-inventory:8081
+    ports:
+      - "127.0.0.1:3500:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
   # ─── Migration Control Tower (Ab Initio -> dbt parity demo) ───
   migration-tower:
     build:

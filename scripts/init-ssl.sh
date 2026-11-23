@@ -62,6 +62,7 @@ CERT_DIR="./certbot/conf/live/${DOMAIN_NAME}"
 restart_optional_services() {
   docker compose --profile avature up -d --no-deps --no-build avature 2>/dev/null || true
   docker compose --profile f2ec3d90 up -d --no-deps --no-build f2ec3d90 2>/dev/null || true
+  docker compose --profile b8d844e5 up -d --no-build b8d844e5-kafka b8d844e5-pos b8d844e5-inventory b8d844e5-storefront 2>/dev/null || true
 }
 
 if sudo test -d "$CERT_DIR" && sudo test -f "$CERT_DIR/fullchain.pem"; then
