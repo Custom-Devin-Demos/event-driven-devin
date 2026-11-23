@@ -38,6 +38,7 @@ const { getAvailability: getPatientAvailability, bookAppointment } = require('..
 const { createDeployment } = require('../services/oncall-verticals/privatecloud');
 const { filterPortfolio } = require('../services/oncall-verticals/portfoliofilter');
 const { answerResearchQuery } = require('../services/oncall-verticals/research');
+const { loadAssessments } = require('../services/oncall-verticals/commodityprices');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
@@ -1364,6 +1365,25 @@ router.post('/api/oncall/research/answers', async (req, res) => {
       error: status === 400 ? error.message : 'The answer could not be generated.',
       errorClass: error.name,
       code: error.code || 'RESEARCH_ANSWER_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/commodityprices/assessments — latest daily benchmark
+ * assessments for one commodity sector (price grid)
+ */
+router.post('/api/oncall/commodityprices/assessments', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await loadAssessments({ sector: body.sector }, { synthetic: Boolean(req.headers['x-synthetic']) }));
+  } catch (error) {
+    const status = error.code === 'INVALID_SECTOR' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: status === 400 ? 'Choose an available sector.' : 'Assessments could not be loaded.',
+      code: error.code || 'ASSESSMENTS_FAILED',
       requestId: req.requestId,
     });
   }

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Price Assessments | Commodity Insights | S&P Global</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --red: #D6002A; --ink: #000; --muted: #5c5c5c; --line: #e3e3e3; --bg: #f5f5f5; --up: #0a7d32; --down: #c4001f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Roboto, Arial, sans-serif; color: var(--ink); background: var(--bg); }
+    a { color: inherit; text-decoration: none; }
+    .top { background: #000; color: #fff; }
+    .top-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 28px; }
+    .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; }
+    .logo .mark { background: var(--red); color: #fff; padding: 6px 9px; font-size: 18px; letter-spacing: -0.5px; }
+    .logo .div { font-weight: 300; font-size: 18px; border-left: 1px solid #555; padding-left: 12px; }
+    .nav { display: flex; gap: 22px; font-size: 14px; color: #ddd; }
+    .nav a.active { color: #fff; border-bottom: 2px solid var(--red); padding-bottom: 20px; margin-bottom: -22px; }
+    .top .user { margin-left: auto; font-size: 13px; color: #bbb; display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; display: grid; place-items: center; color: #fff; font-size: 12px; }
+    .crumbs { max-width: 1280px; margin: 0 auto; padding: 18px 24px 0; font-size: 12px; color: var(--muted); }
+    .head { max-width: 1280px; margin: 0 auto; padding: 8px 24px 18px; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 30px; font-weight: 300; }
+    .asof { color: var(--muted); font-size: 13px; margin-left: auto; }
+    main { max-width: 1280px; margin: 0 auto; padding: 0 24px 48px; }
+    .panel { background: #fff; border: 1px solid var(--line); }
+    .toolbar { display: flex; align-items: center; gap: 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .tab { appearance: none; background: none; border: 0; border-bottom: 3px solid transparent; padding: 16px 20px; font: 500 14px Roboto, Arial, sans-serif; color: var(--muted); cursor: pointer; }
+    .tab.selected { color: #000; border-bottom-color: var(--red); }
+    .tools { margin-left: auto; display: flex; align-items: center; gap: 12px; padding: 8px 16px; }
+    #status { font-size: 13px; color: var(--muted); min-width: 180px; text-align: right; }
+    #status.busy { color: #000; }
+    #refreshBtn { background: var(--red); color: #fff; border: 0; border-radius: 2px; padding: 0 20px; height: 44px; font: 500 14px Roboto, Arial, sans-serif; cursor: pointer; }
+    #refreshBtn:disabled { opacity: 0.6; cursor: progress; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: #fafafa; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .sym { font-family: "Roboto Mono", Menlo, monospace; font-size: 12px; color: var(--muted); }
+    .up { color: var(--up); } .down { color: var(--down); }
+    .skel td span { display: block; height: 12px; background: linear-gradient(90deg, #eee, #f7f7f7, #eee); background-size: 200% 100%; animation: sh 1.2s infinite; border-radius: 2px; }
+    @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .empty, .error { padding: 48px 16px; text-align: center; color: var(--muted); }
+    .error { color: var(--down); }
+    footer { background: #000; color: #aaa; font-size: 12px; padding: 28px 24px; }
+    footer div { max-width: 1280px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap; }
+    @media (max-width: 760px) {
+      .nav, .top .user span { display: none; }
+      .hide-sm { display: none; }
+      .tools { width: 100%; justify-content: space-between; }
+      #status { text-align: left; min-width: 0; }
+      td, th { padding: 10px 8px; }
+      .table-wrap { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <a class="logo" href="#"><span class="mark">S&amp;P Global</span><span class="div">Commodity Insights</span></a>
+      <nav class="nav">
+        <a href="#">Markets</a><a class="active" href="#">Price Assessments</a><a href="#">Forward Curves</a><a href="#">News &amp; Analysis</a><a href="#">Data Downloads</a>
+      </nav>
+      <div class="user"><span>Energy Desk</span><div class="avatar">JD</div></div>
+    </div>
+  </header>
+
+  <div class="crumbs">Platform &rsaquo; Price Assessments &rsaquo; Benchmarks</div>
+  <div class="head">
+    <h1>Benchmark Price Assessments</h1>
+    <div class="asof" id="asOf">Daily assessments &middot; Market on Close</div>
+  </div>
+
+  <main>
+    <section class="panel">
+      <div class="toolbar" id="sectorTabs" role="tablist">
+        <button class="tab selected" data-sector="crude-oil" role="tab">Crude Oil</button>
+        <button class="tab" data-sector="refined-products" role="tab">Refined Products</button>
+        <button class="tab" data-sector="lng" role="tab">LNG</button>
+        <button class="tab" data-sector="metals" role="tab">Metals</button>
+        <button class="tab" data-sector="agriculture" role="tab">Agriculture</button>
+        <div class="tools">
+          <span id="status">Select a sector and load assessments.</span>
+          <button id="refreshBtn" type="button">Load assessments</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Assessment</th><th class="hide-sm">Symbol</th><th class="hide-sm">Hub</th><th class="num">Close</th><th class="num">Change</th><th class="hide-sm">Unit</th><th class="hide-sm">5-day</th></tr>
+          </thead>
+          <tbody id="rows"><tr><td colspan="7" class="empty">No assessments loaded yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer><div><span>&copy; 2026 S&amp;P Global</span><a href="#">Terms of Use</a><a href="#">Privacy</a><a href="#">Methodology</a></div></footer>
+
+  <script>
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+    (function () {
+      var sector = 'crude-oil';
+      var seq = 0;
+      var timer = null;
+      var rows = document.getElementById('rows');
+      var status = document.getElementById('status');
+      var btn = document.getElementById('refreshBtn');
+      function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      function store(k) { try { return localStorage.getItem(k) || ''; } catch (_) { return ''; } }
+      function spark(history) {
+        var v = history.map(function (h) { return h.close; });
+        var min = Math.min.apply(null, v), max = Math.max.apply(null, v), span = max - min || 1;
+        var pts = v.map(function (x, i) { return (i * 18) + ',' + (20 - ((x - min) / span) * 18 + 1).toFixed(1); }).join(' ');
+        var up = v[v.length - 1] >= v[0];
+        return '<svg width="76" height="22" aria-hidden="true"><polyline fill="none" stroke="' + (up ? '#0a7d32' : '#c4001f') + '" stroke-width="1.5" points="' + pts + '"/></svg>';
+      }
+      function skeleton() {
+        var html = '';
+        for (var i = 0; i < 8; i++) html += '<tr class="skel">' + '<td><span></span></td><td class="hide-sm"><span></span></td><td class="hide-sm"><span></span></td><td><span></span></td><td><span></span></td><td class="hide-sm"><span></span></td><td class="hide-sm"><span></span></td></tr>';
+        rows.innerHTML = html;
+      }
+      function render(data) {
+        if (!data.assessments.length) { rows.innerHTML = '<tr><td colspan="7" class="empty">No assessments for this sector.</td></tr>'; return; }
+        rows.innerHTML = data.assessments.map(function (a) {
+          var cls = a.change >= 0 ? 'up' : 'down';
+          var sign = a.change >= 0 ? '+' : '';
+          return '<tr><td>' + esc(a.name) + '</td><td class="hide-sm sym">' + esc(a.symbol) + '</td><td class="hide-sm">' + esc(a.hub) + '</td>' +
+            '<td class="num">' + a.close.toFixed(2) + '</td><td class="num ' + cls + '">' + sign + a.change.toFixed(2) + ' (' + sign + a.changePct.toFixed(2) + '%)</td>' +
+            '<td class="hide-sm">' + esc(a.unit) + '</td><td class="hide-sm">' + spark(a.history) + '</td></tr>';
+        }).join('');
+        document.getElementById('asOf').textContent = 'Daily assessments \u00b7 Market on Close \u00b7 ' + data.assessedOn;
+      }
+      async function load() {
+        var my = ++seq;
+        var started = Date.now();
+        skeleton();
+        btn.disabled = true;
+        status.classList.add('busy');
+        clearInterval(timer);
+        timer = setInterval(function () { status.textContent = 'Loading assessments\u2026 ' + ((Date.now() - started) / 1000).toFixed(1) + 's'; }, 100);
+        try {
+          var res = await fetch('/api/6747b2b6/assessments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sector: sector, devinUserId: store('devinUserId'), devinOrgId: store('devinOrgId'), devinEmail: store('devinEmail') }),
+          });
+          var data = await res.json().catch(function () { return null; });
+          if (my !== seq) return;
+          if (!res.ok || !data || data.success !== true) throw new Error('failed');
+          render(data);
+          status.textContent = data.assessments.length + ' assessments \u00b7 loaded in ' + ((Date.now() - started) / 1000).toFixed(1) + 's';
+        } catch (_) {
+          if (my !== seq) return;
+          rows.innerHTML = '<tr><td colspan="7" class="error">Assessments are temporarily unavailable. Please try again.</td></tr>';
+          status.textContent = 'Assessments unavailable';
+        } finally {
+          if (my === seq) { clearInterval(timer); btn.disabled = false; status.classList.remove('busy'); }
+        }
+      }
+      Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
+        tab.addEventListener('click', function () {
+          sector = tab.dataset.sector;
+          Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.classList.toggle('selected', t === tab); });
+          load();
+        });
+      });
+      btn.addEventListener('click', load);
+    })();
+  </script>
+</body>
+</html>
