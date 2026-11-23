@@ -232,7 +232,12 @@
     return renderHome();
   }
   window.addEventListener('hashchange', route);
-  fetch('/api/55553439/lineup').then(function (r) { return r.json(); }).then(function (j) { channels = j.channels || []; route(); });
+  function loadLineup(attempt) {
+    fetch('/api/55553439/lineup').then(function (r) { if (!r.ok) throw new Error('lineup ' + r.status); return r.json(); })
+      .then(function (j) { channels = j.channels || []; route(); })
+      .catch(function () { setTimeout(function () { loadLineup(attempt + 1); }, Math.min(1000 * Math.pow(2, attempt), 10000)); });
+  }
+  loadLineup(0);
 })();
 </script>
 </body>
