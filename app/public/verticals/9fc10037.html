@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q3 2026 Renewal Forecast · Hex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Archivo:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --title: 'Archivo', 'IBM Plex Sans', sans-serif;
+      --ink: #1F2329;
+      --ink-2: #4E545E;
+      --ink-3: #7D838E;
+      --ink-4: #A3A8B1;
+      --line: #E4E5EA;
+      --line-2: #D7D9DF;
+      --panel: #FFFFFF;
+      --canvas: #FFFFFF;
+      --chip: #F2F3F6;
+      --hex: #3E3A8E;
+      --tab-on-bg: #EDEEF6;
+      --tab-on: #4F548F;
+      --share: #2E8A5E;
+      --navy: #34425B;
+      --slate: #8EA4B2;
+      --low: #5AB463;
+      --med: #EFAE3D;
+      --high: #DA4F5B;
+      --dk-bg: #1D1E22;
+      --dk-line: #34363C;
+      --dk-ink: #E7E8EB;
+      --dk-ink-2: #A2A6AF;
+      --dk-field: #26282D;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font); font-size: 13px; color: var(--ink); background: #fff;
+      display: flex; flex-direction: column; overflow: hidden; -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font-family: inherit; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    svg { display: block; flex-shrink: 0; }
+
+    /* Top bar */
+    .topbar { height: 40px; flex-shrink: 0; display: flex; align-items: center; border-bottom: 1px solid var(--line); padding: 0 10px 0 14px; position: relative; }
+    .tb-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .tb-menu { color: var(--ink-3); }
+    .hexmark { width: 32px; height: 13px; }
+    .proj { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; }
+    .proj svg { color: var(--ink-3); }
+    .tb-center { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); display: flex; gap: 4px; }
+    .vtab { height: 28px; padding: 0 9px; border-radius: 5px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+    .vtab.on { background: var(--tab-on-bg); color: var(--tab-on); }
+    .tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--ink-3); border-radius: 5px; }
+    .btn-share { height: 28px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: 5px; background: #F6FAF8; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--share); }
+    .btn-publish { position: relative; height: 28px; display: flex; border: 1px solid var(--line-2); border-radius: 5px; background: #fff; overflow: visible; }
+    .btn-publish button { border: 0; background: none; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--ink); display: flex; align-items: center; }
+    .btn-publish .main { padding: 0 10px; }
+    .btn-publish .caret { padding: 0 6px; border-left: 1px solid var(--line-2); color: var(--ink-3); }
+    .btn-publish button:hover { background: #F6F7F9; }
+
+    .app { flex: 1; min-height: 0; display: flex; }
+
+    /* Left icon rail */
+    .rail { width: 40px; flex-shrink: 0; border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 6px; color: var(--ink-3); }
+    .rail .ri { width: 28px; height: 28px; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+    .rail .ri.on { background: var(--tab-on-bg); color: var(--tab-on); }
+    .rail .sp { flex: 1; }
+    .rail .ri.bot { margin-bottom: 4px; }
+
+    /* Outline */
+    .outline { width: 235px; flex-shrink: 0; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+    .ol-head { height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 12px; }
+    .ol-head h2 { font-size: 13px; font-weight: 600; }
+    .reset { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); padding: 4px 6px; border-radius: 5px; }
+    .ol-list { flex: 1; min-height: 0; overflow: auto; padding: 4px 12px 16px; }
+    .ol-item { position: relative; margin-bottom: 12px; }
+    .ol-label { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-bottom: 4px; padding-right: 2px; }
+    .ol-label span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ol-label svg { color: #6F7DA3; }
+    .ol-card { border: 1px solid var(--line-2); border-radius: 4px; overflow: hidden; background: #fff; }
+    .ol-card.sel { border: 1.5px solid #5E6270; }
+    .ol-grip { position: absolute; right: -9px; top: 26px; color: var(--ink-4); }
+    .mini { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 9.5px; table-layout: fixed; }
+    .mini th { text-align: left; font-weight: 400; color: var(--ink-3); background: #FAFAFB; padding: 3px 5px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+    .mini td { padding: 4px 5px; color: var(--ink); vertical-align: top; border-right: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini td.wrap { white-space: normal; word-break: break-all; }
+    .ol-input { height: 26px; border: 1px solid var(--line-2); border-radius: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0 7px; font-size: 11.5px; }
+    .ol-chart { padding: 6px 6px 4px; }
+
+    /* Canvas */
+    .canvas { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; }
+    .canvas-scroll { flex: 1; min-height: 0; overflow: auto; }
+    .doc { padding: 40px 54px 120px 54px; max-width: 980px; }
+    .status-row { display: flex; align-items: center; gap: 12px; font-size: 11.5px; color: var(--ink-2); }
+    .status { display: flex; align-items: center; gap: 5px; }
+    .status i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #D9534F; display: inline-block; }
+    .status-row .cat { color: var(--ink-3); display: flex; align-items: center; gap: 3px; }
+    h1.app-title { font-family: var(--title); font-size: 34px; line-height: 42px; font-weight: 800; letter-spacing: -0.5px; color: #15181D; margin-top: 10px; }
+    .pubmeta { margin-top: 6px; font-size: 11px; color: var(--ink-3); }
+    .pubmeta em { font-style: normal; color: var(--ink-4); }
+    .desc { margin-top: 14px; font-size: 12.5px; color: var(--ink-4); }
+    .addtab { margin-top: 30px; font-size: 11.5px; color: var(--ink-3); display: flex; align-items: center; gap: 4px; }
+    .input-blk { margin-top: 34px; }
+    .input-blk label { display: block; font-size: 12.5px; color: var(--ink-2); margin-bottom: 7px; }
+    .sel { width: 184px; height: 26px; border: 1px solid var(--line-2); border-radius: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; font-size: 12.5px; }
+    .charts { margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .chart { min-width: 0; }
+    .chart h3 { font-size: 12.5px; font-weight: 400; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
+    .chart svg { width: 100%; height: auto; }
+    .chart svg text { font-family: var(--font); }
+    .tbl-blk { margin-top: 28px; }
+    .tbl-blk h3 { font-size: 12.5px; font-weight: 400; color: var(--ink-2); margin-bottom: 8px; }
+    .tbl-wrap { border: 1px solid var(--line); border-radius: 4px; overflow-x: auto; }
+    .grid { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+    .grid th { text-align: left; font-weight: 400; color: var(--ink-2); background: #FAFAFB; padding: 6px 10px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); white-space: nowrap; }
+    .grid th b { font-weight: 400; color: var(--ink-4); margin-right: 5px; }
+    .grid td { padding: 6px 10px; border-bottom: 1px solid #F0F1F4; border-right: 1px solid var(--line); white-space: nowrap; }
+    .grid td.num { text-align: right; }
+
+    /* Floating cell toolbar */
+    .cellbar { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(20,24,35,0.08); display: flex; align-items: center; padding: 6px 8px; gap: 2px; }
+    .cb { width: 60px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: var(--ink-3); }
+    .cb svg { color: var(--ink-2); }
+    .cb-x { margin-left: 6px; color: var(--ink-3); }
+
+    /* Right settings panel */
+    .settings { width: 250px; flex-shrink: 0; border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+    .st-head { height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding: 0 8px; }
+    .runall { height: 24px; display: flex; align-items: center; border-radius: 4px; background: #F4F4F8; color: var(--tab-on); font-size: 11.5px; }
+    .runall span { display: flex; align-items: center; gap: 4px; padding: 0 7px; }
+    .runall i { width: 1px; height: 16px; background: #DCDDE6; }
+    .runall .rc { padding: 0 5px; }
+    .st-body { flex: 1; min-height: 0; overflow: auto; padding: 0 14px 20px 18px; }
+    .st-cap { font-size: 9px; letter-spacing: 0.6px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; margin: 2px 0 14px; }
+    .st-sec { margin-bottom: 22px; }
+    .st-sec-h { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 12px; }
+    .st-sec-h .l { display: flex; align-items: center; gap: 6px; }
+    .st-sec-h .r { font-size: 11px; font-weight: 400; color: var(--ink-3); display: flex; align-items: center; gap: 3px; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--ink); margin: 0 0 8px 14px; }
+    .tg { width: 24px; height: 13px; border-radius: 7px; background: #E6E7EB; position: relative; }
+    .tg::after { content: ''; position: absolute; top: 2px; left: 2px; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+    .tg.on { background: #5B606B; }
+    .tg.on::after { left: 13px; }
+    .stat-card { margin: 12px 0 0 14px; border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; }
+    .stat-card .s1 { font-size: 10px; color: var(--ink-3); display: flex; align-items: center; gap: 4px; }
+    .stat-card .s2 { font-size: 13px; font-weight: 500; margin: 6px 0 6px; }
+    .stat-card .s3 { font-size: 10px; color: var(--ink-3); display: flex; gap: 12px; }
+    .tabs-empty { margin-left: 14px; border: 1px solid var(--line); border-radius: 5px; padding: 14px 12px 12px; text-align: center; }
+    .tabs-empty p { font-size: 10.5px; color: var(--ink-2); line-height: 14px; margin: 10px 0 12px; }
+    .tabs-empty .add { height: 24px; border: 1px solid var(--line); border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; color: var(--ink); }
+    .theme-sel { margin-left: 14px; width: 150px; height: 24px; border: 1px solid var(--line-2); border-radius: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0 7px; font-size: 11px; }
+    .run-set { margin-left: 14px; }
+    .run-set b { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+    .run-set p { font-size: 10.5px; color: var(--ink-3); line-height: 14px; margin-bottom: 8px; }
+    .pill { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 6px; border-radius: 3px; background: var(--chip); font-size: 10.5px; color: var(--ink); }
+    .strip { width: 28px; flex-shrink: 0; border-left: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 10px; color: var(--ink-3); }
+
+    /* Publish dialog */
+    .pub { position: fixed; inset: 0; z-index: 60; display: none; background: rgba(14,15,18,0.45); }
+    body.pub-open .pub { display: flex; }
+    .pv { flex: 1; min-width: 0; background: #fff; margin: 0; display: flex; flex-direction: column; border-right: 1px solid #2A2C31; }
+    .pv-tabs { height: 49px; flex-shrink: 0; border-bottom: 1px solid var(--line); display: flex; justify-content: center; }
+    .pv-tab { display: flex; align-items: center; gap: 7px; padding: 0 14px; font-size: 13px; color: var(--ink-2); border-left: 1px solid var(--line); }
+    .pv-tab:last-child { border-right: 1px solid var(--line); }
+    .pv-tab.on { background: var(--tab-on-bg); color: var(--tab-on); }
+    .pv-body { flex: 1; min-height: 0; overflow: auto; }
+    .pv-body .doc { margin: 0 auto; padding-top: 32px; }
+    .dk { width: 300px; flex-shrink: 0; background: var(--dk-bg); color: var(--dk-ink); display: flex; flex-direction: column; min-height: 0; }
+    .dk-head { height: 42px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 16px; }
+    .dk-cap { display: flex; align-items: center; gap: 8px; font-size: 9px; letter-spacing: 0.6px; font-weight: 600; color: var(--dk-ink-2); text-transform: uppercase; }
+    .dk-x { position: relative; width: 24px; height: 24px; border: 0; background: none; color: var(--dk-ink-2); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .dk-x::before { content: ''; position: absolute; inset: -10px; }
+    .dk-body { flex: 1; min-height: 0; overflow: auto; padding: 4px 16px 10px; }
+    .dk-sec-h { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; margin: 8px 0 14px; }
+    .dk-row { display: grid; grid-template-columns: 74px 1fr; gap: 8px; font-size: 11px; line-height: 17px; margin: 0 0 10px 18px; }
+    .dk-row .k { color: var(--dk-ink-2); }
+    .dk-row .v { color: var(--dk-ink); }
+    .dk-row .v .mut { color: var(--dk-ink-2); }
+    .dk-set { margin: 0 0 12px 18px; font-size: 11px; line-height: 16px; }
+    .dk-set .t { display: flex; align-items: center; justify-content: space-between; color: var(--dk-ink); }
+    .dk-set .s { color: var(--dk-ink-2); margin-bottom: 4px; }
+    .dk-set .s b { color: var(--dk-ink); font-weight: 500; }
+    .dk-tg { width: 22px; height: 12px; border-radius: 6px; background: #D7A3AB; position: relative; }
+    .dk-tg::after { content: ''; position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: #1D1E22; }
+    .dk-pill { position: relative; display: inline-flex; align-items: center; height: 20px; border-radius: 3px; background: #2C2E34; color: var(--dk-ink); font-size: 11px; }
+    .dk-pill select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; height: 20px; padding: 0 22px 0 6px; font-size: 11px; color: var(--dk-ink); cursor: pointer; outline: none; }
+    .dk-pill select option { color: #111; }
+    .dk-pill svg { position: absolute; right: 6px; pointer-events: none; color: var(--dk-ink-2); }
+    .dk-pill.static { padding: 0 6px; gap: 6px; }
+    .dk-adv { margin: 2px 0 6px 22px; font-size: 9px; letter-spacing: 0.4px; font-weight: 600; color: var(--dk-ink-2); text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
+    .dk-foot { flex-shrink: 0; border-top: 1px solid var(--dk-line); padding: 12px 12px 16px; }
+    .dk-foot-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .dk-foot-h .dk-cap { font-size: 9px; }
+    .dk-link { font-size: 11px; color: #8FA8FF; display: flex; align-items: center; gap: 4px; }
+    .dk-ta { width: 100%; height: 54px; resize: none; background: var(--dk-field); border: 1px solid #8C4752; border-radius: 3px; padding: 6px 7px; font-size: 11.5px; color: var(--dk-ink); outline: none; }
+    .dk-ta::placeholder { color: #7D818B; }
+    .dk-rep { display: grid; grid-template-columns: 66px 1fr auto; gap: 6px; font-size: 11px; line-height: 16px; margin: 10px 0 12px; }
+    .dk-rep .k { color: var(--dk-ink-2); }
+    .dk-rep .mut { color: var(--dk-ink-2); }
+    .dk-rep .mut b { font-weight: 400; color: var(--dk-ink); margin-right: 6px; }
+    .dk-rep a { color: #8FA8FF; }
+    .dk-acts { display: flex; gap: 8px; }
+    .dk-cancel { height: 26px; padding: 0 9px; border: 1px solid #4A4D55; background: #2A2C31; border-radius: 3px; font-size: 12px; color: var(--dk-ink); cursor: pointer; }
+    .dk-go { flex: 1; height: 26px; display: flex; border: 1px solid #2F6B4B; border-radius: 3px; background: #1F3D2D; overflow: hidden; }
+    .dk-go button { border: 0; background: none; cursor: pointer; color: #6FD49C; font-size: 12px; }
+    .dk-go #submitBtn { flex: 1; }
+    .dk-go #submitBtn:disabled { color: #4F8F6C; cursor: default; }
+    .dk-go .dd { width: 24px; border-left: 1px solid #2F6B4B; display: flex; align-items: center; justify-content: center; }
+    .result-box { display: none; margin-top: 12px; border-radius: 3px; padding: 9px 10px; font-size: 11.5px; line-height: 16px; }
+    .result-box.success { display: block; background: #1E3328; border: 1px solid #2F6B4B; color: #BDEBD0; }
+    .result-box.error { display: block; background: #3A2226; border: 1px solid #7A3843; color: #F2C3C9; }
+    .result-box .r-title { font-weight: 600; margin-bottom: 2px; color: #fff; }
+    .result-box .r-detail { word-break: break-word; }
+
+    @media (max-width: 760px) {
+      body { overflow: auto; }
+      .topbar { height: 52px; padding: 0 10px; gap: 8px; }
+      .tb-center, .tb-menu, .icon-btn, .btn-share { display: none; }
+      .tb-left { flex: 1; min-width: 0; }
+      .proj { min-width: 0; }
+      .proj span { overflow: hidden; text-overflow: ellipsis; }
+      .btn-publish { height: auto; flex-shrink: 0; }
+      .btn-publish .main, .btn-publish .caret { min-height: 44px; }
+      .btn-publish .main { padding: 0 12px; }
+      .btn-publish .caret { padding: 0 10px; }
+      .rail, .outline, .settings, .strip, .cellbar { display: none; }
+      .app { display: block; }
+      .canvas-scroll { overflow: visible; }
+      .doc { padding: 24px 16px 40px; max-width: none; }
+      h1.app-title { font-size: 28px; line-height: 34px; }
+      .charts { grid-template-columns: 1fr; gap: 28px; }
+      .sel { width: 100%; height: 44px; }
+      .pv { display: none; }
+      .dk { width: 100%; }
+      .dk-x { width: 44px; height: 44px; }
+      .dk-x::before { display: none; }
+      .dk-pill { height: 44px; }
+      .dk-pill select { height: 44px; font-size: 13px; padding: 0 28px 0 10px; }
+      .dk-ta { height: 88px; font-size: 14px; }
+      .dk-foot { padding-bottom: 92px; }
+      .dk-cancel { height: 44px; }
+      .dk-go { height: auto; }
+      .dk-go button, .dk-go .dd { min-height: 44px; }
+      .dk-cancel { padding: 0 16px; font-size: 14px; }
+      .dk-go button { font-size: 14px; }
+      .dk-go .dd { width: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="tb-left">
+      <svg class="tb-menu" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"/></svg>
+      <svg class="hexmark" viewBox="0 0 64 26" aria-label="Hex"><g fill="#3E3A8E"><path d="M2 1h6v9h8V1h6v24h-6v-9H8v9H2z"/><path d="M25 1h17v5H31v4h10v5H31v5h11v5H25z"/><path d="M44 1h6.6l4.4 7.6L59.4 1H66l-7.7 11.8L66.4 25h-6.6l-4.8-8-4.8 8h-6.6l8.1-12.2z"/></g></svg>
+      <div class="proj"><span>Q3 2026 Renewal Forecast</span><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg></div>
+    </div>
+    <nav class="tb-center">
+      <a href="#" class="vtab"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1.5" y="2" width="11" height="10" rx="1.5"/><path d="M1.5 5h11"/></svg>Notebook</a>
+      <a href="#" class="vtab on"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1.5" y="2" width="11" height="10" rx="1.5"/><path d="M6 2v10"/></svg>App builder</a>
+    </nav>
+    <div class="tb-right">
+      <span class="icon-btn" title="Comments"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M2.5 3h11v8H6l-3.5 2.5z"/></svg></span>
+      <a href="#" class="btn-share"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="4.5" r="2.5"/><path d="M2 12.5c.6-2.5 2.6-4 5-4s4.4 1.5 5 4"/></svg>Share</a>
+      <div class="btn-publish">
+        <button type="button" class="main" id="openPublish">Publish app</button>
+        <button type="button" class="caret" aria-label="More publish options"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg></button>
+      </div>
+      <span class="icon-btn" title="Toggle sidebar"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M10.5 2.5v11"/></svg></span>
+    </div>
+  </header>
+
+  <div class="app">
+    <aside class="rail" aria-label="Navigation">
+      <span class="ri on"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 2v3M8 11v3M2 8h3M11 8h3"/><circle cx="8" cy="8" r="2.5"/></svg></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M8 1.8 13.5 5v6L8 14.2 2.5 11V5z"/><path d="M2.5 5 8 8l5.5-3M8 8v6.2"/></svg></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6.5h12"/></svg></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M3 2.5h2M3 13.5h2M11 2.5h2M11 13.5h2M2.5 3v2M2.5 11v2M13.5 3v2M13.5 11v2"/><path d="M6 10.5 8 5l2 5.5M6.7 8.8h2.6"/></svg></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="12" height="10.5" rx="1.5"/><path d="M2 6.5h12M5.5 1.8v2.5M10.5 1.8v2.5"/></svg></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></svg></span>
+      <span class="sp"></span>
+      <span class="ri"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 3a2 2 0 1 0 0 4h6a2 2 0 1 0 0-4v10a2 2 0 1 0 0-4H5a2 2 0 1 0 0 4z"/></svg></span>
+      <span class="ri bot"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="8" r="5.5"/><path d="M6.5 6.3a1.6 1.6 0 1 1 2.2 1.5c-.5.2-.7.6-.7 1.1M8 11v.1"/></svg></span>
+    </aside>
+
+    <aside class="outline" aria-label="Outline">
+      <div class="ol-head">
+        <h2>Outline</h2>
+        <a href="#" class="reset"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 1.8v2.4h2.4"/></svg>Reset layout<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg></a>
+      </div>
+      <div class="ol-list" id="outline"></div>
+    </aside>
+
+    <main class="canvas">
+      <div class="canvas-scroll">
+        <div class="doc" id="appDoc"></div>
+      </div>
+      <div class="cellbar" aria-hidden="true">
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20"><text x="10" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" font-family="IBM Plex Sans, sans-serif">SQL</text></svg>Query</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 2.5c-3 0-3 1.2-3 2.5v2h6v1H5c-1.8 0-2.5 1.3-2.5 3s.7 3 2.5 3h2v-2.2c0-1.3 1-2.3 2.3-2.3h3.4c1.2 0 2.3-1 2.3-2.2V5c0-1.3-1.3-2.5-5-2.5z"/><path d="M10 17.5c3 0 3-1.2 3-2.5v-2"/></svg>Python</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 5h10M10 5v11"/></svg>Text</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16h14M4 13l4-5 3 3 5-7"/></svg>Chart</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="14" height="14" rx="1.5"/><path d="M3 7.5h14M7.5 3v14"/></svg>Pivot</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="5" width="15" height="10" rx="1.5"/><text x="10" y="12.6" text-anchor="middle" font-size="6.5" fill="currentColor" stroke="none" font-family="IBM Plex Sans, sans-serif">123</text></svg>Single value</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M3 8h14M3 12h14M8 4v12"/></svg>Table</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"><rect x="2.5" y="6" width="15" height="8" rx="1.5"/></svg>Inputs</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><ellipse cx="10" cy="5" rx="6" ry="2.2"/><path d="M4 5v10c0 1.2 2.7 2.2 6 2.2s6-1 6-2.2V5M4 10c0 1.2 2.7 2.2 6 2.2s6-1 6-2.2"/></svg>Data</span>
+        <span class="cb"><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="5" cy="10" r="1.4"/><circle cx="10" cy="10" r="1.4"/><circle cx="15" cy="10" r="1.4"/></svg>More</span>
+        <span class="cb-x"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="m3 3 6 6M9 3 3 9"/></svg></span>
+      </div>
+    </main>
+
+    <aside class="settings" aria-label="App settings">
+      <div class="st-head">
+        <span class="runall"><span><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M3 2v8l7-4z"/></svg>Run all</span><i></i><span class="rc"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span></span>
+        <span class="icon-btn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="5.5" y="1.5" width="5" height="4" rx="1"/><rect x="1.5" y="10.5" width="5" height="4" rx="1"/><rect x="9.5" y="10.5" width="5" height="4" rx="1"/><path d="M8 5.5v2.5M4 10.5V8h8v2.5"/></svg></span>
+      </div>
+      <div class="st-body">
+        <div class="st-cap">App settings</div>
+        <div class="st-sec">
+          <div class="st-sec-h"><span class="l"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Display options</span></div>
+          <div class="toggle-row"><span class="tg"></span>Full width</div>
+          <div class="toggle-row"><span class="tg on"></span>Table of contents</div>
+          <div class="toggle-row"><span class="tg on"></span>Metadata</div>
+          <div class="stat-card">
+            <div class="s1"><svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="5" r="3.6"/></svg>Status</div>
+            <div class="s2">Project title</div>
+            <div class="s3"><span>App last published</span><span>Publisher</span></div>
+          </div>
+        </div>
+        <div class="st-sec">
+          <div class="st-sec-h"><span class="l"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Tabs <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#9AA0AA" stroke-width="1"><circle cx="6" cy="6" r="4.6"/><path d="M6 5.4v3M6 3.8v.1"/></svg></span><span class="r">+ Add tab</span></div>
+          <div class="tabs-empty">
+            <svg width="86" height="56" viewBox="0 0 86 56" fill="none" style="margin:0 auto"><rect x="10" y="8" width="70" height="44" rx="3" fill="#F3F4F7" stroke="#C9CCD3"/><rect x="6" y="4" width="70" height="44" rx="3" fill="#fff" stroke="#9EA3AD"/><path d="M12 12h18M34 12h18M56 12h14" stroke="#9EA3AD" stroke-width="1.4"/><path d="M12 40l10-10 8 6 12-12 10 8 12-6v14H12z" fill="#E7E9F0" stroke="#9EA3AD"/></svg>
+            <p>Organize your published app with multiple tabs.</p>
+            <div class="add">+ Add tabs</div>
+          </div>
+        </div>
+        <div class="st-sec">
+          <div class="st-sec-h"><span class="l"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>App theme</span></div>
+          <div class="theme-sel">User preference<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg></div>
+        </div>
+        <div class="st-sec">
+          <div class="st-sec-h"><span class="l"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>App run settings</span><span class="r">Show advanced</span></div>
+          <div class="run-set">
+            <b>Auto-refresh published results</b>
+            <p>Automatically refresh published results when a user runs the app, or when results are stale.</p>
+            <p style="margin-bottom:5px">Mark app results as stale if older than:</p>
+            <span class="pill">60 minutes <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M2 10l.5-2.5L8 2l2 2-5.5 5.5z"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div class="strip" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg>
+    </div>
+  </div>
+
+  <div class="pub" id="publish" aria-hidden="true">
+    <section class="pv" aria-label="Publish preview">
+      <div class="pv-tabs">
+        <a href="#" class="pv-tab on"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1.5" y="2" width="11" height="10" rx="1.5"/><path d="M6 2v10"/></svg>App</a>
+        <a href="#" class="pv-tab"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="10.5" cy="10.5" r="1.6"/><path d="M3.5 5.1V12M10.5 8.9V4.5c0-.8-.6-1.4-1.4-1.4H6.5M7.8 1.8 6.5 3.1l1.3 1.3"/></svg>Notebook diff</a>
+      </div>
+      <div class="pv-body"><div class="doc" id="previewDoc"></div></div>
+    </section>
+    <aside class="dk" aria-label="Publish version">
+      <div class="dk-head">
+        <span class="dk-cap"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5H3.5a2.5 2.5 0 0 1-.3-5A3.5 3.5 0 0 1 10 5a2.5 2.5 0 0 1 .5 5.5H10M7 12.5V7.5M5.2 9.2 7 7.4l1.8 1.8"/></svg>Publish version</span>
+        <button type="button" class="dk-x" id="closePublish" aria-label="Close"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="m2.5 2.5 7 7M9.5 2.5l-7 7"/></svg></button>
+      </div>
+      <form id="provisionForm" style="display:contents">
+        <div class="dk-body">
+          <div class="dk-sec-h"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Project info</div>
+          <div class="dk-row"><span class="k">Status</span><span class="v">In Progress</span></div>
+          <div class="dk-row"><span class="k">Categories</span><span class="v mut">Add categories</span></div>
+          <div class="dk-row"><span class="k">Permissions</span><span class="v">Project: <span class="mut">Workspace</span><br>App-only: <span class="mut">Revenue Ops</span></span></div>
+          <div class="dk-row"><span class="k">Description</span><span class="v mut">No description</span></div>
+
+          <div class="dk-sec-h" style="margin-top:18px"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Published app run settings</div>
+          <div class="dk-set">
+            <div class="t">Use SQL caching in published app <span class="dk-tg"></span></div>
+            <div class="s"><label for="planTier">Rerun query if results are older than:</label></div>
+            <span class="dk-pill"><select id="planTier">
+              <option value="enterprise">15 minutes</option>
+              <option value="business" selected>60 minutes</option>
+              <option value="starter">24 hours</option>
+            </select><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M2 10l.5-2.5L8 2l2 2-5.5 5.5z"/></svg></span>
+          </div>
+          <div class="dk-set">
+            <div class="t">Default data</div>
+            <div class="s"><label for="region">When a user <b>opens</b> the published app,</label></div>
+            <span class="dk-pill"><select id="region">
+              <option value="us-east">Show results from a previous run</option>
+              <option value="us-west">Run the app</option>
+            </select><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M2 10l.5-2.5L8 2l2 2-5.5 5.5z"/></svg></span>
+          </div>
+          <div class="dk-set">
+            <div class="t">Interaction</div>
+            <div class="s">When a user <b>interacts</b> with the published app,</div>
+            <span class="dk-pill static">Automatically rerun downstream cells <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M2 10l.5-2.5L8 2l2 2-5.5 5.5z"/></svg></span>
+          </div>
+          <div class="dk-adv">Show advanced options <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg></div>
+          <div hidden>
+            <select id="product"><option value="q3_renewal_forecast">Q3 2026 Renewal Forecast</option></select>
+            <input type="number" id="seats" value="10" min="1" max="250">
+          </div>
+        </div>
+        <div class="dk-foot">
+          <div class="dk-foot-h"><span class="dk-cap">Version details</span><a href="#" class="dk-link"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="3.5" cy="3.5" r="1.6"/><circle cx="10.5" cy="10.5" r="1.6"/><path d="M3.5 5.1V12M10.5 8.9V4.5c0-.8-.6-1.4-1.4-1.4H6.5"/></svg>View Notebook diff</a></div>
+          <textarea class="dk-ta" id="versionNote" aria-label="What changed?" placeholder="What changed?">Added AE churn-risk breakdown for Q3 renewals</textarea>
+          <div class="dk-rep"><span class="k">Replacing</span><span class="mut">(No description)<br><b>#9</b>2 hrs ago</span><a href="#">View live</a></div>
+          <div class="dk-acts">
+            <button type="button" class="dk-cancel" id="cancelPublish">Cancel</button>
+            <div class="dk-go"><button type="submit" id="submitBtn">Publish version</button><button type="button" class="dd" aria-label="More publish options"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg></button></div>
+          </div>
+          <div id="result" class="result-box" role="status"></div>
+        </div>
+      </form>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      var SEGMENTS = [
+        ['Strategic', 194, 191, 12],
+        ['Enterprise', 1040, 985, 64],
+        ['Mid-Market', 1120, 1060, 91],
+        ['SMB', 1610, 1540, 108],
+        ['Other', 337, 328, 23]
+      ];
+      var AES = [
+        ['Ashley Clark', 0, 704, 42],
+        ['Natalie Benjamin', 0, 418, 93],
+        ['Andrew Stevenson', 140, 296, 7],
+        ['Kyle Williams', 0, 347, 88],
+        ['Rebecca Savage', 0, 267, 156],
+        ['Anthony Martinez', 0, 262, 112],
+        ['Stanley Black', 0, 197, 138],
+        ['Kyle Parker', 0, 283, 51],
+        ['Gary Perry', 13, 267, 41],
+        ['Eric Freeman', 0, 171, 131],
+        ['Samantha Cochran', 97, 102, 98],
+        ['Dean Norris', 0, 162, 65],
+        ['Aaron Calhoun', 0, 171, 48],
+        ['Angela Walter', 0, 188, 0],
+        ['Danny Rivas', 0, 103, 0]
+      ];
+      var SEG_TITLE = 'Q3 2026 Renewal Forecast: Expected ARR Contraction Across All Segments';
+      var AE_TITLE = 'AE Renewal Book by Churn Risk \u2014 Q3 2026';
+
+      function k(v) { return v >= 1000 ? '$' + (Math.round(v / 100) / 10).toString().replace(/\.0$/, '') + 'M' : '$' + v + 'K'; }
+      function s(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var a in attrs) e.setAttribute(a, attrs[a]); if (text != null) e.textContent = text; return e; }
+      function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+      function segChart(mini) {
+        var W = 380, H = mini ? 90 : 520, L = mini ? 0 : 58, R = mini ? 4 : 140, T = mini ? 2 : 14, B = mini ? 2 : 30;
+        var svg = s('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': SEG_TITLE });
+        var pw = W - L - R, ph = H - T - B, band = ph / SEGMENTS.length, bh = band * 0.36, max = 2000;
+        if (!mini) {
+          [0, 500, 1000, 1500, 2000].forEach(function (t) {
+            var x = L + pw * t / max;
+            svg.appendChild(s('line', { x1: x, x2: x, y1: T, y2: T + ph, stroke: '#EEF0F3' }));
+            svg.appendChild(s('text', { x: x, y: H - 12, 'text-anchor': 'middle', 'font-size': 9, fill: '#5C626C' }, k(t)));
+          });
+        }
+        SEGMENTS.forEach(function (d, i) {
+          var y0 = T + band * i + (band - bh * 2 - 2) / 2;
+          [[d[1], '#34425B'], [d[2], '#8EA4B2']].forEach(function (b, j) {
+            var w = pw * b[0] / max, y = y0 + j * (bh + 2);
+            svg.appendChild(s('rect', { x: L, y: y, width: w, height: bh, fill: b[1] }));
+            if (!mini) svg.appendChild(s('text', { x: L + w + 3, y: y + bh / 2 + 3, 'font-size': 9, fill: j ? '#9AAAB5' : '#34425B' }, k(b[0])));
+          });
+          if (!mini) svg.appendChild(s('text', { x: L - 6, y: T + band * i + band / 2 + 3, 'text-anchor': 'end', 'font-size': 9, fill: '#33373E' }, d[0]));
+        });
+        if (!mini) {
+          svg.appendChild(s('line', { x1: L, x2: L, y1: T, y2: T + ph, stroke: '#C9CDD4' }));
+          var lx = W - R + 36;
+          [['total_current_arr', '#34425B'], ['total_forecasted_arr', '#8EA4B2']].forEach(function (l, i) {
+            svg.appendChild(s('rect', { x: lx, y: T + 2 + i * 13, width: 8, height: 8, fill: l[1] }));
+            svg.appendChild(s('text', { x: lx + 12, y: T + 9 + i * 13, 'font-size': 8.5, fill: '#33373E' }, l[0]));
+          });
+        }
+        return svg;
+      }
+
+      function aeChart(mini) {
+        var W = 380, H = mini ? 92 : 520, L = mini ? 0 : 82, R = mini ? 4 : 58, T = mini ? 2 : 10, B = mini ? 2 : 40;
+        var svg = s('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': AE_TITLE });
+        var pw = W - L - R, ph = H - T - B, band = ph / AES.length, bh = band * (mini ? 0.62 : 0.74), max = 800;
+        var COLORS = ['#5AB463', '#EFAE3D', '#DA4F5B'];
+        if (!mini) {
+          [0, 200, 400, 600, 800].forEach(function (t) {
+            var x = L + pw * t / max;
+            svg.appendChild(s('line', { x1: x, x2: x, y1: T, y2: T + ph, stroke: '#EEF0F3' }));
+            svg.appendChild(s('text', { x: x, y: T + ph + 13, 'text-anchor': 'middle', 'font-size': 8.5, fill: '#5C626C' }, k(t)));
+          });
+          svg.appendChild(s('text', { x: L + pw / 2, y: H - 6, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 600, fill: '#33373E' }, 'Current ARR'));
+        }
+        AES.forEach(function (d, i) {
+          var y = T + band * i + (band - bh) / 2, x = L, total = d[1] + d[2] + d[3];
+          for (var j = 0; j < 3; j++) {
+            var v = d[j + 1]; if (!v) continue;
+            var w = pw * v / max;
+            svg.appendChild(s('rect', { x: x, y: y, width: w, height: bh, fill: COLORS[j] }));
+            if (!mini && w > 30) svg.appendChild(s('text', { x: x + w - 3, y: y + bh / 2 + 3, 'text-anchor': 'end', 'font-size': 8.5, fill: '#fff' }, k(v)));
+            x += w;
+          }
+          if (!mini) {
+            svg.appendChild(s('text', { x: x + 3, y: y + bh / 2 + 3, 'font-size': 8.5, fill: '#33373E' }, k(total)));
+            svg.appendChild(s('text', { x: L - 6, y: y + bh / 2 + 3, 'text-anchor': 'end', 'font-size': 8.5, fill: '#33373E' }, d[0]));
+          }
+        });
+        if (!mini) {
+          var lx = W - R + 12;
+          svg.appendChild(s('text', { x: lx - 6, y: T + 4, 'font-size': 8.5, 'font-weight': 600, fill: '#33373E' }, 'Churn'));
+          svg.appendChild(s('text', { x: lx - 6, y: T + 14, 'font-size': 8.5, 'font-weight': 600, fill: '#33373E' }, 'Risk'));
+          ['Low', 'Medium', 'High'].forEach(function (l, i) {
+            svg.appendChild(s('rect', { x: lx - 6, y: T + 21 + i * 11, width: 7, height: 7, fill: COLORS[i] }));
+            svg.appendChild(s('text', { x: lx + 4, y: T + 27.5 + i * 11, 'font-size': 8, fill: '#33373E' }, l));
+          });
+        }
+        return svg;
+      }
+
+      function grid(cols, rows) {
+        var wrap = h('div', 'tbl-wrap'), t = h('table', 'grid'), tr = document.createElement('tr');
+        cols.forEach(function (c) { var th = document.createElement('th'); th.appendChild(h('b', '', c[1])); th.appendChild(document.createTextNode(c[0])); tr.appendChild(th); });
+        var thead = document.createElement('thead'); thead.appendChild(tr); t.appendChild(thead);
+        var tb = document.createElement('tbody');
+        rows.forEach(function (r) { var row = document.createElement('tr'); r.forEach(function (v, i) { row.appendChild(h('td', cols[i][1] === '#' ? 'num' : '', v)); }); tb.appendChild(row); });
+        t.appendChild(tb); wrap.appendChild(t); return wrap;
+      }
+
+      function buildDoc(root, idPrefix) {
+        var st = h('div', 'status-row');
+        var sp = h('span', 'status'); sp.appendChild(document.createElement('i')); sp.appendChild(document.createTextNode('In Progress')); st.appendChild(sp);
+        st.appendChild(h('span', 'cat', 'Add categories \u2304'));
+        root.appendChild(st);
+        root.appendChild(h('h1', 'app-title', 'Q3 2026 Renewal Forecast'));
+        var meta = h('div', 'pubmeta'); meta.id = idPrefix + 'Meta';
+        meta.appendChild(document.createTextNode('Published ')); meta.appendChild(h('em', '', '{Date}')); meta.appendChild(document.createTextNode(' by ')); meta.appendChild(h('em', '', '{Publisher}'));
+        root.appendChild(meta);
+        root.appendChild(h('div', 'desc', 'Add description...'));
+        root.appendChild(h('div', 'addtab', '+ Add tab'));
+        var ib = h('div', 'input-blk'); ib.appendChild(h('label', '', 'Input 1'));
+        var sel = h('div', 'sel'); sel.appendChild(h('span', '', 'SMB'));
+        sel.insertAdjacentHTML('beforeend', '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#5C626C" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>');
+        ib.appendChild(sel); root.appendChild(ib);
+        var ch = h('div', 'charts');
+        var c1 = h('div', 'chart'); c1.appendChild(h('h3', '', SEG_TITLE)); c1.appendChild(segChart(false)); ch.appendChild(c1);
+        var c2 = h('div', 'chart'); c2.appendChild(h('h3', '', AE_TITLE)); c2.appendChild(aeChart(false)); ch.appendChild(c2);
+        root.appendChild(ch);
+        var t1 = h('div', 'tbl-blk'); t1.appendChild(h('h3', '', 'Segment Summary'));
+        t1.appendChild(grid([['ACCOUNT_SEGMENT_TYPE', 'A'], ['total_renewals', '#'], ['total_current_arr', '#'], ['total_forecasted_arr', '#']],
+          SEGMENTS.map(function (d) { return [d[0], String(d[3]), k(d[1]), k(d[2])]; })));
+        root.appendChild(t1);
+        var t2 = h('div', 'tbl-blk'); t2.appendChild(h('h3', '', 'AE Risk Breakdown'));
+        t2.appendChild(grid([['ACCOUNT_EXECUTIVE', 'A'], ['CHURN_RISK', 'A'], ['renewal_count', '#'], ['current_arr', '#']],
+          [['Ashley Clark', 'Medium', '26', '$704K'], ['Ashley Clark', 'High', '2', '$42K'], ['Natalie Benjamin', 'Medium', '17', '$418K'], ['Natalie Benjamin', 'High', '4', '$93K'], ['Andrew Stevenson', 'Low', '6', '$140K'], ['Andrew Stevenson', 'Medium', '12', '$296K']]));
+        root.appendChild(t2);
+      }
+
+      function outline() {
+        var root = document.getElementById('outline');
+        var grip = '<svg class="ol-grip" width="8" height="12" viewBox="0 0 8 12" fill="#B4B8C0"><circle cx="2" cy="2" r="1"/><circle cx="6" cy="2" r="1"/><circle cx="2" cy="6" r="1"/><circle cx="6" cy="6" r="1"/><circle cx="2" cy="10" r="1"/><circle cx="6" cy="10" r="1"/></svg>';
+        var icon = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1"><rect x="1" y="1.5" width="10" height="9" rx="1"/><path d="M1 4.5h10M4.5 4.5v6"/></svg>';
+        function item(label, body, selected) {
+          var it = h('div', 'ol-item'); var lb = h('div', 'ol-label'); lb.appendChild(h('span', '', label)); lb.insertAdjacentHTML('beforeend', icon); it.appendChild(lb);
+          var card = h('div', 'ol-card' + (selected ? ' sel' : '')); card.appendChild(body); it.appendChild(card); it.insertAdjacentHTML('beforeend', grip); root.appendChild(it);
+        }
+        function mini(cols, row, wrapFirst) {
+          var t = h('table', 'mini'), tr = document.createElement('tr');
+          cols.forEach(function (c) { tr.appendChild(h('th', '', c)); }); t.appendChild(tr);
+          var r = document.createElement('tr'); row.forEach(function (v, i) { r.appendChild(h('td', i === 0 && wrapFirst ? 'wrap' : '', v)); }); t.appendChild(r);
+          return t;
+        }
+        item('SQL 1', mini(['account_id', 'account_name', 'account_segment'], ['c12a951c-0ecf-4461-9a99-3f7a97b837cb', 'Roth LLC', 'SMB'], true), true);
+        item('Segment x Risk Summary', mini(['account_segment_type', 'churn_risk', 'renewals'], ['Enterprise', 'High', '9']));
+        var inp = h('div', 'ol-input'); inp.appendChild(h('span', '', 'SMB'));
+        inp.insertAdjacentHTML('beforeend', '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#5C626C" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>');
+        var it = h('div', 'ol-item'); var lb = h('div', 'ol-label'); lb.appendChild(h('span', '', 'Input 1')); lb.insertAdjacentHTML('beforeend', icon); it.appendChild(lb); it.appendChild(inp); it.insertAdjacentHTML('beforeend', grip); root.appendChild(it);
+        item('AE Renewal Book', mini(['account_executive', 'account_segment_type'], ['Rebecca Savage', 'SMB']));
+        item('Segment Summary', mini(['account_segment_type', 'total_renewals'], ['SMB', '108']));
+        var c1 = h('div', 'ol-chart'); c1.appendChild(segChart(true)); item(SEG_TITLE, c1);
+        item('AE Risk Breakdown', mini(['account_executive', 'churn_risk', 'renewals'], ['Ashley Clark', 'Medium', '26']));
+        var c2 = h('div', 'ol-chart'); c2.appendChild(aeChart(true)); c2.appendChild(h('div', '', 'Current ARR')); c2.lastChild.style.cssText = 'text-align:center;font-size:9px;font-weight:600;margin-top:2px'; item(AE_TITLE, c2);
+      }
+
+      buildDoc(document.getElementById('appDoc'), 'app');
+      buildDoc(document.getElementById('previewDoc'), 'preview');
+      outline();
+
+      var pub = document.getElementById('publish');
+      function openPub() { document.body.classList.add('pub-open'); pub.setAttribute('aria-hidden', 'false'); }
+      function closePub() { document.body.classList.remove('pub-open'); pub.setAttribute('aria-hidden', 'true'); }
+      document.getElementById('openPublish').addEventListener('click', openPub);
+      document.getElementById('closePublish').addEventListener('click', closePub);
+      document.getElementById('cancelPublish').addEventListener('click', closePub);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePub(); });
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var publishedVersion = 9;
+    function showResult(kind, title, detail) {
+      var result = document.getElementById('result');
+      result.className = 'result-box ' + kind;
+      result.textContent = '';
+      var t = document.createElement('div'); t.className = 'r-title'; t.textContent = title;
+      var d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+      result.appendChild(t); result.appendChild(d);
+    }
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const product = document.getElementById('product');
+      const tier = document.getElementById('planTier');
+      const staleLabel = tier.options[tier.selectedIndex].text;
+      btn.disabled = true; btn.textContent = 'Publishing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: product.value, planName: tier.value, seats: parseInt(document.getElementById('seats').value, 10), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult('error', 'Version not published', data.error || 'Something went wrong. Please try again.');
+        } else {
+          publishedVersion += 1;
+          showResult('success', 'Version #' + publishedVersion + ' published', 'Q3 2026 Renewal Forecast is live for everyone with App access. Cached query results older than ' + staleLabel + ' rerun on open. Request ' + data.licenseId + '.');
+          ['appMeta', 'previewMeta'].forEach(function (id) { var m = document.getElementById(id); if (m) m.textContent = 'Published just now by you'; });
+        }
+      } catch (err) {
+        showResult('error', 'Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Publish version'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
