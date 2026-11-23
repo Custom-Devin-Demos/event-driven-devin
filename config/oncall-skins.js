@@ -10628,6 +10628,32 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A T-SYSTEMS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real T-Systems / Deutsche Telekom product.',
   },
+  '8e231b0d': {
+    slug: '8e231b0d',
+    company: 'Barclays Private Bank',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '8e231b0d.html', title: 'Make a payment | Online banking | Barclays Private Bank' },
+    theme: {
+      '--accent': '#006DE3',
+      '--ink': '#272727',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1A2142',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Barclays Private Bank Support',
+    alertCard: {
+      title: 'p95 latency \u2014 online banking payments',
+      service: 'pb-online-payments-api',
+      release: 'pb-online-payments@3.18.0',
+      team: 'pb-digital-payments-oncall',
+      baseline: '~320ms (7-day p95)',
+      symptom: 'Payments submitted from online banking hang ~9s before confirming. Error rate is normal \u2014 payments eventually complete.',
+      impact: 'Clients wait ~9 seconds to send each payment to a saved payee; some resubmit, which risks sending the same payment twice, and relationship teams field calls while they wait.',
+    },
+    disclaimer: 'NOT ACTUALLY A BARCLAYS PRIVATE BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays Private Bank product.',
+  },
 };
 
 function getOncallSkin(slug) {
