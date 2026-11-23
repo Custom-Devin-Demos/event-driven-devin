@@ -67,7 +67,7 @@ const REMEDIATION_DIRECTIVE = [
   'Keep every payment option, the plan-rate tiers, the ₪500 minimum, error reporting and the server-generated plan reference intact.',
   'Add regression coverage in tests/1fc7edc2-isracard-installments.test.js and update the existing failure expectation after the fix. Run npx jest tests/1fc7edc2-isracard-installments.test.js and npm run lint.',
   'Do not disable Sentry/alerts, swallow the error, hide THB charges from the list, or fake a successful response in the browser.',
-  'QA before the PR: once the fix passes tests on your branch, start three child Devin sessions in parallel (one each: desktop browser at 1440x900, iPhone-size viewport 390x844 with touch emulation, Android-size viewport 412x915 with touch emulation). Each child runs the app locally from your branch in its own environment with alerts suppressed (?reports=off), first reproduces the HTTP 500 on main with the THB charge, then verifies on your branch that THB is approved with the USD cross-rate and EUR/ILS still work, and returns a pass/fail verdict with a screen recording and screenshots. Wait for all three; if any fails, fix and re-run that child. Open the PR only after all three pass, and put the three verdicts and recordings in the PR description.',
+  'QA before the PR: once the fix passes tests on your branch, start three child Devin sessions in parallel (one each: desktop browser at 1440x900, iPhone-size viewport 390x844 with touch emulation, Android-size viewport 412x915 with touch emulation). Each child runs the app locally from your branch in its own environment with alerts suppressed (?reports=off), first reproduces the HTTP 500 on main with the THB charge, then verifies on your branch that THB is approved with the USD cross-rate and EUR/ILS still work, and returns a pass/fail verdict with a screen recording and screenshots. Wait for all three; if any fails, fix it and re-run all three children on the new commit. Open the PR only after all three pass on the same final commit, and put that commit SHA, the three verdicts and recordings in the PR description.',
   'After opening the PR, request Devin Review on it and wait for the Devin Review checks to finish; fix every actionable finding on the same branch and reply to each review comment. Then post a short root-cause + PR + Devin Review summary to the Slack thread and stop for human approval.',
 ].join('\n');
 
@@ -118,9 +118,9 @@ function remember(id, plan) {
 
 function reportFailure(error, context, data) {
   const tags = { route: ROUTE, service: SERVICE, customer: CUSTOMER, error_code: ERROR_CODE, alert_path: 'instant' };
-  Sentry.captureException(error, { tags, extra: context });
   logger.error('Installment plan pricing failed', { ...context, service: SERVICE, error: error.message });
   if (data.suppressAlerts) return;
+  Sentry.captureException(error, { tags, extra: context });
   const now = Date.now();
   if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
     logger.info('Installment plan alert skipped (cooldown)', { service: SERVICE, planId: context.planId });
@@ -138,7 +138,12 @@ function reportFailure(error, context, data) {
     skipVulnerablePr: true,
     promptAppendix: `Incident Ref: ${context.planId}\n${REMEDIATION_DIRECTIVE}`,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })), extra: context,
-  })).catch(err => logger.error('Failed to create Devin session for installment plan failure', { error: err.message, planId: context.planId }));
+  })).then((result) => {
+    if (!result && lastAlertAt === now) lastAlertAt = 0;
+  }).catch((err) => {
+    if (lastAlertAt === now) lastAlertAt = 0;
+    logger.error('Failed to create Devin session for installment plan failure', { error: err.message, planId: context.planId });
+  });
 }
 
 async function requestPlan(data = {}, now = new Date()) {

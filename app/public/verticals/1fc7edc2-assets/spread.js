@@ -37,7 +37,7 @@
       var done = Boolean(state.spread[c.id]);
       var tooSmall = !done && !eligible(c);
       var fx = c.currency !== 'ILS' ? '<span class="fx">' + c.currency + '</span>' : '';
-      var note = done ? '<div class="note">נפרסה · ' + esc(state.spread[c.id]) + '</div>' : c.currency !== 'ILS' ? '<div class="note">יומר לשקלים ביום החיוב</div>' : tooSmall ? '<div class="note">מתחת לסכום המינימלי לפריסה</div>' : '';
+      var note = done ? '<div class="note">נפרסה · ' + esc(state.spread[c.id]) + '</div>' : c.currency !== 'ILS' ? '<div class="note">יומר לשקלים באישור הפריסה</div>' : tooSmall ? '<div class="note">מתחת לסכום המינימלי לפריסה</div>' : '';
       return '<tr class="row' + (c.id === state.chargeId ? ' sel' : '') + (tooSmall || done ? ' dis' : '') + '" data-id="' + c.id + '">' +
         '<td><input type="radio" name="charge" aria-label="' + esc(c.merchant) + '"' + (c.id === state.chargeId ? ' checked' : '') + (tooSmall || done ? ' disabled' : '') + '></td>' +
         '<td><b>' + esc(c.merchant) + '</b><div class="note">' + esc(c.city) + '</div></td><td>' + date(c.date) + '</td><td>' + esc(c.category) + '</td>' +
@@ -59,7 +59,7 @@
     $('summary').innerHTML = [
       ['בית העסק', esc(c.merchant)], ['סכום העסקה', money(c.amount, c.currency)],
       ['מספר תשלומים', state.payments], ['תשלום ראשון', date(state.account.card.billingDate)],
-      ['כרטיס', state.account.card.product + ' •••• ' + state.account.card.last4], ['המרה', c.currency === 'ILS' ? 'ללא' : 'לפי שער ההמרה ביום החיוב'],
+      ['כרטיס', state.account.card.product + ' •••• ' + state.account.card.last4], ['המרה', c.currency === 'ILS' ? 'ללא' : 'לפי השער העדכני באישור הפריסה'],
     ].map(function (r) { return '<div><span>' + r[0] + '</span><b>' + r[1] + '</b></div>'; }).join('');
   }
 

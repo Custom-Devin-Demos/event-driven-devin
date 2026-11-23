@@ -95,7 +95,7 @@ describe('THB conversion failure', () => {
     expect(alert.promptAppendix).toContain('never merge or deploy');
     expect(alert.promptAppendix).toContain('request Devin Review');
     for (const env of ['1440x900', '390x844', '412x915']) expect(alert.promptAppendix).toContain(env);
-    expect(alert.promptAppendix).toContain('Open the PR only after all three pass');
+    expect(alert.promptAppendix).toContain('Open the PR only after all three pass on the same final commit');
   });
 
   test('alerts stay on Slack when the hub picked Teams', async () => {
@@ -115,6 +115,15 @@ describe('THB conversion failure', () => {
   test('suppressed alerts keep the failure but skip alerting', async () => {
     await expect(svc.requestPlan({ chargeId: THB, payments: 12, suppressAlerts: true })).rejects.toBeInstanceOf(TypeError);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('an alert that was not delivered does not start the cooldown', async () => {
+    createSessionAndAlert.mockResolvedValueOnce(null);
+    await expect(svc.requestPlan({ chargeId: THB, payments: 12 })).rejects.toBeInstanceOf(TypeError);
+    await new Promise(setImmediate);
+    await expect(svc.requestPlan({ chargeId: THB, payments: 12 })).rejects.toBeInstanceOf(TypeError);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test('alert delivery failures never replace the original error', async () => {
