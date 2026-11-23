@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billing migration validation | Vodafone</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #e60000; --red-deep: #820000; --ink: #0d0d0d; --muted: #4a4d4e; --line: #bebebe;
+      --line-soft: #e6e6e6; --page: #f2f2f2; --paper: #fff; --green: #008a00; --amber: #eb6100;
+      --font: Vodafone, 'Open Sans', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--page); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .disclaimer { background: var(--ink); color: #fff; font-size: 13px; line-height: 18px; text-align: center; padding: 8px 16px; font-weight: 600; }
+    .hdr { background: #fff; border-bottom: 1px solid var(--line-soft); }
+    .hdr .wrap { display: flex; align-items: center; min-height: 72px; gap: 16px; }
+    .mark { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: var(--red); flex: none; }
+    .hdr b { font-size: 18px; font-weight: 600; }
+    .hdr span { color: var(--muted); font-size: 14px; margin-left: auto; text-align: right; }
+    .hero { background: linear-gradient(to right top, var(--red-deep) 25.4%, rgba(0,0,0,0) 98.9%), var(--red); color: #fff; }
+    .hero .wrap { padding-top: 36px; padding-bottom: 36px; display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; }
+    .hero h1 { font-size: 40px; line-height: 48px; font-weight: 300; }
+    .hero p { margin-top: 8px; font-size: 18px; max-width: 720px; }
+    .hero .grow { flex: 1 1 420px; }
+    .btn { min-height: 48px; padding: 12px 28px; border-radius: 6px; border: 2px solid #fff; background: #fff; color: var(--ink); font-size: 18px; cursor: pointer; }
+    .btn:hover { background: var(--page); }
+    .btn:disabled { opacity: .6; cursor: default; }
+    main.wrap { padding-top: 32px; padding-bottom: 64px; }
+    .notice { display: none; background: #fff; border-left: 6px solid var(--red); border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.16); }
+    .notice.ok { border-left-color: var(--green); }
+    .notice.show { display: block; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .card { background: var(--paper); border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.16); padding: 20px; }
+    .kpi small { display: block; color: var(--muted); font-size: 14px; line-height: 18px; }
+    .kpi strong { display: block; font-size: 40px; line-height: 48px; font-weight: 300; margin-top: 4px; }
+    .kpi em { font-style: normal; font-size: 14px; color: var(--muted); }
+    .kpi.bad strong { color: var(--red); }
+    .kpi.good strong { color: var(--green); }
+    h2 { font-size: 28px; line-height: 36px; font-weight: 300; margin: 0 0 12px; }
+    section { margin-bottom: 24px; }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+    th { font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; background: var(--page); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--page); white-space: nowrap; }
+    .pill.bad { background: #fde5e5; color: var(--red-deep); }
+    .pill.good { background: #e0f2e0; color: #005a00; }
+    .pill.warn { background: #fdeee0; color: #8a3a00; }
+    .empty { color: var(--muted); padding: 8px 0; }
+    .sample { color: var(--muted); font-size: 13px; line-height: 20px; margin-top: 4px; }
+    .foot { color: var(--muted); font-size: 13px; }
+    @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, 1fr); } .hero h1 { font-size: 32px; line-height: 40px; } .hdr span { display: none; } }
+    @media (max-width: 480px) { .kpis { grid-template-columns: 1fr; } .wrap { padding: 0 16px; } .btn { width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="disclaimer">NOT ACTUALLY A VODAFONE SITE — internal demo only, not affiliated with, endorsed by, or a real Vodafone product. All data is synthetic.</div>
+  <header class="hdr">
+    <div class="wrap">
+      <span class="mark" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="15" r="7" fill="none" stroke="#fff" stroke-width="4"/><path d="M13 8c0-4 3-6 6-6" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg></span>
+      <b>Cloud migration office</b>
+      <span id="migrationMeta">Billing estate · data centre to cloud</span>
+    </div>
+  </header>
+  <div class="hero">
+    <div class="wrap">
+      <div class="grow">
+        <h1>Billing migration validation</h1>
+        <p>Customers, accounts and invoices copied from the data-centre database to the cloud database. This page lists every difference between the two, by table and by cause.</p>
+      </div>
+      <button class="btn" id="validateBtn" type="button">Run post-migration validation</button>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="notice" id="notice" role="status" aria-live="polite"></div>
+
+    <div class="kpis">
+      <div class="card kpi" id="kpiMigration"><small>Migration run</small><strong>—</strong><em></em></div>
+      <div class="card kpi" id="kpiDiffs"><small>Differences found</small><strong>—</strong><em>Not validated yet</em></div>
+      <div class="card kpi" id="kpiCauses"><small>Causes identified</small><strong>—</strong><em></em></div>
+      <div class="card kpi" id="kpiTime"><small>First run to zero differences</small><strong>—</strong><em></em></div>
+    </div>
+
+    <section class="card">
+      <h2>Row counts</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Table</th><th class="num">Data centre (source)</th><th class="num">Cloud (target)</th><th class="num">Delta</th><th>Status</th></tr></thead>
+        <tbody id="countsBody"></tbody>
+      </table></div>
+    </section>
+
+    <section class="card">
+      <h2>Differences by table</h2>
+      <div id="byTable"><p class="empty">No comparison has been run. Row counts above come from the migration run itself.</p></div>
+    </section>
+
+    <section class="card">
+      <h2>Differences by cause</h2>
+      <div id="byCause"><p class="empty">No causes identified yet.</p></div>
+    </section>
+
+    <section class="card">
+      <h2>Comparison runs</h2>
+      <div id="runs"><p class="empty">No comparison runs recorded.</p></div>
+    </section>
+
+    <p class="foot">Source: <code>pipelines/c0e5ab62/reports/migration-run.json</code> and <code>validation-report.json</code>.</p>
+  </main>
+
+  <script>
+    var REPORTS_OFF = new URLSearchParams(location.search).get('reports') === 'off';
+
+    function esc(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function n(value) { return Number(value || 0).toLocaleString('en-GB'); }
+    function when(iso) { return iso ? new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'medium' }) : '—'; }
+    function duration(ms) {
+      var s = Math.round(ms / 1000);
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      return (h ? h + 'h ' : '') + (h || m ? m + 'm ' : '') + (s % 60) + 's';
+    }
+    function setKpi(id, value, note, tone) {
+      var el = document.getElementById(id);
+      el.className = 'card kpi' + (tone ? ' ' + tone : '');
+      el.querySelector('strong').textContent = value;
+      el.querySelector('em').textContent = note || '';
+    }
+    function notice(html, ok) {
+      var el = document.getElementById('notice');
+      el.className = 'notice show' + (ok ? ' ok' : '');
+      el.innerHTML = html;
+    }
+
+    function render(data) {
+      var m = data.migration;
+      setKpi('kpiMigration', m ? m.status.charAt(0).toUpperCase() + m.status.slice(1) : 'No run',
+        m ? m.batches + ' batches · ' + m.warnings + ' warning' + (m.warnings === 1 ? '' : 's') + ' · ' + when(m.finishedAt) : 'Run the migration first');
+
+      document.getElementById('countsBody').innerHTML = data.rowCounts.tables.map(function (t) {
+        var sign = t.delta > 0 ? '+' : '';
+        return '<tr><td>' + esc(t.table) + '</td><td class="num">' + n(t.source) + '</td><td class="num">' + n(t.target)
+          + '</td><td class="num">' + sign + n(t.delta) + '</td><td><span class="pill ' + (t.delta ? 'bad' : 'good') + '">'
+          + (t.delta ? 'Drift' : 'Match') + '</span></td></tr>';
+      }).join('');
+
+      var v = data.validation;
+      if (!v) return;
+      setKpi('kpiDiffs', n(v.differencesFound), v.remaining ? n(v.remaining) + ' remaining' : 'All resolved', v.remaining ? 'bad' : 'good');
+      setKpi('kpiCauses', n(v.causesIdentified), 'In the first comparison run');
+      setKpi('kpiTime', v.msToZero == null ? '—' : duration(v.msToZero), v.msToZero == null ? 'Not at zero yet' : 'Zero differences reached', v.msToZero == null ? '' : 'good');
+
+      var latest = v.latest;
+      var showing = latest.totalDifferences ? latest : v.first;
+      document.getElementById('byTable').innerHTML = '<div class="scroll"><table><thead><tr><th>Table</th><th class="num">Source rows</th><th class="num">Target rows</th><th class="num">Found</th><th class="num">Now</th></tr></thead><tbody>'
+        + (v.first.byTable || []).map(function (t) {
+          var now = (latest.byTable || []).filter(function (x) { return x.table === t.table; })[0] || t;
+          return '<tr><td>' + esc(t.table) + '</td><td class="num">' + n(now.sourceRows) + '</td><td class="num">' + n(now.targetRows)
+            + '</td><td class="num">' + n(t.differences) + '</td><td class="num"><span class="pill ' + (now.differences ? 'bad' : 'good') + '">' + n(now.differences) + '</span></td></tr>';
+        }).join('') + '</tbody></table></div>';
+
+      document.getElementById('byCause').innerHTML = '<div class="scroll"><table><thead><tr><th>Cause</th><th>Where</th><th>Migration script</th><th class="num">Found</th><th class="num">Now</th></tr></thead><tbody>'
+        + (showing === latest ? latest.causes : v.first.causes || []).map(function (c) {
+          var now = latest === v.first ? c : ((latest.causes || []).filter(function (x) { return x.id === c.id; })[0] || { differences: 0 });
+          var first = (v.first.causes || []).filter(function (x) { return x.id === c.id; })[0] || c;
+          var where = (c.tables || []).map(function (t) { return esc(t.table) + (t.column ? '.' + esc(t.column) : '') + ' (' + n(t.differences) + ')'; }).join('<br>');
+          var sample = c.sample ? '<div class="sample">' + esc(c.sample.key) + ': <code>' + esc(c.sample.source) + '</code> → <code>' + esc(c.sample.target) + '</code></div>' : '';
+          var script = c.script ? '<code>' + esc(c.script.file) + ':' + esc(c.script.line) + '</code>' : '—';
+          return '<tr><td>' + esc(c.title) + sample + '</td><td>' + where + '</td><td>' + script + '</td><td class="num">' + n(first.differences)
+            + '</td><td class="num"><span class="pill ' + (now.differences ? 'bad' : 'good') + '">' + n(now.differences) + '</span></td></tr>';
+        }).join('') + '</tbody></table></div>';
+
+      document.getElementById('runs').innerHTML = '<div class="scroll"><table><thead><tr><th>Run</th><th>When</th><th class="num">Differences</th></tr></thead><tbody>'
+        + v.runs.map(function (r, i) {
+          return '<tr><td>' + (i + 1) + '</td><td>' + when(r.runAt) + '</td><td class="num"><span class="pill ' + (r.totalDifferences ? 'bad' : 'good') + '">' + n(r.totalDifferences) + '</span></td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+
+    function load() {
+      return fetch('/api/c0e5ab62/dashboard').then(function (res) { return res.json(); }).then(render);
+    }
+
+    document.getElementById('validateBtn').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Comparing row counts…';
+      fetch('/api/c0e5ab62/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reports: REPORTS_OFF ? 'off' : undefined,
+          devinUserId: localStorage.getItem('devinUserId') || undefined,
+          devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+          devinEmail: localStorage.getItem('devinEmail') || undefined
+        })
+      }).then(function (res) { return res.json(); }).then(function (r) {
+        if (r.status === 'match') {
+          notice('<b>Row counts match.</b> Source and target hold ' + n(r.sourceRows) + ' rows across all three tables.', true);
+        } else if (r.status === 'drift') {
+          var parts = r.drift.map(function (d) { return esc(d.table) + ' ' + (d.delta > 0 ? '+' : '') + n(d.delta); }).join(', ');
+          notice('<b>Row counts differ on ' + r.drift.length + ' of ' + r.tables.length + ' tables</b> (' + parts + '). '
+            + (r.alerted ? 'An alert has been raised and a full comparison is starting.'
+              : r.cooldown ? 'An alert for this drift is already open.' : 'Alerting is off for this page.'));
+        } else {
+          notice('<b>Validation could not run.</b> ' + esc(r.error || ''));
+        }
+        return load();
+      }).catch(function (err) {
+        notice('<b>Validation could not run.</b> ' + esc(err.message));
+      }).then(function () {
+        btn.disabled = false;
+        btn.textContent = 'Run post-migration validation';
+      });
+    });
+
+    load();
+    setInterval(load, 15000);
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
