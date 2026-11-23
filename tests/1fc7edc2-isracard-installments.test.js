@@ -94,6 +94,8 @@ describe('THB conversion failure', () => {
     expect(alert.promptAppendix).toContain('COG-GTM/event-driven-devin');
     expect(alert.promptAppendix).toContain('never merge or deploy');
     expect(alert.promptAppendix).toContain('request Devin Review');
+    for (const env of ['1440x900', '390x844', '412x915']) expect(alert.promptAppendix).toContain(env);
+    expect(alert.promptAppendix).toContain('Open the PR only after all three pass');
   });
 
   test('alerts stay on Slack when the hub picked Teams', async () => {
