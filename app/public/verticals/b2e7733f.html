@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Pay invoices | Baker Tilly Client Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --teal: #00CCC2; --teal-dark: #00A39B; --navy: #1C2633; --ink: #1C2633; --muted: #5B6573; --line: #DCE0E5; --paper: #FFFFFF; --bg: #F5F6F7; }
+    * { box-sizing: border-box; } html, body { margin: 0; }
+    body { font-family: "Manrope", Arial, sans-serif; font-size: 16px; line-height: 1.55; color: var(--ink); background: var(--bg); }
+    .hdr { background: var(--paper); border-bottom: 1px solid var(--line); }
+    .hdr .in { max-width: 1320px; margin: 0 auto; padding: 0 32px; min-height: 88px; display: flex; align-items: center; gap: 28px; }
+    .mark { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; text-decoration: none; color: var(--navy); }
+    .mark .sq { width: 40px; height: 40px; background: var(--navy); color: var(--teal); display: grid; place-items: center; font: 800 22px "Instrument Sans", Arial, sans-serif; }
+    .mark .wm { font: 700 20px "Instrument Sans", Arial, sans-serif; letter-spacing: -.01em; }
+    .mark .wm small { display: block; font: 500 12px "Manrope", Arial, sans-serif; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+    .hdr nav { display: flex; gap: 4px; margin-left: auto; }
+    .hdr nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; color: var(--navy); text-decoration: none; font-weight: 600; font-size: 15px; border-bottom: 3px solid transparent; }
+    .hdr nav a.on { border-bottom-color: var(--teal); }
+    .user { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+    .user i { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-style: normal; font-size: 14px; }
+    .band { background: var(--navy); color: #fff; }
+    .band .in { max-width: 1320px; margin: 0 auto; padding: 44px 32px 48px; }
+    .band p.k { margin: 0 0 8px; color: var(--teal); font-weight: 700; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { font: 500 48px/1.08 "Instrument Sans", Arial, sans-serif; letter-spacing: -.02em; margin: 0 0 10px; }
+    .band .lede { margin: 0; max-width: 680px; color: #C9D0D9; font-size: 18px; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 32px 32px 72px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 28px; align-items: start; }
+    .panel { background: var(--paper); border: 1px solid var(--line); padding: 28px; }
+    .panel + .panel { margin-top: 20px; }
+    h2 { font: 500 26px/1.2 "Instrument Sans", Arial, sans-serif; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 20px; font-size: 15px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 48px; border: 1px solid #AEB6C0; border-radius: 0; background: #fff; padding: 0 14px; font: 500 16px "Manrope", Arial, sans-serif; color: var(--ink); }
+    .field small { display: block; color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 26px; border: 2px solid var(--teal); border-radius: 0; background: var(--teal); color: var(--navy); font: 700 16px "Manrope", Arial, sans-serif; cursor: pointer; }
+    .btn:hover { background: var(--teal-dark); border-color: var(--teal-dark); }
+    .btn.sec { background: transparent; border-color: var(--navy); }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+    .sw-label { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .sw-value { font: 600 28px "Instrument Sans", Arial, sans-serif; }
+    .stopwatch.done .sw-value { color: var(--teal-dark); }
+    .result-box.success { background: #E6F9F7; border-left: 4px solid var(--teal-dark); } .result-box.notice { background: #FDEEEE; border-left: 4px solid #C62828; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    td.n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+    .sum dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 10px; font-size: 15px; }
+    .sum dt { color: var(--muted); } .sum dd { margin: 0; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sum .tot { font-size: 19px; color: var(--ink); padding-top: 12px; border-top: 1px solid var(--line); white-space: nowrap; }
+    .acct { margin: 0; padding: 0; list-style: none; font-size: 15px; }
+    .acct li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .acct li:last-child { border-bottom: 0; }
+    .acct b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    footer { background: var(--navy); color: #C9D0D9; }
+    footer .in { max-width: 1320px; margin: 0 auto; padding: 32px; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; }
+    footer a { color: #fff; display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+    .tbl { overflow-x: auto; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: minmax(0, 1fr); } .hdr nav { display: none; } .user { margin-left: auto; } }
+    @media (max-width: 600px) {
+      .hdr .in { padding: 0 14px; min-height: 68px; } .user span { display: none; }
+      .band .in { padding: 28px 14px 32px; } h1 { font-size: 34px; }
+      .wrap { padding: 20px 14px 48px; } .panel { padding: 20px 14px; } .two { grid-template-columns: 1fr; }
+      .actions .btn { flex: 1 1 100%; } footer .in { padding: 22px 14px; }
+    }
+
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; font-size: 15px; }
+    .result-box b { display: block; margin-bottom: 2px; }
+    .result-box.success, .result-box.notice { display: block; }
+  </style>
+</head>
+<body>
+  <header class="hdr"><div class="in">
+    <a class="mark" href="#" aria-label="Baker Tilly Client Portal home"><span class="sq" aria-hidden="true">B</span><span class="wm">Baker Tilly<small>Client Portal</small></span></a>
+    <nav aria-label="Portal"><a href="#">Dashboard</a><a href="#">Documents</a><a href="#" class="on">Invoices &amp; payments</a><a href="#">Requests</a><a href="#">Contact us</a></nav>
+    <span class="user"><i aria-hidden="true">RK</i><span>Rachel Kim · Harbor Point Manufacturing</span></span>
+  </div></header>
+  <section class="band"><div class="in">
+    <p class="k">Invoices &amp; payments</p>
+    <h1>Pay invoices</h1>
+    <p class="lede">Pay open invoices from your bank account on file. Payments are applied to your engagement the same business day.</p>
+  </div></section>
+  <main class="wrap">
+    <div class="grid">
+      <section class="panel" aria-labelledby="payHead">
+        <h2 id="payHead">Make a payment</h2>
+        <p class="sub">Harbor Point Manufacturing, LLC · Client 00418772</p>
+        <form id="transferForm" novalidate aria-labelledby="payHead">
+          <div class="field">
+            <label for="toAccount">Invoice</label>
+            <select id="toAccount">
+              <option value="BT-INV-2026-118204" data-name="Invoice 118204 · 2026 audit, interim fieldwork" data-due="18450.00" selected>Invoice 118204 · 2026 audit, interim fieldwork</option>
+              <option value="BT-INV-2026-118377" data-name="Invoice 118377 · Q3 tax provision review" data-due="6200.00">Invoice 118377 · Q3 tax provision review</option>
+              <option value="BT-INV-2026-118412" data-name="Invoice 118412 · R&amp;D credit study" data-due="9875.00">Invoice 118412 · R&amp;D credit study</option>
+            </select>
+            <small id="dueLine">&nbsp;</small>
+          </div>
+          <div class="field">
+            <label for="fromAccount">Pay from</label>
+            <select id="fromAccount">
+              <option value="ACH-OPER-6614" data-name="Operating account ···6614" data-balance="248310.55" selected>Business operating account ending 6614 (ACH)</option>
+              <option value="ACH-PAYR-2207" data-name="Payroll account ···2207" data-balance="12840.00">Payroll account ending 2207 (ACH)</option>
+            </select>
+            <small id="fromBal">&nbsp;</small>
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="amount">Payment amount (USD)</label>
+              <input type="number" id="amount" value="18450.00" min="1" step="0.01" inputmode="decimal">
+              <small>Pay the full balance or a partial amount</small>
+            </div>
+            <div class="field">
+              <label for="payDate">Payment date</label>
+              <select id="payDate"><option selected>Today</option></select>
+            </div>
+          </div>
+          <input type="hidden" id="accountTier" value="standard">
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn">Submit payment</button>
+            <button type="reset" id="resetBtn" class="btn sec">Cancel</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Processing time</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <div>
+        <section class="panel sum" aria-labelledby="sumHead">
+          <h2 id="sumHead">Payment summary</h2>
+          <dl>
+            <dt>Invoice</dt><dd id="sTo">&mdash;</dd>
+            <dt>Pay from</dt><dd id="sFrom">&mdash;</dd>
+            <dt>Payment</dt><dd id="sAmt">&mdash;</dd>
+            <dt>ACH fee</dt><dd id="sFee">&mdash;</dd>
+            <dt class="tot">Total debit</dt><dd class="tot" id="sTot">&mdash;</dd>
+          </dl>
+        </section>
+        <section class="panel" aria-labelledby="openHead">
+          <h2 id="openHead">Open invoices</h2>
+          <div class="tbl"><table><thead><tr><th>Invoice</th><th>Due</th><th style="text-align:right">Balance</th></tr></thead><tbody>
+            <tr><td>118204</td><td>Dec 1</td><td class="n" id="due-BT-INV-2026-118204"></td></tr>
+            <tr><td>118377</td><td>Dec 15</td><td class="n" id="due-BT-INV-2026-118377"></td></tr>
+            <tr><td>118412</td><td>Jan 5</td><td class="n" id="due-BT-INV-2026-118412"></td></tr>
+          </tbody></table></div>
+        </section>
+        <section class="panel" aria-labelledby="bankHead">
+          <h2 id="bankHead">Bank accounts on file</h2>
+          <ul class="acct">
+            <li><span>Operating ···6614</span><b id="bal-ACH-OPER-6614"></b></li>
+            <li><span>Payroll ···2207</span><b id="bal-ACH-PAYR-2207"></b></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer><div class="in"><span>© Baker Tilly</span><a href="#">Privacy</a><a href="#">Terms of use</a><a href="#">Accessibility</a><a href="#">Contact us</a><span>Sample data.</span></div></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const fromAccount = $('fromAccount'); const toAccount = $('toAccount');
+      const amountInput = $('amount'); const accountTier = $('accountTier'); const btn = $('submitBtn'); const resetBtn = $('resetBtn');
+      const result = $('result'); const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const balances = {};
+      [...fromAccount.options].forEach((o) => { balances[o.value] = Number(o.dataset.balance); });
+      const dues = {};
+      [...toAccount.options].forEach((o) => { if (o.dataset.due) dues[o.value] = Number(o.dataset.due); });
+      const postedSelects = new Set(['fromAccount', 'toAccount']);
+      let pending = false; let ticker = null;
+      const opt = (s) => s.options[s.selectedIndex];
+      const secs = (ms) => `${(ms / 1000).toFixed(1)}s`;
+      const amount = () => { const raw = amountInput.value.trim(); return /^\d+(\.\d{1,2})?$/.test(raw) ? parseFloat(raw) : NaN; };
+      const feeFor = () => 0;
+      const cents = (v) => Math.round(v * 100);
+      const dueLine = () => { const d = dues[toAccount.value]; $('dueLine').textContent = d > 0 ? `Balance due: ${money.format(d)}` : 'This invoice is paid in full.'; };
+      const setDue = () => { const d = dues[toAccount.value]; amountInput.value = d > 0 ? d.toFixed(2) : ''; };
+      function render() {
+        Object.keys(balances).forEach((k) => { const el = $(`bal-${k}`); if (el) el.textContent = money.format(balances[k]); });
+        Object.keys(dues).forEach((k) => { const el = $(`due-${k}`); if (el) el.textContent = dues[k] > 0 ? money.format(dues[k]) : 'Paid'; });
+        $('fromBal').textContent = `Available balance: ${money.format(balances[fromAccount.value])}`;
+        $('sFrom').textContent = opt(fromAccount).dataset.name; $('sTo').textContent = opt(toAccount).dataset.name;
+        const a = amount(); const ok = Number.isFinite(a) && a >= 1;
+        $('sAmt').textContent = ok ? money.format(a) : '\u2014';
+        $('sFee').textContent = ok ? money.format(feeFor(a)) : '\u2014';
+        $('sTot').textContent = ok ? money.format(a + feeFor(a)) : '\u2014';
+      }
+      function show(kind, title, body) {
+        result.className = `result-box ${kind}`; result.textContent = '';
+        const b = document.createElement('b'); b.textContent = title; result.appendChild(b); result.appendChild(document.createTextNode(body));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function clearStale() { if (pending) return; result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = secs(0); }
+      function onEdit(e) { if (e.target.tagName === 'SELECT' && !postedSelects.has(e.target.id)) return; if (e.target === toAccount) setDue(); dueLine(); clearStale(); render(); }
+      form.addEventListener('input', onEdit);
+      form.addEventListener('change', onEdit);
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { accountTier.value = 'standard'; setDue(); dueLine(); clearStale(); render(); });
+      });
+      dueLine();
+      render();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        const a = amount();
+        if (!(dues[toAccount.value] > 0)) { show('notice', 'Invoice already paid', 'This invoice has no balance due. Choose another invoice.'); toAccount.focus(); return; }
+        if (!Number.isFinite(a) || a < 1) { show('notice', 'Enter a payment amount', 'Enter an amount of at least $1.00, with up to two decimal places.'); amountInput.focus(); return; }
+        if (cents(a) > cents(dues[toAccount.value])) { show('notice', 'Amount is more than the balance due', `The balance on this invoice is ${money.format(dues[toAccount.value])}. Enter that amount or less.`); amountInput.focus(); return; }
+        if (cents(a) + cents(feeFor(a)) > cents(balances[fromAccount.value])) { show('notice', 'Insufficient funds', `${opt(fromAccount).dataset.name} doesn\u2019t have enough available for this payment. Choose another account.`); fromAccount.focus(); return; }
+        const from = fromAccount.value; const to = toAccount.value; const toName = opt(toAccount).dataset.name; const fee = feeFor(a);
+        const locked = [btn, resetBtn, fromAccount, toAccount, amountInput];
+        pending = true; locked.forEach((el) => { el.disabled = true; });
+        btn.textContent = 'Submitting\u2026'; result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = secs(performance.now() - started); };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        let response = null;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim()),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          tick(); stopTimer(true);
+          if (!response.ok || !data.success) throw new Error('not completed');
+          const charged = a + fee;
+          const ref = String(data.transferId || '').replace(/-/g, '').slice(-8).toUpperCase();
+          if (data.duplicate) { show('success', 'Payment already submitted', `This payment on ${toName} was already received. Your account was debited once.${ref ? ' Confirmation ' + ref + '.' : ''}`); return; }
+          balances[from] -= charged; if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
+          dueLine();
+          render();
+          show('success', 'Payment submitted', `${money.format(a + fee)} from ${opt(fromAccount).dataset.name} applied to ${toName}.${ref ? ' Confirmation ' + ref + '.' : ''}`);
+        } catch (_err) {
+          stopTimer(true);
+          if (response) show('notice', 'We couldn\u2019t process your payment', 'Something went wrong. Your account was not debited and the invoice balance is unchanged. Try again later, or contact your Baker Tilly engagement team.');
+          else show('notice', 'We couldn\u2019t process your payment', 'We couldn\u2019t reach the Client Portal. Check your connection and try again.');
+        } finally {
+          pending = false; locked.forEach((el) => { el.disabled = false; });
+          btn.textContent = 'Submit payment';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
