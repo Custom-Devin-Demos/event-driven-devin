@@ -456,7 +456,7 @@
         if (!data || !data.receipt) throw new Error('Payment outcome unknown.');
         const doneAt = timeFmt.format(new Date(data.receipt.timestamp));
         result.className = 'result-box success';
-        result.textContent = `Payment sent. ${money(payment.sym, payment.amount)} from your ${payment.account} to ${payment.payee} at ${doneAt}. Payment reference ${data.receipt.receiptId}.${Number(data.receipt.fee) > 0 ? ` Fee ${money(payment.sym, Number(data.receipt.fee))}; total debited ${money(payment.sym, Number(data.receipt.totalDebit))}.` : ''}`;
+        result.textContent = `Payment sent. ${money(payment.sym, payment.amount)} from your ${payment.account} to ${payment.payee} at ${doneAt}. Payment reference ${data.receipt.receiptId}.${Number(data.receipt.fee) > 0 ? ` Fee ${money(payment.sym, Number(data.receipt.fee))}; total debited ${money(payment.sym, payment.amount + Number(data.receipt.fee))}.` : ''}`;
         status.textContent = 'Payment sent.';
         if (!data.duplicate) addPayment(payment);
       } catch (_error) {
