@@ -82,6 +82,7 @@ describe('Sentry customer identity mapping', () => {
 
   test.each([
     'reportLatencyBreach(app/services/verticals/fd043af6)',
+    'reportLatencyBreach(app/services/verticals/37b90289)',
     'reportLatencyBreach(app/services/verticals/8f970d35)',
     'reportLatencyBreach(app/services/verticals/924f5ec9)',
     'reportLatencyBreach(app/services/verticals/3c9e1f7a)',
@@ -125,6 +126,7 @@ describe('Sentry customer identity mapping', () => {
   test.each([
     'LatencyBudgetExceeded: POST /api/2fbca1a9/coverage-quote took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/fd043af6/program-match took 7120ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/37b90289/case-search took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/8f970d35/compliance-check took 7010ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/924f5ec9/member-lookup took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/3c9e1f7a/audit-readiness took 7040ms (budget 3000ms)',
