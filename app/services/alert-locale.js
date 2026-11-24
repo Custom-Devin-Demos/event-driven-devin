@@ -121,6 +121,13 @@ STRINGS['en-cloudwatch'] = {
   sentryIssue: 'CloudWatch Alarm',
 };
 
+// Kafka consumer-lag vocabulary for incidents raised by a service's own consumer
+// health check rather than Sentry (config/customers/<slug>.js `locale: 'en-kafka'`).
+STRINGS['en-kafka'] = {
+  ...STRINGS.en,
+  header: (label) => `Kafka Consumer Lag Alert — ${label}`,
+};
+
 function alertLocale(alertData) {
   const locale = alertData && (alertData.locale || (alertData.customerConfig && alertData.customerConfig.locale));
   return Object.prototype.hasOwnProperty.call(STRINGS, locale) ? locale : 'en';
