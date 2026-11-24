@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Transfer funds | Plaid</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy: #00172E; --ink: #111111; --muted: #5C6670; --line: #E3E6EC; --paper: #FFFFFF; --teal: #10D1B7; --cta: #111112; }
+    * { box-sizing: border-box; } html, body { margin: 0; }
+    body { font-family: "Inter", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: var(--ink); background: linear-gradient(180deg, #F4F3FF 0%, #F2F8FF 45%, #FFFFFF 100%); }
+    .hdr { padding: 16px 24px 0; }
+    .hdr .bar { max-width: 1120px; margin: 0 auto; background: var(--paper); border-radius: 100px; display: flex; align-items: center; gap: 24px; padding: 8px 10px 8px 24px; box-shadow: 0 6px 24px rgba(0, 23, 46, .08); }
+    .mark { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; color: var(--ink); font: 800 17px "Plus Jakarta Sans", Arial, sans-serif; letter-spacing: .06em; }
+    .hdr nav { display: flex; gap: 4px; margin: 0 auto; }
+    .hdr nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; color: #232424; text-decoration: none; font-size: 16px; }
+    .hdr .tools { display: flex; gap: 10px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 20px; border-radius: 100px; border: 2px solid transparent; font: 600 16px "Inter", Arial, sans-serif; text-decoration: none; cursor: pointer; }
+    .pill.dark { background: var(--cta); color: #fff; border-color: var(--cta); box-shadow: 0 0 0 2px rgba(16, 209, 183, .55); }
+    .pill.out { background: #fff; color: var(--ink); border-color: #4A2BB5; }
+    .pill.big { min-height: 56px; padding: 0 28px; font-size: 18px; }
+    .pill:disabled { opacity: .6; cursor: progress; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 72px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 48px; align-items: start; }
+    .eyebrow { font: 800 16px "Plus Jakarta Sans", Arial, sans-serif; letter-spacing: .12em; color: var(--navy); margin: 0 0 16px; }
+    h1 { font: 600 60px/1.08 "Plus Jakarta Sans", Arial, sans-serif; letter-spacing: -.02em; color: var(--navy); margin: 0 0 20px; }
+    .lede { font-size: 20px; color: #2B3440; margin: 0 0 28px; max-width: 520px; }
+    .rails { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 32px; padding: 0; list-style: none; }
+    .rails li { padding: 8px 18px; border-radius: 14px; background: linear-gradient(180deg, #F2FEFF, #E3F6FF); border: 1px solid #BDE7F2; font: 600 14px "Plus Jakarta Sans", Arial, sans-serif; letter-spacing: .04em; color: var(--navy); }
+    .hero-img { width: 100%; max-width: 520px; display: block; border-radius: 24px; }
+    .card { background: var(--paper); border: 1px solid #DCE3F0; border-radius: 28px; padding: 28px; box-shadow: 0 20px 60px rgba(0, 23, 46, .10); }
+    .card + .card { margin-top: 20px; }
+    .card h2 { font: 600 22px "Plus Jakarta Sans", Arial, sans-serif; color: var(--navy); margin: 0 0 4px; }
+    .card .sub { color: var(--muted); margin: 0 0 20px; font-size: 15px; }
+    .amt { text-align: center; margin: 0 0 18px; }
+    .amt label { display: block; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .amt .box { display: inline-flex; align-items: baseline; gap: 4px; font: 500 48px "Plus Jakarta Sans", Arial, sans-serif; color: var(--navy); }
+    .amt input { width: 5.6em; border: 0; border-bottom: 2px solid var(--line); background: transparent; font: inherit; color: inherit; text-align: center; padding: 0 0 2px; min-height: 60px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .field select { width: 100%; min-height: 48px; border: 1px solid #D5DBE5; border-radius: 12px; background: #fff; padding: 0 14px; font: 500 16px "Inter", Arial, sans-serif; color: var(--ink); }
+    .field small { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+    .actions .pill { width: 100%; }
+    .pill:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #4A2BB5; outline-offset: 2px; }
+    .secure { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+    .stopwatch { justify-content: center; }
+    .sw-label { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .sw-value { font: 600 28px "Plus Jakarta Sans", Arial, sans-serif; color: var(--navy); }
+    .stopwatch.done .sw-value { color: #4A2BB5; }
+    .result-box { border-radius: 14px; }
+    .result-box.success { background: #E6FBF7; } .result-box.notice { background: #FDEDEE; }
+    .sum dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 10px; font-size: 15px; }
+    .sum dt { color: var(--muted); } .sum dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .sum .tot { font-size: 18px; color: var(--navy); padding-top: 12px; border-top: 1px solid var(--line); white-space: nowrap; }
+    .accts { margin: 0; padding: 0; list-style: none; font-size: 15px; }
+    .accts li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .accts li:last-child { border-bottom: 0; }
+    .accts .ic { width: 36px; height: 36px; border-radius: 10px; background: #F1F4F9; display: grid; place-items: center; flex: none; }
+    .accts b { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    footer { background: var(--navy); color: #C9D3DE; border-radius: 40px 40px 0 0; }
+    footer .in { max-width: 1120px; margin: 0 auto; padding: 40px 24px; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; }
+    footer a { color: #fff; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; text-decoration: none; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: minmax(0, 1fr); } .hdr nav { display: none; } .hdr .tools { margin-left: auto; } }
+    @media (max-width: 600px) {
+      .hdr { padding: 10px 12px 0; } .hdr .bar { padding: 6px 6px 6px 16px; gap: 8px; } .hdr .tools .out { display: none; }
+      .wrap { padding: 28px 14px 48px; } h1 { font-size: 40px; } .lede { font-size: 17px; }
+      .card { padding: 22px 16px; border-radius: 22px; } .amt .box { font-size: 40px; }
+      footer .in { padding: 28px 14px; }
+    }
+
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; font-size: 15px; }
+    .result-box b { display: block; margin-bottom: 2px; }
+    .result-box.success, .result-box.notice { display: block; }
+  </style>
+</head>
+<body>
+  <header class="hdr"><div class="bar">
+    <a class="mark" href="#" aria-label="Plaid home"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><g fill="none" stroke="#111" stroke-width="2.2"><path d="M13 2l4.5 4.5L13 11 8.5 6.5z"/><path d="M13 15l4.5 4.5L13 24l-4.5-4.5z"/><path d="M2 13l4.5-4.5L11 13l-4.5 4.5z"/><path d="M15 13l4.5-4.5L24 13l-4.5 4.5z"/></g></svg><span>PLAID</span></a>
+    <nav aria-label="Main"><a href="#">Products</a><a href="#">Solutions</a><a href="#">Developers</a><a href="#">Resources</a><a href="#">Pricing</a></nav>
+    <div class="tools"><a class="pill out" href="#">Log in</a><a class="pill dark" href="#">Contact sales</a></div>
+  </div></header>
+  <main class="wrap">
+    <div class="grid">
+      <section>
+        <p class="eyebrow">PLAID TRANSFER</p>
+        <h1>Pay by bank, on every rail</h1>
+        <p class="lede">Move money from a linked bank account in a few taps. Plaid checks the account and balance, then sends the transfer on the fastest available rail.</p>
+        <ul class="rails" aria-label="Supported rails"><li>ACH</li><li>Same Day ACH</li><li>RTP</li><li>FedNow</li><li>Wire</li></ul>
+        <img class="hero-img" src="https://images.ctfassets.net/ss5kfr270og3/5VEjRngrfMm9ni1fmTAKEk/d53db67c8756ee77eada1a39a650f81d/Transfer_Hero.png?fm=webp&amp;w=1438&amp;q=60" alt="" loading="lazy" onerror="this.remove()">
+      </section>
+      <div>
+        <section class="card" aria-labelledby="xferHead">
+          <h2 id="xferHead">Transfer funds</h2>
+          <p class="sub">Ascend brokerage · connected with Plaid</p>
+          <form id="transferForm" novalidate aria-labelledby="xferHead">
+            <div class="amt"><label for="amount">Amount (USD)</label><span class="box">$<input type="number" id="amount" value="200.00" min="1" step="0.01" inputmode="decimal"></span></div>
+            <div class="field">
+              <label for="fromAccount">Transfer from</label>
+              <select id="fromAccount">
+                <option value="PLD-ITEM-GINGHAM-5521" data-name="Gingham Bank checking ···5521" data-balance="4820.36" selected>Gingham Bank · Checking ···5521</option>
+                <option value="PLD-ITEM-TARTAN-0718" data-name="Tartan Bank savings ···0718" data-balance="12450.00">Tartan Bank · Savings ···0718</option>
+              </select>
+              <small id="fromBal">&nbsp;</small>
+            </div>
+            <div class="field">
+              <label for="toAccount">Transfer to</label>
+              <select id="toAccount">
+                <option value="ASC-BROKERAGE-3307" data-name="Ascend individual brokerage ···3307" selected>Ascend · Individual brokerage ···3307</option>
+                <option value="ASC-ROTH-IRA-4410" data-name="Ascend Roth IRA ···4410">Ascend · Roth IRA ···4410</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="rail">Speed</label>
+              <select id="rail"><option selected>Instant transfer (RTP / FedNow)</option><option>Same Day ACH</option><option>Standard ACH (1–2 business days)</option></select>
+            </div>
+            <input type="hidden" id="accountTier" value="standard">
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="pill dark big">Transfer</button>
+              <button type="reset" id="resetBtn" class="pill out">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Transfer time</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <p class="secure"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><rect x="1" y="7" width="12" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 7V4.5a3.5 3.5 0 0 1 7 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Secured by Plaid · your credentials are never shared</p>
+          </form>
+        </section>
+        <section class="card sum" aria-labelledby="sumHead">
+          <h2 id="sumHead">Review</h2>
+          <dl>
+            <dt>From</dt><dd id="sFrom">&mdash;</dd>
+            <dt>To</dt><dd id="sTo">&mdash;</dd>
+            <dt>Amount</dt><dd id="sAmt">&mdash;</dd>
+            <dt>Transfer fee</dt><dd id="sFee">&mdash;</dd>
+            <dt class="tot">Total debit</dt><dd class="tot" id="sTot">&mdash;</dd>
+          </dl>
+        </section>
+        <section class="card" aria-labelledby="linkHead">
+          <h2 id="linkHead">Linked accounts</h2>
+          <ul class="accts">
+            <li><span class="ic"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 7h14L9 2.5z M3.5 8.5v5 M7 8.5v5 M11 8.5v5 M14.5 8.5v5 M2 15.5h14" fill="none" stroke="#00172E" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Gingham Bank ···5521</span><b id="bal-PLD-ITEM-GINGHAM-5521"></b></li>
+            <li><span class="ic"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 7h14L9 2.5z M3.5 8.5v5 M7 8.5v5 M11 8.5v5 M14.5 8.5v5 M2 15.5h14" fill="none" stroke="#00172E" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Tartan Bank ···0718</span><b id="bal-PLD-ITEM-TARTAN-0718"></b></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer><div class="in"><span>© Plaid Inc.</span><a href="#">Privacy</a><a href="#">Legal</a><a href="#">Security</a><a href="#">Support</a><span>Sample data.</span></div></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const fromAccount = $('fromAccount'); const toAccount = $('toAccount');
+      const amountInput = $('amount'); const accountTier = $('accountTier'); const btn = $('submitBtn'); const resetBtn = $('resetBtn');
+      const result = $('result'); const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const balances = {};
+      [...fromAccount.options].forEach((o) => { balances[o.value] = Number(o.dataset.balance); });
+      const dues = {};
+      [...toAccount.options].forEach((o) => { if (o.dataset.due) dues[o.value] = Number(o.dataset.due); });
+      const postedSelects = new Set(['fromAccount', 'toAccount']);
+      let pending = false; let ticker = null;
+      const opt = (s) => s.options[s.selectedIndex];
+      const secs = (ms) => `${(ms / 1000).toFixed(1)}s`;
+      const amount = () => { const raw = amountInput.value.trim(); return /^\d+(\.\d{1,2})?$/.test(raw) ? parseFloat(raw) : NaN; };
+      const feeFor = (a) => Math.round((Number((a + Math.max(a * 0.001, 2.5)).toFixed(2)) - a) * 100) / 100;
+      const cents = (v) => Math.round(v * 100);
+
+      function render() {
+        Object.keys(balances).forEach((k) => { const el = $(`bal-${k}`); if (el) el.textContent = money.format(balances[k]); });
+        Object.keys(dues).forEach((k) => { const el = $(`due-${k}`); if (el) el.textContent = dues[k] > 0 ? money.format(dues[k]) : ''; });
+        $('fromBal').textContent = `Available balance: ${money.format(balances[fromAccount.value])}`;
+        $('sFrom').textContent = opt(fromAccount).dataset.name; $('sTo').textContent = opt(toAccount).dataset.name;
+        const a = amount(); const ok = Number.isFinite(a) && a >= 1;
+        $('sAmt').textContent = ok ? money.format(a) : '\u2014';
+        $('sFee').textContent = ok ? money.format(feeFor(a)) : '\u2014';
+        $('sTot').textContent = ok ? money.format(a + feeFor(a)) : '\u2014';
+      }
+      function show(kind, title, body) {
+        result.className = `result-box ${kind}`; result.textContent = '';
+        const b = document.createElement('b'); b.textContent = title; result.appendChild(b); result.appendChild(document.createTextNode(body));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function clearStale() { if (pending) return; result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = secs(0); }
+      function onEdit(e) { if (e.target.tagName === 'SELECT' && !postedSelects.has(e.target.id)) return;  clearStale(); render(); }
+      form.addEventListener('input', onEdit);
+      form.addEventListener('change', onEdit);
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { accountTier.value = 'standard';  clearStale(); render(); });
+      });
+      
+      render();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        const a = amount();
+        if (!Number.isFinite(a) || a < 1) { show('notice', 'Enter an amount', 'Enter an amount of at least $1.00, with up to two decimal places.'); amountInput.focus(); return; }
+        if (cents(a) + cents(feeFor(a)) > cents(balances[fromAccount.value])) { show('notice', 'Insufficient funds', `The amount and fee are more than the available balance in ${opt(fromAccount).dataset.name}. Enter a smaller amount or choose another account.`); amountInput.focus(); return; }
+        const from = fromAccount.value; const to = toAccount.value; const toName = opt(toAccount).dataset.name; const fee = feeFor(a);
+        const locked = [btn, resetBtn, fromAccount, toAccount, amountInput];
+        pending = true; locked.forEach((el) => { el.disabled = true; });
+        btn.textContent = 'Transferring\u2026'; result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = secs(performance.now() - started); };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        let response = null;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim()),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          tick(); stopTimer(true);
+          if (!response.ok || !data.success) throw new Error('not completed');
+          const charged = Number(data.debitAmount || (data.receipt && data.receipt.totalDebit)) || a + fee;
+          const ref = String(data.transferId || '').replace(/-/g, '').slice(-8).toUpperCase();
+          if (data.duplicate) { show('success', 'Transfer already submitted', `This transfer to ${toName} is already in progress. Your account was debited once.${ref ? ' Transfer ID ' + ref + '.' : ''}`); return; }
+          balances[from] = Math.round((balances[from] - charged) * 100) / 100; if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
+          
+          render();
+          show('success', 'Transfer submitted', `${money.format(charged)} from ${opt(fromAccount).dataset.name} to ${toName}. Funds are on the way.${ref ? ' Transfer ID ' + ref + '.' : ''}`);
+        } catch (_err) {
+          stopTimer(true);
+          if (response) show('notice', 'Transfer didn\u2019t go through', 'Something went wrong and no money moved. Try again in a few minutes.');
+          else show('notice', 'Transfer didn\u2019t go through', 'We couldn\u2019t reach Plaid. Check your connection and try again.');
+        } finally {
+          pending = false; locked.forEach((el) => { el.disabled = false; });
+          btn.textContent = 'Transfer';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
