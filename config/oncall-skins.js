@@ -2043,6 +2043,16 @@ const ONCALL_SKINS = {
     page: { file: '4febe75b.html', title: 'Basket - JD Sports UK' },
     disclaimer: 'NOT ACTUALLY A JD SPORTS SITE — internal demo only, not affiliated with, endorsed by, or a real JD Sports product.',
   },
+  '83e49faa': {
+    slug: '83e49faa',
+    company: 'Nordstrom',
+    vertical: 'cardpayment',
+    page: {
+      file: '83e49faa.html',
+      title: 'Manage Your Nordstrom Credit Card | Nordstrom',
+    },
+    disclaimer: 'NOT ACTUALLY A NORDSTROM SITE — internal demo only, not affiliated with, endorsed by, or a real Nordstrom product.',
+  },
   '0d1ff688': {
     slug: '0d1ff688',
     company: 'Nordstrom',
