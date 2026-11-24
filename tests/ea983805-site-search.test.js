@@ -1,13 +1,14 @@
-/* global afterEach, describe, expect, jest, test, setImmediate */
+/* global afterEach, beforeEach, describe, expect, jest, test, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
+  createSessionAndAlert: jest.fn(() => Promise.resolve({ session: {} })),
 }));
 
 const express = require('express');
 const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { resetLatencyAlertCooldowns } = require('../app/services/latency-alert-cooldown');
 const routes = require('../app/routes/verticals/ea983805');
 const {
   SCOPES,
@@ -64,6 +65,24 @@ function request(method, path, body) {
 function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+async function postLatencyBreach(devinOrgId = 'presenter-org') {
+  const response = await request('POST', '/api/ea983805/search', {
+    q: 'voice',
+    devinUserId: 'presenter-user',
+    devinOrgId,
+    devinEmail: 'presenter@example.com',
+  });
+  await tick();
+  return response;
+}
+
+function shrinkLatency() {
+  INDEX_QUERY_POLICY.latencyMs = [2, 4];
+  LATENCY_SLO.budgetMs = 1;
+}
+
+beforeEach(() => resetLatencyAlertCooldowns());
 
 afterEach(() => {
   INDEX_QUERY_POLICY.latencyMs = [...ORIGINAL_LATENCY];
@@ -178,6 +197,29 @@ describe('Cerence AI site search', () => {
       indexesQueried: 14,
       query: 'voice',
     }));
+  });
+
+  test('suppresses a second latency-breach session during the cooldown', async () => {
+    shrinkLatency();
+    await postLatencyBreach('org-a');
+    const { status } = await postLatencyBreach('org-a');
+    expect(status).toBe(200);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('releases the cooldown when no investigation starts', async () => {
+    shrinkLatency();
+    createSessionAndAlert.mockResolvedValueOnce({ session: null, throttled: true });
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('keeps latency-breach cooldowns independent by organization', async () => {
+    shrinkLatency();
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-b');
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test.each([

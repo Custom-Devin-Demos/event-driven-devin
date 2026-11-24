@@ -5,6 +5,12 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const {
+  claimLatencyAlert,
+  latencyAlertKey,
+  releaseLatencyAlert,
+  startedInvestigation,
+} = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.CERENCE_SLACK_MEMBER_ID || '';
 
@@ -252,7 +258,14 @@ function reportLatencyBreach(context) {
     },
   });
 
-  createSessionAndAlert({
+  const alertKey = latencyAlertKey('ea983805', data.devinOrgId);
+  const claim = claimLatencyAlert(alertKey);
+  if (!claim) {
+    logger.info('Cerence site search latency breach alert suppressed by cooldown', { requestId, durationMs });
+    return;
+  }
+
+  Promise.resolve(createSessionAndAlert({
     issueTitle: `LatencyBudgetExceeded: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'app/services/verticals/ea983805.js — searchContentIndexes',
@@ -290,7 +303,10 @@ function reportLatencyBreach(context) {
     release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
+  })).then((result) => {
+    if (!startedInvestigation(result)) releaseLatencyAlert(alertKey, claim);
   }).catch((alertError) => {
+    releaseLatencyAlert(alertKey, claim);
     logger.error('Failed to create Devin session for Cerence site search latency breach', {
       error: alertError.message,
       requestId,
