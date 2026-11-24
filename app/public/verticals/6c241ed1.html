@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subcontractor &amp; Vendor Prequalification | Clayco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;700&family=Cinzel:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: rgb(226, 35, 26);
+      --ink: rgb(33, 33, 33);
+      --gray: rgb(102, 102, 102);
+      --light: rgb(234, 234, 234);
+      --tile: rgb(238, 238, 238);
+      --font: "NeueHaasGrotTextRound", "Arimo", Helvetica, Arial, sans-serif;
+      --mark: "Cinzel", "Trajan Pro", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: var(--font); font-size: 16px; line-height: 24px; color: var(--ink); background: #fff; letter-spacing: 0.03em; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+    h1, h2, h3, h4, p { margin: 0; font-weight: 400; }
+
+    .top { position: relative; }
+    .header { position: absolute; top: 0; left: 0; right: 0; height: 130px; z-index: 20; transition: background-color .2s; }
+    .header .bound { height: 100%; margin: 0 60px; display: flex; align-items: center; justify-content: space-between; color: #fff; }
+    .header.is-fixed { position: fixed; height: 80px; background: #fff; border-bottom: 1px solid var(--light); }
+    .header.is-fixed .bound { color: var(--red); }
+    .header.is-fixed .icon-btn { color: var(--ink); }
+    .icon-btn { width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .icon-btn svg { width: 44px; height: 44px; }
+    .header-search .icon-btn svg { width: 34px; height: 34px; }
+    .logo { display: flex; align-items: center; height: 51px; width: 204px; justify-content: center; text-decoration: none; color: inherit; }
+    .wordmark { font-family: var(--mark); font-weight: 500; font-size: 46px; line-height: 51px; letter-spacing: -0.5px; white-space: nowrap; }
+    .wordmark .big { font-size: 58px; }
+
+    .masthead { position: relative; height: 693px; background: rgb(51, 51, 51); overflow: hidden; }
+    .masthead picture, .masthead img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .masthead::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.5)); }
+    .masthead-content { position: relative; z-index: 2; height: 100%; padding: 130px 0 40px; display: flex; align-items: flex-end; }
+    .narrow { max-width: 960px; margin: 0 auto; width: 100%; }
+    .masthead-title { color: #fff; font-size: 60px; line-height: 66px; font-weight: 400; }
+
+    .breadcrumb { list-style: none; padding: 0; max-width: 960px; margin: 20px auto; display: flex; flex-wrap: wrap; font-size: 16px; font-weight: 500; line-height: 24px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--red); }
+    .breadcrumb li { display: flex; }
+    .breadcrumb a { color: var(--ink); text-decoration: none; }
+    .breadcrumb li:not(:last-child)::after { content: ">"; color: var(--ink); margin: 0 10px 0 9px; letter-spacing: 0; }
+
+    .gutenberg { display: flow-root; }
+    .gutenberg h3 { font-size: 40px; line-height: 44px; margin: 10px 0 30px; }
+    .gutenberg p { font-size: 24px; line-height: 36px; margin: 0 0 30px; }
+
+    .payments { max-width: 978px; margin: 92px auto 116px; }
+    .rule { width: 216px; height: 3px; background: var(--red); margin-bottom: 18px; }
+    .payments-title { font-size: 21px; line-height: 26px; font-weight: 700; text-transform: uppercase; margin-bottom: 40px; }
+    .pay-card { background: var(--tile); padding: 40px 60px 44px; }
+    .pay-card .lede { font-size: 18px; line-height: 27px; color: var(--ink); margin: 0 0 28px; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; }
+    .field label { display: block; font-size: 16px; line-height: 22px; font-weight: 700; margin-bottom: 8px; }
+    .field select, .field input { width: 100%; height: 51px; padding: 0 16px; border: 1px solid #c8c8c8; border-radius: 0; background: #fff; font: 400 18px/24px var(--font); color: var(--ink); appearance: none; -webkit-appearance: none; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23212121' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 44px; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--red); outline-offset: -1px; }
+    .pay-btn { letter-spacing: 0.006em; display: block; width: 100%; height: 62px; margin-top: 50px; border: 0; border-radius: 0; background: var(--red); color: #fff; font: 700 26px/30px var(--font); cursor: pointer; }
+    .pay-btn:disabled { opacity: .75; cursor: progress; }
+    .result-box { display: none; margin-top: 24px; padding: 20px 24px; background: #fff; border-left: 4px solid var(--red); }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { border-left-color: rgb(33, 33, 33); }
+    .result-box .error-title { font-size: 18px; line-height: 24px; font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-size: 16px; line-height: 24px; color: var(--gray); }
+    .touch { background: var(--tile); margin-top: 52px; padding: 50px 60px 64px; }
+    .touch h4 { font-size: 30px; line-height: 36px; font-weight: 400; margin-bottom: 40px; }
+    .touch .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 40px; font-size: 18px; line-height: 23px; }
+    .touch strong { display: block; font-weight: 700; }
+
+    .gutenberg .bid { margin-top: 0; }
+    .btn-wrap { display: flex; justify-content: center; margin: 30px 0 0; }
+    .btn { letter-spacing: 0.006em; display: inline-flex; align-items: center; height: 51px; padding: 16px 32px; background: var(--red); color: #fff; font-size: 16px; font-weight: 700; line-height: 19px; text-transform: uppercase; text-decoration: none; border-radius: 0; }
+    hr { border: 0; border-top: 1px solid var(--gray); margin: 100px 0 0; }
+
+    .features { max-width: 1160px; margin: 90px auto 0; }
+    .block-title { text-align: center; font-size: 25px; line-height: 32px; letter-spacing: 1.25px; text-transform: uppercase; margin-bottom: 60px; }
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 90px; }
+    .feature { display: flex; flex-direction: column; font-size: 18px; line-height: 27px; }
+    .feature .img { aspect-ratio: 4 / 3; background: rgb(51, 51, 51); overflow: hidden; }
+    .feature .img img { width: 100%; height: 100%; object-fit: cover; }
+    .feature .text { padding: 20px 57px 0 0; }
+    .headingSecondary { color: var(--red); font-size: 20px; font-weight: 500; line-height: 22px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px; }
+    .excerpt { color: var(--gray); font-size: 18px; line-height: 27px; margin-top: 10px; }
+
+    .footer { background: var(--red); color: var(--light); padding: 80px 0 70px; }
+    .footer .bound { max-width: 1160px; margin: 0 auto; }
+    .lined { border-top: 3px solid var(--light); padding-top: 10px; }
+    .footer-title { font-size: 25px; font-weight: 500; line-height: 27.5px; letter-spacing: 1.25px; text-transform: uppercase; margin: 0 0 25px; }
+    .footer-offices { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; margin-bottom: 100px; }
+    .footer-office h3 { font-size: 16px; font-weight: 700; line-height: 24px; }
+    .footer-office address { font-style: normal; }
+    .footer-secondary { display: grid; grid-template-columns: 377fr 275fr 275fr; gap: 30px 10%; margin: 0 0 100px; }
+    .footer-logos { grid-column: 1 / 3; }
+    .logos { display: flex; flex-wrap: wrap; }
+    .logo-wrap { width: 256px; height: 90px; padding: 10px; display: flex; align-items: center; justify-content: center; }
+    .logo-wrap img { max-height: 70px; max-width: 180px; }
+    .footer-contact p { margin: 0 0 24px; }
+    .socials { display: flex; gap: 14px; margin-top: 4px; }
+    .socials a { display: flex; width: 30px; height: 30px; color: var(--light); }
+    .socials svg { width: 30px; height: 30px; }
+    .footer-tertiary { display: flex; justify-content: space-between; align-items: flex-start; }
+    .footer-legal { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+    .footer-legal a, .footer-tertiary a { text-decoration: none; }
+
+    @media (max-width: 1260px) {
+      .narrow, .breadcrumb, .payments { padding-left: 20px; padding-right: 20px; }
+      .features, .footer .bound { padding: 0 20px; }
+    }
+    @media (max-width: 900px) {
+      body { letter-spacing: 0.01em; }
+      .header, .header.is-fixed { position: relative; height: 65px; background: #fff; border-bottom: 1px solid var(--light); }
+      .header .bound { margin: 0 20px; color: var(--red); }
+      .icon-btn { color: var(--ink); }
+      .icon-btn svg { width: 32px; height: 32px; }
+      .header-search .icon-btn svg { width: 26px; height: 26px; }
+      .logo { width: 143px; height: 36px; }
+      .wordmark { font-size: 32px; line-height: 36px; }
+      .wordmark .big { font-size: 41px; }
+      .masthead { height: auto; background: none; overflow: visible; }
+      .masthead::after { display: none; }
+      .masthead picture { position: relative; display: block; aspect-ratio: 1.4285714; background: rgb(51, 51, 51); }
+      .masthead img { position: absolute; }
+      .masthead-content { height: auto; padding: 10px 0 0; }
+      .masthead-title { color: var(--red); font-size: 40px; line-height: 44px; }
+      .breadcrumb { margin: 20px auto; font-size: 14px; line-height: 21px; letter-spacing: 0.3px; }
+      .gutenberg h3 { font-size: 25px; line-height: 27.5px; margin: 10px 0; }
+      .gutenberg p { font-size: 16px; line-height: 24px; margin: 0 0 10px; }
+      .payments { margin: 30px auto; }
+      .payments-title { font-size: 18px; line-height: 23px; margin-bottom: 24px; }
+      .pay-card { padding: 24px 20px 28px; }
+      .pay-card .lede { font-size: 16px; line-height: 24px; margin-bottom: 20px; }
+      .fields { grid-template-columns: 1fr; gap: 18px; }
+      .pay-btn { margin-top: 28px; height: 56px; font-size: 20px; }
+      .touch { margin-top: 30px; padding: 28px 20px 32px; }
+      .touch h4 { font-size: 24px; line-height: 30px; margin-bottom: 20px; }
+      .touch .cols { grid-template-columns: 1fr; font-size: 16px; line-height: 22px; }
+      hr { margin-top: 60px; }
+      .features { margin-top: 50px; }
+      .btn { max-width: 100%; }
+      .block-title { font-size: 18px; line-height: 23.04px; margin-bottom: 20px; }
+      .feature-grid { grid-template-columns: 1fr; margin-bottom: 30px; }
+      .feature .text { padding: 20px 35px 0 0; }
+      .headingSecondary { font-size: 18px; line-height: 19.8px; margin-bottom: 9px; }
+      .excerpt { font-size: 16px; line-height: 24px; }
+      .footer { padding: 30px 0; font-size: 14px; line-height: 21px; }
+      .footer-title { margin-bottom: 17.5px; }
+      .footer-offices { grid-template-columns: 1fr 1fr; margin-bottom: 50px; }
+      .footer-office h3 { font-size: 14px; line-height: 21px; }
+      .footer-secondary { grid-template-columns: 1fr; margin-bottom: 20px; }
+      .footer-logos { grid-column: auto; }
+      .logo-wrap { width: 50%; }
+      .logo-wrap img { max-width: 140px; max-height: 56px; }
+      .footer-tertiary { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .footer-legal { gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <header class="header" id="siteHeader">
+      <div class="bound">
+        <button class="icon-btn" type="button" aria-label="menu">
+          <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M0 12h44M0 22h44M0 32h44"/></svg>
+        </button>
+        <a class="logo" href="#" aria-label="Clayco homepage"><span class="wordmark"><span class="big">C</span>LAYCO</span></a>
+        <div class="header-search">
+          <button class="icon-btn" type="button" aria-label="Search">
+            <svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2"><circle cx="14" cy="14" r="11.5"/><path d="M22.5 22.5L33 33"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="masthead">
+      <picture>
+        <source media="(max-width: 500px)" srcset="https://e1.nmcdn.io/clayco/wp-content/uploads/2024/12/R_240625_N69_medium.jpg/v:1-dynamic:1-aspect:1.4285714285714-fit:cover/R_240625_N69_medium--750.webp">
+        <source media="(max-width: 900px)" srcset="https://e1.nmcdn.io/clayco/wp-content/uploads/2024/12/R_240625_N69_medium.jpg/v:1-dynamic:1-aspect:1.3090909090909-fit:cover/R_240625_N69_medium--1350.webp">
+        <img src="https://e1.nmcdn.io/clayco/wp-content/uploads/2024/12/R_240625_N69_medium.jpg/v:1-dynamic:1-aspect:2.0571428571429-fit:cover/R_240625_N69_medium--2000.webp" alt="" onerror="this.style.display='none'">
+      </picture>
+      <div class="masthead-content">
+        <div class="narrow"><h1 class="masthead-title">Subcontractor &amp; Vendor Prequalification</h1></div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <ol class="breadcrumb">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Contact Us</a></li>
+      <li><span>Subcontractor &amp; Vendor Prequalification</span></li>
+    </ol>
+
+    <div class="gutenberg narrow">
+      <h3>Future Partners — Learn Who We Are At Clayco</h3>
+      <p>Our team specializes in the “art and science of building,” providing fast-track, efficient solutions. Year after year, we are ranked by Engineering News Record as a top 5 design-builder and contractor. By embracing the passion, creativity, and ideas of our people, we have been recognized as the Fast Company Best Workplace for Innovators and Brands That Matter.</p>
+      <p>Clayco believes in assembling the best possible team for our clients across the country. That means reaching out to the communities we work in to establish strong and mutually beneficial relationships with local subcontractors and geographically diversified firms.</p>
+      <p>We have streamlined the prequalification process and as a subcontractor or vendor, you will only need to prequalify once a year in order to be eligible to bid and contract with our company. To get started you will need to complete our Preconstruction Contractor Profile Form. Should you need help, get in touch with our team below.</p>
+    </div>
+
+    <section class="payments" aria-labelledby="paymentsTitle">
+      <div class="rule"></div>
+      <h2 class="payments-title" id="paymentsTitle">Subcontractor Payments</h2>
+      <form id="transferForm" class="pay-card">
+        <p class="lede">Release an approved pay application to a prequalified subcontractor or vendor.</p>
+        <div class="fields">
+          <div class="field">
+            <label for="fromAccount">Disbursement account</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">Project disbursement 1001</option>
+              <option value="ACCT-1002">Retainage reserve 1002</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="toAccount">Subcontractor</label>
+            <select id="toAccount">
+              <option value="ACCT-EXT-001">Prequalified subcontractor ACH 4921</option>
+              <option value="ACCT-1002">Retainage reserve 1002</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="amount">Approved amount ($)</label>
+            <input type="number" id="amount" value="48250" min="1" step="0.01">
+          </div>
+          <div class="field">
+            <label for="accountTier">Payment type</label>
+            <select id="accountTier">
+              <option value="standard">Progress payment</option>
+              <option value="basic">Retainage release</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="pay-btn" id="submitBtn">Release Payment</button>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </form>
+      <div class="touch">
+        <h4>Get in Touch</h4>
+        <div class="cols">
+          <div><strong>Prequalification Team</strong>prequalification@claycorp.com</div>
+          <div><strong>Bid Inquiries</strong>precon-info@claycorp.com</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="gutenberg narrow">
+      <h3 class="bid">Bidding Opportunities</h3>
+      <p>You must have a Building Connected profile to view the Clayco Public Plan Room. As always, Clayco requires all subcontractors to complete the qualification process. If you are not qualified, use the Preconstruction Contractor Profile Form above to start the process. The link below will take you to a list of Clayco projects that are open for bids.</p>
+      <div class="btn-wrap"><a class="btn" href="#">Clayco Public Plan Room</a></div>
+      <hr>
+    </div>
+
+    <section class="features">
+      <h2 class="block-title">Our commitment to our clients and community</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="img"><img loading="lazy" src="https://e1.nmcdn.io/clayco/wp-content/uploads/2024/12/106073_N124_medium.jpg/v:1-dynamic:1-aspect:1.3333333333333-fit:cover/106073_N124_medium--750.webp" alt="" onerror="this.style.display='none'"></div>
+          <div class="text"><h4 class="headingSecondary">People &amp; Safety</h4><p class="excerpt">Safety is foundational to our work, and we are all responsible for creating a safe environment. Through regular trainings and awareness activities we prioritize proactive measures. Addressing physical and psychological well-being is vital, and we foster open dialogue for all employees.</p></div>
+        </div>
+        <div class="feature">
+          <div class="img"><img loading="lazy" src="https://e1.nmcdn.io/clayco/wp-content/uploads/2024/12/R_230407_N17_medium.jpg/v:1-dynamic:1-aspect:1.3333333333333-fit:cover/R_230407_N17_medium--750.webp" alt="" onerror="this.style.display='none'"></div>
+          <div class="text"><h4 class="headingSecondary">Clayco Rising (Culture, Empowerment and Inclusion)</h4><p class="excerpt">Clayco coordinates social impact efforts through Clayco Rising, a leading empowerment program in the industry. With 25 years of experience, Clayco Rising creates opportunities and structural change for employees, Business Enterprise Certified Vendors and Suppliers, and communities.</p></div>
+        </div>
+      </div>
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="img"><img loading="lazy" src="https://e1.nmcdn.io/clayco/wp-content/uploads/2024/12/R_210422_N2_medium.jpg/v:1-dynamic:1-aspect:1.3333333333333-fit:cover/R_210422_N2_medium--750.webp" alt="" onerror="this.style.display='none'"></div>
+          <div class="text"><h3 class="headingSecondary">Our Community</h3><p class="excerpt">Clayco’s culture extends beyond building structures. We’re committed to long-term partnerships with our communities. A vital part of our identity is dedicating time, energy, and resources to projects and nonprofit organizations in the communities where we live and work.</p></div>
+        </div>
+        <div class="feature">
+          <div class="img"><img loading="lazy" src="https://e1.nmcdn.io/clayco/wp-content/uploads/2024/12/25_002889_000_N55_medium.jpg/v:1-dynamic:1-aspect:1.3333333333333-fit:cover/25_002889_000_N55_medium--750.webp" alt="" onerror="this.style.display='none'"></div>
+          <div class="text"><h3 class="headingSecondary">Our Environment</h3><p class="excerpt">Clayco prioritizes environmental responsibility, as we meet the needs of employees, clients, and future generations. We design and construct buildings to reduce emissions and enhance energy efficiency. We lead with innovative solutions to minimize embodied carbon and waste. We have 100+ Sustainably Certified Projects and 70+ Sustainability Accredited Professionals.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="bound">
+      <div class="lined">
+        <h2 class="footer-title">Offices</h2>
+        <div class="footer-offices">
+          <div class="footer-office"><h3>St. Louis</h3><address>8640 Evans Ave.<br>St. Louis, MO 63134</address><div>p: +1 314-429-5100</div><div>f: +1 314-429-3137</div></div>
+          <div class="footer-office"><h3>Chicago</h3><address>35 East Wacker Drive<br>Suite 1300<br>Chicago, IL 60601</address><div>p: +1 312-658-0747</div><div>f: +1 314-890-7528</div></div>
+          <div class="footer-office"><h3>South Carolina</h3><address>2 West Washington Street<br>Suite 902<br>Greenville, SC 29601</address><div>p: +1 864-720-6974</div><div>f: +1 864-551-4004</div></div>
+          <div class="footer-office"><h3>Kansas City</h3><address>9829 Commerce Parkway<br>Lenexa, KS 66219</address><div>p: +1 816-652-3001</div></div>
+          <div class="footer-office"><h3>Phoenix</h3><address>4300 E. Camelback Road<br>Suite 300<br>Phoenix, AZ 85018</address><div>p: +1 602-833-6050</div></div>
+          <div class="footer-office"><h3>Culver City</h3><address>8590 National Blvd<br>Culver City, CA 90232</address><div>p: +1 424-361-3950</div></div>
+          <div class="footer-office"><h3>Birmingham</h3><address>1143 1st Avenue South<br>Suite 108<br>Birmingham, AL 35233</address><div>p: +1 205-941-7315</div></div>
+          <div class="footer-office"><h3>Atlanta</h3><address>2859 Paces Ferry Road<br>Suite 1900<br>Atlanta, GA 30339</address><div>p: +1 770-767-6341</div></div>
+          <div class="footer-office"><h3>Raleigh</h3><address>4000 Centregreen Way<br>Suite 170<br>Cary, NC 27513</address></div>
+        </div>
+      </div>
+      <div class="footer-secondary">
+        <div class="footer-logos lined">
+          <h2 class="footer-title">Building On Relationships</h2>
+          <div class="logos">
+            <div class="logo-wrap"><img src="https://e1.nmcdn.io/assets/clayco/wp-content/uploads/2021/11/footerlogo-clayco.svg" alt="Clayco" onerror="this.style.display='none'"></div>
+            <div class="logo-wrap"><img src="https://e1.nmcdn.io/clayco/wp-content/uploads/2026/01/LJC-DE.png/v:1-dynamic:1-aspect:2.4674063800277-fit:cover/LJC-DE--1779.webp" alt="LJC" onerror="this.style.display='none'"></div>
+            <div class="logo-wrap"><img src="https://e1.nmcdn.io/assets/clayco/wp-content/uploads/2021/11/footerlogo-crg.svg" alt="CRG" onerror="this.style.display='none'"></div>
+            <div class="logo-wrap"><img src="https://e1.nmcdn.io/assets/clayco/wp-content/uploads/2021/11/footerlogo-concretestrategies-1.svg" alt="Concrete Strategies" onerror="this.style.display='none'"></div>
+            <div class="logo-wrap"><img src="https://e1.nmcdn.io/assets/clayco/wp-content/uploads/2021/11/footerlogo-ventana.svg" alt="Ventana" onerror="this.style.display='none'"></div>
+            <div class="logo-wrap"><img src="https://e1.nmcdn.io/assets/clayco/wp-content/uploads/2024/07/ClaycoSEI_white-NEW-NEW.svg" alt="Clayco SEI" onerror="this.style.display='none'"></div>
+            <div class="logo-wrap"><img src="https://e1.nmcdn.io/assets/clayco/wp-content/uploads/2021/11/footerlogo-claycorising.svg" alt="Clayco Rising" onerror="this.style.display='none'"></div>
+          </div>
+        </div>
+        <div class="footer-contact lined">
+          <h2 class="footer-title">Contact</h2>
+          <p>We want to hear from you. Please send all media inquiries to <a href="#">MediaInquiries@claycorp.com</a></p>
+          <p>Please send all inquiries about projects to <a href="#">info@claycorp.com</a>.</p>
+          <p>For Bid Inquiries, please contact <a href="#">precon-info@claycorp.com</a>.</p>
+          <p>For questions regarding Prequalification, contact <a href="#">prequalification@claycorp.com</a>.</p>
+          <p>To learn more about opportunities with Clayco, explore our <a href="#">Careers</a>, <a href="#">Subcontractors or Vendors</a>.</p>
+          <div class="socials">
+            <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+            <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.6 1.6-1.6h1.7V4.4c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v2.4H7.7V14h2.7v8h3.1z"/></svg></a>
+            <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.3L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg></a>
+            <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM3 9.5h4V21H3V9.5zm6.5 0h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4V9.5z"/></svg></a>
+            <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.5 7.2a2.8 2.8 0 00-2-2C18.8 4.7 12 4.7 12 4.7s-6.8 0-8.5.5a2.8 2.8 0 00-2 2C1 8.9 1 12 1 12s0 3.1.5 4.8a2.8 2.8 0 002 2c1.7.5 8.5.5 8.5.5s6.8 0 8.5-.5a2.8 2.8 0 002-2c.5-1.7.5-4.8.5-4.8s0-3.1-.5-4.8zM9.8 15.1V8.9l5.7 3.1-5.7 3.1z"/></svg></a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-tertiary">
+        <div><div>&copy; 2026 Clayco</div><div>Designed by Cardigan and Developed by NMC</div></div>
+        <ul class="footer-legal"><li><a href="#">Accessibility</a></li><li><a href="#">Cookie Policy</a></li><li><a href="#">Privacy Policy</a></li></ul>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var header = document.getElementById('siteHeader');
+      var top = document.querySelector('.top');
+      function onScroll() {
+        var limit = top.getBoundingClientRect().top + window.scrollY + 130;
+        header.classList.toggle('is-fixed', window.scrollY > limit);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Releasing\u2026';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Payment release failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Payment released</div><div class="error-detail">$${data.debitAmount} debited from the disbursement account (includes $${data.fee} processing fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Release Payment'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

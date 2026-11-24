@@ -255,11 +255,13 @@ function buildAlertBlocks(alertData, options = {}) {
       url: alertData.issueUrl,
     });
   }
-  actions.push({
-    type: 'button',
-    text: { type: 'plain_text', text: `:bar_chart: ${t.viewDatadog}`, emoji: true },
-    url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com',
-  });
+  if (!alertData.omitDatadogLink) {
+    actions.push({
+      type: 'button',
+      text: { type: 'plain_text', text: `:bar_chart: ${t.viewDatadog}`, emoji: true },
+      url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com',
+    });
+  }
   if (alertData.quantumMetric && alertData.quantumMetric.replayUrl) {
     actions.push({
       type: 'button',
