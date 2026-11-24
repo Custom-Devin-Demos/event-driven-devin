@@ -98,7 +98,8 @@ function reportIncident(body, now = Date.now()) {
   const sessionPromise = runWithAlertDestination('slack', () => createSessionAndAlert({
     customer: 'b8d844e5',
     omitPlaybookMacro: true,
-    verticalLabel: 'b8d844e5 demo',
+    omitDatadogLink: true,
+    verticalLabel: 'Order Pickup',
     issueTitle: `Order Pickup rejected with stock on hand — ${report.service} consumer stalled on ${report.topic}`,
     culprit: `${report.method} ${report.path}`,
     errorType: 'Kafka consumer lag + pickup rejections',

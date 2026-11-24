@@ -173,7 +173,7 @@ function buildTeamsAlertCardForAlert(alertData) {
     actions: [
       { title: t.watchDevin, url: config.teamsAutomationUrl || process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
       { title: t.viewSentry, url: alertData.issueUrl },
-      { title: t.viewDatadog, url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
+      alertData.omitDatadogLink ? null : { title: t.viewDatadog, url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
       alertData.quantumMetric ? { title: 'View session replay in Quantum Metric', url: alertData.quantumMetric.replayUrl } : null,
       alertData.newRelic ? { title: 'View incident in New Relic', url: alertData.newRelic.incidentUrl } : null,
     ].filter(Boolean),
@@ -219,7 +219,8 @@ function postTeamsFollowUp(teamsUrl, alertData, { title, facts, actionTitle, url
  * the standardized investigation & remediation workflow automatically.
  * Only the essential alert context is included — the playbook handles
  * the investigation steps, Sentry/Datadog queries, and fix process.
- * Set `omitPlaybookMacro` for incidents with no Sentry/Datadog telemetry.
+ * Set `omitPlaybookMacro` for incidents with no Sentry/Datadog telemetry
+ * (and `omitDatadogLink` to drop the card's Datadog button).
  */
 function buildPrompt(alertData) {
   const {

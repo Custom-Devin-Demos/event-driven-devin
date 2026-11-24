@@ -1,13 +1,14 @@
-/* global afterEach, describe, expect, jest, test, setImmediate */
+/* global afterEach, beforeEach, describe, expect, jest, test, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
+  createSessionAndAlert: jest.fn(() => Promise.resolve({ session: {} })),
 }));
 
 const express = require('express');
 const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { resetLatencyAlertCooldowns } = require('../app/services/latency-alert-cooldown');
 const routes = require('../app/routes/verticals/d44fc556');
 const {
   ENQUIRY_TYPES,
@@ -53,6 +54,19 @@ function request(method, path, body) {
 function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+async function postLatencyBreach(devinOrgId = 'presenter-org') {
+  const response = await request('POST', '/api/d44fc556/enquiries', {
+    ...PREFILL,
+    devinUserId: 'presenter-user',
+    devinOrgId,
+    devinEmail: 'presenter@example.com',
+  });
+  await tick();
+  return response;
+}
+
+beforeEach(() => resetLatencyAlertCooldowns());
 
 afterEach(() => {
   DESK_LOOKUP_POLICY.latencyMs = [...ORIGINAL_LATENCY];
@@ -181,6 +195,48 @@ describe('Wellington contact-us enquiries', () => {
       budgetMs: 1,
       desksChecked: 14,
     }));
+  });
+
+  test('suppresses a second latency-breach session during the cooldown', async () => {
+    DESK_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('releases the cooldown when session creation returns null', async () => {
+    DESK_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce(null);
+
+    await postLatencyBreach();
+    await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('releases the cooldown when the global session cap throttles the alert', async () => {
+    DESK_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce({ session: null, throttled: true });
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('keeps latency-breach cooldowns independent by organization', async () => {
+    DESK_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-b');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test.each([

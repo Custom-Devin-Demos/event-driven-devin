@@ -1,13 +1,14 @@
-/* global describe, expect, test, jest, afterEach, setImmediate */
+/* global describe, expect, test, jest, beforeEach, afterEach, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
+  createSessionAndAlert: jest.fn(() => Promise.resolve({ session: {} })),
 }));
 
 const express = require('express');
 const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { resetLatencyAlertCooldowns } = require('../app/services/latency-alert-cooldown');
 const routes = require('../app/routes/verticals/53cfb2d5');
 const {
   checkCoverage,
@@ -51,6 +52,19 @@ function request(method, path, body) {
 function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+async function postLatencyBreach(devinOrgId = 'org_demo') {
+  const response = await request('POST', '/api/53cfb2d5/coverage-check', {
+    carrier: 'aetna',
+    devinUserId: 'clerk-user_demo',
+    devinOrgId,
+    devinEmail: 'jordan.lee@example.com',
+  });
+  await tick();
+  return response;
+}
+
+beforeEach(() => resetLatencyAlertCooldowns());
 
 afterEach(() => {
   ELIGIBILITY_POLICY.latencyMs = [...ORIGINAL_LATENCY];
@@ -163,6 +177,48 @@ describe('Nourish coverage check', () => {
       budgetMs: 1,
       plansChecked: 1,
     }));
+  });
+
+  test('suppresses a second latency-breach session during the cooldown', async () => {
+    ELIGIBILITY_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('releases the cooldown when session creation returns null', async () => {
+    ELIGIBILITY_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce(null);
+
+    await postLatencyBreach();
+    await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('releases the cooldown when the global session cap throttles the alert', async () => {
+    ELIGIBILITY_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce({ session: null, throttled: true });
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('keeps latency-breach cooldowns independent by organization', async () => {
+    ELIGIBILITY_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-b');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test('rejects invalid coverage details through the route', async () => {

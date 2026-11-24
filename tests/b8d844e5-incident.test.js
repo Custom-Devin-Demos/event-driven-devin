@@ -60,6 +60,8 @@ describe('b8d844e5 stale-stock incident bridge', () => {
     expect(prompt).toContain('UnsupportedInventoryEventException');
     expect(prompt).not.toContain('no projection rule for RETURN_RESTOCKED');
     expect(card).toContain('Exception: UnsupportedInventoryEventException');
+    expect(card).toContain('Kafka Consumer Lag Alert — Order Pickup');
+    for (const value of ['Sentry', 'Datadog', 'b8d844e5 demo']) expect(card).not.toContain(value);
     expect(JSON.stringify(devin.createDevinSession.mock.calls[0])).toContain('"repos":["COG-GTM/inventory-availability-service"]');
     for (const value of ['COG-GTM/inventory-availability-service', 'do NOT change COG-GTM/event-driven-devin', 'do not query Sentry, Datadog', 'DeepWiki', 'docker compose up', 'X-Demo-Alerts: off', 'regression test', 'Do not merge', REPORT.stalledEventId]) expect(prompt).toContain(value);
   });
@@ -100,5 +102,14 @@ describe('b8d844e5 stale-stock incident bridge', () => {
     await post({ ...REPORT, stalledError: 'line one\nline two' });
     expect(slack.postAlertToSlack.mock.calls[0][0].extra.stalledError).toBe('line one line two');
     expect(slack.postAlertToSlack.mock.calls[0][0].errorValue).toContain('Exception: unknown');
+  });
+
+  test('Teams card drops the Datadog button only when omitDatadogLink is set', () => {
+    const { buildTeamsAlertCardForAlert } = jest.requireActual('../app/services/devin-session');
+    const base = { issueTitle: 'stalled', customer: 'b8d844e5', verticalLabel: 'Order Pickup', customerConfig: { locale: 'en-kafka' } };
+    expect(JSON.stringify(buildTeamsAlertCardForAlert(base))).toContain('View in Datadog');
+    const card = JSON.stringify(buildTeamsAlertCardForAlert({ ...base, omitDatadogLink: true }));
+    expect(card).toContain('Kafka Consumer Lag Alert — Order Pickup');
+    expect(card).not.toContain('Datadog');
   });
 });
