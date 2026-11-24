@@ -111,7 +111,7 @@
             <select id="toAccount">
               <option value="GRAB-TAXI-STD" data-name="GrabTaxi" data-fare="32.40" selected>GrabTaxi · 4 seats · S$32.40</option>
               <option value="GRAB-TAXI-6S" data-name="GrabTaxi 6-seater" data-fare="44.80">GrabTaxi 6-seater · S$44.80</option>
-              <option value="GRAB-TAXI-FLEXI" data-name="Flexi Taxi" data-fare="28.70">Flexi Taxi (metered fare) · from S$28.70</option>
+              <option value="GRAB-TAXI-PREM" data-name="GrabTaxi Premium" data-fare="38.90">GrabTaxi Premium · S$38.90</option>
             </select>
           </div>
           <div class="two">
@@ -190,7 +190,7 @@
       const opt = (s) => s.options[s.selectedIndex];
       const secs = (ms) => `${(ms / 1000).toFixed(1)}s`;
       const amount = () => { const raw = amountInput.value.trim(); return /^\d+(\.\d{1,2})?$/.test(raw) ? parseFloat(raw) : NaN; };
-      const feeFor = () => 0.9;
+      const feeFor = (a) => Math.round(Math.max(a * 0.001, 2.5) * 100) / 100;
       const cents = (v) => Math.round(v * 100);
       const setFare = () => { amountInput.value = Number(opt(toAccount).dataset.fare).toFixed(2); };
       function render() {
@@ -250,13 +250,13 @@
           const data = await response.json().catch(() => ({}));
           tick(); stopTimer(true);
           if (!response.ok || !data.success) throw new Error('not completed');
-          const charged = a + fee;
+          const charged = Number(data.debitAmount || (data.receipt && data.receipt.totalDebit)) || a + fee;
           const ref = String(data.transferId || '').replace(/-/g, '').slice(-8).toUpperCase();
           if (data.duplicate) { show('success', 'Ride already booked', `Your ${toName} is already booked. You were charged once.${ref ? ' Booking ' + ref + '.' : ''}`); return; }
-          balances[from] -= charged; if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
+          balances[from] = Math.round((balances[from] - charged) * 100) / 100; if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
           
           render();
-          show('success', 'Ride booked', `Finding your ${toName} driver at Raffles Place MRT, Exit H. ${money.format(a + fee)} paid with ${opt(fromAccount).dataset.name}.${ref ? ' Booking ' + ref + '.' : ''}`);
+          show('success', 'Ride booked', `Finding your ${toName} driver at Raffles Place MRT, Exit H. ${money.format(charged)} paid with ${opt(fromAccount).dataset.name}.${ref ? ' Booking ' + ref + '.' : ''}`);
         } catch (_err) {
           stopTimer(true);
           if (response) show('notice', 'We couldn\u2019t book your ride', 'Something went wrong. You were not charged. Please try booking again.');
