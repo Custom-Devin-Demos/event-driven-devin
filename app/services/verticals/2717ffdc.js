@@ -5,6 +5,12 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const {
+  claimLatencyAlert,
+  latencyAlertKey,
+  releaseLatencyAlert,
+  startedInvestigation,
+} = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.CAREVISO_SLACK_MEMBER_ID || '';
 
@@ -201,7 +207,14 @@ function reportLatencyBreach(context) {
     },
   });
 
-  createSessionAndAlert({
+  const alertKey = latencyAlertKey('2717ffdc', data.devinOrgId);
+  const claim = claimLatencyAlert(alertKey);
+  if (!claim) {
+    logger.info('Careviso seeQer latency breach alert suppressed by cooldown', { requestId, durationMs });
+    return;
+  }
+
+  Promise.resolve(createSessionAndAlert({
     issueTitle: `LatencyBudgetExceeded: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'app/services/verticals/2717ffdc.js — buildPayerCoverageSnapshot',
@@ -238,7 +251,10 @@ function reportLatencyBreach(context) {
     release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
+  })).then((result) => {
+    if (!startedInvestigation(result)) releaseLatencyAlert(alertKey, claim);
   }).catch((alertError) => {
+    releaseLatencyAlert(alertKey, claim);
     logger.error('Failed to create Devin session for Careviso demo-request latency breach', {
       error: alertError.message,
       requestId,
