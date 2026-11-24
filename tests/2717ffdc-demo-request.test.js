@@ -1,7 +1,7 @@
-/* global afterEach, describe, expect, jest, test, setImmediate */
+/* global afterEach, beforeEach, describe, expect, jest, test, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
+  createSessionAndAlert: jest.fn(() => Promise.resolve({ session: {} })),
 }));
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
@@ -11,6 +11,7 @@ const express = require('express');
 const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { resetLatencyAlertCooldowns } = require('../app/services/latency-alert-cooldown');
 const { Sentry } = require('../app/telemetry/sentry');
 const routes = require('../app/routes/verticals/2717ffdc');
 const {
@@ -55,6 +56,19 @@ function request(method, path, body) {
 function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+async function postLatencyBreach(devinOrgId = 'presenter-org') {
+  const response = await request('POST', '/api/2717ffdc/demo-requests', {
+    ...PREFILL,
+    devinUserId: 'presenter-user',
+    devinOrgId,
+    devinEmail: 'presenter@example.com',
+  });
+  await tick();
+  return response;
+}
+
+beforeEach(() => resetLatencyAlertCooldowns());
 
 afterEach(() => {
   PAYER_LOOKUP_POLICY.latencyMs = [...ORIGINAL_LATENCY];
@@ -209,6 +223,48 @@ describe('Careviso seeQer demo requests', () => {
       budgetMs: 1,
       payersChecked: 14,
     }));
+  });
+
+  test('suppresses a second latency-breach session during the cooldown', async () => {
+    PAYER_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('releases the cooldown when session creation returns null', async () => {
+    PAYER_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce(null);
+
+    await postLatencyBreach();
+    await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('releases the cooldown when the global session cap throttles the alert', async () => {
+    PAYER_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce({ session: null, throttled: true });
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('keeps latency-breach cooldowns independent by organization', async () => {
+    PAYER_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-b');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test.each([
