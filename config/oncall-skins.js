@@ -2046,7 +2046,7 @@ const ONCALL_SKINS = {
   '83e49faa': {
     slug: '83e49faa',
     company: 'Nordstrom',
-    vertical: 'banking',
+    vertical: 'cardpayment',
     page: {
       file: '83e49faa.html',
       title: 'Manage Your Nordstrom Credit Card | Nordstrom',

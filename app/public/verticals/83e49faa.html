@@ -90,7 +90,7 @@
 
   /* Pay form (Already a Cardmember) */
   .card .sub { font-size: 16px; line-height: 24px; margin-top: -8px; }
-  #transferForm { display: flex; flex-direction: column; gap: 16px; }
+  #payForm { display: flex; flex-direction: column; gap: 16px; }
   .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .field label { font-size: 14px; line-height: 20px; font-weight: 700; }
@@ -320,21 +320,19 @@
         <article class="card" id="pay">
           <h3>Already a Cardmember?</h3>
           <p class="sub">Pay your bill.</p>
-          <form id="transferForm">
+          <form id="payForm">
             <div class="frow">
               <div class="field">
                 <label for="fromAccount">Pay from</label>
                 <select id="fromAccount">
-                  <option value="ACCT-1001">Checking ••••1001</option>
-                  <option value="ACCT-1002">Savings ••••1002</option>
+                  <option value="CHK-1634">Checking ••••1634</option>
+                  <option value="SAV-8820">Savings ••••8820</option>
                 </select>
               </div>
               <div class="field">
                 <label for="toAccount">Pay to</label>
                 <select id="toAccount">
-                  <option value="ACCT-1002">Nordstrom Visa ••••4921</option>
-                  <option value="ACCT-1001">Nordstrom Credit Card ••••1001</option>
-                  <option value="ACCT-EXT-001">Nordstrom Retail Card ••••7730</option>
+                  <option value="CARD-4417">Nordstrom Visa ••••4417</option>
                 </select>
               </div>
             </div>
@@ -344,11 +342,10 @@
                 <div class="amt"><span>$</span><input type="number" id="amount" value="250" min="1" step="0.01" inputmode="decimal"></div>
               </div>
               <div class="field">
-                <label for="accountTier">Payment date</label>
-                <select id="accountTier">
-                  <option value="standard">Today</option>
-                  <option value="premium">Nordstrom AutoPay</option>
-                  <option value="basic">Schedule for later</option>
+                <label for="payDate">Payment date</label>
+                <select id="payDate">
+                  <option value="today">Today</option>
+                  <option value="next">Next business day</option>
                 </select>
               </div>
             </div>
@@ -498,24 +495,28 @@
   })();
 </script>
 <script>
-  document.getElementById('transferForm').addEventListener('submit', async (e) => {
+  document.getElementById('payForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
     const result = document.getElementById('result');
+    const money = (n) => '$' + Number(n).toFixed(2);
     btn.disabled = true; btn.textContent = 'Processing...';
     result.className = 'result-box';
     try {
-      const res = await fetch('/api/banking/transfer', {
+      const res = await fetch('/api/8f167941/card-payment', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), paymentDate: document.getElementById('payDate').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
       });
-      const data = await res.json();
+      let data = null;
+      try { data = await res.json(); } catch (err) { data = null; }
       if (!res.ok) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Payment didn't go through</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        result.innerHTML = res.status === 400 || res.status === 422
+          ? `<div class="error-title">Check your payment details</div><div class="error-detail">${(data && data.error) || 'Please review the payment and try again.'}</div>`
+          : `<div class="error-title">Payment didn't go through</div><div class="error-detail">We're sorry, we couldn't process your payment right now. Please try again later.${data && data.requestId ? ' Reference: ' + data.requestId : ''}</div>`;
       } else {
         result.className = 'result-box success';
-        result.innerHTML = `<div class="error-title">Payment submitted</div><div class="error-detail">$${data.debitAmount} will be debited from your bank account (includes $${data.fee} processing fee).</div>`;
+        result.innerHTML = `<div class="error-title">Payment scheduled</div><div class="error-detail">Your ${money(data.totalDebit)} payment from ${data.fromAccount.label.replace('My ', '')} is scheduled ${data.postsOn === 'today' ? 'for today' : 'for the next business day'}.</div>`;
       }
     } catch (err) {
       result.className = 'result-box error';
