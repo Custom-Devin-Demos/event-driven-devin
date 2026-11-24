@@ -33,6 +33,15 @@
   nav.primary svg.chev { width: 12px; height: 12px; }
   .menu-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: #fff; cursor: pointer; display: grid; place-items: center; }
   .menu-btn:hover { background: rgba(255,255,255,.1); }
+  .menu-btn { display: none; }
+  .search-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: var(--teal); cursor: pointer; display: grid; place-items: center; margin-left: -8px; }
+  .search-btn:hover { background: rgba(255,255,255,.1); }
+  /* Search modal */
+  .search-modal { position: fixed; top: 32vh; left: 50%; width: min(1220px, calc(100vw - 64px)); background: var(--overlay); color: var(--black);
+    border-radius: 48px; padding: 84px 84px 96px; z-index: 50; transform: translate(-50%, -12px); opacity: 0; visibility: hidden; transition: .25s; box-shadow: 0 .25rem 6.25rem rgba(0,0,0,.3); }
+  .search-modal.open { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
+  .search-modal h2 { margin: 0 0 22px; font-size: 30px; font-weight: 700; }
+  .search-modal .menu-close { top: 28px; right: 32px; }
   /* Menu panel */
   .menu-scrim { position: fixed; inset: 0; background: rgba(2,5,20,.72); backdrop-filter: blur(6px); z-index: 40; display: none; }
   .menu-scrim.open { display: block; }
@@ -120,7 +129,9 @@
   .toast.show { opacity: 1; transform: translateX(-50%); }
   [hidden] { display: none !important; }
   @media (max-width: 1100px) {
-    nav.primary { display: none; }
+    nav.primary, .search-btn { display: none; }
+    .menu-btn { display: grid; }
+    .search-modal { padding: 64px 28px 48px; border-radius: 28px; }
     .hero .wrap, .cards, .pillars { grid-template-columns: 1fr 1fr; }
     .logos { grid-template-columns: repeat(3, 1fr); }
   }
@@ -146,6 +157,9 @@
         <a href="#">About <svg class="chev" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></a>
         <a href="#">EN <svg class="chev" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></a>
       </nav>
+      <button class="search-btn" id="searchBtn" type="button" aria-label="Search" aria-expanded="false" aria-controls="searchModal">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path fill="currentColor" d="M13 6.5c0 1.43-.47 2.76-1.25 3.83l3.96 3.96a1 1 0 0 1-1.42 1.42l-3.96-3.96A6.5 6.5 0 1 1 13 6.5Zm-6.5 4.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/></svg>
+      </button>
       <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menuPanel">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
@@ -154,6 +168,18 @@
 </header>
 
 <div class="menu-scrim" id="menuScrim"></div>
+<div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle" aria-hidden="true">
+  <button class="menu-close" id="searchClose" type="button" aria-label="Close search">
+    <svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 3l16 16M19 3L3 19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  </button>
+  <form id="headerSearch" autocomplete="off">
+    <h2 id="searchModalTitle">Search</h2>
+    <div class="search-bar">
+      <input type="search" name="q" id="headerQ" placeholder="Search" aria-label="Search">
+      <button type="submit" class="btn" id="headerSearchBtn"><span class="lbl">Search</span> <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path fill="#fff" d="M13 6.5c0 1.43-.47 2.76-1.25 3.83l3.96 3.96a1 1 0 0 1-1.42 1.42l-3.96-3.96A6.5 6.5 0 1 1 13 6.5Zm-6.5 4.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/></svg></button>
+    </div>
+  </form>
+</div>
 <aside class="menu-panel" id="menuPanel" aria-hidden="true">
   <button class="menu-close" id="menuClose" type="button" aria-label="Close menu">
     <svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 3l16 16M19 3L3 19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
@@ -349,26 +375,39 @@
     panel.setAttribute('aria-hidden', open ? 'false' : 'true'); menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) setTimeout(function () { el('menuQ').focus(); }, 150);
   }
+  var searchBtn = el('searchBtn'), searchModal = el('searchModal');
+  function openSearch(open) {
+    searchModal.classList.toggle('open', open); scrim.classList.toggle('open', open);
+    searchModal.setAttribute('aria-hidden', open ? 'false' : 'true'); searchBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) setTimeout(function () { el('headerQ').focus(); }, 150);
+  }
+  function closeOverlays() { openMenu(false); openSearch(false); }
   menuBtn.addEventListener('click', function () { openMenu(true); });
+  searchBtn.addEventListener('click', function () { openSearch(true); });
   el('menuClose').addEventListener('click', function () { openMenu(false); });
-  scrim.addEventListener('click', function () { openMenu(false); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') openMenu(false); });
+  el('searchClose').addEventListener('click', function () { openSearch(false); });
+  scrim.addEventListener('click', closeOverlays);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeOverlays(); });
   document.querySelectorAll('.home-link').forEach(function (a) { a.setAttribute('href', basePath); });
 
-  [el('menuSearchBtn'), el('pageSearchBtn')].forEach(function (b) { b._html = b.innerHTML; });
+  [el('headerSearchBtn'), el('menuSearchBtn'), el('pageSearchBtn')].forEach(function (b) { b._html = b.innerHTML; });
 
-  // Menu search: run the search on Enter / click, then open the results page.
-  el('menuSearch').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var q = el('menuQ').value.trim(), btn = el('menuSearchBtn');
-    setLoading(btn, true);
-    runSearch(q, 'all').then(function (data) {
-      try { sessionStorage.setItem('cerence:lastSearch', JSON.stringify(data)); } catch (err) { /* ignore */ }
-      window.location.href = searchUrl(q, 'all');
-    }).catch(function (err) {
-      setLoading(btn, false); toast(err.message);
+  // Header search modal / mobile menu search: run the search on Enter / click, then open the results page.
+  function bindOverlaySearch(formId, inputId, btnId) {
+    el(formId).addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = el(inputId).value.trim(), btn = el(btnId);
+      setLoading(btn, true);
+      runSearch(q, 'all').then(function (data) {
+        try { sessionStorage.setItem('cerence:lastSearch', JSON.stringify(data)); } catch (err) { /* ignore */ }
+        window.location.href = searchUrl(q, 'all');
+      }).catch(function (err) {
+        setLoading(btn, false); toast(err.message);
+      });
     });
-  });
+  }
+  bindOverlaySearch('headerSearch', 'headerQ', 'headerSearchBtn');
+  bindOverlaySearch('menuSearch', 'menuQ', 'menuSearchBtn');
 
   // Search results page
   el('pageSearch').addEventListener('submit', function (e) {
