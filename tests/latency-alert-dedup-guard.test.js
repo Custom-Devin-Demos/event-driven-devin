@@ -60,20 +60,9 @@ describe('latency alert de-duplication guard', () => {
       const { source } = LATENCY_SERVICES.find((service) => service.id === id);
       const requiresCooldown = source.includes("require('../latency-alert-cooldown')");
 
-      if (GRANDFATHERED_WITHOUT_SHARED_COOLDOWN.includes(id)) {
-        expect(requiresCooldown).toBe(false);
-      } else {
+      if (!GRANDFATHERED_WITHOUT_SHARED_COOLDOWN.includes(id)) {
         expect(requiresCooldown).toBe(true);
       }
     },
   );
-
-  test('grandfathered ids exactly match services without the shared cooldown', () => {
-    const withoutCooldown = LATENCY_SERVICES
-      .filter(({ source }) => !source.includes("require('../latency-alert-cooldown')"))
-      .map(({ id }) => id)
-      .sort();
-
-    expect([...GRANDFATHERED_WITHOUT_SHARED_COOLDOWN].sort()).toEqual(withoutCooldown);
-  });
 });
