@@ -10965,6 +10965,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A PLAID SITE — internal demo only, not affiliated with, endorsed by, or a real Plaid product.',
   },
+  '245210f8': {
+    slug: '245210f8',
+    company: 'Fortitude Financial',
+    vertical: 'banking',
+    page: {
+      file: '245210f8.html',
+      title: 'Wealth Management & Planning Services | Fortitude Financial',
+    },
+    disclaimer: 'NOT ACTUALLY A FORTITUDE FINANCIAL SITE — internal demo only, not affiliated with, endorsed by, or a real Fortitude Financial product.',
+  },
 };
 
 function getOncallSkin(slug) {
