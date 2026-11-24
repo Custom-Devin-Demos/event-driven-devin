@@ -7,6 +7,7 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 const CUSTOMER = '7137d615';
+const REPO = 'COG-GTM/event-driven-devin';
 const SERVICE = 'customer-7137d615-octaura-contact';
 const ROUTE = '/api/7137d615/contact-requests';
 const SLACK_MEMBER_ID = process.env.OCTAURA_SLACK_MEMBER_ID || '';
@@ -47,7 +48,7 @@ const LOAN_DESKS = [
 ];
 
 const REMEDIATION_DIRECTIVE = [
-  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
+  `*Repository to investigate and fix:* \`${REPO}\``,
   '',
   'The slow code path is Octaura Contact Us → Submit with Loan trading selected.',
   '- Service: `app/services/verticals/7137d615.js`',
@@ -126,6 +127,7 @@ function reportLatencyBreach({ requestId, durationMs, budgetMs, desksChecked, pr
     service: SERVICE,
     verticalLabel: 'Octaura Contact Us',
     promptAppendix: REMEDIATION_DIRECTIVE,
+    repos: [REPO],
     customer: CUSTOMER,
     skipVulnerablePr: true,
     slackMemberId: presenter.devinEmail ? '' : SLACK_MEMBER_ID,

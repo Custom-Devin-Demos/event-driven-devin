@@ -123,6 +123,7 @@ describe('Octaura Contact Us', () => {
     expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({
       ...presenter,
       customer: '7137d615',
+      repos: ['COG-GTM/event-driven-devin'],
       skipVulnerablePr: true,
       service: tags.service,
       issueTitle: `LatencyBudgetExceeded: POST ${PATH}/contact-requests took ${body.timing.totalMs}ms (budget 1ms)`,
