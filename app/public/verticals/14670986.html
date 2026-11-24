@@ -243,7 +243,7 @@
           if (!response.ok || !data.success) throw new Error('not completed');
           const charged = Number(data.debitAmount || (data.receipt && data.receipt.totalDebit)) || a + fee;
           const ref = String(data.transferId || '').replace(/-/g, '').slice(-8).toUpperCase();
-          if (data.duplicate) { show('success', 'Already paid', `This order with ${toName} is already paid. Your card was charged once.${ref ? ' Reference ' + ref + '.' : ''}`); return; }
+          if (data.duplicate) { paidOrders.add(to); show('success', 'Already paid', `This order with ${toName} is already paid. Your card was charged once.${ref ? ' Reference ' + ref + '.' : ''}`); return; }
           balances[from] = Math.round((balances[from] - charged) * 100) / 100; paidOrders.add(to); if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
           
           render();
