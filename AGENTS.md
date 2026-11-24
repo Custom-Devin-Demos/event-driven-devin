@@ -842,6 +842,8 @@ Vertical Error (any of 10 verticals)
                             └──▶ postDevinSessionLink() — "View in Devin" button in thread
 ```
 
+- Latency-budget verticals that call `createSessionAndAlert` directly must gate it with `claimLatencyAlert(id)` from `app/services/latency-alert-cooldown.js` (one session per vertical per `LATENCY_ALERT_COOLDOWN_MS`, default 10 minutes) and add `/api/<id>/` to `LATENCY_DIRECT_ALERT_ROUTES`; `tests/latency-alert-dedup-guard.test.js` enforces both.
+
 **Two error-detection paths exist:**
 1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
 2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).

@@ -5,6 +5,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { claimLatencyAlert, releaseLatencyAlert } = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.SHIELD_SLACK_MEMBER_ID || '';
 
@@ -161,7 +162,12 @@ function reportLatencyBreach(context) {
     },
   });
 
-  createSessionAndAlert({
+  if (!claimLatencyAlert('4ea2d7f6')) {
+    logger.info('Shield Communications latency breach alert suppressed by cooldown', { requestId, durationMs });
+    return;
+  }
+
+  Promise.resolve(createSessionAndAlert({
     issueTitle: `LatencyBudgetExceeded: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'app/services/verticals/4ea2d7f6.js — collectChannelCaptures',
@@ -199,7 +205,10 @@ function reportLatencyBreach(context) {
     release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
+  })).then((result) => {
+    if (!result) releaseLatencyAlert('4ea2d7f6');
   }).catch((alertError) => {
+    releaseLatencyAlert('4ea2d7f6');
     logger.error('Failed to create Devin session for Shield surveillance sweep latency breach', {
       error: alertError.message,
       requestId,

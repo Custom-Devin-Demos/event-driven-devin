@@ -5,6 +5,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { claimLatencyAlert, releaseLatencyAlert } = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.NOURISH_SLACK_MEMBER_ID || '';
 
@@ -164,7 +165,12 @@ function reportLatencyBreach(context) {
     },
   });
 
-  createSessionAndAlert({
+  if (!claimLatencyAlert('53cfb2d5')) {
+    logger.info('Nourish latency breach alert suppressed by cooldown', { requestId, durationMs });
+    return;
+  }
+
+  Promise.resolve(createSessionAndAlert({
     issueTitle: `LatencyBudgetExceeded: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'app/services/verticals/53cfb2d5.js — collectPlanEligibility',
@@ -202,7 +208,10 @@ function reportLatencyBreach(context) {
     release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
+  })).then((result) => {
+    if (!result) releaseLatencyAlert('53cfb2d5');
   }).catch((alertError) => {
+    releaseLatencyAlert('53cfb2d5');
     logger.error('Failed to create Devin session for Nourish coverage-check latency breach', {
       error: alertError.message,
       requestId,

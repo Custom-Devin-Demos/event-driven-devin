@@ -5,6 +5,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { claimLatencyAlert, releaseLatencyAlert } = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.NMI_SLACK_MEMBER_ID || '';
 
@@ -220,7 +221,12 @@ function reportLatencyBreach(context) {
     },
   });
 
-  createSessionAndAlert({
+  if (!claimLatencyAlert('7c3e9a52')) {
+    logger.info('NMI Talk to Our Team latency breach alert suppressed by cooldown', { requestId, durationMs });
+    return;
+  }
+
+  Promise.resolve(createSessionAndAlert({
     issueTitle: `LatencyBudgetExceeded: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'app/services/verticals/7c3e9a52.js — assessProcessorCoverage',
@@ -257,7 +263,10 @@ function reportLatencyBreach(context) {
     release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
+  })).then((result) => {
+    if (!result) releaseLatencyAlert('7c3e9a52');
   }).catch((alertError) => {
+    releaseLatencyAlert('7c3e9a52');
     logger.error('Failed to create Devin session for NMI contact request latency breach', {
       error: alertError.message,
       requestId,

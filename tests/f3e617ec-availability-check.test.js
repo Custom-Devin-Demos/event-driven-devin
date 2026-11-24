@@ -1,4 +1,4 @@
-/* global describe, expect, test, jest, afterEach, setImmediate */
+/* global describe, expect, test, jest, beforeEach, afterEach, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
@@ -8,6 +8,7 @@ const express = require('express');
 const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { resetLatencyAlertCooldowns } = require('../app/services/latency-alert-cooldown');
 const routes = require('../app/routes/verticals/f3e617ec');
 const {
   checkAvailability,
@@ -58,6 +59,19 @@ function request(method, path, body) {
 function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+async function postLatencyBreach() {
+  const response = await request('POST', '/api/f3e617ec/availability-check', {
+    scope: 'preferred',
+    devinUserId: 'clerk-user_demo',
+    devinOrgId: 'org_demo',
+    devinEmail: 'jordan.lee@example.com',
+  });
+  await tick();
+  return response;
+}
+
+beforeEach(() => resetLatencyAlertCooldowns());
 
 afterEach(() => {
   LENDER_FEED_POLICY.latencyMs = [...ORIGINAL_LATENCY];
@@ -174,6 +188,27 @@ describe('EquiLend availability check', () => {
       budgetMs: 1,
       lendersPolled: 1,
     }));
+  });
+
+  test('suppresses a second latency-breach session during the cooldown', async () => {
+    LENDER_FEED_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach();
+    await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('releases the cooldown when session creation returns null', async () => {
+    LENDER_FEED_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce(null);
+
+    await postLatencyBreach();
+    await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test('rejects invalid locate requests through the route', async () => {

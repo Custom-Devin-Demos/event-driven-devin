@@ -1,4 +1,4 @@
-/* global afterEach, describe, expect, jest, test, setImmediate */
+/* global afterEach, beforeEach, describe, expect, jest, test, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
@@ -8,6 +8,7 @@ const express = require('express');
 const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { resetLatencyAlertCooldowns } = require('../app/services/latency-alert-cooldown');
 const routes = require('../app/routes/verticals/65ee9e8f');
 const {
   ORGANIZATION_TYPES,
@@ -53,6 +54,19 @@ function request(method, path, body) {
 function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+async function postLatencyBreach() {
+  const response = await request('POST', '/api/65ee9e8f/demo-requests', {
+    ...PREFILL,
+    devinUserId: 'presenter-user',
+    devinOrgId: 'presenter-org',
+    devinEmail: 'presenter@example.com',
+  });
+  await tick();
+  return response;
+}
+
+beforeEach(() => resetLatencyAlertCooldowns());
 
 afterEach(() => {
   TERRITORY_LOOKUP_POLICY.latencyMs = [...ORIGINAL_LATENCY];
@@ -191,6 +205,27 @@ describe('Harvey contact-sales demo requests', () => {
       budgetMs: 1,
       territoryBooksChecked: 14,
     }));
+  });
+
+  test('suppresses a second latency-breach session during the cooldown', async () => {
+    TERRITORY_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach();
+    await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('releases the cooldown when session creation returns null', async () => {
+    TERRITORY_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce(null);
+
+    await postLatencyBreach();
+    await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test.each([
