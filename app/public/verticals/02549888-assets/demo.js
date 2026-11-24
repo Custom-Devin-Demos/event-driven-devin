@@ -60,16 +60,4 @@ form.addEventListener('submit', async (event) => {
   }
 });
 
-const video = document.getElementById('product-video');
-const playButton = document.getElementById('play-video');
-playButton.addEventListener('click', () => {
-  video.src = 'https://embed-ssl.wistia.com/deliveries/792add1505c2dd0fe2bf90ebfbd188a9571d0581.bin';
-  video.controls = true;
-  playButton.hidden = true;
-  video.play().catch(() => {
-    video.controls = false;
-    playButton.hidden = false;
-  });
-});
-
 loadForm();
