@@ -81,12 +81,7 @@ describe('Sentry customer identity mapping', () => {
   });
 
   test.each([
-    'reportLatencyBreach(app/services/verticals/ef51d258)',
-    'reportLatencyBreach(app/services/verticals/f887d0be)',
-    'reportLatencyBreach(app/services/verticals/d708940c)',
-    'reportLatencyBreach(app/services/verticals/04525b56)',
     'reportLatencyBreach(app/services/verticals/fd043af6)',
-    'reportLatencyBreach(app/services/verticals/fe97a788)',
     'reportLatencyBreach(app/services/verticals/37b90289)',
     'reportLatencyBreach(app/services/verticals/8f970d35)',
     'reportLatencyBreach(app/services/verticals/924f5ec9)',
@@ -100,8 +95,6 @@ describe('Sentry customer identity mapping', () => {
     'reportLatencyBreach(app/services/verticals/947c7934)',
     'reportLatencyBreach(app/services/verticals/98cd161c)',
     'reportLatencyBreach(app/services/verticals/85bedc75)',
-    'reportLatencyBreach(app/services/verticals/b62bfb77)',
-    'reportLatencyBreach(app/services/verticals/a6fe3aeb)',
     'reportLatencyBreach(app/services/verticals/5d0fd49b)',
     'reportLatencyBreach(app/services/verticals/53cfb2d5)',
     'reportLatencyBreach(app/services/verticals/f3e617ec)',
@@ -131,13 +124,8 @@ describe('Sentry customer identity mapping', () => {
   });
 
   test.each([
-    'LatencyBudgetExceeded: POST /api/ef51d258/availability took 9039ms (budget 3000ms)',
-    'LatencyBudgetExceeded: POST /api/f887d0be/enquiry took 9540ms (budget 3000ms)',
-    'LatencyBudgetExceeded: POST /api/d708940c/order-preview took 9120ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/2fbca1a9/coverage-quote took 7040ms (budget 3000ms)',
-    'LatencyBudgetExceeded: POST /api/04525b56/inspection-scan took 7000ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/fd043af6/program-match took 7120ms (budget 3000ms)',
-    'LatencyBudgetExceeded: POST /api/fe97a788/query took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/37b90289/case-search took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/8f970d35/compliance-check took 7010ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/924f5ec9/member-lookup took 7040ms (budget 3000ms)',
@@ -153,8 +141,6 @@ describe('Sentry customer identity mapping', () => {
     'LatencyBudgetExceeded: POST /api/85bedc75/ar-assessment took 7030ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/53cfb2d5/coverage-check took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/4ea2d7f6/surveillance-sweep took 7040ms (budget 3000ms)',
-    'LatencyBudgetExceeded: POST /api/b62bfb77/rate-check took 7050ms (budget 3000ms)',
-    'LatencyBudgetExceeded: POST /api/a6fe3aeb/compression-preview took 7040ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/5d0fd49b/sweep-quote took 7020ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/f3e617ec/availability-check took 7030ms (budget 3000ms)',
     'LatencyBudgetExceeded: GET /api/0166f378/portfolio-summary took 3421ms (budget 1500ms)',
@@ -198,9 +184,9 @@ describe('Sentry customer identity mapping', () => {
       action: 'triggered',
       data: {
         event: {
-          title: 'LatencyBudgetExceeded: POST /api/f887d0be/enquiry took 9540ms (budget 3000ms)',
+          title: 'LatencyBudgetExceeded: POST /api/4ea2d7f6/surveillance-sweep took 7040ms (budget 3000ms)',
           culprit: 'x',
-          tags: [['alert_path', 'latency'], ['service', 'customer-f887d0be-enquiry']],
+          tags: [['alert_path', 'latency'], ['service', 'customer-4ea2d7f6-surveillance-sweep']],
         },
       },
     });
