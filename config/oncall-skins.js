@@ -10717,6 +10717,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BARCLAYS PRIVATE BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays Private Bank product.',
   },
+  '6c241ed1': {
+    slug: '6c241ed1',
+    company: 'Clayco',
+    vertical: 'banking',
+    page: { file: '6c241ed1.html', title: 'Subcontractor & Vendor Prequalification | Clayco' },
+    disclaimer: 'NOT ACTUALLY A CLAYCO SITE — internal demo only, not affiliated with, endorsed by, or a real Clayco product.',
+  },
 };
 
 function getOncallSkin(slug) {
