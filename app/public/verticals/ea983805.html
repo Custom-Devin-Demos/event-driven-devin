@@ -307,6 +307,8 @@
     btn.innerHTML = on ? '<span class="spinner"></span><span class="lbl">Searching…</span>' : btn._html;
   }
 
+  var latestSearch = 0;
+
   function runSearch(q, scope) {
     var body = { q: q, scope: scope || 'all' };
     body.devinUserId = localStorage.getItem('devinUserId') || '';
@@ -372,13 +374,16 @@
   el('pageSearch').addEventListener('submit', function (e) {
     e.preventDefault();
     var q = el('pageQ').value.trim(), scope = el('pageScope').value, btn = el('pageSearchBtn');
+    var seq = ++latestSearch;
     setLoading(btn, true); showSkeleton();
     runSearch(q, scope).then(function (data) {
+      if (seq !== latestSearch) return;
       history.replaceState(null, '', searchUrl(q, scope));
       renderResults(data);
     }).catch(function (err) {
+      if (seq !== latestSearch) return;
       el('resultsBody').innerHTML = ''; toast(err.message);
-    }).then(function () { setLoading(btn, false); });
+    }).then(function () { if (seq === latestSearch) setLoading(btn, false); });
   });
 
   fetch(API + '/config').then(function (r) { return r.json(); }).then(function (cfg) {
@@ -398,8 +403,13 @@
     if (cached && cached.query === q && cached.scope === scope) {
       renderResults(cached);
     } else if (q) {
+      var initialSeq = ++latestSearch;
       showSkeleton();
-      runSearch(q, scope).then(renderResults).catch(function (err) { el('resultsBody').innerHTML = ''; toast(err.message); });
+      runSearch(q, scope).then(function (data) {
+        if (initialSeq === latestSearch) renderResults(data);
+      }).catch(function (err) {
+        if (initialSeq === latestSearch) { el('resultsBody').innerHTML = ''; toast(err.message); }
+      });
     }
   }
 })();
