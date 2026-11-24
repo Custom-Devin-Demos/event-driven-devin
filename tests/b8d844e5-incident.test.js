@@ -103,4 +103,13 @@ describe('b8d844e5 stale-stock incident bridge', () => {
     expect(slack.postAlertToSlack.mock.calls[0][0].extra.stalledError).toBe('line one line two');
     expect(slack.postAlertToSlack.mock.calls[0][0].errorValue).toContain('Exception: unknown');
   });
+
+  test('Teams card drops the Datadog button only when omitDatadogLink is set', () => {
+    const { buildTeamsAlertCardForAlert } = jest.requireActual('../app/services/devin-session');
+    const base = { issueTitle: 'stalled', customer: 'b8d844e5', verticalLabel: 'Order Pickup', customerConfig: { locale: 'en-kafka' } };
+    expect(JSON.stringify(buildTeamsAlertCardForAlert(base))).toContain('View in Datadog');
+    const card = JSON.stringify(buildTeamsAlertCardForAlert({ ...base, omitDatadogLink: true }));
+    expect(card).toContain('Kafka Consumer Lag Alert — Order Pickup');
+    expect(card).not.toContain('Datadog');
+  });
 });
