@@ -5,7 +5,12 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { claimLatencyAlert, releaseLatencyAlert } = require('../latency-alert-cooldown');
+const {
+  claimLatencyAlert,
+  latencyAlertKey,
+  releaseLatencyAlert,
+  startedInvestigation,
+} = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.NMI_SLACK_MEMBER_ID || '';
 
@@ -221,7 +226,9 @@ function reportLatencyBreach(context) {
     },
   });
 
-  if (!claimLatencyAlert('7c3e9a52')) {
+  const alertKey = latencyAlertKey('7c3e9a52', data.devinOrgId);
+  const claim = claimLatencyAlert(alertKey);
+  if (!claim) {
     logger.info('NMI Talk to Our Team latency breach alert suppressed by cooldown', { requestId, durationMs });
     return;
   }
@@ -264,9 +271,9 @@ function reportLatencyBreach(context) {
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
   })).then((result) => {
-    if (!result) releaseLatencyAlert('7c3e9a52');
+    if (!startedInvestigation(result)) releaseLatencyAlert(alertKey, claim);
   }).catch((alertError) => {
-    releaseLatencyAlert('7c3e9a52');
+    releaseLatencyAlert(alertKey, claim);
     logger.error('Failed to create Devin session for NMI contact request latency breach', {
       error: alertError.message,
       requestId,

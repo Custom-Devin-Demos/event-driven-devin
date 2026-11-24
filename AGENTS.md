@@ -842,7 +842,7 @@ Vertical Error (any of 10 verticals)
                             └──▶ postDevinSessionLink() — "View in Devin" button in thread
 ```
 
-- Latency-budget verticals that call `createSessionAndAlert` directly must gate it with `claimLatencyAlert(id)` from `app/services/latency-alert-cooldown.js` (one session per vertical per `LATENCY_ALERT_COOLDOWN_MS`, default 10 minutes) and add `/api/<id>/` to `LATENCY_DIRECT_ALERT_ROUTES`; `tests/latency-alert-dedup-guard.test.js` enforces both.
+- Latency-budget verticals that call `createSessionAndAlert` directly must claim a per-vertical, per-org key via `latencyAlertKey(id, orgId)` and `claimLatencyAlert(key)` from `app/services/latency-alert-cooldown.js` (one session per org per vertical per `LATENCY_ALERT_COOLDOWN_MS`, default 10 minutes), releasing the slot when `startedInvestigation(result)` is false or the alert throws; add `/api/<id>/` to `LATENCY_DIRECT_ALERT_ROUTES`. `tests/latency-alert-dedup-guard.test.js` enforces both.
 
 **Two error-detection paths exist:**
 1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.

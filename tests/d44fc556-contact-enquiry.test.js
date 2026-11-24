@@ -1,7 +1,7 @@
 /* global afterEach, beforeEach, describe, expect, jest, test, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
+  createSessionAndAlert: jest.fn(() => Promise.resolve({ session: {} })),
 }));
 
 const express = require('express');
@@ -55,11 +55,11 @@ function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function postLatencyBreach() {
+async function postLatencyBreach(devinOrgId = 'presenter-org') {
   const response = await request('POST', '/api/d44fc556/enquiries', {
     ...PREFILL,
     devinUserId: 'presenter-user',
-    devinOrgId: 'presenter-org',
+    devinOrgId,
     devinEmail: 'presenter@example.com',
   });
   await tick();
@@ -201,8 +201,8 @@ describe('Wellington contact-us enquiries', () => {
     DESK_LOOKUP_POLICY.latencyMs = [2, 4];
     LATENCY_SLO.budgetMs = 1;
 
-    await postLatencyBreach();
-    await postLatencyBreach();
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   });
@@ -214,6 +214,27 @@ describe('Wellington contact-us enquiries', () => {
 
     await postLatencyBreach();
     await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('releases the cooldown when the global session cap throttles the alert', async () => {
+    DESK_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce({ session: null, throttled: true });
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('keeps latency-breach cooldowns independent by organization', async () => {
+    DESK_LOOKUP_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-b');
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });

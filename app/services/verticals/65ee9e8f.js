@@ -5,7 +5,12 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { claimLatencyAlert, releaseLatencyAlert } = require('../latency-alert-cooldown');
+const {
+  claimLatencyAlert,
+  latencyAlertKey,
+  releaseLatencyAlert,
+  startedInvestigation,
+} = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.HARVEY_SLACK_MEMBER_ID || '';
 
@@ -283,7 +288,9 @@ function reportLatencyBreach(context) {
     },
   });
 
-  if (!claimLatencyAlert('65ee9e8f')) {
+  const alertKey = latencyAlertKey('65ee9e8f', data.devinOrgId);
+  const claim = claimLatencyAlert(alertKey);
+  if (!claim) {
     logger.info('Harvey Contact Sales latency breach alert suppressed by cooldown', { requestId, durationMs });
     return;
   }
@@ -326,9 +333,9 @@ function reportLatencyBreach(context) {
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
   })).then((result) => {
-    if (!result) releaseLatencyAlert('65ee9e8f');
+    if (!startedInvestigation(result)) releaseLatencyAlert(alertKey, claim);
   }).catch((alertError) => {
-    releaseLatencyAlert('65ee9e8f');
+    releaseLatencyAlert(alertKey, claim);
     logger.error('Failed to create Devin session for Harvey demo-request latency breach', {
       error: alertError.message,
       requestId,

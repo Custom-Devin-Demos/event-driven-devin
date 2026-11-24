@@ -5,7 +5,12 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { claimLatencyAlert, releaseLatencyAlert } = require('../latency-alert-cooldown');
+const {
+  claimLatencyAlert,
+  latencyAlertKey,
+  releaseLatencyAlert,
+  startedInvestigation,
+} = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.SHIELD_SLACK_MEMBER_ID || '';
 
@@ -162,7 +167,9 @@ function reportLatencyBreach(context) {
     },
   });
 
-  if (!claimLatencyAlert('4ea2d7f6')) {
+  const alertKey = latencyAlertKey('4ea2d7f6', data.devinOrgId);
+  const claim = claimLatencyAlert(alertKey);
+  if (!claim) {
     logger.info('Shield Communications latency breach alert suppressed by cooldown', { requestId, durationMs });
     return;
   }
@@ -206,9 +213,9 @@ function reportLatencyBreach(context) {
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
   })).then((result) => {
-    if (!result) releaseLatencyAlert('4ea2d7f6');
+    if (!startedInvestigation(result)) releaseLatencyAlert(alertKey, claim);
   }).catch((alertError) => {
-    releaseLatencyAlert('4ea2d7f6');
+    releaseLatencyAlert(alertKey, claim);
     logger.error('Failed to create Devin session for Shield surveillance sweep latency breach', {
       error: alertError.message,
       requestId,

@@ -4,6 +4,16 @@ const fs = require('fs');
 const path = require('path');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
+function usesLatencyCooldownBeforeAlert(source) {
+  const claimCallIndex = source.indexOf('claimLatencyAlert(');
+  const alertCallIndex = source.indexOf('createSessionAndAlert(');
+
+  return claimCallIndex !== -1
+    && alertCallIndex !== -1
+    && claimCallIndex < alertCallIndex
+    && source.includes('releaseLatencyAlert(');
+}
+
 const VERTICALS_DIR = path.join(__dirname, '../app/services/verticals');
 const LATENCY_SERVICES = fs.readdirSync(VERTICALS_DIR)
   .filter((file) => /^[0-9a-f]{8}\.js$/i.test(file))
@@ -58,11 +68,19 @@ describe('latency alert de-duplication guard', () => {
     '%s uses the shared latency cooldown or is grandfathered',
     (id) => {
       const { source } = LATENCY_SERVICES.find((service) => service.id === id);
-      const requiresCooldown = source.includes("require('../latency-alert-cooldown')");
 
       if (!GRANDFATHERED_WITHOUT_SHARED_COOLDOWN.includes(id)) {
-        expect(requiresCooldown).toBe(true);
+        expect(usesLatencyCooldownBeforeAlert(source)).toBe(true);
       }
     },
   );
+
+  test('rejects an imported cooldown that is never called', () => {
+    const source = [
+      "const { claimLatencyAlert } = require('../latency-alert-cooldown');",
+      'createSessionAndAlert({});',
+    ].join('\n');
+
+    expect(usesLatencyCooldownBeforeAlert(source)).toBe(false);
+  });
 });

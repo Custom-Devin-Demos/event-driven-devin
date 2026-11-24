@@ -1,7 +1,7 @@
 /* global describe, expect, test, jest, beforeEach, afterEach, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
+  createSessionAndAlert: jest.fn(() => Promise.resolve({ session: {} })),
 }));
 
 const express = require('express');
@@ -60,11 +60,11 @@ function tick() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function postLatencyBreach() {
+async function postLatencyBreach(devinOrgId = 'org_demo') {
   const response = await request('POST', '/api/f3e617ec/availability-check', {
     scope: 'preferred',
     devinUserId: 'clerk-user_demo',
-    devinOrgId: 'org_demo',
+    devinOrgId,
     devinEmail: 'jordan.lee@example.com',
   });
   await tick();
@@ -194,8 +194,8 @@ describe('EquiLend availability check', () => {
     LENDER_FEED_POLICY.latencyMs = [2, 4];
     LATENCY_SLO.budgetMs = 1;
 
-    await postLatencyBreach();
-    await postLatencyBreach();
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   });
@@ -207,6 +207,27 @@ describe('EquiLend availability check', () => {
 
     await postLatencyBreach();
     await postLatencyBreach();
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('releases the cooldown when the global session cap throttles the alert', async () => {
+    LENDER_FEED_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+    createSessionAndAlert.mockResolvedValueOnce({ session: null, throttled: true });
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-a');
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('keeps latency-breach cooldowns independent by organization', async () => {
+    LENDER_FEED_POLICY.latencyMs = [2, 4];
+    LATENCY_SLO.budgetMs = 1;
+
+    await postLatencyBreach('org-a');
+    await postLatencyBreach('org-b');
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });

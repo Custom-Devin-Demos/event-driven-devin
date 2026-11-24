@@ -5,7 +5,12 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { claimLatencyAlert, releaseLatencyAlert } = require('../latency-alert-cooldown');
+const {
+  claimLatencyAlert,
+  latencyAlertKey,
+  releaseLatencyAlert,
+  startedInvestigation,
+} = require('../latency-alert-cooldown');
 
 const SLACK_MEMBER_ID = process.env.WELLINGTON_SLACK_MEMBER_ID || '';
 
@@ -282,7 +287,9 @@ function reportLatencyBreach(context) {
     },
   });
 
-  if (!claimLatencyAlert('d44fc556')) {
+  const alertKey = latencyAlertKey('d44fc556', data.devinOrgId);
+  const claim = claimLatencyAlert(alertKey);
+  if (!claim) {
     logger.info('Wellington Management latency breach alert suppressed by cooldown', { requestId, durationMs });
     return;
   }
@@ -325,9 +332,9 @@ function reportLatencyBreach(context) {
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: '',
   })).then((result) => {
-    if (!result) releaseLatencyAlert('d44fc556');
+    if (!startedInvestigation(result)) releaseLatencyAlert(alertKey, claim);
   }).catch((alertError) => {
-    releaseLatencyAlert('d44fc556');
+    releaseLatencyAlert(alertKey, claim);
     logger.error('Failed to create Devin session for Wellington enquiry latency breach', {
       error: alertError.message,
       requestId,
