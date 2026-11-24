@@ -93,7 +93,7 @@
     <p class="lede">Your saved cards are ready. Check out with Click to Pay, no card number or password to type.</p>
     <div class="grid">
       <section class="card" aria-labelledby="payHead">
-        <div class="merchant"><span class="m" aria-hidden="true">N</span><div><b>Northwind Outfitters</b><small>northwind-outfitters.example</small></div><span class="ctp"><svg width="28" height="18" viewBox="0 0 38 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#EB001B"/><circle cx="26" cy="12" r="11" fill="#F79E1B"/><path d="M19 3.6a11 11 0 0 1 0 16.8a11 11 0 0 1 0-16.8z" fill="#FF5F00"/></svg> Click to Pay</span></div>
+        <div class="merchant"><span class="m" id="merchInit" aria-hidden="true">N</span><div><b id="merchName">Northwind Outfitters</b><small id="merchDomain">northwind-outfitters.example</small></div><span class="ctp"><svg width="28" height="18" viewBox="0 0 38 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#EB001B"/><circle cx="26" cy="12" r="11" fill="#F79E1B"/><path d="M19 3.6a11 11 0 0 1 0 16.8a11 11 0 0 1 0-16.8z" fill="#FF5F00"/></svg> Click to Pay</span></div>
         <h2 id="payHead">Pay with Click to Pay</h2>
         <p class="sub">Signed in as m.lopez@example.com</p>
         <form id="transferForm" novalidate aria-labelledby="payHead">
@@ -108,8 +108,8 @@
           <div class="field">
             <label for="toAccount">Order</label>
             <select id="toAccount">
-              <option value="MRC-NWO-30418" data-name="Northwind Outfitters" data-total="184.50" selected>Northwind Outfitters · order 30418</option>
-              <option value="MRC-CTR-77102" data-name="Contoso Travel" data-total="642.00">Contoso Travel · booking 77102</option>
+              <option value="MRC-NWO-30418" data-name="Northwind Outfitters" data-domain="northwind-outfitters.example" data-total="184.50" selected>Northwind Outfitters · order 30418</option>
+              <option value="MRC-CTR-77102" data-name="Contoso Travel" data-domain="contoso-travel.example" data-total="642.00">Contoso Travel · booking 77102</option>
             </select>
           </div>
           <div class="field">
@@ -134,7 +134,7 @@
             <dt>Merchant</dt><dd id="sTo">&mdash;</dd>
             <dt>Card</dt><dd id="sFrom">&mdash;</dd>
             <dt>Order total</dt><dd id="sAmt">&mdash;</dd>
-            <dt>Click to Pay fee</dt><dd id="sFee">&mdash;</dd>
+            <dt>Processing fee</dt><dd id="sFee">&mdash;</dd>
             <dt class="tot">You pay</dt><dd class="tot" id="sTot">&mdash;</dd>
           </dl>
         </section>
@@ -179,9 +179,10 @@
       const opt = (s) => s.options[s.selectedIndex];
       const secs = (ms) => `${(ms / 1000).toFixed(1)}s`;
       const amount = () => { const raw = amountInput.value.trim(); return /^\d+(\.\d{1,2})?$/.test(raw) ? parseFloat(raw) : NaN; };
-      const feeFor = () => 0;
+      const feeFor = (a) => Math.round(Math.max(a * 0.001, 2.5) * 100) / 100;
       const cents = (v) => Math.round(v * 100);
-      const setTotal = () => { amountInput.value = Number(opt(toAccount).dataset.total).toFixed(2); };
+      const paidOrders = new Set();
+      const setTotal = () => { const o = opt(toAccount); amountInput.value = Number(o.dataset.total).toFixed(2); $('merchName').textContent = o.dataset.name; $('merchDomain').textContent = o.dataset.domain; $('merchInit').textContent = o.dataset.name.charAt(0); };
       function render() {
         Object.keys(balances).forEach((k) => { const el = $(`bal-${k}`); if (el) el.textContent = money.format(balances[k]); });
         Object.keys(dues).forEach((k) => { const el = $(`due-${k}`); if (el) el.textContent = dues[k] > 0 ? money.format(dues[k]) : 'Paid'; });
@@ -212,6 +213,7 @@
         e.preventDefault();
         if (pending) return;
         const a = amount();
+        if (paidOrders.has(toAccount.value)) { show('notice', 'Already paid', `This order with ${opt(toAccount).dataset.name} is already paid.`); return; }
         if (!Number.isFinite(a) || a < 1) { show('notice', 'Nothing to pay', 'This order has no amount due. Go back to the merchant and try again.'); return; }
         if (cents(a) + cents(feeFor(a)) > cents(balances[fromAccount.value])) { show('notice', 'Card declined', `${opt(fromAccount).dataset.name} doesn\u2019t have enough available for this order. Choose another card.`); fromAccount.focus(); return; }
         const from = fromAccount.value; const to = toAccount.value; const toName = opt(toAccount).dataset.name; const fee = feeFor(a);
@@ -239,13 +241,13 @@
           const data = await response.json().catch(() => ({}));
           tick(); stopTimer(true);
           if (!response.ok || !data.success) throw new Error('not completed');
-          const charged = a + fee;
+          const charged = Number(data.debitAmount || (data.receipt && data.receipt.totalDebit)) || a + fee;
           const ref = String(data.transferId || '').replace(/-/g, '').slice(-8).toUpperCase();
           if (data.duplicate) { show('success', 'Already paid', `This order with ${toName} is already paid. Your card was charged once.${ref ? ' Reference ' + ref + '.' : ''}`); return; }
-          balances[from] -= charged; if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
+          balances[from] = Math.round((balances[from] - charged) * 100) / 100; paidOrders.add(to); if (Object.prototype.hasOwnProperty.call(dues, to)) dues[to] = Math.max(0, Math.round((dues[to] - a) * 100) / 100);
           
           render();
-          show('success', 'Payment complete', `${money.format(a + fee)} paid to ${toName} with ${opt(fromAccount).dataset.name}.${ref ? ' Reference ' + ref + '.' : ''}`);
+          show('success', 'Payment complete', `${money.format(charged)} paid to ${toName} with ${opt(fromAccount).dataset.name}.${ref ? ' Reference ' + ref + '.' : ''}`);
         } catch (_err) {
           stopTimer(true);
           if (response) show('notice', 'We couldn\u2019t complete your payment', 'Something went wrong. Your card was not charged. Try again, or go back to the merchant to choose another way to pay.');
