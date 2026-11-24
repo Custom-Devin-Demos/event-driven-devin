@@ -181,6 +181,7 @@ const LATENCY_DIRECT_ALERT_ROUTES = ['/api/d44fc556/', '/api/fd043af6/', '/api/3
 LATENCY_DIRECT_ALERT_ROUTES.push('/api/7c3e9a52/');
 LATENCY_DIRECT_ALERT_ROUTES.push('/api/7137d615/');
 LATENCY_DIRECT_ALERT_ROUTES.push('/api/ea983805/');
+LATENCY_DIRECT_ALERT_ROUTES.push('/api/02549888/');
 
 function isInstantPathEvent(alertData) {
   const isDirectAlertError = typeof alertData.issueTitle === 'string'
