@@ -10724,6 +10724,32 @@ const ONCALL_SKINS = {
     page: { file: '6c241ed1.html', title: 'Subcontractor & Vendor Prequalification | Clayco' },
     disclaimer: 'NOT ACTUALLY A CLAYCO SITE — internal demo only, not affiliated with, endorsed by, or a real Clayco product.',
   },
+  '77d63bb1': {
+    slug: '77d63bb1',
+    company: 'Positron',
+    brandMark: 'P',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: '77d63bb1.html', title: 'Allocate accelerators | Model Manager | Positron' },
+    theme: {
+      '--accent': '#6DD6D2',
+      '--ink': '#050E15',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#050E15',
+      '--chrome-text': '#E6F8F8',
+    },
+    supportCenter: 'Positron Support',
+    alertCard: {
+      title: 'p95 latency trending up \u2014 Model Manager accelerator allocation',
+      service: 'model-manager-api',
+      team: 'inference-platform-oncall',
+      release: 'model-manager@2026.11.2',
+      baseline: '~350ms (7-day p95, before model-manager@2026.11.2)',
+      symptom: 'Allocating Archer accelerators to a model deployment slowed after the last release and gets slower with every request.',
+      impact: 'Customer admins wait 6+ seconds to scale a deployment and the wait keeps growing under sustained traffic; new replicas stay pending on the OpenAI-compatible endpoint.',
+    },
+    disclaimer: 'NOT ACTUALLY A POSITRON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Positron product.',
+  },
 };
 
 function getOncallSkin(slug) {
