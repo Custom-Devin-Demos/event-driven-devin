@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Allocate accelerators | Model Manager | Positron</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #050e15;
+        --bg-deep: #030812;
+        --panel: #061019;
+        --panel-2: #0a1822;
+        --line: rgba(191, 238, 235, 0.12);
+        --line-strong: rgba(191, 238, 235, 0.22);
+        --text: #e6f8f8;
+        --bright: #fbfefe;
+        --muted: #a0b6b9;
+        --dim: #6f878b;
+        --teal: #6dd6d2;
+        --teal-soft: rgba(109, 214, 210, 0.12);
+        --gold: #e8b42e;
+        --ok: #6dd6d2;
+        --ok-bg: rgba(109, 214, 210, 0.08);
+        --err: #ff9b8f;
+        --err-bg: rgba(255, 110, 92, 0.08);
+        --sans: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+        --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      html { background: var(--bg); }
+      body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+      .mono { font-family: var(--mono); }
+
+      header { background: rgba(5, 14, 21, 0.95); border-bottom: 1px solid var(--line); }
+      header .wrap { display: flex; align-items: center; gap: 24px; min-height: 56px; }
+      .brand { display: inline-flex; align-items: center; min-height: 44px; gap: 10px; text-decoration: none; color: var(--teal); font-family: var(--mono); font-weight: 500; font-size: 18px; letter-spacing: 3px; }
+      .brand small { color: var(--muted); font-size: 11px; letter-spacing: 0.96px; border-left: 1px solid var(--line-strong); padding-left: 10px; margin-left: 2px; }
+      header nav { display: flex; gap: 4px; margin-left: 24px; }
+      header nav a { text-decoration: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.88px; text-transform: uppercase; color: var(--text); padding: 10px 14px; border-radius: 4px; display: inline-flex; align-items: center; min-height: 44px; }
+      header nav a:hover { background: rgba(191, 238, 235, 0.06); }
+      header nav a.active { background: rgba(191, 238, 235, 0.1); color: var(--bright); }
+      .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+      .outline { font-family: var(--mono); font-size: 12px; letter-spacing: 0.96px; text-transform: uppercase; text-decoration: none; color: var(--bright); border: 1px solid rgba(191, 238, 235, 0.2); border-radius: 4px; padding: 0 20px; min-height: 44px; display: inline-flex; align-items: center; background: linear-gradient(180deg, rgba(191, 238, 235, 0.06), rgba(191, 238, 235, 0)); }
+      .tenant { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--teal-soft); color: var(--teal); font-family: var(--mono); font-size: 12px; border: 1px solid var(--line-strong); }
+
+      .titlebar { border-bottom: 1px solid var(--line); background: radial-gradient(ellipse at 70% 0%, rgba(109, 214, 210, 0.08), transparent 60%); }
+      .titlebar .wrap { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding-top: 32px; padding-bottom: 28px; flex-wrap: wrap; }
+      .crumbs { margin: 0 0 12px; color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: 0.88px; text-transform: uppercase; }
+      .crumbs b { color: var(--teal); font-weight: 400; }
+      .titlebar h1 { margin: 0; font-size: 44px; line-height: 1.1; font-weight: 400; letter-spacing: -1.1px; color: var(--bright); }
+      .dep { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 4px; padding: 10px 14px; font-size: 14px; max-width: 100%; }
+      .dep .led { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+      .dep b { font-family: var(--mono); font-weight: 400; color: var(--bright); overflow-wrap: anywhere; }
+      .dep span.s { color: var(--muted); }
+
+      main { padding: 36px 0 72px; }
+      .grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overflow: hidden; }
+      .pane { padding: 32px 36px; min-width: 0; }
+      .pane + .pane { border-left: 1px solid var(--line); background: var(--bg-deep); }
+      h2 { margin: 0 0 4px; font-size: 24px; font-weight: 500; color: var(--bright); }
+      .lead { margin: 0 0 26px; color: var(--muted); font-size: 15px; }
+      .lbl { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.88px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+      .hint { margin: 6px 0 0; color: var(--dim); font-size: 13px; }
+      fieldset { border: 0; margin: 0 0 26px; padding: 0; min-width: 0; }
+      select { width: 100%; font: inherit; font-family: var(--mono); font-size: 14px; color: var(--bright); background: var(--bg-deep); border: 1px solid var(--line-strong); border-radius: 4px; min-height: 48px; padding: 0 14px; }
+      select:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+      select:disabled { opacity: 0.6; }
+
+      .counter { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--bg-deep); overflow: hidden; }
+      .counter button { font: inherit; font-size: 20px; line-height: 1; width: 48px; min-height: 48px; border: 0; background: var(--panel-2); color: var(--text); cursor: pointer; }
+      .counter button:hover { background: rgba(191, 238, 235, 0.1); }
+      .counter button:disabled { opacity: 0.4; cursor: default; }
+      .counter input { font-family: var(--mono); font-size: 18px; width: 84px; text-align: center; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line); min-height: 48px; color: var(--bright); background: var(--bg-deep); -moz-appearance: textfield; }
+      .counter input::-webkit-outer-spin-button, .counter input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .counter input:focus { outline: 2px solid var(--teal); outline-offset: -2px; }
+      .counter input:disabled { opacity: 0.6; }
+      .accrow { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+      .accrow .who { color: var(--muted); font-size: 14px; }
+
+      .replicas { border-top: 1px solid var(--line); }
+      .replica { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+      .replica b { font-family: var(--mono); font-weight: 400; color: var(--bright); display: block; font-size: 13px; }
+      .replica span.e { color: var(--dim); font-size: 13px; }
+      .replica .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(232, 180, 46, 0.35); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
+
+      .submit-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+      .submit-btn { font-family: var(--mono); font-size: 13px; letter-spacing: 0.96px; text-transform: uppercase; font-weight: 500; background: #6DD6D2; color: var(--bg); border: 0; border-radius: 4px; min-height: 48px; padding: 0 24px; cursor: pointer; box-shadow: 0 0 24px rgba(109, 214, 210, 0.25); }
+      .submit-btn:hover { background: #8ae2df; }
+      .submit-btn:focus-visible { outline: 2px solid var(--bright); outline-offset: 2px; }
+      .submit-btn:disabled { background: #3d6f6d; color: var(--text); cursor: wait; box-shadow: none; }
+      .btn-secondary { font-family: var(--mono); font-size: 12px; letter-spacing: 0.96px; text-transform: uppercase; background: transparent; color: var(--text); border: 1px solid rgba(191, 238, 235, 0.2); border-radius: 4px; min-height: 48px; padding: 0 20px; cursor: pointer; }
+      .btn-secondary:hover { background: rgba(191, 238, 235, 0.06); }
+      .btn-secondary:disabled { opacity: 0.4; cursor: default; }
+
+      .stopwatch { display: none; align-items: baseline; gap: 12px; margin: 20px 0 0; font-variant-numeric: tabular-nums; }
+      .stopwatch.on { display: flex; }
+      .stopwatch .sw-label { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); }
+      .stopwatch .sw-value { font-family: var(--mono); font-size: 28px; color: var(--bright); }
+      .stopwatch.done .sw-value { color: var(--gold); }
+
+      .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 4px; font-size: 14px; line-height: 1.5; border: 1px solid transparent; }
+      .result-box strong { display: block; margin-bottom: 2px; font-weight: 600; }
+      .result-box.pending { display: block; background: var(--panel-2); color: var(--text); border-color: var(--line-strong); }
+      .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-color: rgba(109, 214, 210, 0.35); }
+      .result-box.error { display: block; background: var(--err-bg); color: var(--err); border-color: rgba(255, 155, 143, 0.35); }
+      .fine { margin: 18px 0 0; color: var(--dim); font-size: 12px; line-height: 1.45; }
+
+      .system { position: relative; border: 1px solid var(--line); border-radius: 6px; background: radial-gradient(ellipse at 50% 60%, rgba(109, 214, 210, 0.12), transparent 70%); padding: 16px; margin-bottom: 18px; text-align: center; min-height: 120px; }
+      .system img { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+      .system .fallback { display: none; font-family: var(--mono); color: var(--teal); letter-spacing: 6px; font-size: 28px; padding: 36px 0; }
+      .system.noimg .fallback { display: block; }
+      .system .cap { font-family: var(--mono); font-size: 11px; letter-spacing: 0.88px; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+      .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 20px; }
+      .stats div { border: 1px solid var(--line); border-radius: 4px; padding: 10px; }
+      .stats b { display: block; font-family: var(--mono); font-weight: 400; color: var(--teal); font-size: 13px; }
+      .stats span { font-size: 12px; color: var(--muted); }
+      .total { border-top: 1px solid var(--line-strong); padding-top: 14px; }
+      .total .row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 6px 0; }
+      .total .row .k { color: var(--muted); }
+      .total .row .v { font-family: var(--mono); color: var(--bright); text-align: right; overflow-wrap: anywhere; }
+      .total .row.big .v { font-size: 22px; color: var(--teal); }
+      .total .note { margin: 8px 0 0; color: var(--dim); font-size: 12.5px; line-height: 1.45; }
+      .code { margin: 18px 0 0; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--text); overflow-x: auto; white-space: pre; }
+      .code .k { color: var(--teal); }
+      .code .s { color: var(--gold); }
+
+      footer { border-top: 1px solid var(--line); background: var(--bg-deep); color: var(--muted); font-size: 13px; padding: 24px 0; }
+      footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+      footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+      footer a { color: var(--text); text-decoration: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.88px; text-transform: uppercase; display: inline-flex; align-items: center; min-height: 44px; }
+      footer a:hover { color: var(--teal); }
+
+      @media (max-width: 960px) {
+        .wrap { padding: 0 20px; }
+        header nav, .right .outline, .brand small { display: none; }
+        .titlebar h1 { font-size: 34px; }
+        .grid { grid-template-columns: 1fr; }
+        .pane { padding: 24px 20px; }
+        .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <a class="brand" href="#" aria-label="Positron Model Manager home">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="9" stroke="#6DD6D2" stroke-width="1.6" />
+            <ellipse cx="11" cy="11" rx="9" ry="3.6" transform="rotate(-30 11 11)" stroke="#6DD6D2" stroke-width="1.2" opacity="0.6" />
+            <circle cx="11" cy="11" r="2.2" fill="#6DD6D2" />
+          </svg>
+          POSITRON
+          <small>MODEL MANAGER</small>
+        </a>
+        <nav aria-label="Primary">
+          <a href="#">Models</a>
+          <a href="#" class="active">Deployments</a>
+          <a href="#">API keys</a>
+          <a href="#">Usage</a>
+          <a href="#">Docs</a>
+        </nav>
+        <div class="right">
+          <a href="#" class="outline">Contact support</a>
+          <span class="tenant" aria-label="Signed in to Halcyon Labs">HL</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="titlebar">
+      <div class="wrap">
+        <div>
+          <p class="crumbs">Model Manager / Deployments / <b id="crumbDep">llama-3.1-8b-instruct</b></p>
+          <h1>Allocate accelerators</h1>
+        </div>
+        <span class="dep"><span class="led" aria-hidden="true"></span><b id="depBadgeName">llama-3.1-8b-instruct</b><span class="s">&middot; <span id="depBadgeAcc">8 of 8 accelerators serving</span></span></span>
+      </div>
+    </div>
+
+    <main>
+      <div class="wrap">
+        <form id="provisionForm" class="grid" novalidate>
+          <select id="planTier" hidden aria-hidden="true" tabindex="-1"><option value="enterprise" selected>Dedicated</option></select>
+          <div class="pane">
+            <h2>Scale deployment</h2>
+            <p class="lead">Add Archer Transformer Accelerators to a deployment. New replicas join the deployment's OpenAI API-compliant endpoint as soon as they are allocated.</p>
+            <fieldset>
+              <label class="lbl" for="product">Deployment</label>
+              <select id="product">
+                <option value="llama-3.1-8b-instruct">llama-3.1-8b-instruct</option>
+                <option value="deepseek-r1-distill-llama-70b">deepseek-r1-distill-llama-70b</option>
+                <option value="halcyon-support-assistant">halcyon-support-assistant (fine-tuned)</option>
+              </select>
+              <p class="hint">Accelerators are added to the selected deployment only.</p>
+            </fieldset>
+            <fieldset>
+              <label class="lbl" for="seats">Accelerators to add</label>
+              <div class="accrow">
+                <div class="counter">
+                  <button type="button" id="accMinus" aria-label="Remove one accelerator">&minus;</button>
+                  <input id="seats" type="number" inputmode="numeric" min="1" max="64" step="1" value="8" required aria-describedby="accHint" />
+                  <button type="button" id="accPlus" aria-label="Add one accelerator">+</button>
+                </div>
+                <span class="who" id="accHint">1 to 64 per request. Each Atlas system holds 8 Archer accelerators.</span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <span class="lbl">Pending replicas</span>
+              <div class="replicas" id="replicaList"></div>
+            </fieldset>
+            <div class="submit-row">
+              <button type="submit" class="submit-btn" id="submitBtn">Allocate accelerators</button>
+              <button type="button" class="btn-secondary" id="clearBtn">Reset</button>
+            </div>
+            <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">Processing time</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <p class="fine">Sample Model Manager page. Deployments, accelerators and capacity shown here are illustrative; no hardware is allocated.</p>
+          </div>
+          <aside class="pane" aria-live="polite">
+            <div class="system" id="systemFig">
+              <img src="https://www.positron.ai/assets/atlas/atlas_glow.png" alt="Atlas inference server" loading="lazy" onerror="this.style.display='none';this.parentNode.classList.add('noimg');" />
+              <div class="fallback" aria-hidden="true">ATLAS</div>
+              <div class="cap">Atlas &middot; Transformer Inference Server</div>
+            </div>
+            <div class="stats">
+              <div><b>8x</b><span>Archer per system</span></div>
+              <div><b>32 GB</b><span>HBM each</span></div>
+              <div><b>24h</b><span>Support SLA</span></div>
+            </div>
+            <div class="total">
+              <div class="row"><span class="k">Deployment</span><span class="v" id="sumDep"></span></div>
+              <div class="row"><span class="k">Accelerators after change</span><span class="v" id="sumAcc"></span></div>
+              <div class="row"><span class="k">Atlas systems</span><span class="v" id="sumSys"></span></div>
+              <div class="row big"><span class="k">Accelerator memory</span><span class="v" id="sumMem"></span></div>
+              <p class="note" id="sumNote"></p>
+            </div>
+            <div class="code" id="apiSnippet" aria-label="Client example"></div>
+          </aside>
+        </form>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Positron &copy; 2026</span>
+        <nav aria-label="Footer">
+          <a href="https://www.positron.ai/atlas" target="_blank" rel="noopener noreferrer">Atlas</a>
+          <a href="https://www.positron.ai/titan" target="_blank" rel="noopener noreferrer">Titan</a>
+          <a href="https://www.positron.ai/asimov" target="_blank" rel="noopener noreferrer">Asimov</a>
+          <a href="https://www.positron.ai/contact-sales" target="_blank" rel="noopener noreferrer">Contact</a>
+          <a href="https://www.positron.ai/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    (function () {
+      var PER_SYSTEM = 8;
+      var HBM_GB = 32;
+      var MAX = 64;
+      var SERVING = { 'llama-3.1-8b-instruct': 8, 'deepseek-r1-distill-llama-70b': 16, 'halcyon-support-assistant': 4 };
+      var REPLICAS = [
+        { id: 'replica-05', note: 'us-west \u00b7 queued 4 min ago' },
+        { id: 'replica-06', note: 'us-west \u00b7 queued 4 min ago' },
+        { id: 'replica-07', note: 'us-east \u00b7 queued 2 min ago' },
+      ];
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+
+      var form = document.getElementById('provisionForm');
+      var depSel = document.getElementById('product');
+      var accInput = document.getElementById('seats');
+      var minus = document.getElementById('accMinus');
+      var plus = document.getElementById('accPlus');
+      var button = document.getElementById('submitBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var result = document.getElementById('result');
+      var timer = document.getElementById('submitTimer');
+      var timerValue = document.getElementById('submitTimerValue');
+      var timerHandle = null;
+      var pending = false;
+      var added = {};
+
+      var list = document.getElementById('replicaList');
+      REPLICAS.forEach(function (r) {
+        var row = document.createElement('div'); row.className = 'replica';
+        var who = document.createElement('span');
+        var b = document.createElement('b'); b.textContent = r.id;
+        var e = document.createElement('span'); e.className = 'e'; e.textContent = r.note;
+        who.appendChild(b); who.appendChild(e);
+        var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = 'Awaiting accelerator';
+        row.appendChild(who); row.appendChild(tag);
+        list.appendChild(row);
+      });
+
+      function count() {
+        var raw = (accInput.value || '').trim();
+        if (!/^\d+$/.test(raw)) return NaN;
+        return parseInt(raw, 10);
+      }
+      function renderSnippet(dep) {
+        var el = document.getElementById('apiSnippet');
+        el.textContent = '';
+        var parts = [
+          ['k', 'from'], ['', ' openai '], ['k', 'import'], ['', ' OpenAI\nclient = OpenAI(\n    base_url='], ['s', '"https://api.positron.ai/v1"'], ['', ',\n)\nclient.chat.completions.create(\n    model='], ['s', '"' + dep + '"'], ['', ',\n)'],
+        ];
+        parts.forEach(function (p) {
+          if (p[0]) { var s = document.createElement('span'); s.className = p[0]; s.textContent = p[1]; el.appendChild(s); }
+          else el.appendChild(document.createTextNode(p[1]));
+        });
+      }
+      function sync() {
+        var n = count();
+        var dep = depSel.value;
+        var have = SERVING[dep] + (added[dep] || 0);
+        document.getElementById('crumbDep').textContent = dep;
+        document.getElementById('depBadgeName').textContent = dep;
+        document.getElementById('depBadgeAcc').textContent = have + ' of ' + have + ' accelerators serving';
+        document.getElementById('sumDep').textContent = dep;
+        var after = isNaN(n) ? NaN : have + n;
+        document.getElementById('sumAcc').textContent = isNaN(after) ? '\u2014' : have + ' \u2192 ' + after;
+        document.getElementById('sumSys').textContent = isNaN(after) ? '\u2014' : Math.ceil(have / PER_SYSTEM) + ' \u2192 ' + Math.ceil(after / PER_SYSTEM);
+        document.getElementById('sumMem').textContent = isNaN(after) ? '\u2014' : (after * HBM_GB).toLocaleString('en-US') + ' GB';
+        document.getElementById('sumNote').textContent = isNaN(n) ? 'Enter the number of accelerators to add.' : 'Pending replicas start serving on the same endpoint once the allocation completes. No client changes are needed.';
+        renderSnippet(dep);
+        minus.disabled = pending || isNaN(n) || n <= 1;
+        plus.disabled = pending || (!isNaN(n) && n >= MAX);
+      }
+      function step(d) {
+        if (pending) return;
+        var n = count();
+        if (isNaN(n)) n = 1; else n = Math.min(MAX, Math.max(1, n + d));
+        accInput.value = String(n);
+        clearResult();
+        sync();
+      }
+
+      function startTimer() {
+        var started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        var s = document.createElement('strong');
+        s.textContent = title;
+        result.appendChild(s);
+        result.appendChild(document.createTextNode(body));
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+      }
+      function setBusy(on) {
+        pending = on;
+        button.disabled = on;
+        clearBtn.disabled = on;
+        depSel.disabled = on;
+        accInput.disabled = on;
+        button.textContent = on ? 'Allocating\u2026' : 'Allocate accelerators';
+        sync();
+      }
+      function plural(n) { return n + ' Archer accelerator' + (n === 1 ? '' : 's'); }
+
+      minus.addEventListener('click', function () { step(-1); });
+      plus.addEventListener('click', function () { step(1); });
+      accInput.addEventListener('input', function () { clearResult(); sync(); });
+      depSel.addEventListener('change', function () { clearResult(); sync(); });
+      clearBtn.addEventListener('click', function () {
+        if (pending) return;
+        depSel.selectedIndex = 0;
+        accInput.value = '8';
+        added = {};
+        clearResult();
+        sync();
+      });
+      sync();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (pending) return;
+        var n = count();
+        if (isNaN(n) || n < 1 || n > MAX) {
+          show('error', 'Enter between 1 and ' + MAX + ' accelerators.', ' For larger allocations, contact Positron Support.');
+          accInput.focus();
+          return;
+        }
+        var dep = depSel.value;
+        setBusy(true);
+        show('pending', 'Allocating ' + plural(n) + ' to ' + dep + '\u2026', ' Reserving capacity and loading model weights onto the new replicas.');
+        var started = startTimer();
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: dep,
+              planName: document.getElementById('planTier').value,
+              seats: n,
+              billingCycle: 'monthly',
+              devinUserId: getStore('devinUserId'),
+              devinOrgId: getStore('devinOrgId'),
+              devinEmail: getStore('devinEmail'),
+            }),
+          });
+          var data = await res.json().catch(function () { return null; });
+          stopTimer(started);
+          if (!res.ok || !data || data.success !== true) {
+            show('error', 'We couldn\u2019t allocate accelerators right now.', ' Please try again in a few minutes. Your deployment is unchanged and keeps serving.');
+          } else {
+            var got = typeof data.seatsAdded === 'number' ? data.seatsAdded : n;
+            added[dep] = (added[dep] || 0) + got;
+            var total = SERVING[dep] + added[dep];
+            if (data.withinLimit === false) {
+              show('pending', plural(got) + ' allocated to ' + dep + ' \u2014 above your reserved capacity.', ' The replicas are serving, but the deployment is flagged for review until your reservation is raised. Contact Positron Support.');
+            } else {
+              show('success', plural(got) + ' allocated to ' + dep + '.', ' New replicas are serving on api.positron.ai. The deployment now runs on ' + total + ' accelerators across ' + Math.ceil(total / PER_SYSTEM) + ' Atlas system' + (Math.ceil(total / PER_SYSTEM) === 1 ? '' : 's') + '.');
+            }
+            sync();
+          }
+        } catch (_) {
+          stopTimer(started);
+          show('error', 'We couldn\u2019t allocate accelerators right now.', ' Please try again in a few minutes. Your deployment is unchanged and keeps serving.');
+        } finally {
+          setBusy(false);
+        }
+      });
+    })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
