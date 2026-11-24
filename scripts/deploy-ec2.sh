@@ -40,6 +40,10 @@ MIN_FREE_MB=${MIN_FREE_MB:-3072}
 BUILD_CACHE_KEEP=${BUILD_CACHE_KEEP:-1GB}
 PM2_LOG_DIR=${PM2_LOG_DIR:-$APP_DIR/.pm2/logs}
 PM2_LOG_MAX_MB=${PM2_LOG_MAX_MB:-50}
+# Best-effort extra stacks (5b-5d) build on the same small host after the main
+# swap; skip a build below this much RAM + swap, and kill one that runs too long.
+EXTRA_BUILD_MIN_MEM_MB=${EXTRA_BUILD_MIN_MEM_MB:-1024}
+EXTRA_BUILD_TIMEOUT=${EXTRA_BUILD_TIMEOUT:-600}
 
 # Vertical registries: never deleted on the host (see header).
 PROTECTED_APP=(routes/verticals public/verticals services/verticals)
@@ -329,7 +333,8 @@ bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | log_lines || fail "host bootstr
 
 # ── 4. build + swap checkout-api ────────────────────────────────────────────
 compose config -q || fail "docker compose config is invalid"
-AVAIL_MEM_MB=$(awk '/^(MemAvailable|SwapFree):/ {s += $2} END {print int(s / 1024)}' /proc/meminfo)
+avail_mem_mb() { awk '/^(MemAvailable|SwapFree):/ {s += $2} END {print int(s / 1024)}' /proc/meminfo; }
+AVAIL_MEM_MB=$(avail_mem_mb)
 log "building with ${AVAIL_MEM_MB}MB available (RAM + swap)"
 # The build context is the live $APP_DIR, and files written there while the
 # context is sent (release uploads, pm2, guards) have produced images missing
@@ -447,6 +452,19 @@ avature_sync() {
   avature_git -C "$AV_SRC" fetch -q --depth 1 origin "$AV_REF" && git -C "$AV_SRC" checkout -q --detach FETCH_HEAD
 }
 AV_ERR=$(mktemp); trap 'rm -f "$AV_ERR"' EXIT
+extra_mem_ok() {  # <name>: enough RAM + swap left to build this extra stack?
+  local avail; avail=$(avail_mem_mb)
+  [ "$avail" -ge "$EXTRA_BUILD_MIN_MEM_MB" ] && return 0
+  echo "skipped: ${avail}MB available (RAM + swap) < EXTRA_BUILD_MIN_MEM_MB=${EXTRA_BUILD_MIN_MEM_MB}" >>"$AV_ERR"
+  log "warning: $1 build skipped, only ${avail}MB available (RAM + swap); running container left as-is"
+  return 1
+}
+extra_build() { timeout -k 30 "$EXTRA_BUILD_TIMEOUT" docker compose "$@"; }
+extra_built_marker() { echo "$1/.git/devindemos-built-sha"; }
+extra_current() {  # <profile> <service> <src> <sha>: same source already built and running?
+  [ -n "$4" ] && [ "$(cat "$(extra_built_marker "$3")" 2>/dev/null)" = "$4" ] \
+    && [ -n "$(docker compose --profile "$1" ps -q --status running "$2" 2>/dev/null)" ]
+}
 if avature_sync 2>"$AV_ERR" && compose --profile avature build --pull avature >/dev/null 2>>"$AV_ERR" \
    && compose --profile avature up -d --no-deps avature >/dev/null 2>>"$AV_ERR"; then
   log "avature: built $(git -C "$AV_SRC" rev-parse --short HEAD) from $AV_REF"
@@ -476,8 +494,12 @@ f2ec3d90_sync() {
     && git -C "$F2EC3D90_SRC" checkout -q --detach FETCH_HEAD \
     && F2EC3D90_GIT_SHA=$(git -C "$F2EC3D90_SRC" rev-parse HEAD) && export F2EC3D90_GIT_SHA
 }
-if f2ec3d90_sync 2>"$AV_ERR" && compose --profile f2ec3d90 build --pull f2ec3d90 >/dev/null 2>>"$AV_ERR" \
+if f2ec3d90_sync 2>"$AV_ERR" && extra_current f2ec3d90 f2ec3d90 "$F2EC3D90_SRC" "$F2EC3D90_GIT_SHA"; then
+  log "f2ec3d90: ${F2EC3D90_GIT_SHA:0:7} already built and running, rebuild skipped"
+elif [ -n "${F2EC3D90_GIT_SHA:-}" ] && extra_mem_ok f2ec3d90 \
+   && extra_build --profile f2ec3d90 build --pull f2ec3d90 >/dev/null 2>>"$AV_ERR" \
    && compose --profile f2ec3d90 up -d --no-deps f2ec3d90 >/dev/null 2>>"$AV_ERR"; then
+  echo "$F2EC3D90_GIT_SHA" >"$(extra_built_marker "$F2EC3D90_SRC")"
   log "f2ec3d90: built $(git -C "$F2EC3D90_SRC" rev-parse --short HEAD) from $F2EC3D90_REF"
   F2EC3D90_STATUS=000
   for _ in $(seq 1 60); do
@@ -487,18 +509,19 @@ if f2ec3d90_sync 2>"$AV_ERR" && compose --profile f2ec3d90 build --pull f2ec3d90
   done
   if [ "$F2EC3D90_STATUS" = 200 ]; then log "f2ec3d90 health 200"; else log "warning: f2ec3d90 health returned $F2EC3D90_STATUS"; fi
 else
-  log "warning: f2ec3d90 sync/build/start failed — /f2ec3d90/ left as-is"
+  log "warning: f2ec3d90 sync/build/start failed or skipped — /f2ec3d90/ left as-is"
   tail -5 "$AV_ERR" | log_lines '   '
 fi
 
 # ── 5c. resort-inventory (Java service for /90ccfbb2, best effort) ─────────
 # Built from ./resort-inventory in this repo. A failed build only affects the
 # Disney Parks storefront, which answers 503 INVENTORY_UNAVAILABLE.
-if compose build resort-inventory >/dev/null 2>"$AV_ERR" \
+: >"$AV_ERR"
+if extra_mem_ok resort-inventory && extra_build build resort-inventory >/dev/null 2>>"$AV_ERR" \
    && compose up -d --no-deps resort-inventory >/dev/null 2>>"$AV_ERR"; then
   log "resort-inventory: built and started"
 else
-  log "warning: resort-inventory build/start failed — /90ccfbb2 will report inventory unavailable"
+  log "warning: resort-inventory build/start failed or skipped — /90ccfbb2 keeps its running container, if any"
   tail -5 "$AV_ERR" | log_lines '   '
 fi
 
@@ -517,14 +540,18 @@ b8d844e5_sync() {
     && git -C "$B8D844E5_SRC" checkout -q --detach FETCH_HEAD \
     && B8D844E5_GIT_SHA=$(git -C "$B8D844E5_SRC" rev-parse --short HEAD) && export B8D844E5_GIT_SHA
 }
-if b8d844e5_sync 2>"$AV_ERR" \
-   && compose --profile b8d844e5 build b8d844e5-pos >/dev/null 2>>"$AV_ERR" \
-   && compose --profile b8d844e5 build b8d844e5-inventory >/dev/null 2>>"$AV_ERR" \
-   && compose --profile b8d844e5 build b8d844e5-storefront >/dev/null 2>>"$AV_ERR" \
+if b8d844e5_sync 2>"$AV_ERR" && extra_current b8d844e5 b8d844e5-storefront "$B8D844E5_SRC" "$B8D844E5_GIT_SHA"; then
+  log "b8d844e5: $B8D844E5_GIT_SHA already built and running, rebuild skipped"
+elif [ -n "${B8D844E5_GIT_SHA:-}" ] \
+   && extra_mem_ok b8d844e5-pos && extra_build --profile b8d844e5 build b8d844e5-pos >/dev/null 2>>"$AV_ERR" \
+   && extra_mem_ok b8d844e5-inventory && extra_build --profile b8d844e5 build b8d844e5-inventory >/dev/null 2>>"$AV_ERR" \
+   && extra_mem_ok b8d844e5-storefront && extra_build --profile b8d844e5 build b8d844e5-storefront >/dev/null 2>>"$AV_ERR" \
+   && extra_mem_ok b8d844e5 \
    && compose --profile b8d844e5 up -d --wait --wait-timeout 180 b8d844e5-kafka b8d844e5-pos b8d844e5-inventory b8d844e5-storefront >/dev/null 2>>"$AV_ERR"; then
+  echo "$B8D844E5_GIT_SHA" >"$(extra_built_marker "$B8D844E5_SRC")"
   log "b8d844e5: built $B8D844E5_GIT_SHA from $B8D844E5_REF and started"
 else
-  log "warning: b8d844e5 sync/build/start failed — /b8d844e5/ left as-is"
+  log "warning: b8d844e5 sync/build/start failed or skipped — /b8d844e5/ left as-is"
   tail -5 "$AV_ERR" | log_lines '   '
 fi
 
