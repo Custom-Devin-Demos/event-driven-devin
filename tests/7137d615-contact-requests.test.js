@@ -1,7 +1,7 @@
 /* global afterAll, afterEach, beforeAll, beforeEach, describe, expect, fetch, jest, test, setImmediate */
 
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn().mockResolvedValue({}),
+  createSessionAndAlert: jest.fn(),
 }));
 jest.mock('../app/telemetry/datadog', () => ({
   incrementMetric: jest.fn(),
@@ -14,6 +14,7 @@ jest.mock('../app/telemetry/sentry', () => ({
 const express = require('express');
 const router = require('../app/routes/verticals/7137d615');
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { resetLatencyAlertCooldowns } = require('../app/services/latency-alert-cooldown');
 const { incrementMetric, recordTiming } = require('../app/telemetry/datadog');
 const { Sentry } = require('../app/telemetry/sentry');
 const {
@@ -41,11 +42,13 @@ afterAll(async () => {
 
 beforeEach(() => {
   DESK_LOOKUP.latencyMs = 4;
+  createSessionAndAlert.mockReset().mockResolvedValue({ session: { id: 'session-demo' } });
 });
 
 afterEach(() => {
   DESK_LOOKUP.latencyMs = originalDelay;
   LATENCY_SLO.budgetMs = originalBudget;
+  resetLatencyAlertCooldowns();
   jest.clearAllMocks();
 });
 
@@ -131,6 +134,36 @@ describe('Octaura Contact Us', () => {
       promptAppendix: expect.stringContaining('Promise.all'),
       extra,
     }));
+  });
+
+  test('starts one investigation per org while reporting every breach', async () => {
+    LATENCY_SLO.budgetMs = 1;
+    const responses = await Promise.all([
+      submit({ ...PREFILL, devinOrgId: 'demo-org' }),
+      submit({ ...PREFILL, devinOrgId: 'demo-org' }),
+      submit({ ...PREFILL, devinOrgId: 'other-org' }),
+    ]);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(responses.map(({ status }) => status)).toEqual([200, 200, 200]);
+    expect(Sentry.captureException).toHaveBeenCalledTimes(3);
+    expect(createSessionAndAlert.mock.calls.map(([alert]) => alert.devinOrgId).sort())
+      .toEqual(['demo-org', 'other-org']);
+  });
+
+  test.each([
+    ['no investigation starts', () => createSessionAndAlert.mockResolvedValueOnce(null)],
+    ['dispatch rejects', () => createSessionAndAlert.mockRejectedValueOnce(new Error('Dispatch failed'))],
+  ])('allows the next breach to dispatch when %s', async (_reason, mockDispatch) => {
+    LATENCY_SLO.budgetMs = 1;
+    mockDispatch();
+
+    expect((await submit(PREFILL)).status).toBe(200);
+    await new Promise((resolve) => setImmediate(resolve));
+    expect((await submit(PREFILL)).status).toBe(200);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 
   test.each([

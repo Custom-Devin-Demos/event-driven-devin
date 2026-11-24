@@ -5,6 +5,12 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const {
+  claimLatencyAlert,
+  latencyAlertKey,
+  releaseLatencyAlert,
+  startedInvestigation,
+} = require('../latency-alert-cooldown');
 
 const CUSTOMER = '7137d615';
 const REPO = 'COG-GTM/event-driven-devin';
@@ -117,6 +123,13 @@ function reportLatencyBreach({ requestId, durationMs, budgetMs, desksChecked, pr
     extra,
   });
 
+  const alertKey = latencyAlertKey(CUSTOMER, presenter.devinOrgId);
+  const claim = claimLatencyAlert(alertKey);
+  if (!claim) {
+    logger.info('Octaura contact latency alert suppressed by cooldown', { requestId, durationMs });
+    return;
+  }
+
   createSessionAndAlert({
     ...presenter,
     issueTitle: `LatencyBudgetExceeded: ${error.message}`,
@@ -144,7 +157,10 @@ function reportLatencyBreach({ requestId, durationMs, budgetMs, desksChecked, pr
     project: 'event-driven-devin',
     release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
     environment: process.env.DD_ENV || 'prod',
+  }).then((result) => {
+    if (!startedInvestigation(result)) releaseLatencyAlert(alertKey, claim);
   }).catch((alertError) => {
+    releaseLatencyAlert(alertKey, claim);
     logger.error('Failed to create Devin session for Octaura contact latency breach', {
       error: alertError.message,
       requestId,
@@ -168,7 +184,7 @@ async function submitContactRequest(data) {
   recordTiming('contact_request.latency', durationMs, tags);
   if (durationMs > budgetMs) {
     incrementMetric('contact_request.latency_budget_breach', tags);
-    logger.warn('Octaura contact request exceeded latency budget — triggering Devin', {
+    logger.warn('Octaura contact request exceeded latency budget', {
       ...tags, requestId, durationMs, budgetMs, desksChecked,
     });
     const presenter = {};
