@@ -5,6 +5,7 @@ const { createSessionAndAlert } = require('../devin-session');
 const { createDevinSession } = require('../devin-api');
 const { getCustomerConfig } = require('../../../config/customers');
 const jira = require('../jira');
+const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
 const CUSTOMER = '13ba0f05';
 const SERVICE = 'customer-13ba0f05-fuel-change';
@@ -194,7 +195,7 @@ async function reportFuelChangeFailure(error, ctx, identity) {
 async function applyFuelChange({ siteId, fuelId, ...identity } = {}) {
   const site = SITES.find((s) => s.id === siteId);
   if (!site) throw invalid('Choose a site.', 'UNKNOWN_SITE');
-  const fuel = FUELS[fuelId];
+  const fuel = Object.hasOwn(FUELS, fuelId) ? FUELS[fuelId] : null;
   if (!fuel) throw invalid('Choose a certified fuel.', 'UNKNOWN_FUEL');
   if (fuel.id === site.fuel) throw invalid(`${site.name} already runs on ${fuel.label}.`, 'NO_CHANGE');
   const changeId = `FC-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
@@ -307,6 +308,11 @@ async function createIdeaRequest({ ideaId, devinUserId, devinOrgId, devinEmail }
   if (requestsToday(now) >= dailyCap()) {
     throw Object.assign(new Error(`Daily limit reached (${dailyCap()} Devin builds per day).`), { status: 429, code: 'IDEA_REQUEST_LIMIT' });
   }
+  const capacity = canCreateSession();
+  if (!capacity.allowed) {
+    throw Object.assign(new Error('Devin is at capacity right now. Try again in a few minutes.'), { status: 429, code: 'SESSION_CAP' });
+  }
+  const release = reserveSession();
   const record = { id: crypto.randomBytes(6).toString('hex'), ideaId: idea.id, title: idea.title, createdAt: now, sessionUrl: null, state: 'queued' };
   ideaRequests.set(record.id, record);
   const config = getCustomerConfig(CUSTOMER);
@@ -319,10 +325,12 @@ async function createIdeaRequest({ ideaId, devinUserId, devinOrgId, devinEmail }
       title: `Mainspring feature: ${idea.title}`,
       repos: [REPO],
     });
-    record.state = session ? 'working' : 'not-configured';
+    record.state = session ? 'working' : 'unavailable';
     record.sessionUrl = session ? session.url : null;
+    if (!session) release();
   } catch (error) {
-    record.state = 'failed';
+    release();
+    record.state = 'unavailable';
     logger.error('Mainspring idea session failed', { ideaId: idea.id, error: error.message, status: error.response?.status });
   }
   return { ...record, createdAt: new Date(record.createdAt).toISOString() };

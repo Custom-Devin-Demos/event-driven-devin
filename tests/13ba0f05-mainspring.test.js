@@ -6,6 +6,10 @@ jest.mock('../app/services/devin-session', () => ({
 jest.mock('../app/services/devin-api', () => ({
   createDevinSession: jest.fn(() => Promise.resolve({ sessionId: 'devin-ms2', url: 'https://app.devin.ai/sessions/ms2' })),
 }));
+jest.mock('../app/services/session-rate-limiter', () => ({
+  canCreateSession: jest.fn(() => ({ allowed: true })),
+  reserveSession: jest.fn(() => jest.fn()),
+}));
 jest.mock('../app/services/jira', () => ({
   isConfigured: jest.fn(() => true),
   createIssue: jest.fn(() => Promise.resolve({ id: '1', key: 'MBA-1201', url: 'https://cog-gtm.atlassian.net/browse/MBA-1201' })),
@@ -84,6 +88,9 @@ describe('fuel change', () => {
     expect((await request('POST', '/api/13ba0f05/fuel-change', { siteId: 'nope', fuelId: 'RNG_BIOGAS' })).status).toBe(400);
     expect((await request('POST', '/api/13ba0f05/fuel-change', { siteId: 'iad-dc07', fuelId: 'DIESEL' })).status).toBe(400);
     expect((await request('POST', '/api/13ba0f05/fuel-change', { siteId: 'iad-dc07', fuelId: 'NG_PIPELINE' })).body.code).toBe('NO_CHANGE');
+    const inherited = await request('POST', '/api/13ba0f05/fuel-change', { siteId: 'iad-dc07', fuelId: 'toString' });
+    expect(inherited).toMatchObject({ status: 400, body: { code: 'UNKNOWN_FUEL' } });
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
   // Planted demo failure: the hydrogen blend has no air-permit emission factors under its catalog id.
@@ -153,5 +160,16 @@ describe('greenfield ideas', () => {
     const capped = await request('POST', '/api/13ba0f05/ideas', { ideaId: 'islanded-capacity' });
     expect(capped.status).toBe(429);
     expect((await request('POST', '/api/13ba0f05/ideas', { ideaId: 'nope' })).status).toBe(400);
+  });
+
+  test('respects the global session cap and frees the slot when Devin returns nothing', async () => {
+    const limiter = require('../app/services/session-rate-limiter');
+    const release = jest.fn();
+    limiter.reserveSession.mockReturnValueOnce(release);
+    createDevinSession.mockResolvedValueOnce(null);
+    expect((await request('POST', '/api/13ba0f05/ideas', { ideaId: 'jen-copilot' })).body.request.state).toBe('unavailable');
+    expect(release).toHaveBeenCalled();
+    limiter.canCreateSession.mockReturnValueOnce({ allowed: false });
+    expect((await request('POST', '/api/13ba0f05/ideas', { ideaId: 'jen-copilot' })).body.code).toBe('SESSION_CAP');
   });
 });

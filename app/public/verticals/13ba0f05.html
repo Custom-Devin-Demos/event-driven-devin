@@ -215,7 +215,7 @@
       } else {
         body.replaceChildren(steps, el('div', { class: 'result bad' }, el('div', { class: 'icon' }, '!'), el('h3', {}, 'Fuel change not applied'),
           el('p', {}, r.error || 'Something went wrong.'), el('div', { class: 'ref' }, `Reference ${r.reference || r.requestId || '—'}`),
-          el('p', { style: 'margin-top:12px' }, 'Fleet on-call has been notified.')));
+          r.incidentId ? el('p', { style: 'margin-top:12px' }, 'Fleet on-call has been notified.') : ''));
       }
       foot.replaceChildren(el('button', { class: 'btn', type: 'button', onclick: () => $('wizard').close() }, 'Done'));
     }
@@ -258,7 +258,7 @@
     $('ideas').replaceChildren(...data.ideas.map((idea) => {
       const req = data.requests.find((r) => r.ideaId === idea.id);
       const status = el('div', { class: 'status' });
-      const setStatus = (r) => { status.replaceChildren(r.sessionUrl ? el('a', { href: r.sessionUrl, target: '_blank', rel: 'noopener' }, 'Devin is building it →') : (r.state === 'failed' ? 'Could not start Devin.' : r.state === 'not-configured' ? 'Devin is not configured on this server.' : 'Starting Devin…')); };
+      const setStatus = (r) => { status.replaceChildren(r.sessionUrl ? el('a', { href: r.sessionUrl, target: '_blank', rel: 'noopener' }, 'Devin is building it →') : (r.state === 'unavailable' ? 'Could not start Devin. Try again shortly.' : 'Starting Devin…')); };
       if (req) setStatus(req);
       const btn = el('button', { class: 'btn', type: 'button' }, 'Build with Devin');
       btn.addEventListener('click', async () => {
