@@ -10975,6 +10975,24 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A FORTITUDE FINANCIAL SITE — internal demo only, not affiliated with, endorsed by, or a real Fortitude Financial product.',
   },
+  '6c998977': {
+    slug: '6c998977',
+    company: 'Suno',
+    vertical: 'telco',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '6c998977.html', title: 'Suno | Pricing' },
+    alertCard: {
+      title: 'p95 latency — Suno subscriptions: Change plan',
+      release: 'subscriptions-api@2026.11.4',
+      metricValue: '7.9s p95 on plan changes',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day, before subscriptions-api@2026.11.4)',
+      symptom: 'Plan changes on the Pricing page (Free, Pro, Premier, Platinum) hang ~8s after the user selects Change plan before confirming. Error rate remains normal.',
+      impact: 'Subscribers upgrading or downgrading during the Black Friday sale wait about 8 seconds on every plan change; upgrade completion rate is dropping.',
+    },
+    disclaimer: 'NOT ACTUALLY A SUNO SITE — internal demo only, not affiliated with, endorsed by, or a real Suno product.',
+  },
 };
 
 function getOncallSkin(slug) {
