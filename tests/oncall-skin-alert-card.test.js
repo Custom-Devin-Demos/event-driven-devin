@@ -172,6 +172,20 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     }
   });
 
+  test('eaf6aa64 (Manulife) reuses the insurance claim latency card with its own release and team', async () => {
+    const skin = getOncallSkin('eaf6aa64');
+    expect(skin.vertical).toBe('insurance');
+    expect(skin.paths).toEqual(['/manulife-claims']);
+    const { text } = await postCard(skin);
+
+    expect(text).toContain('*[Triggered] p95 latency — group benefits claim submissions*');
+    expect(text).toContain('Release: gb-member-claims@2.14.0');
+    expect(text).not.toMatch(/MetLife|mybenefits/i);
+    for (const key of ['release', 'team', 'metricQuery']) {
+      expect(skin.alertCard[key]).not.toMatch(new RegExp(skin.company, 'i'));
+    }
+  });
+
   test('86ba63ab posts its own release and team instead of the generic banking ones', async () => {
     const skin = getOncallSkin('86ba63ab');
     const { text } = await postCard(skin);
