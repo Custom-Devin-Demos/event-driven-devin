@@ -169,6 +169,7 @@ describe('greenfield ideas', () => {
     createDevinSession.mockResolvedValueOnce(null);
     expect((await request('POST', '/api/13ba0f05/ideas', { ideaId: 'jen-copilot' })).body.request.state).toBe('unavailable');
     expect(release).toHaveBeenCalled();
+    expect((await request('GET', '/api/13ba0f05/ideas')).body.usedToday).toBe(0);
     limiter.canCreateSession.mockReturnValueOnce({ allowed: false });
     expect((await request('POST', '/api/13ba0f05/ideas', { ideaId: 'jen-copilot' })).body.code).toBe('SESSION_CAP');
   });

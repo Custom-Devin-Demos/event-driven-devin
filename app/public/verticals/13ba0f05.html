@@ -222,14 +222,16 @@
   }
 
   async function submit() {
+    const w = wiz;
     try {
-      wiz.result = await api('/fuel-change', { siteId: wiz.site.id, fuelId: wiz.fuelId, ...(reportsOff ? { reports: 'off' } : {}), ...devin() });
+      w.result = await api('/fuel-change', { siteId: w.site.id, fuelId: w.fuelId, ...(reportsOff ? { reports: 'off' } : {}), ...devin() });
     } catch (e) {
-      wiz.result = { success: false, error: 'Network error. Try again.' };
+      w.result = { success: false, error: 'Network error. Try again.' };
     }
-    wiz.step = 3; renderWizard();
+    w.step = 3;
+    if (wiz === w) renderWizard();
     await loadFleet();
-    if (!wiz.result.success && wiz.result.incidentId) startPolling();
+    if (!w.result.success && w.result.incidentId) startPolling();
   }
 
   async function loadIncidents() {
@@ -264,7 +266,7 @@
       btn.addEventListener('click', async () => {
         btn.disabled = true; status.textContent = 'Starting Devin…';
         const r = await api('/ideas', { ideaId: idea.id, ...devin() });
-        if (r.success) setStatus(r.request); else { status.textContent = r.error; btn.disabled = false; }
+        if (r.success) { setStatus(r.request); btn.disabled = r.request.state !== 'unavailable'; } else { status.textContent = r.error; btn.disabled = false; }
         $('idea-cap').textContent = '';
       });
       return el('article', { class: 'idea' }, el('h3', {}, idea.title), el('p', {}, idea.pitch),

@@ -274,7 +274,7 @@ function dailyCap() {
   return Number.isFinite(n) && n >= 0 ? n : 5;
 }
 function requestsToday(now) {
-  return [...ideaRequests.values()].filter((r) => now - r.createdAt < DAY_MS).length;
+  return [...ideaRequests.values()].filter((r) => r.state !== 'unavailable' && now - r.createdAt < DAY_MS).length;
 }
 
 function buildIdeaPrompt(idea) {
