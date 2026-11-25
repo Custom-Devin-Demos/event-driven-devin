@@ -182,7 +182,7 @@ async function reportFuelChangeFailure(error, ctx, identity) {
     .then(async (result) => {
       const url = result?.session?.url || null;
       incident.session = url ? { url } : null;
-      incident.state = url ? 'devin-investigating' : 'alert-only';
+      incident.state = url ? 'devin-investigating' : (result ? 'alert-only' : 'alert-failed');
       if (issue && url) await jira.addComment(issue.key, `Devin is investigating this issue: ${url}`).catch(() => {});
     })
     .catch((err) => {
