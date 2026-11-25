@@ -201,6 +201,11 @@ async function refreshAnalytics({ sleep = realSleep, now = Date.now } = {}) {
   };
 }
 
+/** Repo link on the alert card: ONCALL_REPO_URL (may name a branch) when set. */
+function repoUrl() {
+  return process.env.ONCALL_REPO_URL || `https://github.com/${ANALYTICS.repo}`;
+}
+
 function alertTitle() {
   return `p95 latency: Run analytics, ${ANALYTICS.service} (portfolio manager workbench)`;
 }
@@ -224,7 +229,7 @@ function buildAlertMessage(result, { reference, now }) {
     '*Impact:* holdings, exposures and drift versus model take about 9 seconds to refresh for every portfolio manager. Figures are correct once they arrive; error rate is normal.',
     '',
     `Reported: ${now.toISOString()}`,
-    `Repo: https://github.com/${ANALYTICS.repo}`,
+    `Repo: ${repoUrl()}`,
   ].join('\n');
 }
 

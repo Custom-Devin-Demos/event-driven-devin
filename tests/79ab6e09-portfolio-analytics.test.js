@@ -140,6 +140,7 @@ describe('79ab6e09 portfolio analytics service', () => {
     const prompt = analytics.buildSessionPrompt(result, { reference: 'PA-test' });
     expect(prompt).toContain('against branch devin/some-branch');
     expect(prompt).toContain('Do NOT merge');
+    expect(analytics.buildAlertMessage(result, { reference: 'PA-test', now: new Date(0) })).toContain('Repo: https://github.com/COG-GTM/event-driven-devin/tree/devin/some-branch');
   });
 });
 
