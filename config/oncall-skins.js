@@ -10404,6 +10404,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BANCO TOLEDO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco Toledo product.',
   },
+  '79ab6e09': {
+    slug: '79ab6e09',
+    company: 'Capital Group',
+    brandMark: 'CG',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '79ab6e09.html', title: 'Portfolio Analytics | Capital Group Investment Workbench' },
+    disclaimer: 'NOT ACTUALLY A CAPITAL GROUP SITE. Internal demo only, not affiliated with, endorsed by, or a real Capital Group product. All portfolios, holdings and figures are synthetic.',
+  },
   '2e790636': {
     slug: '2e790636',
     company: 'Kestrel Bank',

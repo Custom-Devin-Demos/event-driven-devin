@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Analytics | Capital Group Investment Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #00294B; --blue: #0065A4; --sky: #009CDC; --ink: #1A2B3C; --muted: #5B6B7B;
+      --line: #D9E0E7; --bg: #F3F6F9; --card: #FFFFFF; --pos: #1E7B4F; --neg: #B3382C; --warn-bg: #FFF4DC; --warn: #8A5A00;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: 'Source Sans 3', 'Segoe UI', Arial, sans-serif; color: var(--ink); background: var(--bg); font-size: 15px; line-height: 1.4; }
+    a { color: inherit; text-decoration: none; }
+    .top { background: var(--navy); color: #fff; }
+    .top-in { max-width: 1320px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: .2px; white-space: nowrap; }
+    .brand small { font-weight: 400; opacity: .75; font-size: 14px; border-left: 1px solid rgba(255,255,255,.35); padding-left: 10px; }
+    .nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+    .nav a { padding: 20px 12px; font-size: 14px; opacity: .8; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .nav a.on { opacity: 1; border-bottom-color: var(--sky); font-weight: 600; }
+    .who { font-size: 13px; opacity: .85; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+    .who i { width: 28px; height: 28px; border-radius: 50%; background: var(--sky); display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-weight: 700; font-size: 12px; }
+    main { max-width: 1320px; margin: 0 auto; padding: 22px 24px 48px; }
+    .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .crumb { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    h1 { font-size: 26px; margin: 0; color: var(--navy); font-weight: 700; }
+    .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .stamp { font-size: 13px; color: var(--muted); text-align: right; }
+    .stamp b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    button.run { min-height: 44px; padding: 0 22px; border: 0; border-radius: 4px; background: var(--blue); color: #fff; font: 600 15px 'Source Sans 3', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
+    button.run:hover { background: #00568C; }
+    button.run:disabled { background: #7FA9C6; cursor: progress; }
+    .spin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: sp .8s linear infinite; display: none; }
+    .busy .spin { display: inline-block; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    .notice { display: none; background: var(--warn-bg); color: var(--warn); border: 1px solid #F0D48A; border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
+    .notice.show { display: block; }
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 16px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+    .kpi { padding: 14px 16px; }
+    .kpi span { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+    .kpi b { display: block; font-size: 22px; margin-top: 4px; color: var(--navy); font-variant-numeric: tabular-nums; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+    .card h2 { font-size: 15px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--navy); display: flex; justify-content: space-between; align-items: center; }
+    .card h2 em { font-style: normal; font-weight: 400; font-size: 12px; color: var(--muted); }
+    .body { padding: 12px 16px 14px; position: relative; }
+    .row { display: grid; grid-template-columns: 150px 1fr 56px; align-items: center; gap: 10px; padding: 5px 0; font-size: 13.5px; }
+    .bar { height: 10px; background: #E8EEF3; border-radius: 2px; position: relative; overflow: hidden; }
+    .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue); }
+    .bar u { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--navy); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pos { color: var(--pos); } .neg { color: var(--neg); }
+    .fbar { height: 10px; background: #E8EEF3; border-radius: 2px; position: relative; }
+    .fbar:before { content: ''; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: #9AA8B5; }
+    .fbar i { position: absolute; top: 0; bottom: 0; background: var(--sky); }
+    .stale .body > *:not(.veil), .stale tbody { opacity: .35; }
+    .veil { display: none; position: absolute; inset: 0; background: rgba(255,255,255,.6); align-items: center; justify-content: center; font-size: 13.5px; color: var(--muted); gap: 8px; }
+    .stale .veil { display: flex; }
+    .veil .spin { display: inline-block; border-color: #C5D0DA; border-top-color: var(--blue); }
+    .empty { color: var(--muted); font-size: 13.5px; padding: 18px 0; }
+    .tablewrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 760px; }
+    th, td { padding: 8px 16px; text-align: left; border-bottom: 1px solid #EDF1F5; white-space: nowrap; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 600; background: #FAFBFC; }
+    td.num, th.num { text-align: right; }
+    .tk { font-weight: 600; color: var(--blue); }
+    footer { max-width: 1320px; margin: 0 auto; padding: 0 24px 32px; color: var(--muted); font-size: 12.5px; }
+    @media (max-width: 1000px) { .kpis { grid-template-columns: repeat(2, 1fr); } .grid { grid-template-columns: 1fr; } .who span, .brand small { display: none; } }
+    @media (max-width: 520px) { .top-in, main, footer { padding-left: 14px; padding-right: 14px; } .top-in { gap: 12px; } h1 { font-size: 21px; } .row { grid-template-columns: 112px 1fr 50px; } .actions { width: 100%; } button.run { width: 100%; justify-content: center; } .stamp { text-align: left; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-in">
+      <a class="brand" href="#">
+        <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="3" fill="#009CDC"/><path d="M6 18l4.5-6 3.5 4 3-4.5L20 18z" fill="#fff"/></svg>
+        Capital Group <small>Investment Workbench</small>
+      </a>
+      <nav class="nav" aria-label="Workbench">
+        <a href="#">Research</a><a href="#" class="on">Portfolio Analytics</a><a href="#">Construction</a><a href="#">Risk</a><a href="#">Trading</a>
+      </nav>
+      <div class="who"><span>Portfolio manager (demo user)</span><i>PM</i></div>
+    </div>
+  </header>
+  <main>
+    <div class="head">
+      <div>
+        <div class="crumb">Portfolio Analytics / Equity / <span id="pid">GEQ-MODEL-07</span></div>
+        <h1 id="pname">Global Equity Growth Sleeve 07</h1>
+        <div class="sub">Holdings, exposures and drift versus <span id="pmodel">Global Equity Growth Model</span>. Synthetic data.</div>
+      </div>
+      <div class="actions">
+        <div class="stamp">Analytics as of <b id="asOf">2026-11-24 close</b><br><span id="timing">Last run: not yet run this session</span></div>
+        <button class="run" id="submitBtn" type="button"><span class="spin"></span><span id="btnLabel">Run analytics</span></button>
+      </div>
+    </div>
+    <div class="notice" id="result" role="status"></div>
+    <section class="kpis">
+      <div class="card kpi"><span>Net assets (USD)</span><b id="kNav">-</b></div>
+      <div class="card kpi"><span>Holdings</span><b id="kCount">-</b></div>
+      <div class="card kpi"><span>Active share</span><b id="kActive">-</b></div>
+      <div class="card kpi"><span>Tracking error (ex ante)</span><b id="kTe">-</b></div>
+      <div class="card kpi"><span>Max drift vs model</span><b id="kDrift">-</b></div>
+    </section>
+    <section class="grid" id="panels">
+      <div class="card"><h2>Sector exposure <em>portfolio vs model</em></h2><div class="body"><div id="sectors"></div><div class="veil"><span class="spin"></span>Recalculating</div></div></div>
+      <div class="card"><h2>Region exposure <em>portfolio vs model</em></h2><div class="body"><div id="regions"></div><div class="veil"><span class="spin"></span>Recalculating</div></div></div>
+      <div class="card"><h2>Factor exposure <em>risk model</em></h2><div class="body"><div id="factors"><div class="empty">Run analytics to load factor exposures from the risk model.</div></div><div class="veil"><span class="spin"></span>Reading risk model</div></div></div>
+    </section>
+    <section class="card" id="holdingsCard">
+      <h2>Holdings and drift versus model <em id="hCount"></em></h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Ticker</th><th>Security</th><th>Sector</th><th>Region</th><th class="num">Market value</th><th class="num">Weight</th><th class="num">Model</th><th class="num">Drift</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+    </section>
+  </main>
+  <footer>Demo workbench with synthetic portfolios, securities and figures. Not investment advice.</footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const API = '/api/oncall/79ab6e09/analytics';
+      const $ = (id) => document.getElementById(id);
+      const pct = (v, d) => `${v.toFixed(d == null ? 2 : d)}%`;
+      const signed = (v) => `${v > 0 ? '+' : ''}${v.toFixed(2)}%`;
+      const cls = (v) => (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const money = (minor) => `$${(minor / 100 / 1e6).toLocaleString('en-US', { maximumFractionDigits: 1, minimumFractionDigits: 1 })}M`;
+      let budgetMs = 2000;
+
+      function exposure(el, groups) {
+        const max = Math.max.apply(null, groups.map((g) => Math.max(g.weightPct, g.modelPct))) * 1.1;
+        el.innerHTML = groups.map((g) => `<div class="row"><span>${esc(g.name)}</span><span class="bar"><i style="width:${(g.weightPct / max) * 100}%"></i><u style="left:${(g.modelPct / max) * 100}%"></u></span><span class="num ${cls(g.activePct)}">${signed(g.activePct)}</span></div>`).join('');
+      }
+
+      function render(d) {
+        budgetMs = d.budgetMs || budgetMs;
+        $('pid').textContent = d.portfolio.id;
+        $('pname').textContent = d.portfolio.name;
+        $('pmodel').textContent = d.portfolio.model;
+        $('asOf').textContent = `${d.portfolio.asOf} close`;
+        $('kNav').textContent = `$${(d.portfolio.navMinor / 100 / 1e9).toFixed(2)}B`;
+        $('kCount').textContent = d.holdings.length;
+        $('kDrift').textContent = signed(d.holdings.reduce((m, h) => (Math.abs(h.driftPct) > Math.abs(m) ? h.driftPct : m), 0));
+        if (d.activeSharePct != null) $('kActive').textContent = pct(d.activeSharePct, 1);
+        if (d.trackingErrorPct != null) $('kTe').textContent = pct(d.trackingErrorPct);
+        exposure($('sectors'), d.sectors);
+        exposure($('regions'), d.regions);
+        if (d.factors) {
+          $('factors').innerHTML = d.factors.map((f) => {
+            const w = Math.min(50, Math.abs(f.exposure) * 250);
+            return `<div class="row"><span>${esc(f.name)}</span><span class="fbar"><i style="left:${f.exposure < 0 ? 50 - w : 50}%;width:${w}%"></i></span><span class="num ${cls(f.exposure)}">${f.exposure > 0 ? '+' : ''}${f.exposure.toFixed(3)}</span></div>`;
+          }).join('');
+        }
+        $('hCount').textContent = `${d.holdings.length} positions`;
+        $('rows').innerHTML = d.holdings.slice().sort((a, b) => Math.abs(b.driftPct) - Math.abs(a.driftPct)).map((h) => `<tr><td class="tk">${esc(h.ticker)}</td><td>${esc(h.name)}</td><td>${esc(h.sector)}</td><td>${esc(h.region)}</td><td class="num">${money(h.marketValueMinor)}</td><td class="num">${pct(h.weightPct)}</td><td class="num">${pct(h.modelPct)}</td><td class="num ${cls(h.driftPct)}">${signed(h.driftPct)}</td></tr>`).join('');
+      }
+
+      function setBusy(on) {
+        $('submitBtn').disabled = on;
+        $('submitBtn').classList.toggle('busy', on);
+        $('btnLabel').textContent = on ? 'Running analytics' : 'Run analytics';
+        document.querySelectorAll('#panels .card, #holdingsCard').forEach((c) => c.classList.toggle('stale', on));
+      }
+
+      function note(text) {
+        $('result').textContent = text;
+        $('result').classList.toggle('show', Boolean(text));
+      }
+
+      async function run() {
+        if ($('submitBtn').disabled) return;
+        const started = performance.now();
+        setBusy(true);
+        note('');
+        const tick = setInterval(() => {
+          const s = (performance.now() - started) / 1000;
+          $('timing').textContent = `Running: ${s.toFixed(1)}s`;
+          if (s * 1000 > budgetMs) note('Analytics are taking longer than usual. Figures shown are from the last published snapshot until the run completes.');
+        }, 100);
+        try {
+          const alertsOn = new URLSearchParams(location.search).get('reports') !== 'off';
+          const res = await fetch(`${API}/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Demo-Alerts': alertsOn ? 'on' : 'off' }, body: '{}' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const d = await res.json();
+          const s = (performance.now() - started) / 1000;
+          render(d);
+          $('timing').textContent = `Last run: ${s.toFixed(1)}s`;
+          note(s * 1000 > budgetMs ? `Analytics refreshed in ${s.toFixed(1)}s. This is slower than expected and has been reported to the analytics team.` : '');
+        } catch (e) {
+          $('timing').textContent = 'Last run: failed';
+          note('Analytics could not be refreshed. Figures shown are from the last published snapshot.');
+        } finally {
+          clearInterval(tick);
+          setBusy(false);
+        }
+      }
+
+      $('submitBtn').addEventListener('click', run);
+      fetch(API).then((r) => r.json()).then(render).catch(() => note('Holdings could not be loaded.'));
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
