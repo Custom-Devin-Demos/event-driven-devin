@@ -10993,6 +10993,37 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A SUNO SITE — internal demo only, not affiliated with, endorsed by, or a real Suno product.',
   },
+  'a2fe2896': {
+    slug: 'a2fe2896',
+    company: 'Morrisons',
+    brandMark: 'M',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/morrisons'],
+    alertDestination: 'slack',
+    page: { file: 'a2fe2896.html', title: 'Checkout | Morrisons' },
+    theme: {
+      '--accent': '#FCBC00',
+      '--ink': '#47494B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#005112',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Morrisons Customer Services',
+    alertCard: {
+      title: 'p95 latency \u2014 Groceries checkout: place order and pay',
+      service: 'grocery-checkout-api',
+      release: 'grocery-checkout@2026.11.5',
+      team: 'online-groceries-checkout',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.2s',
+      threshold: '> 2s',
+      baseline: '~380ms (7-day p95, before grocery-checkout@2026.11.5)',
+      symptom: 'Place order and pay hangs ~9s after the shopper selects it before the order confirmation appears. Error rate is normal \u2014 orders are placed and paid.',
+      impact: 'Shoppers checking out a grocery trolley wait about 9 seconds on Place order and pay; some select it again or leave before the confirmation and risk losing their reserved delivery slot.',
+    },
+    disclaimer: 'NOT ACTUALLY A MORRISONS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Wm Morrison Supermarkets product.',
+  },
 };
 
 function getOncallSkin(slug) {
