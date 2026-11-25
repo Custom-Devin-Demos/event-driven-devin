@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mainspring Fleet Console</title>
+<style>
+  :root { --navy:#07182b; --panel:#0e243d; --panel2:#132f4f; --line:#1f3f63; --text:#e8f0f8; --muted:#8fa6bf; --green:#2fd98b; --green-d:#1fb874; --amber:#ffb547; --red:#ff6b6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--navy); color:var(--text); }
+  a { color:var(--green); }
+  header { display:flex; align-items:center; gap:28px; padding:14px 28px; border-bottom:1px solid var(--line); background:#06142a; position:sticky; top:0; z-index:5; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:20px; letter-spacing:-.3px; }
+  .brand svg { width:28px; height:28px; }
+  .brand small { font-weight:500; color:var(--muted); font-size:13px; border-left:1px solid var(--line); padding-left:10px; }
+  nav { display:flex; gap:4px; }
+  nav button { background:none; border:0; color:var(--muted); font:inherit; font-size:14px; padding:8px 14px; border-radius:8px; cursor:pointer; }
+  nav button[aria-selected="true"] { background:var(--panel2); color:var(--text); }
+  .who { margin-left:auto; color:var(--muted); font-size:13px; display:flex; align-items:center; gap:8px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--green); display:inline-block; box-shadow:0 0 8px var(--green); }
+  main { max-width:1200px; margin:0 auto; padding:28px; }
+  h1 { font-size:24px; margin:0 0 4px; } .sub { color:var(--muted); margin:0 0 22px; font-size:14px; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+  .kpi { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .kpi b { display:block; font-size:26px; margin-top:6px; } .kpi span { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.6px; }
+  .sites { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .site { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:10px; }
+  .site h3 { margin:0; font-size:17px; } .site .meta { color:var(--muted); font-size:13px; }
+  .row { display:flex; justify-content:space-between; font-size:13px; border-top:1px solid var(--line); padding-top:8px; }
+  .row span:first-child { color:var(--muted); }
+  .fuel { display:inline-block; background:rgba(47,217,139,.12); color:var(--green); padding:3px 9px; border-radius:99px; font-size:12px; font-weight:600; }
+  .units { display:flex; flex-wrap:wrap; gap:3px; } .units i { width:10px; height:16px; border-radius:2px; background:var(--green); opacity:.85; }
+  .btn { background:var(--green); color:#04210f; border:0; border-radius:8px; padding:10px 16px; font:inherit; font-weight:600; font-size:14px; cursor:pointer; }
+  .btn:hover { background:var(--green-d); } .btn:disabled { opacity:.5; cursor:default; }
+  .btn.ghost { background:transparent; color:var(--text); border:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border-radius:12px; overflow:hidden; font-size:14px; }
+  th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); } th { color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; }
+  .empty { color:var(--muted); padding:22px; text-align:center; background:var(--panel); border-radius:12px; }
+  .ideas { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .idea { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:10px; }
+  .idea h3 { margin:0; font-size:17px; } .idea p { margin:0; color:#c6d4e3; font-size:14px; line-height:1.45; }
+  .idea ul { margin:0; padding-left:18px; font-size:12px; color:var(--muted); } .idea li { margin-bottom:4px; }
+  .idea .status { font-size:13px; color:var(--muted); min-height:18px; }
+  dialog { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:16px; width:min(560px, 92vw); padding:0; }
+  dialog::backdrop { background:rgba(2,8,18,.7); }
+  .dlg-h { padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .dlg-h h2 { margin:0; font-size:18px; } .dlg-b { padding:20px 22px; } .dlg-f { padding:14px 22px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:10px; }
+  .steps { display:flex; gap:8px; font-size:12px; color:var(--muted); margin-bottom:16px; } .steps b { color:var(--green); }
+  .opt { display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px; cursor:pointer; }
+  .opt:has(input:checked) { border-color:var(--green); background:rgba(47,217,139,.06); }
+  .opt input { margin-top:3px; accent-color:var(--green); } .opt small { color:var(--muted); display:block; margin-top:2px; }
+  .opt.current { opacity:.45; cursor:not-allowed; }
+  .review div { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; } .review span { color:var(--muted); }
+  .result { text-align:center; padding:8px 0; } .result .icon { width:54px; height:54px; border-radius:50%; display:grid; place-items:center; margin:0 auto 12px; font-size:26px; }
+  .ok .icon { background:rgba(47,217,139,.15); color:var(--green); } .bad .icon { background:rgba(255,107,107,.15); color:var(--red); }
+  .result h3 { margin:0 0 6px; } .result p { color:var(--muted); margin:0 0 14px; font-size:14px; }
+  .ref { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--muted); }
+  .ops { margin-top:28px; background:var(--panel); border:1px dashed var(--line); border-radius:12px; padding:14px 18px; font-size:13px; }
+  .ops h4 { margin:0 0 8px; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+  .ops .inc { display:flex; flex-wrap:wrap; gap:14px; padding:6px 0; border-top:1px solid var(--line); }
+  footer { max-width:1200px; margin:0 auto; padding:10px 28px 30px; color:var(--muted); font-size:12px; display:flex; justify-content:space-between; }
+  footer button { background:none; border:0; color:var(--muted); text-decoration:underline; cursor:pointer; font:inherit; }
+  [hidden] { display:none !important; }
+  @media (max-width:900px) { .kpis, .sites, .ideas { grid-template-columns:1fr; } header { flex-wrap:wrap; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" aria-label="Mainspring Fleet Console">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="#2fd98b"/><path d="M8 20c3 0 3-8 6-8s3 8 6 8 3-8 4-8" stroke="#07182b" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>
+    mainspring <small>Fleet Console</small>
+  </div>
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="fleet">Fleet</button>
+    <button role="tab" aria-selected="false" data-tab="changes">Fuel changes</button>
+    <button role="tab" aria-selected="false" data-tab="ideas">Ideas</button>
+  </nav>
+  <div class="who"><span class="dot" aria-hidden="true"></span> All sites reporting · Fleet operator</div>
+</header>
+
+<main>
+  <section id="tab-fleet">
+    <h1>Fleet overview</h1>
+    <p class="sub">Linear Generator sites under remote operations. Fuel-flexible, dispatchable, near-zero NOx.</p>
+    <div class="kpis" id="kpis"></div>
+    <div class="sites" id="sites"></div>
+  </section>
+
+  <section id="tab-changes" hidden>
+    <h1>Fuel changes</h1>
+    <p class="sub">Scheduled fuel changes roll through each site a few units at a time with no load interruption.</p>
+    <div id="changes"></div>
+  </section>
+
+  <section id="tab-ideas" hidden>
+    <h1>What should the console do next?</h1>
+    <p class="sub">Three ideas grounded in what Mainspring has said publicly. Pick one and Devin builds it into this console as a pull request.</p>
+    <div class="ideas" id="ideas"></div>
+    <p class="sub" id="idea-cap" style="margin-top:14px"></p>
+  </section>
+
+  <section class="ops" id="ops" hidden aria-live="polite">
+    <h4>On-call trail</h4>
+    <div id="incidents"></div>
+  </section>
+</main>
+
+<footer>
+  <span>Demo mock with synthetic data. Not affiliated with or endorsed by Mainspring Energy.</span>
+  <button type="button" id="reset">Reset demo</button>
+</footer>
+
+<dialog id="wizard" aria-labelledby="wiz-title">
+  <div class="dlg-h"><h2 id="wiz-title">Change fuel</h2><button class="btn ghost" type="button" id="wiz-close" aria-label="Close">✕</button></div>
+  <div class="dlg-b" id="wiz-body"></div>
+  <div class="dlg-f" id="wiz-foot"></div>
+</dialog>
+
+<script>
+(function () {
+  const API = '/api/13ba0f05';
+  const params = new URLSearchParams(location.search);
+  const reportsOff = params.get('reports') === 'off';
+  let fleet = { sites: [], fuels: [], changes: [] };
+  let wiz = null;
+  let pollTimer = null;
+
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => { if (k === 'class') n.className = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); });
+    kids.flat().forEach((k) => n.append(k instanceof Node ? k : document.createTextNode(String(k))));
+    return n;
+  };
+  const devin = () => ({ devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' });
+  const api = async (path, body) => {
+    const res = await fetch(API + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {});
+    return res.json();
+  };
+  const fmtTime = (iso) => new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+  document.querySelectorAll('nav button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+    ['fleet', 'changes', 'ideas'].forEach((t) => { $('tab-' + t).hidden = t !== b.dataset.tab; });
+    if (b.dataset.tab === 'ideas') loadIdeas();
+  }));
+
+  async function loadFleet() {
+    fleet = await api('/fleet');
+    const units = fleet.sites.reduce((a, s) => a + s.units, 0);
+    const mw = fleet.sites.reduce((a, s) => a + s.loadKw, 0) / 1000;
+    $('kpis').replaceChildren(
+      ...[['Sites', fleet.sites.length], ['Linear Generators', units], ['Load served', mw.toFixed(1) + ' MW'], ['Fleet availability', '99.99%']]
+        .map(([k, v]) => el('div', { class: 'kpi' }, el('span', {}, k), el('b', {}, v))));
+    $('sites').replaceChildren(...fleet.sites.map((s) => el('article', { class: 'site', 'data-site': s.id },
+      el('div', {}, el('h3', {}, s.name), el('div', { class: 'meta' }, s.customer)),
+      el('div', {}, el('span', { class: 'fuel' }, s.fuelLabel)),
+      el('div', { class: 'units', 'aria-label': s.units + ' units online' }, Array.from({ length: s.units }, () => el('i'))),
+      el('div', { class: 'row' }, el('span', {}, 'Grid region'), el('span', {}, s.region)),
+      el('div', { class: 'row' }, el('span', {}, 'Load / capacity'), el('span', {}, `${(s.loadKw / 1000).toFixed(2)} / ${(s.units * s.unitKw / 1000).toFixed(1)} MW`)),
+      el('div', { class: 'row' }, el('span', {}, 'Availability (90d)'), el('span', {}, s.availability + '%')),
+      el('div', { class: 'row' }, el('span', {}, 'Air permit'), el('span', {}, s.permit)),
+      el('button', { class: 'btn', type: 'button', onclick: () => openWizard(s.id) }, 'Change fuel'))));
+    renderChanges();
+  }
+
+  function renderChanges() {
+    if (!fleet.changes.length) { $('changes').replaceChildren(el('div', { class: 'empty' }, 'No fuel changes scheduled yet. Start one from a site card.')); return; }
+    $('changes').replaceChildren(el('table', {},
+      el('thead', {}, el('tr', {}, ['Change order', 'Site', 'From', 'To', 'NOx headroom', 'Starts', 'Status'].map((h) => el('th', {}, h)))),
+      el('tbody', {}, fleet.changes.map((c) => el('tr', {}, el('td', { class: 'ref' }, c.id), el('td', {}, c.site), el('td', {}, c.from), el('td', {}, c.to),
+        el('td', {}, c.permit.headroomPct + '%'), el('td', {}, fmtTime(c.scheduledFor)), el('td', {}, el('span', { class: 'fuel' }, c.status)))))));
+  }
+
+  function openWizard(siteId) {
+    const site = fleet.sites.find((s) => s.id === siteId);
+    wiz = { site, fuelId: null, step: 1 };
+    renderWizard();
+    $('wizard').showModal();
+  }
+
+  function renderWizard() {
+    const { site, step } = wiz;
+    const body = $('wiz-body'); const foot = $('wiz-foot');
+    $('wiz-title').textContent = `Change fuel · ${site.name}`;
+    const steps = el('div', { class: 'steps' }, ...['Select fuel', 'Review', 'Done'].map((t, i) => (i + 1 === step ? el('b', {}, `${i + 1}. ${t}`) : el('span', {}, `${i + 1}. ${t}`))));
+    if (step === 1) {
+      body.replaceChildren(steps, ...fleet.fuels.map((f) => {
+        const current = f.id === site.fuel;
+        const input = el('input', { type: 'radio', name: 'fuel', value: f.id });
+        if (current) input.disabled = true;
+        if (wiz.fuelId === f.id) input.checked = true;
+        input.addEventListener('change', () => { wiz.fuelId = f.id; next.disabled = false; });
+        return el('label', { class: 'opt' + (current ? ' current' : '') }, input, el('div', {}, el('b', {}, f.label), el('small', {}, current ? 'Current fuel' : f.carbon)));
+      }));
+      const next = el('button', { class: 'btn', type: 'button', onclick: () => { wiz.step = 2; renderWizard(); } }, 'Review');
+      next.disabled = !wiz.fuelId;
+      foot.replaceChildren(el('button', { class: 'btn ghost', type: 'button', onclick: () => $('wizard').close() }, 'Cancel'), next);
+    } else if (step === 2) {
+      const fuel = fleet.fuels.find((f) => f.id === wiz.fuelId);
+      body.replaceChildren(steps, el('div', { class: 'review' },
+        ...[['Site', site.name], ['Units affected', `${site.units} Linear Generators`], ['Current fuel', site.fuelLabel], ['New fuel', fuel.label],
+          ['Rollout', '4 units at a time, no load interruption'], ['Checks', 'Air-permit headroom, fuel supply pressure']].map(([k, v]) => el('div', {}, el('span', {}, k), el('b', {}, v)))));
+      const apply = el('button', { class: 'btn', type: 'button', id: 'apply' }, 'Apply fuel change');
+      apply.addEventListener('click', async () => { apply.disabled = true; apply.textContent = 'Checking permit headroom…'; await submit(); });
+      foot.replaceChildren(el('button', { class: 'btn ghost', type: 'button', onclick: () => { wiz.step = 1; renderWizard(); } }, 'Back'), apply);
+    } else {
+      const r = wiz.result;
+      if (r.success) {
+        const c = r.change;
+        body.replaceChildren(steps, el('div', { class: 'result ok' }, el('div', { class: 'icon' }, '✓'), el('h3', {}, 'Fuel change scheduled'),
+          el('p', {}, `${c.site} moves from ${c.from} to ${c.to}. Rollout starts ${fmtTime(c.scheduledFor)}.`),
+          el('div', { class: 'review' }, ...[['Change order', c.id], ['Projected NOx', `${c.permit.projectedNoxTons} of ${c.permit.permitNoxTons} tons/yr`],
+            ['Permit headroom', c.permit.headroomPct + '%'], ['CO₂ (annualized)', c.permit.co2TonsPerYear.toLocaleString() + ' tons'], ['Rollout', c.rollout]].map(([k, v]) => el('div', {}, el('span', {}, k), el('b', {}, v))))));
+      } else {
+        body.replaceChildren(steps, el('div', { class: 'result bad' }, el('div', { class: 'icon' }, '!'), el('h3', {}, 'Fuel change not applied'),
+          el('p', {}, r.error || 'Something went wrong.'), el('div', { class: 'ref' }, `Reference ${r.reference || r.requestId || '—'}`),
+          el('p', { style: 'margin-top:12px' }, 'Fleet on-call has been notified.')));
+      }
+      foot.replaceChildren(el('button', { class: 'btn', type: 'button', onclick: () => $('wizard').close() }, 'Done'));
+    }
+  }
+
+  async function submit() {
+    try {
+      wiz.result = await api('/fuel-change', { siteId: wiz.site.id, fuelId: wiz.fuelId, ...(reportsOff ? { reports: 'off' } : {}), ...devin() });
+    } catch (e) {
+      wiz.result = { success: false, error: 'Network error. Try again.' };
+    }
+    wiz.step = 3; renderWizard();
+    await loadFleet();
+    if (!wiz.result.success && wiz.result.incidentId) startPolling();
+  }
+
+  async function loadIncidents() {
+    const { incidents } = await api('/incidents');
+    $('ops').hidden = !incidents.length;
+    $('incidents').replaceChildren(...incidents.map((i) => el('div', { class: 'inc' },
+      el('span', { class: 'ref' }, i.id), el('span', {}, `${i.site} → ${i.fuel}`),
+      el('a', { href: i.sentryUrl, target: '_blank', rel: 'noopener' }, 'Sentry'),
+      i.jira ? el('a', { href: i.jira.url, target: '_blank', rel: 'noopener' }, i.jira.key) : el('span', {}, 'Jira…'),
+      i.session ? el('a', { href: i.session.url, target: '_blank', rel: 'noopener' }, 'Devin session') : el('span', {}, i.state.replace(/-/g, ' ')))));
+    return incidents;
+  }
+  function startPolling() {
+    clearInterval(pollTimer);
+    let n = 0;
+    pollTimer = setInterval(async () => {
+      const list = await loadIncidents();
+      if (++n > 40 || (list[0] && list[0].session)) clearInterval(pollTimer);
+    }, 3000);
+    loadIncidents();
+  }
+
+  async function loadIdeas() {
+    const data = await api('/ideas');
+    $('idea-cap').textContent = `${data.usedToday} of ${data.cap} Devin builds used today.`;
+    $('ideas').replaceChildren(...data.ideas.map((idea) => {
+      const req = data.requests.find((r) => r.ideaId === idea.id);
+      const status = el('div', { class: 'status' });
+      const setStatus = (r) => { status.replaceChildren(r.sessionUrl ? el('a', { href: r.sessionUrl, target: '_blank', rel: 'noopener' }, 'Devin is building it →') : (r.state === 'failed' ? 'Could not start Devin.' : r.state === 'not-configured' ? 'Devin is not configured on this server.' : 'Starting Devin…')); };
+      if (req) setStatus(req);
+      const btn = el('button', { class: 'btn', type: 'button' }, 'Build with Devin');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true; status.textContent = 'Starting Devin…';
+        const r = await api('/ideas', { ideaId: idea.id, ...devin() });
+        if (r.success) setStatus(r.request); else { status.textContent = r.error; btn.disabled = false; }
+        $('idea-cap').textContent = '';
+      });
+      return el('article', { class: 'idea' }, el('h3', {}, idea.title), el('p', {}, idea.pitch),
+        el('ul', {}, idea.evidence.map((e) => el('li', {}, el('a', { href: e.url, target: '_blank', rel: 'noopener' }, e.label)))), btn, status);
+    }));
+  }
+
+  $('wiz-close').addEventListener('click', () => $('wizard').close());
+  $('reset').addEventListener('click', async () => { await api('/reset', {}); await loadFleet(); });
+  loadFleet();
+  loadIncidents();
+})();
+</script>
+</body>
+</html>
