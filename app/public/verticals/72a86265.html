@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accounts | Bank of America demo (synthetic)</title>
+<style>
+:root { --boa-red:#e31837; --boa-navy:#012169; --boa-blue:#0052c2; --ink:#333; --muted:#6b6b6b; --line:#dcdcdc; --bg:#f5f5f5; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:"Helvetica Neue",Arial,sans-serif; color:var(--ink); background:var(--bg); }
+.masthead { background:#fff; border-bottom:4px solid var(--boa-red); }
+.masthead-top { display:flex; justify-content:space-between; align-items:center; padding:14px 32px; flex-wrap:wrap; gap:8px; }
+.brand { display:flex; align-items:center; gap:10px; }
+.brand-mark { display:inline-flex; flex-direction:column; gap:3px; transform:skewX(-20deg); }
+.brand-mark i { display:block; width:30px; height:5px; background:var(--boa-navy); }
+.brand-mark i:nth-child(2) { background:var(--boa-red); }
+.brand-name { font-weight:700; letter-spacing:.06em; color:var(--boa-navy); font-size:20px; }
+.masthead-user { color:var(--muted); font-size:14px; }
+.demo-badge { margin-left:10px; background:#fff3cd; color:#7a5b00; padding:2px 8px; border-radius:10px; font-size:12px; }
+.tabs { display:flex; gap:4px; padding:0 32px; background:var(--boa-navy); }
+.tab { background:none; border:none; color:#fff; padding:12px 18px; font-size:15px; cursor:pointer; border-bottom:3px solid transparent; }
+.tab.active { border-bottom-color:var(--boa-red); font-weight:700; }
+main { max-width:960px; margin:24px auto; padding:0 16px; }
+h2 { color:var(--boa-navy); font-weight:400; font-size:24px; }
+.summary { display:flex; gap:16px; flex-wrap:wrap; }
+.summary > div { flex:1; min-width:200px; background:#fff; border:1px solid var(--line); padding:16px 20px; }
+.summary .label { display:block; color:var(--muted); font-size:13px; margin-bottom:6px; }
+.summary strong { font-size:26px; color:var(--boa-navy); }
+.accounts { list-style:none; padding:0; margin:0; background:#fff; border:1px solid var(--line); }
+.account { display:flex; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--line); border-left:4px solid var(--boa-blue); }
+.account.credit { border-left-color:var(--boa-red); }
+.account-name { color:var(--boa-blue); font-weight:700; }
+.account-mask, .account-balance span { color:var(--muted); font-size:13px; }
+.account-balance { text-align:right; }
+.account-balance strong { display:block; font-size:20px; }
+.activity { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); }
+.activity th, .activity td { padding:10px 14px; border-bottom:1px solid var(--line); text-align:left; font-size:14px; }
+.activity th { background:#eef1f7; color:var(--boa-navy); }
+.num { text-align:right !important; }
+.pos { color:#127a3a; }
+select, input { font-size:15px; padding:8px; border:1px solid #aaa; border-radius:3px; }
+.transfer { display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#fff; border:1px solid var(--line); padding:20px; }
+.transfer label { display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--muted); }
+.primary { grid-column:span 2; justify-self:start; background:var(--boa-blue); color:#fff; border:none; padding:12px 28px; border-radius:24px; font-size:15px; cursor:pointer; }
+.primary:disabled { opacity:.6; }
+.notice { margin-top:16px; padding:14px 18px; border-left:4px solid; background:#fff; display:flex; gap:12px; align-items:flex-start; }
+.notice.ok { border-color:#127a3a; }
+.notice.err { border-color:var(--boa-red); background:#fdeef0; }
+.notice .x { flex:none; width:28px; height:28px; border-radius:50%; background:var(--boa-red); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.notice small { display:block; color:var(--muted); margin-top:4px; }
+footer { text-align:center; color:var(--muted); font-size:12px; padding:24px; }
+[hidden] { display:none !important; }
+@media (max-width:600px) { .transfer { grid-template-columns:1fr; } .primary { grid-column:auto; } .tabs, .masthead-top { padding-left:16px; padding-right:16px; } }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-top">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand-name">BANK OF AMERICA</span></div>
+    <div class="masthead-user"><span id="greeting">Welcome</span><span class="demo-badge">Demo · synthetic data</span></div>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="accounts" data-testid="tab-accounts">Accounts</button>
+    <button class="tab" data-tab="activity" data-testid="tab-activity">Activity</button>
+    <button class="tab" data-tab="transfer" data-testid="tab-transfer">Transfer</button>
+  </nav>
+</header>
+<main>
+  <section id="view-accounts">
+    <h2>Accounts overview</h2>
+    <div class="summary">
+      <div><span class="label">Total deposits</span><strong data-testid="total-deposits" id="total-deposits">-</strong></div>
+      <div><span class="label">Net position</span><strong data-testid="net-worth" id="net-worth">-</strong></div>
+    </div>
+    <h2>Your accounts</h2>
+    <ul class="accounts" id="accounts"></ul>
+  </section>
+  <section id="view-activity" hidden>
+    <h2>Recent activity</h2>
+    <table class="activity"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="num">Amount</th></tr></thead><tbody id="activity"></tbody></table>
+  </section>
+  <section id="view-transfer" hidden>
+    <h2>Transfer money</h2>
+    <form class="transfer" id="transfer-form">
+      <label>From<select id="from" data-testid="transfer-from"></select></label>
+      <label>To<select id="to" data-testid="transfer-to"></select></label>
+      <label>Amount (USD)<input id="amount" data-testid="transfer-amount" type="number" min="0.01" step="0.01" value="250.00" required></label>
+      <label>Memo<input id="memo" maxlength="60" placeholder="Optional"></label>
+      <button class="primary" data-testid="transfer-submit" id="submit">Submit transfer</button>
+    </form>
+    <div id="result" data-testid="transfer-result" role="status" hidden></div>
+  </section>
+</main>
+<footer>Synthetic demo. No real Bank of America systems, customers, accounts or data. Not affiliated with Bank of America.</footer>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const usd = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+  const reportsOff = new URLSearchParams(location.search).get('reports') === 'off';
+  let token = '';
+  const api = async (path, options = {}) => {
+    const res = await fetch(`/api/72a86265${path}`, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(reportsOff ? { 'X-Demo-Alerts': 'off' } : {}) },
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(body.message || 'Request failed'), { status: res.status, body });
+    return body;
+  };
+  const el = (tag, props = {}, children = []) => {
+    const node = Object.assign(document.createElement(tag), props);
+    children.forEach((c) => node.append(c));
+    return node;
+  };
+  async function refresh() {
+    const [{ accounts, totals }, { transactions }] = await Promise.all([api('/accounts'), api('/transactions')]);
+    $('total-deposits').textContent = usd(totals.deposits);
+    $('net-worth').textContent = usd(totals.netWorth);
+    $('accounts').replaceChildren(...accounts.map((a) => {
+      const li = el('li', { className: `account ${a.type}` }, [
+        el('div', {}, [el('div', { className: 'account-name', textContent: a.name }), el('div', { className: 'account-mask', textContent: `...${a.mask}` })]),
+        el('div', { className: 'account-balance' }, [el('strong', { textContent: usd(a.balance) }), el('span', { textContent: `Available ${usd(a.available)}` })]),
+      ]);
+      li.dataset.testid = `account-${a.id}`;
+      return li;
+    }));
+    $('activity').replaceChildren(...transactions.map((t) => el('tr', {}, [
+      el('td', { textContent: t.date }), el('td', { textContent: t.description }), el('td', { textContent: t.category }),
+      el('td', { className: `num ${t.amount > 0 ? 'pos' : ''}`, textContent: usd(t.amount) }),
+    ])));
+    const option = (a) => el('option', { value: a.id, textContent: `${a.name} ...${a.mask}` });
+    const keep = [$('from').value, $('to').value];
+    $('from').replaceChildren(...accounts.filter((a) => a.type !== 'credit').map(option));
+    $('to').replaceChildren(...accounts.map(option));
+    $('from').value = keep[0] || 'chk-4821';
+    $('to').value = keep[1] || 'crd-1094';
+  }
+  function show(tab) {
+    document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+    ['accounts', 'activity', 'transfer'].forEach((name) => { $(`view-${name}`).hidden = name !== tab; });
+  }
+  function notice(ok, title, detail) {
+    const box = $('result');
+    box.className = `notice ${ok ? 'ok' : 'err'}`;
+    box.dataset.state = ok ? 'success' : 'error';
+    box.replaceChildren(...(ok ? [] : [el('span', { className: 'x', textContent: '✕' })]), el('div', {}, [el('strong', { textContent: title }), el('small', { textContent: detail })]));
+    box.hidden = false;
+  }
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => show(b.dataset.tab)));
+  $('transfer-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    $('submit').disabled = true;
+    try {
+      const out = await api('/transfers', { method: 'POST', body: JSON.stringify({ fromAccountId: $('from').value, toAccountId: $('to').value, amount: $('amount').value, memo: $('memo').value }) });
+      notice(true, 'Transfer submitted', out.message);
+      await refresh();
+    } catch (error) {
+      const server = error.status >= 500;
+      notice(false, 'Transfer failed', server
+        ? `We couldn't complete this transfer. No money has moved. Reference ${(error.body && error.body.requestId) || 'unavailable'}.`
+        : error.message);
+    } finally {
+      $('submit').disabled = false;
+    }
+  });
+  (async () => {
+    const session = await fetch('/api/72a86265/session', { method: 'POST' }).then((r) => r.json());
+    token = session.token;
+    $('greeting').textContent = `Welcome, ${session.customer.firstName} ${session.customer.lastName}`;
+    await refresh();
+  })();
+})();
+</script>
+</body>
+</html>

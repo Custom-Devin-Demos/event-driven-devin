@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vulnerability campaign summary | Bank of America demo (synthetic)</title>
+<style>
+  :root { --red:#e31837; --navy:#012169; --blue:#0052c2; --line:#dcdcdc; --muted:#6b6b6b; }
+  body { margin:0; font-family:"Helvetica Neue",Arial,sans-serif; color:#333; background:#f5f5f5; }
+  header { background:var(--navy); color:#fff; padding:20px 40px; border-bottom:4px solid var(--red); }
+  header h1 { margin:0; font-weight:400; font-size:24px; }
+  header p { margin:6px 0 0; opacity:.8; font-size:14px; }
+  main { max-width:1100px; margin:24px auto; padding:0 16px; }
+  .kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+  .kpi { background:#fff; border:1px solid var(--line); padding:16px; }
+  .kpi span { display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  .kpi strong { font-size:28px; color:var(--navy); }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); margin-top:20px; }
+  th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; font-size:14px; vertical-align:top; }
+  th { background:#eef1f7; color:var(--navy); }
+  .pill { padding:2px 10px; border-radius:10px; font-size:12px; font-weight:700; }
+  .pr { background:#e3f4ea; color:#127a3a; } .escalated { background:#fde8eb; color:var(--red); }
+  .simple { color:#127a3a; } .complex { color:var(--red); }
+  a { color:var(--blue); }
+  .note { color:var(--muted); font-size:12px; margin-top:16px; }
+  #empty { background:#fff; border:1px solid var(--line); padding:24px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Vulnerability campaign summary</h1>
+  <p id="meta">Bank of America demo estate (synthetic) · run by Devin</p>
+</header>
+<main>
+  <div id="empty" hidden>No campaign has finished yet. Trigger the incident on <a href="/ciaran-bofa">the accounts dashboard</a>; this page fills in once the Vulnerability campaign reports back.</div>
+  <div class="kpis" id="kpis"></div>
+  <table id="repos">
+    <thead><tr><th>Repository</th><th>Outcome</th><th>Change</th><th>Findings closed</th><th>PR / escalation</th><th>Merge readiness</th><th>Devin usage</th><th>Cost</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <p class="note" id="note"></p>
+</main>
+<script>
+const money = (n) => n == null ? '-' : `$${Number(n).toFixed(2)}`;
+fetch('/verticals/72a86265-assets/summary.json', { cache: 'no-store' }).then((r) => r.ok ? r.json() : Promise.reject()).then((s) => {
+  const t = s.totals;
+  document.getElementById('meta').innerHTML = `Bank of America demo estate (synthetic) · generated ${s.generated_at}` +
+    (s.parent_session_url ? ` · <a style="color:#fff" href="${s.parent_session_url}">parent session</a>` : '');
+  const kpis = [['Findings closed', t.findings_closed], ['PRs opened', t.prs_opened], ['Escalated', t.escalated],
+    ['Devin usage (ACUs)', t.acus], ['Cost per closed finding', money(t.cost_per_closed_finding_usd)]];
+  document.getElementById('kpis').innerHTML = kpis.map(([k, v]) => `<div class="kpi"><span>${k}</span><strong>${v}</strong></div>`).join('');
+  document.querySelector('#repos tbody').innerHTML = s.repos.map((r) => `<tr>
+    <td><a href="${r.session_url || '#'}">${r.repo}</a></td>
+    <td><span class="pill ${r.outcome}">${r.outcome === 'pr' ? 'PR opened' : 'Escalated'}</span></td>
+    <td class="${r.change_type}">${r.change_type}</td>
+    <td>${r.findings_closed} / ${r.findings_total}</td>
+    <td>${(r.pull_requests || []).map((u) => `<a href="${u}">${u.split('/').slice(-3).join('/')}</a>`).join('<br>') || (r.escalation_url ? `<a href="${r.escalation_url}">ESCALATION.md</a>` : '-')}${r.summary ? `<br><small>${r.summary}</small>` : ''}</td>
+    <td>${r.merge_readiness || (r.outcome === 'pr' ? 'CI green, awaiting human review' : 'Needs a migration plan')}</td>
+    <td>${r.acus} ACUs</td>
+    <td>${money(r.cost_usd)}</td></tr>`).join('');
+  document.getElementById('note').textContent = `Cost uses $${s.usd_per_acu}/ACU. Cost per PR: ${money(t.cost_per_pr_usd)}. All code and data in this estate is synthetic.`;
+}).catch(() => { document.getElementById('empty').hidden = false; document.getElementById('repos').hidden = true; });
+</script>
+</body>
+</html>
