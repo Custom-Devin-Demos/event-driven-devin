@@ -274,7 +274,7 @@ function dailyCap() {
   return Number.isFinite(n) && n >= 0 ? n : 5;
 }
 function requestsToday(now) {
-  return [...ideaRequests.values()].filter((r) => r.state !== 'unavailable' && now - r.createdAt < DAY_MS).length;
+  return [...ideaRequests.values()].filter((r) => now - r.createdAt < DAY_MS).length;
 }
 
 function buildIdeaPrompt(idea) {
@@ -327,9 +327,10 @@ async function createIdeaRequest({ ideaId, devinUserId, devinOrgId, devinEmail }
     });
     record.state = session ? 'working' : 'unavailable';
     record.sessionUrl = session ? session.url : null;
-    if (!session) release();
+    if (!session) { release(); ideaRequests.delete(record.id); }
   } catch (error) {
     release();
+    ideaRequests.delete(record.id);
     record.state = 'unavailable';
     logger.error('Mainspring idea session failed', { ideaId: idea.id, error: error.message, status: error.response?.status });
   }
