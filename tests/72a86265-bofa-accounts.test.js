@@ -10,7 +10,7 @@ const { getCustomerConfig, listAliases } = require('../config/customers');
 
 const pay = (to, amount = 250) => ({ fromAccountId: 'chk-4821', toAccountId: to, amount });
 
-beforeEach(() => { jest.clearAllMocks(); svc.resetAlertCooldown(); });
+beforeEach(() => jest.clearAllMocks());
 
 describe('Bank of America synthetic accounts demo', () => {
   test('registers the ciaran-bofa alias and routes alerts to the alerts channel', () => {
@@ -30,20 +30,22 @@ describe('Bank of America synthetic accounts demo', () => {
     expect(postAlertToSlack).not.toHaveBeenCalled();
   });
 
-  test('planted defect: a credit-card payment fails, moves no money and alerts once per cooldown', () => {
+  test('planted defect: a credit-card payment fails, moves no money and alerts on every failure', async () => {
     const { token } = svc.openSession();
     for (let i = 0; i < 2; i += 1) {
       expect(() => svc.transfer(token, pay('crd-1094'))).toThrow(expect.objectContaining({ name: 'TypeError', status: 500 }));
+      await new Promise(setImmediate);
     }
     expect(svc.accounts(token).accounts.find((a) => a.id === 'chk-4821').balance).toBe(6842.17);
-    expect(postAlertToSlack).toHaveBeenCalledTimes(1);
+    expect(postAlertToSlack).toHaveBeenCalledTimes(2);
     expect(postAlertToSlack.mock.calls[0][0]).toMatchObject({ service: 'ciaran-bofa-accounts-web', errorType: 'TypeError', culprit: svc.CULPRIT });
   });
 
-  test('reports=off and synthetic requests do not alert; validation errors stay 4xx', () => {
+  test('reports=off and synthetic requests do not alert; validation errors stay 4xx', async () => {
     const { token } = svc.openSession();
     expect(() => svc.transfer(token, pay('crd-1094'), { reportsOff: true })).toThrow(TypeError);
     expect(() => svc.transfer(token, pay('crd-1094'), { synthetic: true })).toThrow(TypeError);
+    await new Promise(setImmediate);
     expect(() => svc.transfer(token, pay('sav-7730', 999999))).toThrow(expect.objectContaining({ status: 422 }));
     expect(() => svc.transfer('nope', pay('sav-7730'))).toThrow(expect.objectContaining({ status: 401 }));
     expect(postAlertToSlack).not.toHaveBeenCalled();

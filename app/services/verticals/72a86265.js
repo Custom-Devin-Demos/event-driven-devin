@@ -9,7 +9,6 @@ const CUSTOMER = '72a86265';
 const SERVICE = 'ciaran-bofa-accounts-web';
 const ROUTE = 'POST /api/72a86265/transfers';
 const CULPRIT = 'server/transfers.js — checkTransferLimits';
-const ALERT_COOLDOWN_MS = Number(process.env.CIARAN_BOFA_ALERT_COOLDOWN_MS || 10 * 60 * 1000);
 const MAX_SESSIONS = 500;
 
 const SEED = {
@@ -47,7 +46,6 @@ const SECURITY_CONTEXT = [
 ].join('\n');
 
 const sessions = new Map();
-let lastAlertAt = 0;
 
 const round2 = (n) => Math.round(n * 100) / 100;
 const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -91,12 +89,6 @@ function alertsEnabled(options) {
 }
 
 function raiseAlert(error, context) {
-  const now = Date.now();
-  if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
-    logger.info('Bank of America demo alert suppressed by cooldown', { service: SERVICE });
-    return;
-  }
-  lastAlertAt = now;
   const alertData = {
     issueTitle: `${error.name}: ${error.message}`,
     culprit: CULPRIT,
@@ -155,11 +147,7 @@ function transfer(token, body = {}, options = {}) {
   };
 }
 
-function resetAlertCooldown() {
-  lastAlertAt = 0;
-}
-
 module.exports = {
   CUSTOMER, SERVICE, ROUTE, CULPRIT, TRANSFER_LIMITS, SEED,
-  openSession, accounts, transactions, transfer, resetAlertCooldown,
+  openSession, accounts, transactions, transfer,
 };
