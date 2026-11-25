@@ -40,6 +40,7 @@ const {
   getLockLatencyStatus,
 } = require('../services/oncall-verticals/cardlock');
 const kestrelMobile = require('../services/oncall-verticals/kestrel-mobile');
+const portfolioAnalytics = require('../services/oncall-verticals/portfolio-analytics');
 const {
   PARTIFUL,
   isPartifulReport,
@@ -914,6 +915,34 @@ router.post(`/api/oncall/${kestrelMobile.KESTREL.slug}/mobile/payments`, async (
       durationMs: result.durationMs,
       reference,
     });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * GET /api/oncall/79ab6e09/analytics — last published holdings snapshot for
+ * the portfolio analytics workbench (synthetic data).
+ */
+router.get(`/api/oncall/${portfolioAnalytics.ANALYTICS.slug}/analytics`, (req, res) => {
+  res.json(portfolioAnalytics.getSnapshot());
+});
+
+/**
+ * POST /api/oncall/79ab6e09/analytics/refresh — Run analytics. A refresh over
+ * the latency budget raises one alert + one responder per cooldown window,
+ * only when the page sends `X-Demo-Alerts: on` and the request is not synthetic.
+ */
+router.post(`/api/oncall/${portfolioAnalytics.ANALYTICS.slug}/analytics/refresh`, async (req, res, next) => {
+  try {
+    const { spans, factorReadConcurrency, ...result } = await portfolioAnalytics.refreshAnalytics();
+    const alertsOn = String(req.get('x-demo-alerts') || '').toLowerCase() === 'on' && !req.get('x-synthetic');
+    let reference = null;
+    if (result.overBudget && alertsOn) {
+      const raised = portfolioAnalytics.raiseIncident({ ...result, spans, factorReadConcurrency });
+      ({ reference } = raised.incident);
+    }
+    return res.json({ ...result, reference });
   } catch (error) {
     return next(error);
   }
