@@ -1,6 +1,6 @@
 const { randomUUID } = require('crypto');
 const Sentry = require('@sentry/node');
-const { postAlertToSlack } = require('../slack');
+const { postAlertToSlack, postMessage } = require('../slack');
 const { getCustomerConfig } = require('../../../config/customers');
 const logger = require('../../telemetry/logger');
 
@@ -43,6 +43,15 @@ const TRANSFER_LIMITS = {
 const SECURITY_CONTEXT = [
   'Service ciaran-bofa-accounts-web pins axios 0.21.1, lodash 4.17.20 and jsonwebtoken 8.5.1 (see SECURITY_FINDINGS.json, 31 open findings incl. CVE-2021-23337, CVE-2023-45857, CVE-2022-23539).',
   'Sibling services with open findings: ciaran-bofa-payments-api, ciaran-bofa-fx-rates, ciaran-bofa-trade-ledger.',
+].join('\n');
+
+const SECURITY_CHANNEL_ID = 'C0CLQPQFT0D';
+const SECURITY_FINDING_TEXT = [
+  'Security finding: dependency scan failed for ciaran-bofa-accounts-web (31 open findings).',
+  '• axios 0.21.1, lodash 4.17.20, jsonwebtoken 8.5.1 — incl. CVE-2021-23337, CVE-2023-45857, CVE-2022-23539',
+  '• Sibling services with open findings: ciaran-bofa-payments-api, ciaran-bofa-fx-rates, ciaran-bofa-trade-ledger',
+  'Repos: cogdeasy/ciaran-bofa-accounts-web, cogdeasy/ciaran-bofa-payments-api, cogdeasy/ciaran-bofa-fx-rates, cogdeasy/ciaran-bofa-trade-ledger',
+  'Synthetic demo data.',
 ].join('\n');
 
 const sessions = new Map();
@@ -108,6 +117,14 @@ function raiseAlert(error, context) {
   postAlertToSlack(alertData).catch((err) => logger.error('Bank of America demo alert failed', { error: err.message }));
 }
 
+// Posted alongside the incident alert so the vulnerability campaign starts independently of the incident responder.
+function raiseSecurityFinding() {
+  const token = process.env.SLACK_BOT_TOKEN;
+  if (!token) return;
+  postMessage(token, SECURITY_CHANNEL_ID, SECURITY_FINDING_TEXT)
+    .catch((err) => logger.error('Bank of America demo security finding failed', { error: err.message }));
+}
+
 function transfer(token, body = {}, options = {}) {
   const store = storeFor(token);
   const from = store.accounts.find((a) => a.id === body.fromAccountId);
@@ -127,7 +144,10 @@ function transfer(token, body = {}, options = {}) {
     const context = { transferId: id, fromType: from.type, toType: to.type, amount: value };
     Sentry.captureException(error, { tags: { route: ROUTE, service: SERVICE, customer: CUSTOMER }, extra: context });
     logger.error('Bank of America demo transfer failed', { ...context, service: SERVICE, error: error.message });
-    if (alertsEnabled(options)) raiseAlert(error, context);
+    if (alertsEnabled(options)) {
+      raiseAlert(error, context);
+      raiseSecurityFinding();
+    }
     throw Object.assign(error, { status: 500, code: 'transfer_failed' });
   }
 
@@ -148,6 +168,6 @@ function transfer(token, body = {}, options = {}) {
 }
 
 module.exports = {
-  CUSTOMER, SERVICE, ROUTE, CULPRIT, TRANSFER_LIMITS, SEED,
+  CUSTOMER, SERVICE, ROUTE, CULPRIT, TRANSFER_LIMITS, SEED, SECURITY_CHANNEL_ID,
   openSession, accounts, transactions, transfer,
 };
