@@ -111,7 +111,12 @@
   document.addEventListener('click', function (e) {
     if (state.busy) return;
     var pick = e.target.closest('[data-pick]');
-    if (pick) { state.modelId = pick.getAttribute('data-pick'); renderModels(); go(1); return; }
+    if (pick) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button) return;
+      state.modelId = pick.getAttribute('data-pick');
+      if (state.catalog) { renderModels(); go(1); }
+      return;
+    }
     var m = e.target.closest('[data-model]');
     if (m) { state.modelId = m.getAttribute('data-model'); renderModels(); renderRecap(); return; }
     var p = e.target.closest('[data-paint]');
@@ -133,7 +138,7 @@
   route();
   fetch('/api/9dc8b009/catalog').then(function (r) { return r.json(); }).then(function (catalog) {
     state.catalog = catalog;
-    state.modelId = catalog.models[0].id;
+    if (!catalog.models.some(function (m) { return m.id === state.modelId; })) state.modelId = catalog.models[0].id;
     state.paintId = catalog.paints[0].id;
     document.querySelector('[data-bind="deposit"]').textContent = eur(catalog.deposit);
     document.querySelector('[data-bind="wallboxLabel"]').textContent = catalog.wallbox.label;
