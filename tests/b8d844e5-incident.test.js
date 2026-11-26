@@ -6,6 +6,7 @@ jest.mock('../app/services/slack', () => ({
 }));
 jest.mock('../app/services/devin-api', () => ({
   createDevinSession: jest.fn(async () => ({ sessionId: 'session-1', url: 'https://app.devin.ai/sessions/session-1' })),
+  sendDevinSessionMessage: jest.fn(async () => ({ sessionId: 'bot-conversation', url: 'https://app.devin.ai/bots/x' })),
 }));
 jest.mock('../app/services/sonar-pr-trigger', () => ({ scheduleVulnerablePR: jest.fn() }));
 jest.mock('../app/telemetry/logger', () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }));
@@ -64,6 +65,53 @@ describe('b8d844e5 stale-stock incident bridge', () => {
     for (const value of ['Sentry', 'Datadog', 'b8d844e5 demo']) expect(card).not.toContain(value);
     expect(JSON.stringify(devin.createDevinSession.mock.calls[0])).toContain('"repos":["COG-GTM/inventory-availability-service"]');
     for (const value of ['COG-GTM/inventory-availability-service', 'do NOT change COG-GTM/event-driven-devin', 'do not query Sentry, Datadog', 'DeepWiki', 'docker compose up', 'X-Demo-Alerts: off', 'regression test', 'Do not merge', REPORT.stalledEventId]) expect(prompt).toContain(value);
+  });
+
+  describe('report from the iOS app', () => {
+    const BOT = `bot-${'a1'.repeat(16)}`;
+    const IOS = { ...REPORT, client: 'ios', clientVersion: '1.0.0' };
+    afterEach(() => { delete process.env.B8D844E5_UPTIME_BOT_ID; });
+
+    test('without a Bot configured it starts one session that must prove the fix on the iOS Simulator', async () => {
+      expect((await post(IOS)).status).toBe(202);
+      expect(devin.sendDevinSessionMessage).not.toHaveBeenCalled();
+      expect(devin.createDevinSession).toHaveBeenCalledTimes(1);
+      const [prompt, options] = devin.createDevinSession.mock.calls[0];
+      for (const value of ['COG-GTM/nordstrom-ios', 'platform macos', 'iOS Simulator', 'BEFORE', 'AFTER', 'severity', 'X-Demo-Alerts: off', 'Never merge', 'DeepWiki']) expect(prompt).toContain(value);
+      expect(options.title).toContain('Holiday Uptime');
+      const card = JSON.stringify(slack.buildAlertBlocks(slack.postAlertToSlack.mock.calls[0][0]));
+      expect(card).toContain('Client: iOS app 1.0.0');
+    });
+
+    test('pages the configured Bot instead of starting a session', async () => {
+      process.env.B8D844E5_UPTIME_BOT_ID = BOT;
+      expect((await post(IOS)).status).toBe(202);
+      expect(devin.createDevinSession).not.toHaveBeenCalled();
+      expect(devin.sendDevinSessionMessage).toHaveBeenCalledTimes(1);
+      const [id, page] = devin.sendDevinSessionMessage.mock.calls[0];
+      expect(id).toBe(BOT);
+      for (const value of ['Holiday Uptime Bot', 'keep the shopping app online through the holidays', 'iOS Simulator', REPORT.stalledEventId]) expect(page).toContain(value);
+      expect(slack.postDevinSessionLink).toHaveBeenCalledTimes(1);
+    });
+
+    test('falls back to a session when the Bot page fails or the id is not a bot id', async () => {
+      process.env.B8D844E5_UPTIME_BOT_ID = BOT;
+      devin.sendDevinSessionMessage.mockResolvedValueOnce(null);
+      expect((await post(IOS)).status).toBe(202);
+      expect(devin.createDevinSession).toHaveBeenCalledTimes(1);
+      process.env.B8D844E5_UPTIME_BOT_ID = 'off';
+      expect((await post({ ...IOS, stalledOffset: 8 })).status).toBe(202);
+      expect(devin.sendDevinSessionMessage).toHaveBeenCalledTimes(1);
+      expect(devin.createDevinSession).toHaveBeenCalledTimes(2);
+    });
+
+    test('a web report never pages the Bot, and an unknown client is rejected', async () => {
+      process.env.B8D844E5_UPTIME_BOT_ID = BOT;
+      expect((await post({ ...REPORT, client: 'web' })).status).toBe(202);
+      expect(devin.sendDevinSessionMessage).not.toHaveBeenCalled();
+      expect(devin.createDevinSession.mock.calls[0][0]).not.toContain('nordstrom-ios');
+      expect((await post({ ...REPORT, stalledOffset: 9, client: 'android' })).status).toBe(400);
+    });
   });
 
   test('passes the presenter identity through to session creation', async () => {
