@@ -52,6 +52,8 @@
     var src = stagePhoto(m, p);
     $('stage').innerHTML = '<img src="' + src + '" alt="' + esc(m.name + ' ' + p.label) + '" width="1200" height="800" loading="lazy" data-testid="stage-photo"><span class="arrow l" aria-hidden="true">‹</span><span class="arrow r" aria-hidden="true">›</span><span class="count">1 / 4</span>';
     $('thumbs').innerHTML = ['on', '', '', ''].map(function (c, i) { return '<span class="' + c + '" style="background-image:url(' + src + ');filter:brightness(' + (1 - i * 0.08) + ')"></span>'; }).join('');
+    var photo = $('stage').querySelector('img');
+    photo.onerror = function () { photo.onerror = null; photo.src = '/verticals/9dc8b009-assets/cars/' + m.id + '.jpg'; };
     document.querySelector('[data-bind="headline"]').textContent = eur(m.basePrice + p.price + (state.wallbox ? state.catalog.wallbox.price : 0));
   }
 
