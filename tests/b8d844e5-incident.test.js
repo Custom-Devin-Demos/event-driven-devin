@@ -160,4 +160,10 @@ describe('b8d844e5 stale-stock incident bridge', () => {
     expect(card).toContain('Kafka Consumer Lag Alert — Order Pickup');
     expect(card).not.toContain('Datadog');
   });
+
+  test('an iOS report is not swallowed by a web report for the same stuck record', async () => {
+    expect((await post(REPORT)).body.status).toBe('accepted');
+    expect((await post({ ...REPORT, client: 'ios' })).body.status).toBe('accepted');
+    expect((await post({ ...REPORT, client: 'ios' })).body.status).toBe('duplicate');
+  });
 });

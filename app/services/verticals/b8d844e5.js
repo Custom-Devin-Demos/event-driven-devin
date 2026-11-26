@@ -89,7 +89,7 @@ function buildIosDirective(report) {
     `State the severity first, by shopper and revenue impact (which stores and items are affected, and whether shoppers can still buy another way), and post it in this Slack thread before you start fixing.`,
     `Run this as one lead session on Linux plus one macOS child session:`,
     `1. Lead (Linux, repo ${TARGET_REPO}): start with DeepWiki for ${TARGET_REPO} (ask how inventory events flow from the store POS simulator through Kafka into the availability projection), then read its AGENTS.md. Reproduce with \`docker compose up -d --build\`, call the pickup API for the SKU and store below and inspect \`GET /api/inventory/ops/consumer\`. Find the root cause, fix it in that repository only, add a regression test (unit and embedded-Kafka), run \`mvn -B -s maven-settings.xml verify\` with Java 21, open a PR against main and request Devin Review.`,
-    `2. Child (platform macos, repos ${IOS_REPO}, ${IOS_API_REPO}, ${TARGET_REPO}): follow the "Order Pickup with the inventory service" section of the ${IOS_REPO} README to run the app in the iOS Simulator against the inventory service. Record BEFORE on the service's main branch (the same store and item are refused in the app) and AFTER on the lead's fix branch (the pickup order is placed), and check a pickup at another store still works. The child changes no code; if the app itself is at fault it reports back instead.`,
+    `2. Child (platform macos, repos ${IOS_REPO}, ${IOS_API_REPO}, ${TARGET_REPO}): follow the "Order Pickup with the inventory service" section of the ${IOS_REPO} README to run the app in the iOS Simulator against the inventory service. Record BEFORE on the service's main branch (the same store and item are refused in the app) and AFTER on the lead's fix branch (the pickup order is placed), and check a pickup at another store still works. If the README has no such section, the child reads how the app's pickup reservation is configured from the code and reports the commands it used. The child changes no code; if the app itself is at fault it reports back instead.`,
     'This service has no Sentry or Datadog telemetry: do not query Sentry, Datadog or any production system. All evidence comes from the code, DeepWiki and local reproduction.',
     'Send header `X-Demo-Alerts: off` on every request you make and run the app with its alerts-off launch setting, so testing creates no more alerts or sessions. Do not weaken the Kafka error handler to make the failure go away.',
     `Do NOT change COG-GTM/event-driven-devin, ${IOS_API_REPO} or, unless the app is at fault, ${IOS_REPO}. Never merge: main keeps the defect for this demo.`,
@@ -117,8 +117,9 @@ function reportIncident(body, now = Date.now()) {
   }
   while (acceptedAt.length && acceptedAt[0].at <= now - WINDOW_MS) acceptedAt.shift();
   const report = pick(body);
-  // One alert per stuck record: every shopper retry hits the same partition offset.
-  const key = JSON.stringify([report.service, report.topic, report.partition, report.stalledOffset, report.gitSha]);
+  // One alert per stuck record: every shopper retry hits the same partition offset. The iOS app
+  // gets its own alert, because a web response in progress carries no Simulator proof.
+  const key = JSON.stringify([report.service, report.topic, report.partition, report.stalledOffset, report.gitSha, report.client === 'ios']);
   const duplicate = recentReports.get(key);
   if (duplicate) return { status: 'duplicate', reference: duplicate.reference, sessionRequested: false };
   if (acceptedAt.length >= REPORT_MAX) {
