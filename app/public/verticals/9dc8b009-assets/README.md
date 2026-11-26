@@ -12,7 +12,7 @@ No original site scripts, images or analytics are included. Prices, environmenta
 
 ## Incident flow
 
-1. Open `/renault` and click **commander en ligne** (or go straight to `/renault#configurateur`).
+1. Open `/renault` and click **configurez & commandez** (or go straight to `/renault#configurateur`).
 2. Keep the pre-selected **Twingo E-Tech électrique**, press **continuer**, keep Blanc Glacier, press **continuer**.
 3. Press **commander et payer l'acompte**. The API returns HTTP 500 `RNO-ORD-5031` / `TypeError: Cannot read properties of undefined (reading 'score')` and the page shows the failure panel with the order reference.
 4. Pick Renault 5, Renault 4 or Scenic and the same order is confirmed with the incentive applied.

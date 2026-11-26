@@ -8,6 +8,7 @@
   var MODEL_COLOR = { 'twingo-etech': '#2f9e4f', 'r5-etech': '#f2c318', 'r4-etech': '#9fb8c4', 'scenic-etech': '#e8e8e6' };
   var state = { catalog: null, modelId: null, paintId: null, wallbox: false, household: 'standard', step: 1, busy: false };
   var $ = function (id) { return document.getElementById(id); };
+  var carSeq = 0;
 
   function eur(n) { return Number(n).toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' ') + ' €'; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -19,10 +20,19 @@
     var roof = tall ? 'M112 88 C128 52 152 40 196 38 L272 38 C300 38 318 52 336 84' : 'M112 90 C130 62 150 50 190 48 L262 48 C292 48 310 62 328 88';
     var glass = tall ? ['M132 86 C146 60 162 50 196 49 L228 49 L228 86 Z', 'M236 49 L270 49 C292 49 306 60 320 84 L236 86 Z']
       : ['M130 88 C144 66 160 59 190 58 L222 58 L222 88 Z', 'M230 58 L262 58 C284 58 298 68 312 88 L230 88 Z'];
-    var wheel = function (x) { return '<circle cx="' + x + '" cy="136" r="27" fill="#111"/><circle cx="' + x + '" cy="136" r="15" fill="#cfd2d4"/><circle cx="' + x + '" cy="136" r="5" fill="#666"/>'; };
-    return '<svg viewBox="0 0 400 180" aria-hidden="true"><ellipse cx="202" cy="166" rx="170" ry="9" fill="rgba(0,0,0,.28)"/>' +
+    var wheel = function (x) {
+      var spokes = [0, 72, 144, 216, 288].map(function (d) { return '<rect x="' + (x - 1.6) + '" y="122" width="3.2" height="14" rx="1.5" fill="#8d9296" transform="rotate(' + d + ' ' + x + ' 136)"/>'; }).join('');
+      return '<circle cx="' + x + '" cy="136" r="30" fill="rgba(0,0,0,.55)"/><circle cx="' + x + '" cy="136" r="27" fill="#141618"/><circle cx="' + x + '" cy="136" r="17" fill="#d9dcde"/><circle cx="' + x + '" cy="136" r="15" fill="#3a3f43"/>' + spokes + '<circle cx="' + x + '" cy="136" r="4" fill="#d9dcde"/>';
+    };
+    var id = 'cg' + (carSeq += 1);
+    return '<svg viewBox="0 0 400 180" aria-hidden="true"><defs>' +
+      '<linearGradient id="' + id + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>' +
+      '<linearGradient id="' + id + 'g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b4750"/><stop offset=".55" stop-color="#11161a"/><stop offset="1" stop-color="#252d33"/></linearGradient></defs>' +
+      '<ellipse cx="202" cy="166" rx="176" ry="10" fill="rgba(0,0,0,.45)"/>' +
       '<path d="M30 130 C30 110 40 100 62 96 L112 90 ' + roof.slice(roof.indexOf('C')) + ' L352 94 C368 98 374 110 374 130 L374 140 L30 140 Z" fill="' + color + '" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/>' +
-      '<path d="' + glass[0] + '" fill="#1d2326"/><path d="' + glass[1] + '" fill="#1d2326"/>' +
+      '<path d="M30 130 C30 110 40 100 62 96 L112 90 ' + roof.slice(roof.indexOf('C')) + ' L352 94 C368 98 374 110 374 130 L374 140 L30 140 Z" fill="url(#' + id + 'b)"/>' +
+      '<path d="M44 104 L360 100" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>' +
+      '<path d="' + glass[0] + '" fill="url(#' + id + 'g)"/><path d="' + glass[1] + '" fill="url(#' + id + 'g)"/>' +
       '<path d="M226 92 V132 M150 112 H170 M250 112 H270" stroke="rgba(0,0,0,.3)" stroke-width="2"/>' +
       '<circle cx="356" cy="108" r="8" fill="#fff" stroke="#222" stroke-width="2"/><rect x="30" y="104" width="10" height="12" rx="2" fill="#c4161c"/>' +
       '<rect x="160" y="122" width="44" height="6" rx="3" fill="rgba(0,0,0,.25)"/>' + wheel(104) + wheel(300) + '</svg>';
@@ -33,6 +43,7 @@
     var view = (location.hash || '#accueil').slice(1);
     if (VIEWS.indexOf(view) < 0) view = 'accueil';
     VIEWS.forEach(function (v) { $('view-' + v).hidden = v !== view; });
+    document.body.classList.toggle('home', view === 'accueil');
     window.scrollTo(0, 0);
   }
 
