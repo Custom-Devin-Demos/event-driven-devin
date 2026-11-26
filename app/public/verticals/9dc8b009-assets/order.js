@@ -102,7 +102,7 @@
     $('recap').hidden = false;
     renderRecap();
     var steps = $('steps');
-    if (steps.getBoundingClientRect().top < 0) steps.scrollIntoView({ block: 'start' });
+    if (steps.getBoundingClientRect().top < document.querySelector('.top').offsetHeight) steps.scrollIntoView({ block: 'start' });
   }
 
   function showResult(html, ok) {
