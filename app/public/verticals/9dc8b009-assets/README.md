@@ -5,7 +5,8 @@ Source: https://www.renault.fr/ and the Renault Group article "Ampere: a year of
 | File | Origin |
 |------|--------|
 | `logo-mark.svg` | Drawn for the mock (not the Renault logo) |
-| Car illustrations | Inline SVG drawn for the mock in `order.js` (no Renault photography) |
+| `hero-twingo.jpg`, `cars/*.jpg` | AI-generated photos made for the mock: no Renault photography, logos or badges |
+| Configurator car | Inline SVG drawn in `order.js` so the preview follows the selected paint |
 | `Montserrat-*.woff2` | Copied from `6566fc71-assets` (stand-in for the NouvelR font) |
 
 No original site scripts, images or analytics are included. Prices, environmental scores, incentives and delivery dates are fixtures. All trademarks remain the property of their owners. Unlisted; nothing reaches Renault.
