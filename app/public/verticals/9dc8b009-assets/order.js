@@ -52,7 +52,7 @@
     $('range').innerHTML = intro + state.catalog.models.map(function (m) {
       return '<a class="mcard" href="#configurateur" data-pick="' + m.id + '"><h3>' + esc(m.name.replace(/ E-Tech électrique$/, '')) + (m.isNew ? '<span class="new">nouveau</span>' : '') + '</h3>' +
         '<div class="from">à partir de ' + eur(m.basePrice) + '</div><div class="ec">classe énergétique <span>A</span></div>' +
-        '<div class="pic"><img src="/verticals/9dc8b009-assets/cars/' + m.id + '.jpg" alt="' + esc(m.name) + '" loading="lazy"></div><span class="tag">électrique</span></a>';
+        '<div class="pic"><img src="/verticals/9dc8b009-assets/cars/' + m.id + '.jpg" alt="' + esc(m.name) + '" width="900" height="600" loading="lazy"></div><span class="tag">électrique</span></a>';
     }).join('');
   }
 
