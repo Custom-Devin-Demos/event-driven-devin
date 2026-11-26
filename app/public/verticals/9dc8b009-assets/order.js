@@ -62,8 +62,8 @@
   function renderStage() {
     var m = model(); var p = paint();
     if (!m || !p) return;
-    var color = state.step >= 2 ? SWATCH[p.id] : (MODEL_COLOR[m.id] || SWATCH[p.id]);
-    $('stage').innerHTML = carSvg(color, isTall(m.id)) + '<button class="arrow l" type="button" aria-label="précédent">‹</button><button class="arrow r" type="button" aria-label="suivant">›</button><span class="count">1 / 4</span>';
+    var color = SWATCH[p.id];
+    $('stage').innerHTML = carSvg(color, isTall(m.id)) + '<span class="arrow l" aria-hidden="true">‹</span><span class="arrow r" aria-hidden="true">›</span><span class="count">1 / 4</span>';
     $('thumbs').innerHTML = ['on', '', '', ''].map(function (c, i) { return '<span class="stage-bg ' + c + '" style="filter:brightness(' + (1 - i * 0.12) + ')"></span>'; }).join('');
     document.querySelector('[data-bind="headline"]').textContent = eur(m.basePrice + p.price + (state.wallbox ? state.catalog.wallbox.price : 0));
   }
@@ -94,7 +94,7 @@
   }
 
   function go(step) {
-    if (step > 1 && !state.modelId) return;
+    if (!state.catalog || (step > 1 && !state.modelId)) return;
     state.step = step;
     [1, 2, 3].forEach(function (n) { $('step-' + n).hidden = n !== step; });
     document.querySelectorAll('#steps li').forEach(function (li) { li.classList.toggle('on', Number(li.getAttribute('data-step')) <= step); });
