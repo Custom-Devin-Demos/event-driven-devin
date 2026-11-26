@@ -98,7 +98,7 @@
     var rows = [['prix de base', eur(m.basePrice)], ['teinte ' + p.label, p.price ? eur(p.price) : 'incluse']];
     if (state.wallbox) rows.push(['borne Mobilize Powerbox', eur(state.catalog.wallbox.price)]);
     rows.push(['prime Coup de Pouce', 'calculée à la commande']);
-    $('recap').innerHTML = '<h3>votre ' + esc(m.name) + '</h3>' +
+    $('recap').innerHTML = '<h3>votre ' + esc(m.name) + '</h3><div class="trim">' + esc(m.version) + '</div>' +
       rows.map(function (r) { return '<div class="row"><span>' + esc(r[0]) + '</span><b>' + r[1] + '</b></div>'; }).join('') +
       '<div class="row tot"><span>acompte aujourd\'hui</span><span>' + eur(state.catalog.deposit) + '</span></div><div class="note">Acompte remboursable. Solde réglé à la livraison. Usine ' + esc(m.plant) + '.</div>';
     renderStage();
