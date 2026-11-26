@@ -5,7 +5,7 @@ const {
   postDevinSessionLink,
   postIncidentLink,
 } = require('./slack');
-const { createDevinSession } = require('./devin-api');
+const { createDevinSession, sendDevinSessionMessage } = require('./devin-api');
 const servicenow = require('./servicenow');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
@@ -16,6 +16,8 @@ const {
   buildTeamsAlertCard, buildTeamsFieldCard, buildTeamsCloudWatchAlarmCard, postTeamsCard, isTeamsWebhookUrl,
 } = require('./teams');
 const { alertStrings, alertLocale } = require('./alert-locale');
+
+const BOT_ID = /^bot-[0-9a-f]{32}$/;
 
 let servicenowConfigWarningLogged = false;
 
@@ -511,18 +513,36 @@ async function createSessionAndAlert(alertData) {
       // the async createDevinSession() call.  Release on failure.
       const releaseSlot = reserveSession();
 
+      // A caller can name a Bot to page instead (alertData.responderBot = { id, url, intro }).
+      // The page is a message to the Bot's conversation; a failed page falls back to a session.
+      const bot = alertData.responderBot;
+      if (bot && BOT_ID.test(bot.id || '')) {
+        const paged = await sendDevinSessionMessage(
+          bot.id,
+          `${bot.intro ? `${bot.intro}\n\n` : ''}${prompt}`,
+          { apiKey: config.apiKey, orgId: resolvedOrgId },
+        );
+        if (paged) {
+          session = { sessionId: bot.id, url: paged.url || bot.url || null, bot: true };
+        } else {
+          logger.warn('Bot page failed — starting a Devin session instead', { customer: config.customer, botId: bot.id });
+        }
+      }
+
       // Create Devin session via v3 API
-      session = await createDevinSession(prompt, {
-        apiKey: config.apiKey,
-        orgId: resolvedOrgId,
-        userId: resolvedUserId,
-        title: alertData.title,
-        platform: alertData.sessionPlatform,
-        repos: alertData.repos,
-      });
+      if (!session) {
+        session = await createDevinSession(prompt, {
+          apiKey: config.apiKey,
+          orgId: resolvedOrgId,
+          userId: resolvedUserId,
+          title: alertData.title,
+          platform: alertData.sessionPlatform,
+          repos: alertData.repos,
+        });
+      }
 
       if (session) {
-        if (threadTs) {
+        if (threadTs && session.url) {
           await postDevinSessionLink(
             threadTs,
             session.url,
