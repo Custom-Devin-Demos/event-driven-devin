@@ -45,7 +45,7 @@
 
   function renderHouseholds() {
     $('households').innerHTML = state.catalog.households.map(function (h) {
-      return '<button type="button" class="sw' + (h === state.household ? ' on' : '') + '" data-hh="' + h + '">' + esc(HH[h] || h) + '</button>';
+      return '<button type="button" class="sw' + (h === state.household ? ' on' : '') + '" data-hh="' + h + '" aria-pressed="' + (h === state.household) + '">' + esc(HH[h] || h) + '</button>';
     }).join('');
   }
 
@@ -109,6 +109,7 @@
   }
 
   document.addEventListener('click', function (e) {
+    if (state.busy) return;
     var pick = e.target.closest('[data-pick]');
     if (pick) { state.modelId = pick.getAttribute('data-pick'); renderModels(); go(1); return; }
     var m = e.target.closest('[data-model]');
