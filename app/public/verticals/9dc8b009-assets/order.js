@@ -54,6 +54,7 @@
     $('thumbs').innerHTML = ['on', '', '', ''].map(function (c, i) { return '<span class="' + c + '" style="background-image:url(' + src + ');filter:brightness(' + (1 - i * 0.08) + ')"></span>'; }).join('');
     var photo = $('stage').querySelector('img');
     photo.onerror = function () {
+      if (!photo.isConnected) return;
       var fallback = '/verticals/9dc8b009-assets/cars/' + m.id + '.jpg';
       photo.onerror = null; photo.alt = m.name; photo.src = fallback;
       $('thumbs').querySelectorAll('span').forEach(function (t) { t.style.backgroundImage = 'url(' + fallback + ')'; });
