@@ -85,12 +85,14 @@ describe('Twingo environmental score failure', () => {
     expect(alert).not.toHaveProperty('devinUserId');
     expect(mockAlertDestination).toBe('slack');
     expect(isInstantPathEvent(alert)).toBe(true);
+    expect(isInstantPathEvent({ ...alert, tags: [] })).toBe(true);
     expect(buildPrompt(alert)).toContain('9dc8b009');
     expect(alert.promptAppendix).toContain('COG-GTM/event-driven-devin');
     expect(alert.promptAppendix).toContain('never merge or deploy');
     expect(alert.promptAppendix).toContain('request Devin Review');
     for (const env of ['1440x900', '390x844', '412x915']) expect(alert.promptAppendix).toContain(env);
     expect(alert.promptAppendix).toContain('Open the PR only after all three pass on the same final commit');
+    expect(alert.promptAppendix).toContain('re-run all three QA children on the new final commit');
   });
 
   test('alerts stay on Slack when the hub picked Teams', async () => {
