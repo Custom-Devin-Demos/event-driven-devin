@@ -67,6 +67,8 @@
     document.querySelectorAll('#steps li').forEach(function (li) { li.classList.toggle('on', Number(li.getAttribute('data-step')) <= step); });
     $('result').hidden = true;
     renderRecap();
+    var steps = $('steps');
+    if (steps.getBoundingClientRect().top < 0) steps.scrollIntoView({ block: 'start' });
   }
 
   function showResult(html, ok) {
