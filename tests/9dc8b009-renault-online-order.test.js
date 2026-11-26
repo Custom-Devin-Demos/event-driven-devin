@@ -44,6 +44,13 @@ describe('registration and assets', () => {
     }
   });
 
+  test('every model and paint has a configurator photo', () => {
+    const { MODELS, PAINTS } = require('../app/services/verticals/9dc8b009');
+    for (const m of MODELS) for (const p of PAINTS) {
+      expect(fs.statSync(path.join(ASSETS, 'stage', `${m.id}-${p.id}.jpg`)).size).toBeGreaterThan(20000);
+    }
+  });
+
   test('the Twingo is the default (first) model and only has a provisional score', () => {
     expect(svc.getCatalog().models[0]).toMatchObject({ id: TWINGO, isNew: true });
     expect(svc.ADEME_SCORES[TWINGO]).toBeUndefined();
