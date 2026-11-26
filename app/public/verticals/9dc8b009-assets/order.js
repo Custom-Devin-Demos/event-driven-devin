@@ -50,7 +50,7 @@
     var m = model(); var p = paint();
     if (!m || !p) return;
     var src = stagePhoto(m, p);
-    $('stage').innerHTML = '<img src="' + src + '" alt="' + esc(m.name + ' ' + p.label) + '" width="1200" height="800" data-testid="stage-photo"><span class="arrow l" aria-hidden="true">‹</span><span class="arrow r" aria-hidden="true">›</span><span class="count">1 / 4</span>';
+    $('stage').innerHTML = '<img src="' + src + '" alt="' + esc(m.name + ' ' + p.label) + '" width="1200" height="800" loading="lazy" data-testid="stage-photo"><span class="arrow l" aria-hidden="true">‹</span><span class="arrow r" aria-hidden="true">›</span><span class="count">1 / 4</span>';
     $('thumbs').innerHTML = ['on', '', '', ''].map(function (c, i) { return '<span class="' + c + '" style="background-image:url(' + src + ');filter:brightness(' + (1 - i * 0.08) + ')"></span>'; }).join('');
     document.querySelector('[data-bind="headline"]').textContent = eur(m.basePrice + p.price + (state.wallbox ? state.catalog.wallbox.price : 0));
   }
