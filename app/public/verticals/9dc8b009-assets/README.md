@@ -1,6 +1,6 @@
 # Renault — Order Twingo E-Tech électrique online assets
 
-Source: https://www.renault.fr/ and the Renault Group article "Ampere: a year of electric revolution at the heart of Renault Group" (November 2026). The page reproduces the renault.fr layout (white header with lowercase navigation and tool icons, full-bleed Twingo hero with tabs, grey E-Tech range cards, key figures, black tiles, newsletter band, black footer) and the renault.fr configurator layout (gallery stage on the left, model/specs/colour/recap panel on the right).
+Source: https://www.renault.fr/ and the Renault Group article "Ampere: a year of electric revolution at the heart of Renault Group" (November 2026). The page reproduces the renault.fr layout (transparent header in white over a full-bleed dusk hero with the Twingo, lowercase navigation and tool icons, "découvrez" and "configurez & commandez" buttons; grey E-Tech range cards, key figures, black tiles, newsletter band, black footer) and the renault.fr configurator layout (gallery stage on the left, model/specs/colour/recap panel on the right).
 
 | File | Origin |
 |------|--------|

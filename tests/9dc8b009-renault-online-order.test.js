@@ -33,7 +33,7 @@ describe('registration and assets', () => {
     const html = fs.readFileSync(path.join(__dirname, '../app/public/verticals/9dc8b009.html'), 'utf8');
     expect(html).toMatch(/<html lang="fr-FR">/);
     expect(html).toContain('THIS IS A MOCK');
-    expect(html).toContain('commander en ligne');
+    expect(html).toContain('href="#configurateur" data-pick="twingo-etech" data-testid="hero-order"');
     expect(html).not.toMatch(/src="https?:/);
     const js = fs.readFileSync(path.join(ASSETS, 'order.js'), 'utf8');
     for (const key of ['devinUserId', 'devinOrgId', 'devinEmail', 'localStorage']) expect(js).not.toContain(key);
