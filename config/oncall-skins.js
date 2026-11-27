@@ -10001,6 +10001,13 @@ const ONCALL_SKINS = {
     page: { file: '0d030f26.html', title: 'PZU Group' },
     disclaimer: 'NOT ACTUALLY A PZU SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real PZU product.',
   },
+  '6f7c082b': {
+    slug: '6f7c082b',
+    company: 'Temenos',
+    vertical: 'banking',
+    page: { file: '6f7c082b.html', title: 'Temenos Payments | Real-Time, Scalable Payments Solutions' },
+    disclaimer: 'NOT ACTUALLY A TEMENOS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Temenos product.',
+  },
   'e302af0c': {
     slug: 'e302af0c',
     company: 'Origin',
