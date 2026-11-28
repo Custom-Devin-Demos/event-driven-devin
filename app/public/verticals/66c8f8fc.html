@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EE0000">
+<title>My Verizon</title>
+<style>
+  :root { --red:#EE0000; --yellow:#F8FF3C; --ink:#000; --gray:#6F7171; --line:#D8DADA; --bg:#F6F6F6; --cream:#F7F1E8; --blue:#0088CE; --lblue:#B8E0F7; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Verizon NHG DS", "Neue Haas Grotesk Display", "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; }
+  button, input { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  /* Sign in */
+  #login { background: #fff; min-height: 100vh; padding: calc(env(safe-area-inset-top) + 56px) 24px 32px; display: flex; flex-direction: column; }
+  .wordmark { font-weight: 800; font-size: 30px; letter-spacing: -1.2px; display: inline-flex; align-items: flex-start; }
+  .wordmark svg { margin: -6px 0 0 2px; }
+  #login h1 { font-size: 30px; line-height: 1.1; letter-spacing: -0.6px; margin: 40px 0 8px; font-weight: 700; }
+  #login .sub { color: var(--gray); font-size: 15px; margin: 0 0 28px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .field input { width: 100%; height: 48px; border: 1px solid #A7A7A7; border-bottom: 1px solid #000; border-radius: 0; padding: 0 12px; font-size: 16px; background: #fff; }
+  .field input:focus { outline: 2px solid #000; outline-offset: 1px; }
+  .check { display: flex; align-items: center; gap: 10px; font-size: 15px; margin: 6px 0 26px; }
+  .check input { width: 20px; height: 20px; accent-color: #000; margin: 0; }
+  .btn { display: block; width: 100%; height: 48px; border-radius: 24px; border: 1px solid #000; font-size: 16px; font-weight: 700; background: #000; color: #fff; }
+  .btn.sec { background: #fff; color: #000; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .links { display: flex; justify-content: space-between; font-size: 14px; margin-top: 18px; }
+  .links a { color: #000; }
+  .notice { background: #FFF4E5; border-left: 4px solid #F2A900; padding: 10px 12px; font-size: 14px; margin-bottom: 18px; }
+  .err { color: var(--red); font-size: 14px; margin: -8px 0 14px; }
+  .legal { margin-top: auto; padding-top: 28px; color: var(--gray); font-size: 12px; line-height: 1.5; }
+  .faceid { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: grid; place-items: center; z-index: 50; }
+  .faceid div { background: rgba(250,250,250,.96); border-radius: 22px; width: 170px; height: 170px; display: grid; place-items: center; text-align: center; font-size: 15px; font-weight: 600; }
+
+  /* App */
+  .hdr { background: var(--red); padding: calc(env(safe-area-inset-top) + 16px) 16px 18px; position: sticky; top: 0; z-index: 10; }
+  .hdr-row { display: flex; align-items: center; gap: 12px; min-height: 32px; margin-bottom: 14px; }
+  .hdr-row .t { color: var(--yellow); font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .hdr-row .wordmark { color: #fff; font-size: 24px; }
+  .hdr-row .sp { margin-left: auto; }
+  .icon-btn { background: none; border: 0; padding: 0; width: 30px; height: 30px; display: grid; place-items: center; }
+  .search { display: flex; align-items: center; gap: 12px; width: 100%; background: #fff; border: 0; border-radius: 24px; height: 44px; padding: 0 16px; color: #747676; font-size: 15px; text-align: left; }
+  main { padding: 0 16px 130px; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .card { background: #fff; border-radius: 10px; padding: 16px; margin-top: 14px; }
+  .card h3 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+  .card p { margin: 0; }
+  .big { font-size: 19px; margin: 6px 0 14px !important; }
+  .pills { display: flex; gap: 10px; }
+  .pill { flex: 1; height: 34px; border-radius: 17px; border: 1px solid #000; background: #fff; font-size: 13px; font-weight: 700; }
+  h2.sec { font-size: 22px; font-weight: 400; letter-spacing: -0.3px; margin: 24px 0 0; }
+  .dollars { background: var(--blue); color: #fff; border-radius: 10px; padding: 14px; margin-top: 12px; }
+  .dollars .head { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 17px; }
+  .dollars .head span:last-child { margin-left: auto; }
+  .dollars small { display: block; opacity: .9; font-size: 13px; margin: 6px 0 12px; }
+  .boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .box { background: #fff; color: #000; border-radius: 8px; padding: 10px 12px; }
+  .box.l { background: var(--lblue); }
+  .box b { display: block; font-size: 13px; }
+  .box strong { font-size: 26px; letter-spacing: -0.5px; }
+  .shine { background: var(--red); color: #fff; border-radius: 10px; padding: 14px; margin-top: 12px; }
+  .shine .head { display: flex; justify-content: space-between; font-weight: 700; font-size: 17px; }
+  .shine small { display: block; font-size: 13px; margin: 6px 0 12px; opacity: .95; }
+  .shine .pics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .shine img { width: 100%; height: 96px; object-fit: cover; border-radius: 6px; display: block; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid #EAEAEA; }
+  .row:first-of-type { border-top: 0; }
+  .row small { display: block; color: #333; font-size: 12px; }
+  .row b { font-size: 15px; }
+  .row .d { font-size: 13px; margin-top: 2px; }
+  .chev { flex: none; }
+  .bar { height: 8px; background: #E6E6E6; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+  .bar i { display: block; height: 100%; width: 28%; background: var(--blue); }
+  .usage b.n { color: var(--blue); }
+  .offer { position: relative; border-radius: 12px; overflow: hidden; margin-top: 12px; color: #fff; min-height: 170px; background: #111; }
+  .offer img { width: 100%; height: 170px; object-fit: cover; display: block; opacity: .55; }
+  .offer div { position: absolute; left: 16px; bottom: 14px; right: 16px; }
+  .offer b { display: block; font-size: 23px; letter-spacing: -0.4px; }
+  .offer span { font-size: 13px; }
+  .selector { background: #fff; margin: 0 -16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; }
+  .selector .ph { width: 34px; height: 34px; border-radius: 8px; background: var(--cream); display: grid; place-items: center; }
+  .selector svg.chev { margin-left: auto; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .duo .card { margin: 0; text-align: center; font-weight: 700; font-size: 14px; padding: 18px 8px; }
+  .duo .card.l { text-align: left; font-weight: 400; }
+  .duo .card.l h3 { font-size: 15px; }
+  .duo .card.l p { font-size: 13px; color: #333; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+  .tile { background: #fff; border: 0; border-radius: 10px; padding: 14px 6px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.2; }
+  .tile .ic { width: 50px; height: 50px; border-radius: 50%; background: var(--cream); display: grid; place-items: center; margin: 0 auto 8px; }
+  .cats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .cat { background: #fff; border-radius: 8px; min-height: 50px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; }
+  .sup .card { display: flex; justify-content: space-between; align-items: center; }
+  .sup .duo .card { display: block; }
+  .sup .card .ic { width: 46px; height: 46px; border-radius: 50%; background: var(--cream); display: grid; place-items: center; flex: none; }
+  .amount { font-size: 40px; font-weight: 700; letter-spacing: -1px; margin: 4px 0; }
+  .lines .row { font-size: 14px; }
+  .lines .row span:last-child { font-weight: 700; white-space: nowrap; }
+  .lines .neg { color: #008331; }
+  .btn.red { background: var(--red); border-color: var(--red); margin-top: 14px; }
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 110px; background: #000; color: #fff; font-size: 14px; padding: 12px 16px; border-radius: 8px; z-index: 40; max-width: 360px; }
+  .chat { padding-top: 16px; }
+  .bubble { background: #E9E9E9; border-radius: 18px; padding: 10px 14px; margin: 10px 0 10px auto; width: fit-content; max-width: 80%; font-size: 14px; }
+  .answer { font-size: 14px; line-height: 1.45; }
+  .answer h4 { margin: 14px 0 6px; font-size: 15px; }
+  .answer ul { padding-left: 18px; margin: 0; }
+  .answer li { margin: 6px 0; }
+  .ask { position: fixed; bottom: 104px; left: 50%; transform: translateX(-50%); width: calc(min(430px, 100vw) - 32px); background: #fff; border: 1px solid #A7A7A7; border-radius: 16px; padding: 12px 14px; color: var(--gray); font-size: 14px; }
+  .signout { display: block; margin: 22px auto 0; background: none; border: 0; text-decoration: underline; font-size: 14px; }
+
+  /* Tab bar */
+  #tabbar { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 14px); left: 50%; transform: translateX(-50%); width: calc(min(430px, 100vw) - 24px); background: rgba(255,255,255,.97); border-radius: 34px; box-shadow: 0 6px 24px rgba(0,0,0,.14); display: flex; justify-content: space-around; padding: 6px; z-index: 20; }
+  #tabbar button { flex: 1; background: none; border: 0; border-radius: 28px; padding: 8px 0 6px; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #000; }
+  #tabbar button.on { background: #F2F2F2; color: var(--red); }
+  #tabbar button.on svg { stroke: var(--red); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H4m7-7l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M15.5 15.5L21 21" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M10 3l1.6 4.4L16 9l-4.4 1.6L10 15l-1.6-4.4L4 9l4.4-1.6zM18 13l.9 2.1L21 16l-2.1.9L18 19l-.9-2.1L15 16l2.1-.9z" fill="currentColor"/></symbol>
+  <symbol id="i-me" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke-width="1.6"/><path d="M4 21c1-4.5 4.4-6.5 8-6.5s7 2 8 6.5" fill="none" stroke-width="1.6"/></symbol>
+  <symbol id="i-mobile" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2" fill="none" stroke-width="1.6"/><path d="M10.5 18.5h3" stroke-width="1.6"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7v9.5h-17z" fill="none" stroke-width="1.6"/><path d="M8.5 15a5 5 0 017 0M10.3 17.2a2.4 2.4 0 013.4 0" fill="none" stroke-width="1.4"/></symbol>
+  <symbol id="i-shop" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 016 0v2" fill="none" stroke-width="1.6"/></symbol>
+  <symbol id="i-support" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke-width="1.6"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .7-1.5 1.2-1.5 2.5M12 17h.01" fill="none" stroke-width="1.6"/></symbol>
+  <symbol id="i-dollar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M14.5 9c-.4-1-1.3-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2c-1.3 0-2.2-.6-2.6-1.6M12 6v1.5M12 16.5V18" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 24"><path d="M2 12l5.5 7L18 2" fill="none" stroke="#EE0000" stroke-width="4.2" stroke-linecap="square"/></symbol>
+  <symbol id="i-face" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 015.5 4H8M16 4h2.5A1.5 1.5 0 0120 5.5V8M20 16v2.5a1.5 1.5 0 01-1.5 1.5H16M8 20H5.5A1.5 1.5 0 014 18.5V16M9 9v1.5M15 9v1.5M12 9v4h-1M9 16c1.7 1.3 4.3 1.3 6 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+</svg>
+
+<section id="login" aria-label="Sign in">
+  <span class="wordmark">verizon<svg width="16" height="20"><use href="#i-check"/></svg></span>
+  <h1>Sign in to My&nbsp;Verizon</h1>
+  <p class="sub">Manage your mobile and home accounts in one place.</p>
+  <div class="notice" id="loginNotice" hidden></div>
+  <form id="loginForm" method="post" autocomplete="on" novalidate>
+    <div class="field"><label for="userId">User ID or Verizon mobile number</label><input id="userId" name="userId" autocomplete="username" value="sidney.morgan"></div>
+    <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" value="mivz-2026"></div>
+    <p class="err" id="loginError" hidden></p>
+    <label class="check"><input type="checkbox" id="rememberMe" checked> Remember me</label>
+    <button class="btn" type="submit" id="signInBtn">Sign in</button>
+    <button class="btn sec" type="button" id="faceIdBtn"><svg width="22" height="22"><use href="#i-face"/></svg> Use Face ID</button>
+  </form>
+  <div class="links"><a href="#" onclick="return false">Forgot your info?</a><a href="#" onclick="return false">Register</a></div>
+  <p class="legal">You must be 18 or older to use My Verizon. Passkeys are only available on verizon.com.</p>
+</section>
+<div class="faceid" id="faceIdSheet" hidden><div><svg width="64" height="64"><use href="#i-face"/></svg>Face ID</div></div>
+
+<div id="app" hidden>
+  <header class="hdr">
+    <div class="hdr-row">
+      <button class="icon-btn" id="backBtn" hidden aria-label="Back"><svg width="24" height="24" style="color:#fff"><use href="#i-back"/></svg></button>
+      <span class="wordmark" id="brandTitle">verizon</span>
+      <span class="t" id="viewTitle" hidden></span>
+      <button class="icon-btn sp" aria-label="Search" data-go="chat"><svg width="22" height="22" style="color:#fff"><use href="#i-search"/></svg></button>
+    </div>
+    <button class="search" data-go="chat"><svg width="18" height="18" style="color:#000"><use href="#i-spark"/></svg> Get answers fast</button>
+  </header>
+
+  <main>
+    <section class="view" id="v-yo">
+      <div class="card">
+        <h3>AutoPay is on</h3>
+        <p class="big" id="autoPayLine">Scheduled for Dec 15</p>
+        <div class="pills"><button class="pill" data-go="factura">Manage AutoPay</button><button class="pill" data-go="factura">Bill summary</button></div>
+      </div>
+      <h2 class="sec">Verizon loyalty</h2>
+      <div class="dollars">
+        <div class="head"><svg width="22" height="22"><use href="#i-dollar"/></svg><span>Verizon Dollars</span><span><svg width="18" height="18"><use href="#i-chev"/></svg></span></div>
+        <small>Earn 3% back on every bill.</small>
+        <div class="boxes"><div class="box"><b>Available</b><strong id="dAvail">$8.10</strong></div><div class="box l"><b>Last 30 days</b><strong id="dLast">$4.05</strong></div></div>
+      </div>
+      <div class="shine">
+        <div class="head"><span>Verizon Shine</span><svg width="18" height="18"><use href="#i-chev"/></svg></div>
+        <small>Daily deals. Weekly prizes. Experience giveaways every Monday.</small>
+        <div class="pics"><img src="/verticals/66c8f8fc-assets/shine-stadium.jpg" alt="Stadium at night"><img src="/verticals/66c8f8fc-assets/shine-dog.jpg" alt="Smiling dog"></div>
+      </div>
+      <h2 class="sec">Your usage</h2>
+      <div class="card usage">
+        <div class="row"><div><b>Data</b><div class="d"><b class="n" id="dataGb">18.30</b> GB / Unlimited</div></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div>
+        <div class="bar"><i></i></div>
+        <p style="font-size:12px;color:#333;margin-top:8px" id="cycleLine">22 days left in cycle (Nov 16 – Dec 15)</p>
+      </div>
+      <h2 class="sec">Offers for you</h2>
+      <div class="offer"><img src="/verticals/66c8f8fc-assets/offer-iphone.jpg" alt=""><div><b>Upgrade to iPhone 17 Pro</b><span>Your line (501) 555-1212 is ready to upgrade. Pay over 36 months at 0% APR.</span></div></div>
+      <button class="signout" id="signOutBtn">Sign out</button>
+    </section>
+
+    <section class="view" id="v-movil">
+      <div class="selector"><span class="ph"><svg width="20" height="20" stroke="#000"><use href="#i-mobile"/></svg></span><span id="deviceName">Sidney's iPhone</span><svg class="chev" width="20" height="20"><use href="#i-down"/></svg></div>
+      <div class="card">
+        <div class="row"><div><small>Device details</small><b id="mNumber">(501) 555-1212</b><div class="d" id="mModel">Apple iPhone 15 Pro Max, White Titanium, 256 GB</div></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div>
+        <div class="row"><div><small>Plan</small><b id="mPlan">Unlimited Plus</b></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div>
+        <div class="row"><div><small>Device status</small><b id="mStatus">Ready to upgrade</b></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div>
+      </div>
+      <div class="card usage">
+        <div class="row"><div><b style="font-size:17px">Usage</b><div class="d">22 days left in bill cycle (Nov 16 – Dec 15)</div></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div>
+        <div class="card" style="background:#F6F6F6;margin-top:8px"><b>Data</b><p style="margin-top:4px"><b class="n">18.30</b> GB / Unlimited</p><div class="bar"><i></i></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-hogar">
+      <div class="selector"><span class="ph"><svg width="20" height="20" stroke="#000"><use href="#i-home"/></svg></span><span>1 Verizon Way</span><svg class="chev" width="20" height="20"><use href="#i-down"/></svg></div>
+      <div class="card">
+        <div class="row"><div><small>Internet details</small><b>Verizon Router</b><div class="d"><span style="color:#008331">●</span> Online</div></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div>
+        <div class="row"><div><small>Plan</small><b>Fios 1 Gig</b></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div>
+      </div>
+      <div class="duo"><div class="card">Share Wi‑Fi</div><div class="card">Run a speed test</div></div>
+      <h2 class="sec">Other services</h2>
+      <div class="card"><div class="row"><div><small>TV</small><b>Fios TV+</b><div class="d">Our most complete Fios TV plan</div></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div><div class="row"><div><small>Phone</small><b>Fios Home Phone</b></div><svg class="chev" width="20" height="20"><use href="#i-chev"/></svg></div></div>
+    </section>
+
+    <section class="view" id="v-tienda">
+      <div class="tiles">
+        <button class="tile"><span class="ic"><svg width="24" height="24" stroke="#EE0000"><use href="#i-mobile"/></svg></span>Add a line</button>
+        <button class="tile"><span class="ic"><svg width="24" height="24" stroke="#EE0000"><use href="#i-support"/></svg></span>Upgrade device</button>
+        <button class="tile"><span class="ic"><svg width="24" height="24" stroke="#EE0000"><use href="#i-home"/></svg></span>Home internet</button>
+      </div>
+      <div class="cats"><div class="cat">Mobile plans</div><div class="cat">Deals</div><div class="cat">Products & plan perks</div><div class="cat">Smartphones</div><div class="cat">Tablets & laptops</div><div class="cat">Accessories</div><div class="cat">Watches</div><div class="cat">Discounts</div></div>
+      <h2 class="sec">Shop deals</h2>
+      <div class="offer"><img src="/verticals/66c8f8fc-assets/offer-iphone.jpg" alt=""><div><b>Bring your own phone</b><span>Pick a plan and activate your device in minutes.</span></div></div>
+    </section>
+
+    <section class="view sup" id="v-soporte">
+      <div class="card"><div><h3>Support overview</h3><p>Content and tools for you.</p></div><span class="ic"><svg width="22" height="22" stroke="#EE0000"><use href="#i-support"/></svg></span></div>
+      <div class="card"><div><h3>Service center</h3><p>Track your account activity and requests.</p></div><span class="ic"><svg width="22" height="22" stroke="#EE0000"><use href="#i-me"/></svg></span></div>
+      <div class="duo">
+        <div class="card l"><h3>Troubleshooting</h3><p>Diagnose and fix technical issues.</p></div>
+        <div class="card l"><h3>Network status</h3><p>Check service in your area.</p></div>
+        <div class="card l" data-go="chat" role="button" tabindex="0"><h3>Contact us</h3><p>Chat with the Verizon Assistant or an agent, 24/7.</p></div>
+        <div class="card l"><h3>Community</h3><p>Learn from the Verizon Community.</p></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-factura">
+      <div class="card">
+        <small style="font-size:13px">Current balance</small>
+        <div class="amount" id="billAmount">$142.37</div>
+        <p id="billDue">Due Dec 15 · AutoPay on</p>
+        <p style="color:#008331;font-size:14px;margin-top:6px" id="billSavings">You're saving $25.00 this month with discounts.</p>
+        <button class="btn red" type="button" id="payBtn">Pay bill</button>
+        <button class="btn sec" type="button">Manage AutoPay</button>
+      </div>
+      <div class="card lines"><h3>Bill breakdown</h3><p style="font-size:13px;color:#333" id="billPeriod">Nov 16 – Dec 15</p><div id="billLines"></div></div>
+    </section>
+
+    <section class="view chat" id="v-chat">
+      <div class="bubble">What offers do I have?</div>
+      <div class="answer">
+        <p>I found a few ways for you to save more each month and get offers picked for you.</p>
+        <h4>Current benefits</h4>
+        <ul><li><b>Device savings:</b> you're getting $27.78/mo off your device.</li><li><b>Loyalty perks:</b> as a customer, you can get the activation fee waived on your next device.</li></ul>
+        <h4>Ways to save more</h4>
+        <ul><li><b>AutoPay discount:</b> you're already saving $10.00/mo per line with AutoPay and paper-free billing.</li><li><b>Mobile + Home discount:</b> you have Fios, so you save $15.00/mo on your mobile plan.</li></ul>
+      </div>
+      <div class="ask">Ask Verizon</div>
+    </section>
+  </main>
+
+  <nav id="tabbar" aria-label="Main navigation">
+    <button data-tab="yo" class="on"><svg width="22" height="22" stroke="#000"><use href="#i-me"/></svg>Me</button>
+    <button data-tab="movil"><svg width="22" height="22" stroke="#000"><use href="#i-mobile"/></svg>Mobile</button>
+    <button data-tab="hogar"><svg width="22" height="22" stroke="#000"><use href="#i-home"/></svg>Home</button>
+    <button data-tab="tienda"><svg width="22" height="22" stroke="#000"><use href="#i-shop"/></svg>Shop</button>
+    <button data-tab="soporte"><svg width="22" height="22" stroke="#000"><use href="#i-support"/></svg>Support</button>
+  </nav>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  var API = '/api/66c8f8fc';
+  var TITLES = { movil: 'Mobile', hogar: 'Home', tienda: 'Shop', soporte: 'Support', factura: 'Bill', chat: '' };
+  var SUB = { factura: 'yo', chat: null };
+  var session = null;
+  var current = 'yo', previous = 'yo';
+  var $ = function (id) { return document.getElementById(id); };
+
+  function deviceId() {
+    var id = null;
+    try { id = localStorage.getItem('mvz.device'); } catch (e) {}
+    if (!id) {
+      id = 'ios-' + Math.random().toString(36).slice(2, 12);
+      try { localStorage.setItem('mvz.device', id); } catch (e) {}
+    }
+    return id;
+  }
+  function money(c) { var s = c < 0 ? '−' : ''; return s + '$' + (Math.abs(c) / 100).toFixed(2); }
+  function api(path, opts) {
+    opts = opts || {};
+    var headers = { 'Content-Type': 'application/json' };
+    if (session) headers.Authorization = 'Bearer ' + session;
+    return fetch(API + path, { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) { var e = new Error(j.error || 'Error'); e.code = j.code; throw e; } return j; }); });
+  }
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(function () { t.hidden = true; }, 2600); }
+
+  function showLogin(notice) {
+    session = null;
+    $('app').hidden = true; $('login').hidden = false;
+    $('loginNotice').hidden = !notice; $('loginNotice').textContent = notice || '';
+  }
+  function go(view) {
+    if (view !== current) previous = current;
+    current = view;
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'v-' + view); });
+    var isTab = !(view in SUB);
+    var tab = isTab ? view : (SUB[view] || previous);
+    document.querySelectorAll('#tabbar button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === tab); });
+    $('brandTitle').hidden = view !== 'yo';
+    $('viewTitle').hidden = view === 'yo'; $('viewTitle').textContent = TITLES[view] || '';
+    $('backBtn').hidden = isTab;
+    window.scrollTo(0, 0);
+  }
+  function render(a) {
+    $('autoPayLine').textContent = 'Scheduled for ' + a.autoPay.scheduledFor;
+    $('dAvail').textContent = money(a.dollars.availableCents); $('dLast').textContent = money(a.dollars.last30Cents);
+    $('dataGb').textContent = a.mobile.usage.dataGb.toFixed(2);
+    $('cycleLine').textContent = a.mobile.usage.daysLeft + ' days left in cycle (' + a.mobile.usage.cycle + ')';
+    $('deviceName').textContent = a.mobile.device; $('mNumber').textContent = a.mobile.number; $('mModel').textContent = a.mobile.model;
+    $('mPlan').textContent = a.mobile.plan; $('mStatus').textContent = a.mobile.status;
+    $('billAmount').textContent = money(a.bill.balanceCents);
+    $('billDue').textContent = 'Due ' + a.bill.dueDate + (a.autoPay.enabled ? ' · AutoPay on' : '');
+    $('billSavings').textContent = "You're saving " + money(a.bill.savingsCents) + ' this month with discounts.';
+    $('billPeriod').textContent = a.bill.period;
+    $('billLines').innerHTML = a.bill.lines.map(function (l) {
+      return '<div class="row"><span>' + l.label + '</span><span class="' + (l.amountCents < 0 ? 'neg' : '') + '">' + money(l.amountCents) + '</span></div>';
+    }).join('') + '<div class="row"><b>Total</b><b>' + money(a.bill.balanceCents) + '</b></div>';
+  }
+  function enter(res) {
+    session = res.sessionToken;
+    return api('/account').then(function (a) {
+      render(a);
+      $('login').hidden = true; $('app').hidden = false; go('yo');
+    });
+  }
+  function signIn(password) {
+    $('loginError').hidden = true;
+    return api('/login', { method: 'POST', body: { userId: $('userId').value, password: password, rememberMe: $('rememberMe').checked, deviceId: deviceId() } })
+      .then(function (res) {
+        if (res.rememberToken) localStorage.setItem('mvz.remember', res.rememberToken); else localStorage.removeItem('mvz.remember');
+        return enter(res);
+      })
+      .catch(function (e) { $('loginError').textContent = e.message; $('loginError').hidden = false; });
+  }
+
+  $('loginForm').addEventListener('submit', function (e) { e.preventDefault(); signIn($('password').value); });
+  $('faceIdBtn').addEventListener('click', function () {
+    $('faceIdSheet').hidden = false;
+    setTimeout(function () { $('faceIdSheet').hidden = true; signIn('face-id'); }, 900);
+  });
+  $('signOutBtn').addEventListener('click', function () {
+    var token = localStorage.getItem('mvz.remember');
+    api('/logout', { method: 'POST', body: { token: token } }).catch(function () {});
+    localStorage.removeItem('mvz.remember');
+    showLogin();
+  });
+  $('payBtn').addEventListener('click', function () { toast('Your payment is scheduled with AutoPay for Dec 15.'); });
+  $('backBtn').addEventListener('click', function () { go(SUB[current] || previous || 'yo'); });
+  document.querySelectorAll('[data-tab]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.tab); }); });
+  document.querySelectorAll('[data-go]').forEach(function (b) {
+    b.addEventListener('click', function () { go(b.dataset.go); });
+    b.addEventListener('keydown', function (e) { if (b.tagName !== 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); go(b.dataset.go); } });
+  });
+
+  var remembered = localStorage.getItem('mvz.remember');
+  if (remembered) {
+    api('/session/resume', { method: 'POST', body: { token: remembered, deviceId: deviceId() } })
+      .then(enter)
+      .catch(function (e) { localStorage.removeItem('mvz.remember'); showLogin(e.message); });
+  } else {
+    showLogin();
+  }
+})();
+</script>
+</body>
+</html>
